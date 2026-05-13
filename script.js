@@ -73,10 +73,6 @@ const MAPBOX_STYLE = "mapbox://styles/wefranch/clvdsc4cp011f01ocbwpn0fi0";
 const MAP_INITIAL_CENTER = [-98.5795, 39.8283];
 const MAP_FIT_PADDING = 32;
 
-if (!HAS_MAPBOX_ACCESS_TOKEN && document.body) {
-  document.body.classList.add("no-mapbox-token");
-}
-
 let changedRows = [];
 let activeIndex = 0;
 let changeNavEngaged = false;
