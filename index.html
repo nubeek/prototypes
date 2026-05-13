@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owners Changes Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="card">
+    <aside class="filter-panel" id="filterPanel" aria-label="Filters">
+      <div class="filter-scroll">
+        <div class="filter-header">
+          <h2>Filter</h2>
+          <p id="filterSummary">Showing 0 of 0 franchisees sorted by relevancy</p>
+        </div>
+
+        <section class="filter-section">
+          <button class="filter-section-title" type="button" aria-expanded="true">
+            <span>Location</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-select-field">
+            <select class="filter-field-select" id="locationFilterSelect" aria-label="Select location" required>
+              <option value="">Select location...</option>
+            </select>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </div>
+          <label class="filter-check filter-check-muted">
+            <input type="checkbox" disabled>
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Use radius</span>
+          </label>
+        </section>
+
+        <section class="filter-section filter-section-collapsed">
+          <button class="filter-section-title" type="button" aria-expanded="false">
+            <span>Category</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-select-field">
+            <select class="filter-field-select" id="categoryFilterSelect" aria-label="Select category" required disabled>
+              <option value="">Select category...</option>
+            </select>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </div>
+          <label class="filter-check filter-check-muted">
+            <input id="categoryFilterExclude" type="checkbox" disabled>
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Exclude from results</span>
+          </label>
+        </section>
+
+        <section class="filter-section filter-section-collapsed">
+          <button class="filter-section-title" type="button" aria-expanded="false">
+            <span>Owners</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-select-field">
+            <select class="filter-field-select" id="ownerFilterSelect" aria-label="Select owner" required>
+              <option value="">Select owner...</option>
+            </select>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </div>
+          <label class="filter-check filter-check-muted">
+            <input id="ownerFilterExclude" type="checkbox">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Exclude from results</span>
+          </label>
+        </section>
+
+        <section class="filter-section filter-section-collapsed">
+          <button class="filter-section-title" type="button" aria-expanded="false">
+            <span>Franchise</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-select-field">
+            <select class="filter-field-select" id="franchiseFilterSelect" aria-label="Select franchise" required>
+              <option value="">Select franchise...</option>
+            </select>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </div>
+          <label class="filter-check filter-check-muted">
+            <input id="franchiseFilterExclude" type="checkbox">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Exclude from results</span>
+          </label>
+        </section>
+
+        <section class="filter-section filter-section-collapsed">
+          <button class="filter-section-title" type="button" aria-expanded="false">
+            <span>Net worth</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="range-track" aria-hidden="true">
+            <span class="range-line"></span>
+            <span class="range-thumb range-thumb-min"></span>
+            <span class="range-thumb range-thumb-max"></span>
+          </div>
+          <div class="filter-range-labels">
+            <span>Minimum</span>
+            <span>Maximum</span>
+          </div>
+          <div class="filter-input-row">
+            <div class="filter-value">$ 0</div>
+            <span class="filter-range-separator">-</span>
+            <div class="filter-value">$ 1B</div>
+          </div>
+        </section>
+
+        <section class="filter-section">
+          <button class="filter-section-title" type="button" aria-expanded="true">
+            <span>Status</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <label class="filter-check">
+            <input class="status-filter-input" type="checkbox">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Verified</span>
+          </label>
+          <label class="filter-check">
+            <input class="status-filter-input" type="checkbox">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Public figure</span>
+          </label>
+          <label class="filter-check">
+            <input class="status-filter-input" type="checkbox">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Agent represented</span>
+          </label>
+          <label class="filter-check">
+            <input class="status-filter-input" type="checkbox">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Multi-brand operator</span>
+          </label>
+          <label class="filter-check">
+            <input class="status-filter-input" type="checkbox">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Multi-unit operator</span>
+          </label>
+        </section>
+      </div>
+      <div class="filter-actions">
+        <button class="clear-filters-btn" id="clearAllFilters" type="button">Clear all (0)</button>
+      </div>
+    </aside>
+
+    <div class="content-shell">
+      <div class="header" aria-label="Owners toolbar">
+        <div class="toolbar-group toolbar-primary">
+          <button class="filter-toggle-btn toolbar-btn" id="filterToggle" type="button" aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+            <img class="toolbar-asset-icon filter-toggle-icon" src="assets/filters.svg" alt="" aria-hidden="true">
+            <span id="filterToggleLabel">Filters</span>
+          </button>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <div class="toolbar-tabs segmented-control">
+            <button class="circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" title="Toggle map" aria-controls="mapPanel" aria-expanded="false">
+              <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
+            </button>
+            <button class="circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="orgChartToggle" type="button" aria-label="Hierarchy view" title="Hierarchy view" aria-controls="mapPanel" aria-pressed="false">
+              <img class="toolbar-asset-icon" src="assets/orgchart.svg" alt="" aria-hidden="true">
+            </button>
+            <button class="circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="rawDataToggle" type="button" aria-label="Toggle raw data view" title="Toggle raw data view" aria-pressed="false">
+              <img class="toolbar-asset-icon raw-data-toggle-icon" src="assets/table.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+
+        <div class="toolbar-group toolbar-actions">
+          <div class="change-nav" hidden>
+            <button class="mark-read" id="markRead" type="button">Mark all read</button>
+            <div class="pager segmented-control" hidden>
+              <span class="change-position sr-only" id="changePosition">0 / 0</span>
+              <button class="circle-btn segmented-control-btn" id="prevChange" type="button" aria-label="Previous update">
+                <img class="nav-chevron nav-chevron-left" src="assets/chevron.svg" alt="" aria-hidden="true">
+              </button>
+              <button class="circle-btn segmented-control-btn segmented-control-btn-divider-left" id="nextChange" type="button" aria-label="Next update">
+                <img class="nav-chevron nav-chevron-right" src="assets/chevron.svg" alt="" aria-hidden="true">
+              </button>
+            </div>
+          </div>
+          <button class="circle-btn toolbar-btn toolbar-btn-divider-left" type="button" aria-label="Inbox" title="Inbox">
+            <img class="toolbar-asset-icon" src="assets/mail.svg" alt="" aria-hidden="true">
+          </button>
+          <details class="toolbar-dropdown">
+            <summary class="mark-read toolbar-menu" aria-label="More options" title="More options">
+              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
+              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+              <button class="toolbar-dropdown-option" id="updatesToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+                <span class="toolbar-switch" aria-hidden="true"></span>
+                <span class="toolbar-dropdown-label">Updates</span>
+              </button>
+              <button class="toolbar-dropdown-option" id="modifiedColumnToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+                <span class="toolbar-switch" aria-hidden="true"></span>
+                <span class="toolbar-dropdown-label">Date modified</span>
+              </button>
+              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+              <button class="toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+                <span class="toolbar-switch" aria-hidden="true"></span>
+                <span class="toolbar-dropdown-label">Reduce motion</span>
+              </button>
+            </div>
+          </details>
+          <button class="circle-btn toolbar-btn toolbar-search-btn toolbar-btn-divider-left" type="button" aria-label="Search" title="Search" disabled>
+            <img class="toolbar-asset-icon" src="assets/search.svg" alt="" aria-hidden="true">
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 28%"><span class="th-content">Name <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 26%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 20%"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header" id="modeColumnHeader" data-sort-key="modified" aria-sort="none" style="width: 15%"><span class="th-content"><span id="modeColumnLabel">Modified</span> <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header right" id="combinedContactsHeader" data-sort-key="contacts" aria-sort="none" style="width: 11%"><span class="th-content">Contacts <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header right" id="locationsColumnHeader" data-sort-key="locations" aria-sort="none" style="width: 11%"><span class="th-content">Locations <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+            </tr>
+          </thead>
+          <tbody id="ownersTableBody"></tbody>
+        </table>
+      </div>
+
+      <aside class="map-panel" id="mapPanel" aria-label="Franchisee details">
+        <div class="owner-map-header" id="ownerMapHeader" hidden></div>
+        <div class="map-container panel-map-container" id="ownersMap"></div>
+        <div class="owner-detail-panel" id="ownerDetailsPanel" hidden></div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="profile-modal-overlay" id="profileModal" hidden>
+    <section class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalName">
+      <button class="owner-detail-close profile-modal-close" type="button" aria-label="Close profile">
+        <img src="assets/close.svg" alt="" aria-hidden="true">
+      </button>
+      <div class="profile-modal-content" id="profileModalContent"></div>
+    </section>
+  </div>
+
+  <script src="data/owners.js"></script>
+  <script src="data/locations.js"></script>
+  <script src="data/org-chart.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
