@@ -67,7 +67,8 @@ const activeIconColor = "#7a63dd";
 const inactiveIconColor = "rgba(122, 99, 221, 0.15)";
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 const ACTIVE_HIGHLIGHT_FADE_MS = 220;
-const MAPBOX_ACCESS_TOKEN = "pk.eyJ1Ijoid2VmcmFuY2giLCJhIjoiY2xndXk2Y3pqMGNqaDNlbGxqZzFyMW5vdiJ9.WSBT47OQp7HfS0cbFWiq3g";
+const MAPBOX_ACCESS_TOKEN = window.CST_ENV?.MAPBOX_ACCESS_TOKEN || "";
+const HAS_MAPBOX_ACCESS_TOKEN = Boolean(MAPBOX_ACCESS_TOKEN);
 const MAPBOX_STYLE = "mapbox://styles/wefranch/clvdsc4cp011f01ocbwpn0fi0";
 const MAP_INITIAL_CENTER = [-98.5795, 39.8283];
 const MAP_FIT_PADDING = 32;
@@ -520,7 +521,7 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
 }
 
 function initializeOwnersMap() {
-  if (ownersMapInitialized || !window.mapboxgl) return;
+  if (ownersMapInitialized || !window.mapboxgl || !HAS_MAPBOX_ACCESS_TOKEN) return;
 
   ownersMapInitialized = true;
   mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
@@ -1638,7 +1639,7 @@ function openOwnerOrgChart(ownerIndex, { scrollTable = false, updateAnchoredOwne
 }
 
 function initializeOwnerDetailsMap(ownerIndex) {
-  if (!window.mapboxgl) return;
+  if (!window.mapboxgl || !HAS_MAPBOX_ACCESS_TOKEN) return;
 
   const mapContainer = document.getElementById("ownerDetailsMap");
   if (!mapContainer) return;
