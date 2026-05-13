@@ -620,6 +620,10 @@ function getInitials(name) {
 function isOwnerHeaderViewActive(view, ownerIndex) {
   const currentMode = getCurrentPanelMode();
 
+  if (view === "details") {
+    return currentMode === "details" && activeDetailOwnerIndex === ownerIndex;
+  }
+
   if (view === "map") {
     return currentMode === "map" && activeMapOwnerIndex === ownerIndex;
   }
@@ -628,7 +632,11 @@ function isOwnerHeaderViewActive(view, ownerIndex) {
     return currentMode === "org" && activeOrgOwnerIndex === ownerIndex;
   }
 
-  return globalRawDataViewOpen && activeRawOwnerIndex === ownerIndex;
+  if (view === "raw") {
+    return globalRawDataViewOpen && activeRawOwnerIndex === ownerIndex;
+  }
+
+  return false;
 }
 
 function getOwnerHeaderViewControls(owner) {
@@ -636,11 +644,19 @@ function getOwnerHeaderViewControls(owner) {
   const rawDataDisabled = !isRawDataAvailable(owner);
   const buttons = [
     {
+      view: "details",
+      label: "Show owner details",
+      title: "Details",
+      icon: "assets/about.svg",
+      iconClass: "",
+      imageClass: "about-toggle-icon"
+    },
+    {
       view: "map",
       label: "Show owner map",
       title: "Map",
       icon: "assets/map.svg",
-      iconClass: ""
+      iconClass: "segmented-control-btn-divider-left"
     },
     {
       view: "org",
@@ -664,6 +680,7 @@ function getOwnerHeaderViewControls(owner) {
       ${buttons.map((button) => {
         const isActive = isOwnerHeaderViewActive(button.view, ownerIndex);
         const rawIconClass = button.view === "raw" ? " raw-data-toggle-icon" : "";
+        const imageClass = button.imageClass ? ` ${button.imageClass}` : "";
         return `
           <button
             class="circle-btn segmented-control-btn owner-header-view-btn ${button.iconClass} ${isActive ? "is-active" : ""}"
@@ -675,7 +692,7 @@ function getOwnerHeaderViewControls(owner) {
             aria-pressed="${String(isActive)}"
             ${button.disabled ? "disabled aria-disabled=\"true\"" : ""}
           >
-            <img class="toolbar-asset-icon${rawIconClass}" src="${button.icon}" alt="" aria-hidden="true">
+            <img class="toolbar-asset-icon${rawIconClass}${imageClass}" src="${button.icon}" alt="" aria-hidden="true">
           </button>
         `;
       }).join("")}
@@ -730,9 +747,14 @@ function handleOwnerHeaderViewButton(button) {
     if (view === "raw") {
       closeOwnerRawData(ownerIndex);
       syncOwnerHeaderViewState();
-    } else if (view === "map" || view === "org") {
+    } else if (view === "details" || view === "map" || view === "org") {
       showOwnerDetailView(ownerIndex);
     }
+    return;
+  }
+
+  if (view === "details") {
+    showOwnerDetailView(ownerIndex);
     return;
   }
 

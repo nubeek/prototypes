@@ -98,11 +98,21 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 .owner-map-header {
   --owner-panel-padding-x: 20px;
   --owner-panel-padding-y: 20px;
-  --owner-header-bg: #f4f4f4;
+  --owner-header-bg: rgba(244, 244, 244, 1.0);
+  --owner-header-bg-transparent: rgba(244, 244, 244, 0);
   container: owner-detail / inline-size;
-  flex: 0 0 auto;
-  background: var(--owner-header-bg);
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 0;
+  z-index: 5;
+  background: transparent;
   border-radius: 10px 10px 0 0;
+  pointer-events: none;
+}
+
+.owner-map-header > * {
+  pointer-events: auto;
 }
 
 .owner-map-header[hidden] {
@@ -115,9 +125,43 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   padding: var(--owner-panel-padding-y) var(--owner-panel-padding-x);
   background: linear-gradient(
     to bottom,
-    rgba(244, 244, 244, 1) 0%,
-    rgba(244, 244, 244, 0) 100%
+    var(--owner-header-bg) 0%,
+    var(--owner-header-bg-transparent) 100%
   );
+  border-radius: 10px 10px 0 0;
+  overflow: visible;
+}
+
+.owner-map-header .owner-detail-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: -56px;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.01);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: 10px 10px 0 0;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgba(0, 0, 0, 0.7) 55%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgba(0, 0, 0, 0.7) 55%,
+    transparent 100%
+  );
+}
+
+.owner-map-header .owner-detail-header > * {
+  position: relative;
+  z-index: 1;
 }
 
 .owner-map-header .owner-detail-header::after {
@@ -125,7 +169,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 }
 
 .map-panel.is-owner-map-filtered .panel-map-container {
-  border-radius: 0 0 10px 10px;
+  border-radius: 10px;
 }
 
 .map-panel.is-details-mode .panel-map-container {
@@ -565,7 +609,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 }
 
 .owner-detail-contact {
-  padding-top: 26px;
+  padding-top: 16px;
 }
 
 .owner-detail-subtitle {
@@ -1704,6 +1748,11 @@ h1 {
   height: 14px;
 }
 
+.about-toggle-icon {
+  width: 16px;
+  height: 16px;
+}
+
 .raw-data-toggle-icon {
   width: 18px;
   height: 18px;
@@ -2480,7 +2529,7 @@ tr.changed.is-active td:last-child {
 
   .owner-detail-header h2 {
     order: 2;
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1.2;
     flex: 1 1 0;
     min-width: 0;
@@ -2527,7 +2576,7 @@ tr.changed.is-active td:last-child {
 
   .owner-map-header .owner-detail-header h2 {
     order: 2;
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1.2;
     flex: 1 1 0;
     min-width: 0;
