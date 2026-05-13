@@ -19,3 +19,4 @@ window.CST_ENV = {
 
 - `.env.local` is git-ignored and should never be committed.
 - If a token is ever exposed, rotate it in Mapbox and update your local `.env.local`.
+- GitHub Pages does not serve local `.env.local`, so the deployed prototype falls back to a static US map image (`us-map-snapshot.png`) when no token is available.
