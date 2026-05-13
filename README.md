@@ -4,19 +4,19 @@ Static HTML/CSS/JS prototype for exploring franchise owner data and map-based vi
 
 ## Local setup
 
-1. Ensure there is a `.env.local` file in the project root.
-2. Define the Mapbox token in that file using:
+1. Create a `.env.local` file in the project root:
 
 ```js
 window.CST_ENV = {
-  MAPBOX_ACCESS_TOKEN: "your_mapbox_access_token_here"
+  MAPBOX_ACCESS_TOKEN: "your_local_dev_token_here"
 };
 ```
 
-3. Open `index.html` in your local environment as usual.
+2. Start a local server (for example `python3 -m http.server 5500`) and open the app via localhost.
+3. If `.env.local` is missing, the app falls back to the hardcoded GitHub token in `script.js`.
 
 ## Notes
 
-- `.env.local` is git-ignored and should never be committed.
-- If a token is ever exposed, rotate it in Mapbox and update your local `.env.local`.
-- GitHub Pages does not serve local `.env.local`, so the deployed prototype falls back to a static US map image (`us-map-snapshot.png`) when no token is available.
+- Restrict the Mapbox token to the expected URL(s) in the Mapbox dashboard.
+- `.env.local` is git-ignored and intended for local-only token overrides.
+- If the token is removed or unavailable, the deployed prototype falls back to a static US map image (`us-map-snapshot.png`).

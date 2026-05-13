@@ -67,11 +67,16 @@ const activeIconColor = "#7a63dd";
 const inactiveIconColor = "rgba(122, 99, 221, 0.15)";
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 const ACTIVE_HIGHLIGHT_FADE_MS = 220;
-const MAPBOX_ACCESS_TOKEN = window.CST_ENV?.MAPBOX_ACCESS_TOKEN || "";
+const MAPBOX_ACCESS_TOKEN = window.CST_ENV?.MAPBOX_ACCESS_TOKEN
+  || "pk.eyJ1IjoibnViZWVrIiwiYSI6ImNtcDQ5bHZ1ODA3OGYycXF6czNpNzl0a2kifQ.PRQujjMXkroy4irt3-Az1Q";
 const HAS_MAPBOX_ACCESS_TOKEN = Boolean(MAPBOX_ACCESS_TOKEN);
-const MAPBOX_STYLE = "mapbox://styles/wefranch/clvdsc4cp011f01ocbwpn0fi0";
+const MAPBOX_STYLE = window.CST_ENV?.MAPBOX_STYLE || "mapbox://styles/nubeek/cka7zizn720s71iogpmkvmw5z";
 const MAP_INITIAL_CENTER = [-98.5795, 39.8283];
 const MAP_FIT_PADDING = 32;
+
+if (!HAS_MAPBOX_ACCESS_TOKEN && document.body) {
+  document.body.classList.add("no-mapbox-token");
+}
 
 let changedRows = [];
 let activeIndex = 0;

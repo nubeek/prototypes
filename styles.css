@@ -95,8 +95,8 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   min-height: 0;
 }
 
-.panel-map-container,
-.owner-detail-map {
+body.no-mapbox-token .panel-map-container,
+body.no-mapbox-token .owner-detail-map {
   background-color: #d7e0ee;
   background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15)),
     url("us-map-snapshot.png");
@@ -105,8 +105,8 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   background-position: center;
 }
 
-.panel-map-container::after,
-.owner-detail-map::after {
+body.no-mapbox-token .panel-map-container::after,
+body.no-mapbox-token .owner-detail-map::after {
   content: "Static US map preview";
   position: absolute;
   right: 10px;
