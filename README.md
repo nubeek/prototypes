@@ -19,4 +19,3 @@ window.CST_ENV = {
 
 - Restrict the Mapbox token to the expected URL(s) in the Mapbox dashboard.
 - `.env.local` is git-ignored and intended for local-only token overrides.
-- If the token is removed or unavailable, the deployed prototype falls back to a static US map image (`us-map-snapshot.png`).
