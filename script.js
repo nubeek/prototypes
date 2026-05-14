@@ -1795,21 +1795,51 @@ function openOwnerDetails(ownerIndex) {
   refreshChangedRows();
 }
 
-function getOwnerIcon(type, enabled) {
+function getOwnerIcon(type, enabled, href, ownerName, tooltipText) {
   const color = enabled ? activeIconColor : inactiveIconColor;
-
-  if (type === "web") {
-    return `
+  const iconLabel = type === "web" ? "website" : "LinkedIn";
+  const iconMarkup = type === "web"
+    ? `
       <svg class="icon icon-web" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path fill="${color}" d="M10,11.28h-4.01c.38,1.6,1.06,3.11,2,4.45.94-1.34,1.62-2.85,2-4.45ZM4.35,4.72c.35-1.67.99-3.27,1.88-4.72C3.75.58,1.69,2.33.67,4.72h3.67ZM5.6,8c0,.55.04,1.1.1,1.64h4.6c.07-.54.1-1.09.1-1.64,0-.55-.04-1.1-.1-1.64h-4.6c-.07.54-.1,1.09-.1,1.64ZM11.65,4.72h3.67c-1.02-2.39-3.08-4.13-5.56-4.72.89,1.45,1.53,3.04,1.88,4.72ZM6,4.72h4.01c-.38-1.6-1.06-3.11-2-4.45-.94,1.34-1.62,2.85-2,4.45ZM11.65,11.28c-.35,1.67-.99,3.27-1.88,4.72,2.47-.58,4.54-2.33,5.56-4.72h-3.67ZM11.91,6.36c.06.55.09,1.09.09,1.64,0,.55-.03,1.1-.09,1.64h3.93c.22-1.08.22-2.2,0-3.28h-3.93ZM4.35,11.28H.67c1.02,2.39,3.08,4.13,5.56,4.72-.89-1.45-1.53-3.04-1.88-4.72ZM4.09,9.64c-.06-.55-.09-1.09-.09-1.64,0-.55.03-1.1.09-1.64H.16c-.22,1.08-.22,2.2,0,3.28h3.93Z"/>
       </svg>
+    `
+    : `
+      <svg class="icon icon-linkedin" aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path fill="${color}" d="M9,0C4.03,0,0,4.03,0,9s4.03,9,9,9,9-4.03,9-9S13.97,0,9,0ZM6.78,13h-1.78v-5.98h1.78v5.98ZM5.92,6.2c-.59,0-1.07-.4-1.07-.99s.48-1.08,1.07-1.08,1,.48,1,1.08-.41.99-1,.99ZM13.51,13h-1.85v-2.91c0-.69-.01-1.59-.96-1.59s-1.11.76-1.11,1.54v2.96h-1.85v-5.98h1.78v.82h.03c.25-.47.85-.97,1.76-.97,1.87,0,2.22,1.24,2.22,2.85v3.28Z"/>
+      </svg>
     `;
+
+  if (!enabled) {
+    return `<span class="owner-icon-link is-disabled" aria-hidden="true">${iconMarkup}</span>`;
   }
 
   return `
-    <svg class="icon icon-linkedin" aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path fill="${color}" d="M9,0C4.03,0,0,4.03,0,9s4.03,9,9,9,9-4.03,9-9S13.97,0,9,0ZM6.78,13h-1.78v-5.98h1.78v5.98ZM5.92,6.2c-.59,0-1.07-.4-1.07-.99s.48-1.08,1.07-1.08,1,.48,1,1.08-.41.99-1,.99ZM13.51,13h-1.85v-2.91c0-.69-.01-1.59-.96-1.59s-1.11.76-1.11,1.54v2.96h-1.85v-5.98h1.78v.82h.03c.25-.47.85-.97,1.76-.97,1.87,0,2.22,1.24,2.22,2.85v3.28Z"/>
-    </svg>
+    <a
+      class="owner-icon-link"
+      href="${href}"
+      target="_blank"
+      rel="noreferrer noopener"
+      aria-label="Open ${iconLabel} for ${ownerName}"
+      data-tooltip="${tooltipText}"
+    >
+      ${iconMarkup}
+    </a>
+  `;
+}
+
+function getOwnerIcons(owner) {
+  const website = getOwnerWebsite(owner);
+  const websiteUrl = getOwnerWebsiteUrl(owner);
+  const linkedinUrl = getOwnerLinkedinUrl(owner);
+  const websiteTooltip = owner.hasWebsite ? website.replace(/^www\./, "") : "Website unavailable";
+  const linkedinTooltip = owner.hasLinkedin ? owner.ownerName : "LinkedIn unavailable";
+
+  return `
+    <div class="icons owner-icons" role="group" aria-label="${owner.ownerName} links">
+      ${getOwnerIcon("web", owner.hasWebsite, websiteUrl, owner.ownerName, websiteTooltip)}
+      ${getOwnerIcon("linkedin", owner.hasLinkedin, linkedinUrl, owner.ownerName, linkedinTooltip)}
+    </div>
   `;
 }
 
@@ -2072,10 +2102,7 @@ function renderOwners(rows) {
               </div>
               <div class="owner-meta">
                 <div class="owner-name">${owner.ownerName}</div>
-                <div class="icons">
-                  ${getOwnerIcon("web", owner.hasWebsite)}
-                  ${getOwnerIcon("linkedin", owner.hasLinkedin)}
-                </div>
+                ${getOwnerIcons(owner)}
               </div>
             </div>
           </td>
@@ -2545,6 +2572,12 @@ if (tableBody) {
       const ownerIndex = Number(rawRow.dataset.ownerIndex);
       const rowIndex = Number(rawRow.dataset.rawRowIndex);
       openPersonProfile(getPersonProfileFromRawRow(ownerIndex, rowIndex), rawRow);
+      return;
+    }
+
+    const ownerIconLink = event.target.closest(".owner-icon-link");
+    if (ownerIconLink) {
+      event.stopPropagation();
       return;
     }
 

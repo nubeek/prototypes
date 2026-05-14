@@ -2340,6 +2340,12 @@ tbody tr:not(.changed):hover td:first-child {
   background: #f8f7fd;
 }
 
+tbody tr:has(.owner-icons:hover) td,
+tbody tr:has(.owner-icons:focus-within) td {
+  position: relative;
+  z-index: 6;
+}
+
 .card.updates-disabled tbody tr:not(.changed):hover {
   background: #f4f4f4;
 }
@@ -2527,6 +2533,60 @@ tr.changed.is-active td:last-child {
   display: flex;
   align-items: center;
   gap: 7px;
+}
+
+.owner-icons {
+  position: relative;
+  width: fit-content;
+}
+
+.owner-icon-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.owner-icon-link.is-disabled {
+  cursor: default !important;
+}
+
+.owner-icon-link.is-disabled::after {
+  content: none;
+}
+
+.owner-icon-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 100;
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
+  color: #17171c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, -6px);
+  transition: opacity 140ms ease, transform 200ms ease;
+}
+
+.owner-icon-link:hover::after,
+.owner-icon-link:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
 }
 
 .icon {
