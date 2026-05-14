@@ -98,6 +98,7 @@ const HAS_MAPBOX_ACCESS_TOKEN = Boolean(MAPBOX_ACCESS_TOKEN);
 const MAPBOX_STYLE = window.CST_ENV?.MAPBOX_STYLE || "mapbox://styles/nubeek/cka7zizn720s71iogpmkvmw5z";
 const MAP_INITIAL_CENTER = [-98.5795, 39.8283];
 const MAP_FIT_PADDING = 32;
+const MAP_LOCATION_FILTER_RADIUS_MILES = 50;
 
 let changedRows = [];
 let activeIndex = 0;
@@ -189,12 +190,49 @@ function getMotionDelay(delay) {
   return usesReducedMotion() ? 0 : delay;
 }
 
+function getMapFilterLocationCenter(locationLabel = selectedLocationLabel) {
+  if (!locationLabel) return null;
+
+  const locationCenters = [];
+
+  if (typeof OWNER_LOCATION_CENTERS !== "undefined") {
+    locationCenters.push(...OWNER_LOCATION_CENTERS);
+  }
+
+  if (typeof OWNER_HEADQUARTERS_CENTERS !== "undefined") {
+    locationCenters.push(...OWNER_HEADQUARTERS_CENTERS);
+  }
+
+  return locationCenters.find((location) => location.label === locationLabel) || null;
+}
+
+function getLocationDistanceMiles(location, center) {
+  const latitudeDelta = (location.lat - center.lat) * Math.PI / 180;
+  const longitudeDelta = (location.lng - center.lng) * Math.PI / 180;
+  const locationLatitude = location.lat * Math.PI / 180;
+  const centerLatitude = center.lat * Math.PI / 180;
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(locationLatitude) * Math.cos(centerLatitude) * Math.sin(longitudeDelta / 2) ** 2;
+
+  return 3958.8 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function mapLocationMatchesSelectedFilter(location, selectedMapLocationCenter) {
+  if (!selectedLocationLabel) return true;
+  if (location.label !== selectedLocationLabel) return false;
+  if (!selectedMapLocationCenter) return true;
+
+  return getLocationDistanceMiles(location, selectedMapLocationCenter) <= MAP_LOCATION_FILTER_RADIUS_MILES;
+}
+
 function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
   const selectedMapOwnerIndex = selectedOwnerIndex && !ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null;
   const excludedMapOwnerIndex = selectedOwnerIndex && ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null;
   const filteredMapOwnerIndexes = ownerIndex === null
     ? new Set(getFilteredOwners().map((owner) => owner.originalIndex))
     : null;
+  const selectedMapLocationCenter = getMapFilterLocationCenter();
 
   return (window.ownerLocationsData || [])
     .flatMap((owner, index) => {
@@ -204,7 +242,7 @@ function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
       if (ownerIndex === null && excludedMapOwnerIndex !== null && index === excludedMapOwnerIndex) return [];
 
       return owner.locations
-        .filter((location) => !selectedLocationLabel || location.label === selectedLocationLabel)
+        .filter((location) => mapLocationMatchesSelectedFilter(location, selectedMapLocationCenter))
         .map((location) => ({
           type: "Feature",
           properties: {
@@ -2338,7 +2376,7 @@ function updateFilterSummary() {
   const visibleCount = displayedOwners.length;
   const totalCount = owners.length;
   const visibleRange = visibleCount > 0 ? `1-${visibleCount}` : "0";
-  filterSummary.textContent = `Showing ${visibleRange} of ${totalCount} franchisees sorted by relevancy`;
+  filterSummary.textContent = `Showing ${visibleRange} of ${totalCount} records sorted by relevancy`;
   updateClearFiltersButton();
 }
 
@@ -2813,9 +2851,7 @@ function syncPassiveExcludeState(checkbox, hasSelection, excludesSelection) {
 }
 
 if (locationFilterSelect) {
-  const locationSource = typeof OWNER_LOCATION_CENTERS !== "undefined"
-    ? OWNER_LOCATION_CENTERS
-    : (window.ownerLocationsData || []).flatMap((owner) => owner.locations);
+  const locationSource = (window.ownerLocationsData || []).flatMap((owner) => owner.locations);
   const locationLabels = [
     ...new Set(locationSource.map((location) => location.label).filter(Boolean))
   ].sort((a, b) => collator.compare(a, b));
