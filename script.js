@@ -18,6 +18,16 @@ const ownerFilterExclude = document.getElementById("ownerFilterExclude");
 const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
 const franchiseFilterExclude = document.getElementById("franchiseFilterExclude");
 const statusFilterInputs = Array.from(document.querySelectorAll(".status-filter-input"));
+const unitsMinRange = document.getElementById("unitsMinRange");
+const unitsMaxRange = document.getElementById("unitsMaxRange");
+const unitsMinInput = document.getElementById("unitsMinInput");
+const unitsMaxInput = document.getElementById("unitsMaxInput");
+const unitsRangeFill = document.getElementById("unitsRangeFill");
+const contactsMinRange = document.getElementById("contactsMinRange");
+const contactsMaxRange = document.getElementById("contactsMaxRange");
+const contactsMinInput = document.getElementById("contactsMinInput");
+const contactsMaxInput = document.getElementById("contactsMaxInput");
+const contactsRangeFill = document.getElementById("contactsRangeFill");
 const mapToggle = document.getElementById("mapToggle");
 const orgChartToggle = document.getElementById("orgChartToggle");
 const rawDataToggle = document.getElementById("rawDataToggle");
@@ -63,6 +73,20 @@ const owners = (window.ownersData || []).map((owner, index) => ({
   ...owner,
   originalIndex: index
 }));
+const unitCounts = owners
+  .map((owner) => Number(owner.locations))
+  .filter(Number.isFinite);
+const unitsFilterDefaults = {
+  min: unitCounts.length ? Math.min(...unitCounts) : 0,
+  max: unitCounts.length ? Math.max(...unitCounts) : 0
+};
+const contactCounts = owners
+  .map((owner) => Number(owner.contacts))
+  .filter(Number.isFinite);
+const contactsFilterDefaults = {
+  min: contactCounts.length ? Math.min(...contactCounts) : 0,
+  max: contactCounts.length ? Math.max(...contactCounts) : 0
+};
 const activeIconColor = "#7a63dd";
 const inactiveIconColor = "rgba(122, 99, 221, 0.15)";
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
@@ -82,6 +106,10 @@ let selectedLocationLabel = "";
 let selectedCategoryIndex = "";
 let selectedOwnerIndex = "";
 let selectedFranchiseIndex = "";
+let selectedUnitsMin = unitsFilterDefaults.min;
+let selectedUnitsMax = unitsFilterDefaults.max;
+let selectedContactsMin = contactsFilterDefaults.min;
+let selectedContactsMax = contactsFilterDefaults.max;
 let ownerFilterExcludesSelection = false;
 let categoryFilterExcludesSelection = false;
 let franchiseFilterExcludesSelection = false;
@@ -683,7 +711,7 @@ function getOwnerHeaderViewControls(owner) {
         const imageClass = button.imageClass ? ` ${button.imageClass}` : "";
         return `
           <button
-            class="circle-btn segmented-control-btn owner-header-view-btn ${button.iconClass} ${isActive ? "is-active" : ""}"
+            class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn segmented-control-btn owner-header-view-btn ${button.iconClass} ${isActive ? "is-active" : ""}"
             type="button"
             data-owner-header-view="${button.view}"
             data-owner-index="${ownerIndex}"
@@ -792,7 +820,7 @@ function getOwnerHeader(owner, { className = "", closeLabel = "Close owner panel
   const identityMarkup = linksToDetail
     ? `
       <button
-        class="owner-header-owner-action owner-header-logo-action"
+        class="ui-control owner-header-owner-action owner-header-logo-action"
         type="button"
         data-owner-index="${owner.originalIndex}"
         aria-label="Open ${owner.ownerName} details"
@@ -801,7 +829,7 @@ function getOwnerHeader(owner, { className = "", closeLabel = "Close owner panel
       </button>
       <h2>
         <button
-          class="owner-header-owner-action owner-header-name-action"
+          class="ui-control owner-header-owner-action owner-header-name-action"
           type="button"
           data-owner-index="${owner.originalIndex}"
         >
@@ -821,7 +849,7 @@ function getOwnerHeader(owner, { className = "", closeLabel = "Close owner panel
     <header class="owner-detail-header ${className}">
       ${identityMarkup}
       ${getOwnerHeaderViewControls(owner)}
-      <button class="owner-detail-close" type="button" aria-label="${closeLabel}">
+      <button class="ui-control ui-close-button owner-detail-close" type="button" aria-label="${closeLabel}">
         <img src="assets/close.svg" alt="" aria-hidden="true">
       </button>
     </header>
@@ -955,7 +983,7 @@ function renderPersonProfile(profile) {
       </div>
       <div class="profile-modal-field profile-modal-field-full">
         <span>Email</span>
-        <a href="mailto:${profile.email}">${profile.email}</a>
+        <a class="ui-link ui-ellipsis" href="mailto:${profile.email}">${profile.email}</a>
       </div>
       <div class="profile-modal-field">
         <span>Phone number</span>
@@ -968,8 +996,8 @@ function renderPersonProfile(profile) {
     </div>
 
     <div class="profile-modal-actions">
-      <button class="profile-modal-primary" type="button">Save as lead</button>
-      <button class="profile-modal-secondary" type="button">Close</button>
+      <button class="ui-control ui-button ui-button-primary profile-modal-primary" type="button">Save as lead</button>
+      <button class="ui-control ui-button ui-button-secondary profile-modal-secondary" type="button">Close</button>
     </div>
   `;
 }
@@ -1009,7 +1037,9 @@ function ownerMatchesOwnerFilter(owner) {
 function getRawDataOwnerScope() {
   return owners.filter((owner) => (
     ownerMatchesOwnerFilter(owner) &&
-    ownerMatchesFranchiseFilter(owner)
+    ownerMatchesFranchiseFilter(owner) &&
+    ownerMatchesUnitsFilter(owner) &&
+    ownerMatchesContactsFilter(owner)
   ));
 }
 
@@ -1107,11 +1137,11 @@ function renderRawOwnerTable(ownerIndex) {
         <td class="raw-index-cell">${rowIndex + 1}</td>
         <td>
           <div class="raw-name-cell">
-            <span class="raw-avatar" aria-hidden="true">${getInitials(row.name)}</span>
+            <span class="ui-avatar raw-avatar" aria-hidden="true">${getInitials(row.name)}</span>
             <span class="raw-name">${row.name}</span>
           </div>
         </td>
-        <td><span class="raw-email">${row.email}</span></td>
+        <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
         <td><span class="raw-phone">${row.phone}</span></td>
         <td><span class="raw-location">${row.location}</span></td>
         <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
@@ -1153,11 +1183,11 @@ function renderGlobalRawDataTable({ keepPanelOpen = false, activeOwnerIndex = nu
         <td class="raw-index-cell">${rowIndex + 1}</td>
         <td>
           <div class="raw-name-cell">
-            <span class="raw-avatar" aria-hidden="true">${getInitials(row.name)}</span>
+            <span class="ui-avatar raw-avatar" aria-hidden="true">${getInitials(row.name)}</span>
             <span class="raw-name">${row.name}</span>
           </div>
         </td>
-        <td><span class="raw-email">${row.email}</span></td>
+        <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
         <td><span class="raw-phone">${row.phone}</span></td>
         <td><span class="raw-location">${row.location}</span></td>
         <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
@@ -1231,7 +1261,7 @@ function renderOwnerDetails(owner) {
     .map(
       (franchise) => `
         <div class="owner-detail-franchise">
-          <span class="owner-detail-franchise-logo">
+          <span class="ui-tile owner-detail-franchise-logo">
             <span class="owner-detail-franchise-logo-fallback">${getInitials(franchise)}</span>
             <img
               src="${getFranchiseLogoSrc(franchise)}"
@@ -1250,31 +1280,31 @@ function renderOwnerDetails(owner) {
       ${getOwnerHeader(owner, { closeLabel: "Close owner details" })}
 
       <section class="owner-detail-section owner-detail-contact">
-        <h3>Contact</h3>
-        <p>${owner.contactName}</p>
-        <span class="owner-detail-email">${owner.email}</span>
+        <h3 class="ui-section-title">Contact</h3>
+        <p class="ui-body-text">${owner.contactName}</p>
+        <span class="ui-link owner-detail-email">${owner.email}</span>
       </section>
 
       <section class="owner-detail-section">
-        <h3>Website</h3>
-        <a href="${getOwnerWebsiteUrl(owner)}" target="_blank" rel="noreferrer">${website}</a>
+        <h3 class="ui-section-title">Website</h3>
+        <a class="ui-link" href="${getOwnerWebsiteUrl(owner)}" target="_blank" rel="noreferrer">${website}</a>
 
-        <h3 class="owner-detail-subtitle">Linkedin</h3>
-        <a href="${getOwnerLinkedinUrl(owner)}" target="_blank" rel="noreferrer">${owner.ownerName}</a>
+        <h3 class="ui-section-title owner-detail-subtitle">Linkedin</h3>
+        <a class="ui-link" href="${getOwnerLinkedinUrl(owner)}" target="_blank" rel="noreferrer">${owner.ownerName}</a>
       </section>
 
       <section class="owner-detail-section">
-        <h3>Franchises</h3>
+        <h3 class="ui-section-title">Franchises</h3>
         <div class="owner-detail-franchises">${franchiseMarkup}</div>
       </section>
 
       <section class="owner-detail-section owner-detail-location-section">
         <div class="owner-detail-locations-header">
           <div>
-            <h3>Locations</h3>
-            <p>${owner.locations}</p>
+            <h3 class="ui-section-title">Locations</h3>
+            <p class="ui-body-text">${owner.locations}</p>
           </div>
-          <button class="owner-detail-map-link" type="button" data-owner-index="${owner.originalIndex}">
+          <button class="ui-control ui-text-button owner-detail-map-link" type="button" data-owner-index="${owner.originalIndex}">
             Filter in Map
           </button>
         </div>
@@ -1433,12 +1463,12 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
       tabindex="0"
       aria-label="Open ${node.name} profile"
     >
-      <div class="org-person-avatar" aria-hidden="true">${getInitials(node.name)}</div>
+      <div class="ui-avatar org-person-avatar" aria-hidden="true">${getInitials(node.name)}</div>
       <h3>${node.name}</h3>
       <p>${node.title}</p>
       ${directReportCount > 0 ? `
         <button
-          class="org-report-count org-report-count-${type} ${isCollapsed ? "is-collapsed" : "is-expanded"}"
+          class="ui-control org-report-count org-report-count-${type} ${isCollapsed ? "is-collapsed" : "is-expanded"}"
           type="button"
           data-org-node-id="${node.id}"
           data-owner-index="${ownerIndex}"
@@ -1459,11 +1489,11 @@ function getOrgBranchHeader(node, ownerIndex) {
   return `
     <div class="org-branch-header">
       <div class="org-branch-person">
-        <span class="org-branch-avatar" aria-hidden="true">${getInitials(node.name)}</span>
+        <span class="ui-avatar org-branch-avatar" aria-hidden="true">${getInitials(node.name)}</span>
         <span>${node.name}</span>
       </div>
       <button
-        class="org-collapse-button ${isCollapsed ? "is-collapsed" : "is-expanded"}"
+        class="ui-control ui-text-button org-collapse-button ${isCollapsed ? "is-collapsed" : "is-expanded"}"
         type="button"
         data-org-node-id="${node.id}"
         data-owner-index="${ownerIndex}"
@@ -1564,7 +1594,7 @@ function renderDefaultOrgChartState() {
       </div>
       <p class="owner-org-empty-message">
         Select an
-        <button type="button" class="owner-org-inline-trigger" data-open-org-owner-picker>owner</button><br>
+        <button type="button" class="ui-control ui-text-button owner-org-inline-trigger" data-open-org-owner-picker>owner</button><br>
         to load their organization chart.
       </p>
     </article>
@@ -1757,7 +1787,7 @@ function getOwnerIcon(type, enabled) {
 }
 
 function getAddedBadge(count) {
-  return count > 0 ? `<span class="added-count">+${count}</span>` : "";
+  return count > 0 ? `<span class="ui-badge added-count">+${count}</span>` : "";
 }
 
 function showsContactUpdates() {
@@ -1771,7 +1801,7 @@ function ownerHasContactUpdate(owner) {
 function getContactsColumn(owner) {
   return `
     <button
-      class="contacts-action ${activeOrgOwnerIndex === owner.originalIndex ? "is-active" : ""}"
+      class="ui-control ui-row-action contacts-action ${activeOrgOwnerIndex === owner.originalIndex ? "is-active" : ""}"
       type="button"
       data-owner-index="${owner.originalIndex}"
       aria-pressed="${activeOrgOwnerIndex === owner.originalIndex}"
@@ -1862,12 +1892,12 @@ function renderOwners(rows) {
     .map(
       (owner) => `
         <tr
-          class="${ownerHasVisibleChange(owner) ? "changed" : ""} ${activeDetailOwnerIndex === owner.originalIndex || activeOrgOwnerIndex === owner.originalIndex || activeRawOwnerIndex === owner.originalIndex ? "is-selected" : ""}"
+          class="${ownerHasVisibleChange(owner) ? "changed" : ""} ${activeDetailOwnerIndex === owner.originalIndex || activeOrgOwnerIndex === owner.originalIndex || activeMapOwnerIndex === owner.originalIndex || activeRawOwnerIndex === owner.originalIndex ? "is-selected" : ""}"
           data-owner-index="${owner.originalIndex}"
         >
           <td>
             <div class="name-cell">
-              <div class="logo">
+              <div class="ui-tile logo">
                 <img src="${owner.logoSrc}" alt="${owner.logoAlt}">
               </div>
               <div class="owner-meta">
@@ -1881,14 +1911,14 @@ function renderOwners(rows) {
           </td>
           <td>
             <span class="contact-name">${owner.contactName}</span>
-            <span class="email">${owner.email}</span>
+            <span class="ui-link ui-ellipsis email">${owner.email}</span>
           </td>
           <td><span class="franchise-text">${owner.franchise}</span></td>
           ${modifiedColumnVisible ? `<td class="modified-cell">${getModeColumn(owner)}</td>` : ""}
           <td class="contacts-mode-cell">${getContactsColumn(owner)}</td>
           <td>
             <button
-              class="locations ${activeMapOwnerIndex === owner.originalIndex ? "is-active" : ""}"
+              class="ui-control ui-row-action locations ${activeMapOwnerIndex === owner.originalIndex ? "is-active" : ""}"
               type="button"
               data-owner-index="${owner.originalIndex}"
               aria-pressed="${activeMapOwnerIndex === owner.originalIndex}"
@@ -1989,6 +2019,24 @@ function ownerMatchesFranchiseFilter(owner) {
   return franchiseFilterExcludesSelection ? !hasFranchise : hasFranchise;
 }
 
+function unitsFilterIsActive() {
+  return selectedUnitsMin !== unitsFilterDefaults.min || selectedUnitsMax !== unitsFilterDefaults.max;
+}
+
+function ownerMatchesUnitsFilter(owner) {
+  const units = Number(owner.locations);
+  return Number.isFinite(units) && units >= selectedUnitsMin && units <= selectedUnitsMax;
+}
+
+function contactsFilterIsActive() {
+  return selectedContactsMin !== contactsFilterDefaults.min || selectedContactsMax !== contactsFilterDefaults.max;
+}
+
+function ownerMatchesContactsFilter(owner) {
+  const contacts = Number(owner.contacts);
+  return Number.isFinite(contacts) && contacts >= selectedContactsMin && contacts <= selectedContactsMax;
+}
+
 function rawRowMatchesFilters(row) {
   if (selectedLocationLabel && row.location !== selectedLocationLabel) return false;
   if (!selectedFranchiseIndex) return true;
@@ -2001,6 +2049,8 @@ function getFilteredOwners() {
   return owners.filter((owner) => {
     if (!ownerHasLocationLabel(owner, selectedLocationLabel)) return false;
     if (!ownerMatchesFranchiseFilter(owner)) return false;
+    if (!ownerMatchesUnitsFilter(owner)) return false;
+    if (!ownerMatchesContactsFilter(owner)) return false;
     return ownerMatchesOwnerFilter(owner);
   });
 }
@@ -2096,8 +2146,10 @@ function getAppliedFilterCount() {
     selectedFranchiseIndex
   ].filter(Boolean).length;
   const selectedStatusCount = statusFilterInputs.filter((checkbox) => checkbox.checked).length;
+  const selectedUnitsCount = unitsFilterIsActive() ? 1 : 0;
+  const selectedContactsCount = contactsFilterIsActive() ? 1 : 0;
 
-  return selectedFilterCount + selectedStatusCount;
+  return selectedFilterCount + selectedStatusCount + selectedUnitsCount + selectedContactsCount;
 }
 
 function updateClearFiltersButton() {
@@ -2348,11 +2400,149 @@ function syncStatusFilterStates() {
   updateClearFiltersButton();
 }
 
+function clampUnitsValue(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return unitsFilterDefaults.min;
+  return Math.min(unitsFilterDefaults.max, Math.max(unitsFilterDefaults.min, Math.round(numericValue)));
+}
+
+function syncUnitsFilterControls() {
+  const unitsInputs = [unitsMinRange, unitsMaxRange, unitsMinInput, unitsMaxInput].filter(Boolean);
+
+  unitsInputs.forEach((input) => {
+    input.min = String(unitsFilterDefaults.min);
+    input.max = String(unitsFilterDefaults.max);
+  });
+
+  if (unitsMinRange) unitsMinRange.value = String(selectedUnitsMin);
+  if (unitsMaxRange) unitsMaxRange.value = String(selectedUnitsMax);
+  if (unitsMinInput) unitsMinInput.value = String(selectedUnitsMin);
+  if (unitsMaxInput) unitsMaxInput.value = String(selectedUnitsMax);
+
+  if (unitsRangeFill) {
+    const rangeSize = unitsFilterDefaults.max - unitsFilterDefaults.min;
+    const minPercent = rangeSize
+      ? ((selectedUnitsMin - unitsFilterDefaults.min) / rangeSize) * 100
+      : 0;
+    const maxPercent = rangeSize
+      ? ((selectedUnitsMax - unitsFilterDefaults.min) / rangeSize) * 100
+      : 100;
+
+    unitsRangeFill.style.left = `${minPercent}%`;
+    unitsRangeFill.style.right = `${100 - maxPercent}%`;
+  }
+
+  updateClearFiltersButton();
+}
+
+function refreshUnitsFilterResults() {
+  activeMapOwnerIndex = null;
+  activeOrgOwnerIndex = null;
+  syncMapLocationFilter();
+  refreshFilteredViews();
+  refitOpenMapToVisibleLocations();
+  syncOpenOrgPanelWithSelection();
+  tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function setUnitsFilterRange(minValue, maxValue, { changed = "min", refresh = false } = {}) {
+  let nextMin = clampUnitsValue(minValue);
+  let nextMax = clampUnitsValue(maxValue);
+
+  if (nextMin > nextMax) {
+    if (changed === "max") {
+      nextMin = nextMax;
+    } else {
+      nextMax = nextMin;
+    }
+  }
+
+  const didChange = nextMin !== selectedUnitsMin || nextMax !== selectedUnitsMax;
+  selectedUnitsMin = nextMin;
+  selectedUnitsMax = nextMax;
+  syncUnitsFilterControls();
+
+  if (refresh && didChange) {
+    refreshUnitsFilterResults();
+  }
+}
+
+function clampContactsValue(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return contactsFilterDefaults.min;
+  return Math.min(contactsFilterDefaults.max, Math.max(contactsFilterDefaults.min, Math.round(numericValue)));
+}
+
+function syncContactsFilterControls() {
+  const contactsInputs = [contactsMinRange, contactsMaxRange, contactsMinInput, contactsMaxInput].filter(Boolean);
+
+  contactsInputs.forEach((input) => {
+    input.min = String(contactsFilterDefaults.min);
+    input.max = String(contactsFilterDefaults.max);
+  });
+
+  if (contactsMinRange) contactsMinRange.value = String(selectedContactsMin);
+  if (contactsMaxRange) contactsMaxRange.value = String(selectedContactsMax);
+  if (contactsMinInput) contactsMinInput.value = String(selectedContactsMin);
+  if (contactsMaxInput) contactsMaxInput.value = String(selectedContactsMax);
+
+  if (contactsRangeFill) {
+    const rangeSize = contactsFilterDefaults.max - contactsFilterDefaults.min;
+    const minPercent = rangeSize
+      ? ((selectedContactsMin - contactsFilterDefaults.min) / rangeSize) * 100
+      : 0;
+    const maxPercent = rangeSize
+      ? ((selectedContactsMax - contactsFilterDefaults.min) / rangeSize) * 100
+      : 100;
+
+    contactsRangeFill.style.left = `${minPercent}%`;
+    contactsRangeFill.style.right = `${100 - maxPercent}%`;
+  }
+
+  updateClearFiltersButton();
+}
+
+function refreshContactsFilterResults() {
+  activeMapOwnerIndex = null;
+  activeOrgOwnerIndex = null;
+  syncMapLocationFilter();
+  refreshFilteredViews();
+  refitOpenMapToVisibleLocations();
+  syncOpenOrgPanelWithSelection();
+  tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function setContactsFilterRange(minValue, maxValue, { changed = "min", refresh = false } = {}) {
+  let nextMin = clampContactsValue(minValue);
+  let nextMax = clampContactsValue(maxValue);
+
+  if (nextMin > nextMax) {
+    if (changed === "max") {
+      nextMin = nextMax;
+    } else {
+      nextMax = nextMin;
+    }
+  }
+
+  const didChange = nextMin !== selectedContactsMin || nextMax !== selectedContactsMax;
+  selectedContactsMin = nextMin;
+  selectedContactsMax = nextMax;
+  syncContactsFilterControls();
+
+  if (refresh && didChange) {
+    refreshContactsFilterResults();
+  }
+}
+
 function clearAllFilterSelections() {
   selectedLocationLabel = "";
   selectedCategoryIndex = "";
   selectedOwnerIndex = "";
   selectedFranchiseIndex = "";
+  selectedUnitsMin = unitsFilterDefaults.min;
+  selectedUnitsMax = unitsFilterDefaults.max;
+  selectedContactsMin = contactsFilterDefaults.min;
+  selectedContactsMax = contactsFilterDefaults.max;
   ownerFilterExcludesSelection = false;
   categoryFilterExcludesSelection = false;
   franchiseFilterExcludesSelection = false;
@@ -2369,6 +2559,8 @@ function clearAllFilterSelections() {
   });
 
   syncStatusFilterStates();
+  syncUnitsFilterControls();
+  syncContactsFilterControls();
   syncOwnerExcludeState();
   syncPassiveExcludeState(categoryFilterExclude, false, false);
   syncPassiveExcludeState(franchiseFilterExclude, false, false);
@@ -2480,7 +2672,57 @@ statusFilterInputs.forEach((checkbox) => {
   });
 });
 
+if (unitsMinRange) {
+  unitsMinRange.addEventListener("input", () => {
+    setUnitsFilterRange(unitsMinRange.value, selectedUnitsMax, { changed: "min", refresh: true });
+  });
+}
+
+if (unitsMaxRange) {
+  unitsMaxRange.addEventListener("input", () => {
+    setUnitsFilterRange(selectedUnitsMin, unitsMaxRange.value, { changed: "max", refresh: true });
+  });
+}
+
+if (unitsMinInput) {
+  unitsMinInput.addEventListener("change", () => {
+    setUnitsFilterRange(unitsMinInput.value, selectedUnitsMax, { changed: "min", refresh: true });
+  });
+}
+
+if (unitsMaxInput) {
+  unitsMaxInput.addEventListener("change", () => {
+    setUnitsFilterRange(selectedUnitsMin, unitsMaxInput.value, { changed: "max", refresh: true });
+  });
+}
+
+if (contactsMinRange) {
+  contactsMinRange.addEventListener("input", () => {
+    setContactsFilterRange(contactsMinRange.value, selectedContactsMax, { changed: "min", refresh: true });
+  });
+}
+
+if (contactsMaxRange) {
+  contactsMaxRange.addEventListener("input", () => {
+    setContactsFilterRange(selectedContactsMin, contactsMaxRange.value, { changed: "max", refresh: true });
+  });
+}
+
+if (contactsMinInput) {
+  contactsMinInput.addEventListener("change", () => {
+    setContactsFilterRange(contactsMinInput.value, selectedContactsMax, { changed: "min", refresh: true });
+  });
+}
+
+if (contactsMaxInput) {
+  contactsMaxInput.addEventListener("change", () => {
+    setContactsFilterRange(selectedContactsMin, contactsMaxInput.value, { changed: "max", refresh: true });
+  });
+}
+
 syncStatusFilterStates();
+syncUnitsFilterControls();
+syncContactsFilterControls();
 
 if (clearAllFilters) {
   clearAllFilters.addEventListener("click", clearAllFilterSelections);
