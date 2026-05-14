@@ -40,6 +40,7 @@ const toolbarDropdown = document.querySelector(".toolbar-dropdown");
 const updatesToggleOption = document.getElementById("updatesToggleOption");
 const modifiedColumnToggleOption = document.getElementById("modifiedColumnToggleOption");
 const reduceMotionToggleOption = document.getElementById("reduceMotionToggleOption");
+const takeScreenshotOption = document.getElementById("takeScreenshotOption");
 const subtitle = document.querySelector(".subtitle-count");
 const changeNav = document.querySelector(".change-nav");
 const pager = document.querySelector(".pager");
@@ -131,6 +132,8 @@ let anchoredToolbarOwnerIndex = null;
 let lastProfileModalTrigger = null;
 let ownersMapResizeObserver = null;
 let ownersMapResizeFrame = null;
+let screenshotInProgress = false;
+let screenshotToastTimeout;
 const orgCollapsedNodeIdsByOwner = new Map();
 let sortState = {
   key: "locations",
@@ -560,7 +563,8 @@ function initializeOwnersMap() {
     center: MAP_INITIAL_CENTER,
     zoom: 3.1,
     attributionControl: false,
-    logoPosition: "bottom-right"
+    logoPosition: "bottom-right",
+    preserveDrawingBuffer: true
   });
   ensureOwnersMapResizeObserver();
 
@@ -922,8 +926,13 @@ function getProfileLocation(owner, fallbackLocation) {
   return locationLabels.length ? locationLabels.slice(0, 4).join(", ") : fallbackLocation;
 }
 
+function getOrgNodeDisplayTitle(node) {
+  const title = typeof node?.title === "string" ? node.title.trim() : "";
+  return title || "Prospect";
+}
+
 function getProfileTitle(owner, node) {
-  return node.name === owner.contactName ? "Franchisee" : node.title;
+  return getOrgNodeDisplayTitle(node);
 }
 
 function getOwnerRawRows(ownerIndex) {
@@ -964,6 +973,23 @@ function getPersonProfileFromOrgNode(ownerIndex, nodeId) {
   const rows = getOwnerRawRows(ownerIndex);
   const rowIndex = rows.findIndex((row) => row.nodeId === nodeId);
   return rowIndex >= 0 ? getPersonProfileFromRawRow(ownerIndex, rowIndex) : null;
+}
+
+function getPersonProfileFromOwnerContact(ownerIndex) {
+  const owner = owners.find((item) => item.originalIndex === ownerIndex);
+  if (!owner) return null;
+
+  const rows = getOwnerRawRows(ownerIndex);
+  const matchingRow = rows.find((row) => row.name === owner.contactName) || rows[0] || null;
+
+  return {
+    name: owner.contactName || matchingRow?.name || owner.ownerName,
+    ownerName: owner.ownerName,
+    title: matchingRow?.title || "Prospect",
+    email: owner.email || matchingRow?.email || "",
+    phone: matchingRow?.phone || getRawDataPhone(ownerIndex, 0),
+    location: matchingRow?.location || getProfileLocation(owner, getRawDataLocation(ownerIndex, 0))
+  };
 }
 
 function renderPersonProfile(profile) {
@@ -1465,7 +1491,7 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
     >
       <div class="ui-avatar org-person-avatar" aria-hidden="true">${getInitials(node.name)}</div>
       <h3>${node.name}</h3>
-      <p>${node.title}</p>
+      <p>${getOrgNodeDisplayTitle(node)}</p>
       ${directReportCount > 0 ? `
         <button
           class="ui-control org-report-count org-report-count-${type} ${isCollapsed ? "is-collapsed" : "is-expanded"}"
@@ -1718,7 +1744,8 @@ function initializeOwnerDetailsMap(ownerIndex) {
     },
     attributionControl: false,
     logoPosition: "bottom-right",
-    interactive: false
+    interactive: false,
+    preserveDrawingBuffer: true
   });
 
   ownerDetailsMap.on("load", () => {
@@ -1857,6 +1884,149 @@ function syncReduceMotionStateClass() {
   document.body.classList.toggle("reduce-motion", reduceMotionEnabled);
 }
 
+function getProjectNamePrefix() {
+  const pathSegments = window.location.pathname.split("/").filter(Boolean);
+  const projectSegment = pathSegments[pathSegments.length - 2] || "project";
+  return projectSegment.replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
+}
+
+function getScreenshotFileName() {
+  const now = new Date();
+  const pad = (value) => String(value).padStart(2, "0");
+  const date = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+  const time = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  return `${getProjectNamePrefix()}-viewport-screenshot-${date}-${time}.jpg`;
+}
+
+function ensureScreenshotToast() {
+  let toast = document.getElementById("screenshotToast");
+  if (toast) return toast;
+
+  toast = document.createElement("div");
+  toast.id = "screenshotToast";
+  toast.className = "screenshot-toast";
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+  document.body.append(toast);
+  return toast;
+}
+
+function showScreenshotToast(message, isError = false) {
+  const toast = ensureScreenshotToast();
+  toast.textContent = message;
+  toast.classList.toggle("is-error", isError);
+  toast.classList.add("is-visible");
+
+  if (screenshotToastTimeout) {
+    clearTimeout(screenshotToastTimeout);
+  }
+
+  screenshotToastTimeout = setTimeout(() => {
+    toast.classList.remove("is-visible");
+  }, 1800);
+}
+
+function downloadCanvasAsJpeg(canvas, fileName) {
+  return new Promise((resolve, reject) => {
+    try {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Canvas export failed."));
+            return;
+          }
+
+          const objectUrl = URL.createObjectURL(blob);
+          const downloadLink = document.createElement("a");
+          downloadLink.href = objectUrl;
+          downloadLink.download = fileName;
+          document.body.append(downloadLink);
+          downloadLink.click();
+          downloadLink.remove();
+          URL.revokeObjectURL(objectUrl);
+          resolve();
+        },
+        "image/jpeg",
+        0.92
+      );
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+function shouldIgnoreInSafeScreenshot(element) {
+  if (element instanceof HTMLCanvasElement) return true;
+  if (!element.classList) return false;
+  if (element.classList.contains("mapboxgl-canvas")) return true;
+  if (element.classList.contains("mapboxgl-canvas-container")) return true;
+  return Boolean(element.closest?.(".mapboxgl-map"));
+}
+
+async function takeViewportScreenshot() {
+  if (screenshotInProgress) return;
+
+  if (typeof window.html2canvas !== "function") {
+    console.error("Take screenshot failed: html2canvas is unavailable.");
+    showScreenshotToast("Screenshot failed", true);
+    return;
+  }
+
+  screenshotInProgress = true;
+  if (takeScreenshotOption) {
+    takeScreenshotOption.disabled = true;
+  }
+
+  if (toolbarDropdown?.open) {
+    toolbarDropdown.removeAttribute("open");
+  }
+
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  const fileName = getScreenshotFileName();
+
+  try {
+    if (window.location.protocol === "file:") {
+      showScreenshotToast("Open via localhost for full screenshot", true);
+      console.warn("Full screenshots require opening the prototype through a local server, not file://.");
+      return;
+    }
+
+    const baseOptions = {
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY
+    };
+
+    let canvas = await window.html2canvas(document.body, baseOptions);
+    let usedSafeFallback = false;
+    try {
+      await downloadCanvasAsJpeg(canvas, fileName);
+    } catch (exportError) {
+      // Map tiles/cross-origin canvases can taint captures. Retry excluding all canvases/map layers.
+      canvas = await window.html2canvas(document.body, {
+        ...baseOptions,
+        ignoreElements: shouldIgnoreInSafeScreenshot
+      });
+      usedSafeFallback = true;
+      await downloadCanvasAsJpeg(canvas, fileName);
+    }
+    showScreenshotToast(usedSafeFallback ? "Screenshot saved (map excluded)" : "Screenshot saved");
+  } catch (error) {
+    console.error("Take screenshot failed:", error);
+    showScreenshotToast("Screenshot failed", true);
+  } finally {
+    screenshotInProgress = false;
+    if (takeScreenshotOption) {
+      takeScreenshotOption.disabled = false;
+    }
+  }
+}
+
 function syncColumnWidths() {
   const widths = modifiedColumnVisible ? columnWidths : columnWidthsWithoutModified;
 
@@ -1910,8 +2080,15 @@ function renderOwners(rows) {
             </div>
           </td>
           <td>
-            <span class="contact-name">${owner.contactName}</span>
-            <span class="ui-link ui-ellipsis email">${owner.email}</span>
+            <button
+              class="ui-control ui-row-action contact-profile-action"
+              type="button"
+              data-owner-index="${owner.originalIndex}"
+              aria-label="Open profile for ${owner.contactName}"
+            >
+              <span class="contact-name">${owner.contactName}</span>
+              <span class="ui-link ui-ellipsis email">${owner.email}</span>
+            </button>
           </td>
           <td><span class="franchise-text">${owner.franchise}</span></td>
           ${modifiedColumnVisible ? `<td class="modified-cell">${getModeColumn(owner)}</td>` : ""}
@@ -2350,6 +2527,16 @@ if (tableBody) {
     if (contactsButton) {
       event.stopPropagation();
       openOwnerOrgChart(Number(contactsButton.dataset.ownerIndex), { scrollTable: true });
+      return;
+    }
+
+    const contactProfileButton = event.target.closest(".contact-profile-action");
+    if (contactProfileButton) {
+      event.stopPropagation();
+      openPersonProfile(
+        getPersonProfileFromOwnerContact(Number(contactProfileButton.dataset.ownerIndex)),
+        contactProfileButton
+      );
       return;
     }
 
@@ -3194,6 +3381,12 @@ if (reduceMotionToggleOption) {
     reduceMotionEnabled = !reduceMotionEnabled;
     syncReduceMotionToggleOption();
     syncReduceMotionStateClass();
+  });
+}
+
+if (takeScreenshotOption) {
+  takeScreenshotOption.addEventListener("click", () => {
+    takeViewportScreenshot();
   });
 }
 

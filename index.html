@@ -249,6 +249,11 @@
                 <span class="toolbar-switch" aria-hidden="true"></span>
                 <span class="toolbar-dropdown-label">Reduce motion</span>
               </button>
+              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Take screenshot</span>
+              </button>
             </div>
           </details>
           <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn toolbar-search-btn toolbar-btn-divider-left" type="button" aria-label="Search" title="Search" disabled>
@@ -294,6 +299,7 @@
   <script src="data/locations.js"></script>
   <script src="data/org-chart.js"></script>
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src=".env.local"></script>
   <script src="script.js"></script>
 </body>

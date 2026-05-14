@@ -329,6 +329,18 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   color: var(--color-text);
 }
 
+.card:not(.updates-disabled) .contact-profile-action:hover,
+.card:not(.updates-disabled) .contact-profile-action:active,
+.card:not(.updates-disabled) .contact-profile-action.is-active,
+.card:not(.updates-disabled) .contacts-action:hover,
+.card:not(.updates-disabled) .contacts-action:active,
+.card:not(.updates-disabled) .contacts-action.is-active,
+.card:not(.updates-disabled) .locations:hover,
+.card:not(.updates-disabled) .locations:active,
+.card:not(.updates-disabled) .locations.is-active {
+  background: #d0caee;
+}
+
 /* ==========================================================================
    App Shell and Map Panel
    ========================================================================== */
@@ -555,10 +567,10 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 
 .profile-modal {
   width: min(520px, calc(100vw - 48px));
-  border-radius: var(--radius-sm);
+  border-radius: 16px;
   background: var(--color-surface);
   box-shadow: var(--shadow-modal);
-  padding: 36px 42px 43px;
+  padding: 42px 42px;
   position: relative;
   color: #090909;
 }
@@ -576,30 +588,28 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 }
 
 .profile-modal-hero {
-  min-height: 140px;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-muted);
+  min-height: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 22px 20px 20px;
+  padding-bottom: 14px;
   text-align: center;
 }
 
 .profile-avatar {
-  width: 40px;
-  height: 40px;
+  width: 64px;
+  height: 64px;
   border-radius: 999px;
-  background: linear-gradient(145deg, #ece7e2, #cfc2b7);
+  background: var(--color-surface-control);
   color: #111;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 9px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
 }
 
 .profile-modal-hero h2 {
@@ -607,9 +617,8 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   max-width: 100%;
   overflow: hidden;
   color: #050505;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.045em;
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -631,7 +640,9 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   column-gap: 42px;
-  margin-top: 28px;
+  margin-top: 20px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
 }
 
 .profile-modal-field {
@@ -654,9 +665,9 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 .profile-modal-field span {
   display: block;
   margin-bottom: 3px;
-  color: #050505;
+  color: #000;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
 }
 
@@ -681,22 +692,14 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 
 .profile-modal-actions {
   display: grid;
-  gap: 16px;
-  margin-top: 62px;
+  gap: 10px;
+  margin-top: 28px;
 }
 
 .profile-modal-primary,
 .profile-modal-secondary {
   width: 100%;
   height: var(--control-height);
-}
-
-.profile-modal-primary {
-  border-radius: var(--radius-xs);
-}
-
-.profile-modal-secondary {
-  border-radius: var(--radius-xs);
 }
 
 .owner-detail-header-actions,
@@ -2060,6 +2063,10 @@ h1 {
   font-weight: 600;
 }
 
+.toolbar-dropdown-action .toolbar-dropdown-label {
+  font-weight: 400;
+}
+
 .toolbar-switch {
   width: 22px;
   height: 16px;
@@ -2089,6 +2096,17 @@ h1 {
 
 .toolbar-dropdown-option[aria-checked="true"] .toolbar-switch::before {
   transform: translateX(6px);
+}
+
+.toolbar-dropdown-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.toolbar-screenshot-icon {
+  opacity: 0.8;
 }
 
 .toolbar-chevron {
@@ -2127,6 +2145,33 @@ h1 {
 .toolbar-search-btn:disabled,
 .toolbar-search-btn:disabled:hover {
   background: var(--color-surface-muted);
+}
+
+.screenshot-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 50;
+  transform: translate(-50%, 8px);
+  opacity: 0;
+  pointer-events: none;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(17, 17, 17, 0.92);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.screenshot-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.screenshot-toast.is-error {
+  background: rgba(145, 29, 29, 0.94);
 }
 
 /* ==========================================================================
@@ -2509,6 +2554,24 @@ tr.changed.is-active td:last-child {
 
 .email {
   display: block;
+}
+
+.contact-profile-action {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.contact-profile-action .contact-name,
+.contact-profile-action .email {
+  width: 100%;
+  text-align: left;
 }
 
 .franchise-text {
