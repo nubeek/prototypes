@@ -1,21 +1,22 @@
-# CST Layout Prototype
+# Wefranch Prototypes
 
-Static HTML/CSS/JS prototype for exploring franchise owner data and map-based views.
+Collection of static HTML/CSS/JS prototypes for different Wefranch concepts and experiences.
+
+## Project structure
+
+- `targets/` - target and owner-focused prototype.
+- `tour/` - franchise tour-focused prototype.
+- `cst/` - earlier CST prototype retained for reference.
 
 ## Local setup
 
-1. Create a `.env.local` file in the project root:
-
-```js
-window.CST_ENV = {
-  MAPBOX_ACCESS_TOKEN: "your_local_dev_token_here"
-};
-```
-
-2. Start a local server (for example `python3 -m http.server 5500`) and open the app via localhost.
-3. If `.env.local` is missing, the app falls back to the hardcoded GitHub token in `script.js`.
+1. Start a local server from the project root (for example `python3 -m http.server 5500`).
+2. Open the prototype you want to test, for example:
+   - `http://localhost:5500/targets/`
+   - `http://localhost:5500/tour/`
+   - `http://localhost:5500/cst/`
 
 ## Notes
 
-- Restrict the Mapbox token to the expected URL(s) in the Mapbox dashboard.
-- `.env.local` is git-ignored and intended for local-only token overrides.
+- Some legacy CST files may still reference `window.CST_ENV` and a Mapbox token override via `.env.local`.
+- Keep any local secrets in git-ignored files only.
