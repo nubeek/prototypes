@@ -456,6 +456,10 @@ function setPanelMode(mode) {
 
 function setPanelLayout(layout) {
   if (!card || !PANEL_LAYOUT_CLASSES[layout]) return;
+  const isLayoutChange = currentPanelLayout !== layout;
+  if (isLayoutChange) {
+    card.classList.add("is-layout-switching");
+  }
 
   currentPanelLayout = layout;
   Object.entries(PANEL_LAYOUT_CLASSES).forEach(([key, className]) => {
@@ -472,6 +476,13 @@ function setPanelLayout(layout) {
   syncStickyNameColumnDivider();
   if (getCurrentPanelMode() === "map") {
     window.setTimeout(() => fitOwnersMapToVisibleLocations(), getMotionDelay(280));
+  }
+
+  if (isLayoutChange) {
+    void card.offsetWidth;
+    window.requestAnimationFrame(() => {
+      card.classList.remove("is-layout-switching");
+    });
   }
 }
 
@@ -1414,6 +1425,11 @@ function openOwnerRawData(ownerIndex) {
   renderGlobalRawDataTable({ keepPanelOpen: true, activeOwnerIndex: ownerIndex });
 }
 
+function openDefaultRawDataView() {
+  anchoredToolbarOwnerIndex = null;
+  renderGlobalRawDataTable({ keepPanelOpen: true, activeOwnerIndex: null });
+}
+
 function closeOwnerRawData(ownerIndex) {
   const panelMode = getCurrentPanelMode();
 
@@ -1807,6 +1823,19 @@ function openToolbarOrgChart() {
   activeDetailOwnerIndex = null;
   activeOrgOwnerIndex = null;
   activeRawOwnerIndex = null;
+  openMapPanel("org");
+  renderDefaultOrgChartState();
+  renderOwners(displayedOwners);
+  refreshChangedRows();
+}
+
+function openDefaultOrgChartView() {
+  globalRawDataViewOpen = false;
+  activeMapOwnerIndex = null;
+  activeDetailOwnerIndex = null;
+  activeOrgOwnerIndex = null;
+  activeRawOwnerIndex = null;
+  anchoredToolbarOwnerIndex = null;
   openMapPanel("org");
   renderDefaultOrgChartState();
   renderOwners(displayedOwners);
@@ -2724,12 +2753,29 @@ if (tableBody) {
     const row = event.target.closest("tr[data-owner-index]");
     if (!row) return;
 
+    const ownerIndex = Number(row.dataset.ownerIndex);
+
     if (globalRawDataViewOpen) {
-      openOwnerRawData(Number(row.dataset.ownerIndex));
+      if (activeRawOwnerIndex === ownerIndex) {
+        openDefaultRawDataView();
+        return;
+      }
+
+      openOwnerRawData(ownerIndex);
       return;
     }
 
-    openOwnerDetails(Number(row.dataset.ownerIndex));
+    if (anchoredToolbarMode === "org") {
+      if (activeOrgOwnerIndex === ownerIndex) {
+        openDefaultOrgChartView();
+        return;
+      }
+
+      openOwnerOrgChart(ownerIndex);
+      return;
+    }
+
+    openOwnerDetails(ownerIndex);
   });
 }
 

@@ -12,7 +12,7 @@
   --color-surface-control-hover: #dedede;
   --color-surface-control-active: #ececec;
   --color-surface-toolbar-hover: #f3f3f4;
-  --color-surface-table-active: #e4e3e3;
+  --color-surface-table-active: #ececec;
   --color-border: #e7e7e7;
   --color-border-strong: #e1e1e1;
   --color-border-toolbar: #ececf0;
@@ -2296,6 +2296,10 @@ h1 {
   padding: 0 12px;
 }
 
+.toolbar-menu:hover {
+  border-color: transparent;
+}
+
 .toolbar-dropdown {
   position: relative;
 }
@@ -2314,6 +2318,7 @@ h1 {
 
 .toolbar-dropdown[open] .toolbar-menu {
   background: var(--color-surface-muted);
+  border-color: transparent;
 }
 
 .toolbar-dropdown-menu {
@@ -2393,6 +2398,20 @@ h1 {
 
 .toolbar-search-btn {
   background: var(--color-surface-muted);
+  border-color: transparent;
+}
+
+.export-csv-btn {
+  height: var(--control-height);
+  padding: 0 16px;
+  border-radius: var(--radius-lg);
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.export-csv-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .toolbar-btn-divider-left {
@@ -2468,6 +2487,11 @@ h1 {
 
 .card.is-map-open .table-wrap {
   margin-right: var(--map-panel-width);
+}
+
+.card.is-layout-switching .map-panel,
+.card.is-layout-switching .table-wrap {
+  transition: none !important;
 }
 
 .card.is-panel-bottom.is-map-open .table-wrap {
@@ -2625,11 +2649,11 @@ tbody tr:is(:not(.changed):hover, .changed:hover, .is-selected, .is-selected:hov
 }
 
 tbody tr:not(.changed):hover {
-  background: #f8f7fd;
+  background: #f3f3f4;
 }
 
 tbody tr:not(.changed):hover td:first-child {
-  background: #f8f7fd;
+  background: #f3f3f4;
 }
 
 tbody tr:has(.owner-icons:hover) td,
@@ -2666,12 +2690,12 @@ tr.changed:hover td:last-child {
 
 tbody tr.is-selected,
 tbody tr.is-selected:hover {
-  background: #f8f7fd;
+  background: #f3f3f4;
 }
 
 tbody tr.is-selected td:first-child,
 tbody tr.is-selected:hover td:first-child {
-  background: #f8f7fd;
+  background: #f3f3f4;
 }
 
 .card.updates-disabled tbody tr.is-selected,
@@ -2911,7 +2935,8 @@ tr.changed.is-active td:last-child {
 }
 
 .contact-profile-action {
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   margin-left: 0;
   margin-right: 0;
   padding-left: 10px;
@@ -2924,7 +2949,7 @@ tr.changed.is-active td:last-child {
 
 .contact-profile-action .contact-name,
 .contact-profile-action .email {
-  width: 100%;
+  max-width: 100%;
   text-align: left;
 }
 
