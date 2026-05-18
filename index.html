@@ -202,15 +202,87 @@
           </button>
           <span class="toolbar-divider" aria-hidden="true"></span>
           <div class="toolbar-tabs segmented-control">
-            <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" title="Toggle map" aria-controls="mapPanel" aria-expanded="false">
-              <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
-            </button>
-            <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="orgChartToggle" type="button" aria-label="Hierarchy view" title="Hierarchy view" aria-controls="mapPanel" aria-pressed="false">
-              <img class="toolbar-asset-icon" src="assets/orgchart.svg" alt="" aria-hidden="true">
-            </button>
-            <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="rawDataToggle" type="button" aria-label="Toggle raw data view" title="Toggle raw data view" aria-pressed="false">
-              <img class="toolbar-asset-icon raw-data-toggle-icon" src="assets/table.svg" alt="" aria-hidden="true">
-            </button>
+            <div class="toolbar-tab-item">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" aria-controls="mapPanel" aria-expanded="false">
+                <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
+                <span class="toolbar-tab-label">Map</span>
+              </button>
+              <div class="toolbar-tab-dropdown">
+                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Map panel options menu">
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Hide panel</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
+                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
+                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
+                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
+                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="toolbar-tab-item">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="orgChartToggle" type="button" aria-label="Hierarchy view" aria-controls="mapPanel" aria-pressed="false">
+                <img class="toolbar-asset-icon" src="assets/orgchart.svg" alt="" aria-hidden="true">
+                <span class="toolbar-tab-label">Org. Chart</span>
+              </button>
+              <div class="toolbar-tab-dropdown">
+                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Org chart panel options menu">
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Hide panel</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
+                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
+                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
+                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
+                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="toolbar-tab-item">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="rawDataToggle" type="button" aria-label="Toggle raw data view" aria-pressed="false">
+                <img class="toolbar-asset-icon raw-data-toggle-icon" src="assets/table.svg" alt="" aria-hidden="true">
+                <span class="toolbar-tab-label">Database</span>
+              </button>
+              <div class="toolbar-tab-dropdown">
+                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Database panel options menu">
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Hide panel</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
+                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
+                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
+                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
+                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

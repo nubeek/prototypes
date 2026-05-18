@@ -31,6 +31,7 @@ const contactsRangeFill = document.getElementById("contactsRangeFill");
 const mapToggle = document.getElementById("mapToggle");
 const orgChartToggle = document.getElementById("orgChartToggle");
 const rawDataToggle = document.getElementById("rawDataToggle");
+const toolbarTabItems = Array.from(document.querySelectorAll(".toolbar-tabs .toolbar-tab-item"));
 const mapPanel = document.getElementById("mapPanel");
 const ownerMapHeader = document.getElementById("ownerMapHeader");
 const ownerDetailsPanel = document.getElementById("ownerDetailsPanel");
@@ -92,6 +93,8 @@ const activeIconColor = "#7a63dd";
 const inactiveIconColor = "rgba(122, 99, 221, 0.15)";
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 const ACTIVE_HIGHLIGHT_FADE_MS = 220;
+const TOOLBAR_TAB_DROPDOWN_OPEN_DELAY_MS = 800;
+const TOOLBAR_TAB_DROPDOWN_CLOSE_DELAY_MS = 800;
 const MAPBOX_ACCESS_TOKEN = window.CST_ENV?.MAPBOX_ACCESS_TOKEN
   || "pk.eyJ1IjoibnViZWVrIiwiYSI6ImNtcDQ5bHZ1ODA3OGYycXF6czNpNzl0a2kifQ.PRQujjMXkroy4irt3-Az1Q";
 const HAS_MAPBOX_ACCESS_TOKEN = Boolean(MAPBOX_ACCESS_TOKEN);
@@ -130,11 +133,19 @@ let activeRawOwnerIndex = null;
 let globalRawDataViewOpen = false;
 let anchoredToolbarMode = null;
 let anchoredToolbarOwnerIndex = null;
+let currentPanelLayout = "right";
 let lastProfileModalTrigger = null;
 let ownersMapResizeObserver = null;
 let ownersMapResizeFrame = null;
 let screenshotInProgress = false;
 let screenshotToastTimeout;
+const toolbarTabOpenTimeoutByItem = new WeakMap();
+const toolbarTabCloseTimeoutByItem = new WeakMap();
+const PANEL_LAYOUT_CLASSES = {
+  right: "is-panel-right",
+  bottom: "is-panel-bottom",
+  full: "is-panel-full"
+};
 const orgCollapsedNodeIdsByOwner = new Map();
 let sortState = {
   key: "locations",
@@ -348,8 +359,7 @@ function restoreAnchoredToolbarMode() {
   if (!anchoredToolbarMode) return false;
 
   if (anchoredToolbarMode === "raw") {
-    renderGlobalRawDataTable();
-    return true;
+    return false;
   }
 
   activeMapOwnerIndex = null;
@@ -435,15 +445,38 @@ function openOwnerDetailsFromHeader(ownerIndex) {
 function setPanelMode(mode) {
   if (!mapPanel || !ownerDetailsPanel) return;
 
-  const usesDetailsPanel = mode === "details" || mode === "org";
+  const usesDetailsPanel = mode === "details" || mode === "org" || mode === "raw";
   mapPanel.classList.toggle("is-details-mode", usesDetailsPanel);
   mapPanel.classList.toggle("is-org-mode", mode === "org");
+  mapPanel.classList.toggle("is-raw-mode", mode === "raw");
   ownerDetailsPanel.hidden = !usesDetailsPanel;
   syncOwnerMapHeader(mode);
   syncToolbarTabState(mode);
 }
 
+function setPanelLayout(layout) {
+  if (!card || !PANEL_LAYOUT_CLASSES[layout]) return;
+
+  currentPanelLayout = layout;
+  Object.entries(PANEL_LAYOUT_CLASSES).forEach(([key, className]) => {
+    card.classList.toggle(className, key === layout);
+  });
+
+  document.querySelectorAll(".toolbar-tab-layout-option").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.layout === layout);
+  });
+
+  if (!card.classList.contains("is-map-open")) return;
+
+  scheduleOwnersMapResize();
+  syncStickyNameColumnDivider();
+  if (getCurrentPanelMode() === "map") {
+    window.setTimeout(() => fitOwnersMapToVisibleLocations(), getMotionDelay(280));
+  }
+}
+
 function getCurrentPanelMode() {
+  if (mapPanel?.classList.contains("is-raw-mode")) return "raw";
   if (mapPanel?.classList.contains("is-org-mode")) return "org";
   if (mapPanel?.classList.contains("is-details-mode")) return "details";
   return "map";
@@ -462,7 +495,51 @@ function syncToolbarTabState(mode = "map") {
   orgChartToggle?.setAttribute("aria-pressed", String(Boolean(orgActive)));
   rawDataToggle?.classList.toggle("is-active", Boolean(rawActive));
   rawDataToggle?.setAttribute("aria-pressed", String(Boolean(rawActive)));
+  closeToolbarTabDropdowns();
   syncOwnerHeaderViewState();
+}
+
+function closeToolbarTabDropdowns(exceptItem = null) {
+  toolbarTabItems.forEach((item) => {
+    if (item !== exceptItem) {
+      clearToolbarTabOpenTimeout(item);
+      clearToolbarTabCloseTimeout(item);
+      item.classList.remove("is-open");
+    }
+  });
+}
+
+function clearToolbarTabOpenTimeout(item) {
+  const timeoutId = toolbarTabOpenTimeoutByItem.get(item);
+  if (typeof timeoutId === "number") {
+    window.clearTimeout(timeoutId);
+    toolbarTabOpenTimeoutByItem.delete(item);
+  }
+}
+
+function clearToolbarTabCloseTimeout(item) {
+  const timeoutId = toolbarTabCloseTimeoutByItem.get(item);
+  if (typeof timeoutId === "number") {
+    window.clearTimeout(timeoutId);
+    toolbarTabCloseTimeoutByItem.delete(item);
+  }
+}
+
+function scheduleToolbarTabDropdownOpen(item, delayMs = TOOLBAR_TAB_DROPDOWN_OPEN_DELAY_MS) {
+  const tabButton = item.querySelector(".segmented-control-btn");
+  clearToolbarTabCloseTimeout(item);
+  clearToolbarTabOpenTimeout(item);
+  if (!tabButton?.classList.contains("is-active")) return;
+  if (item.classList.contains("is-open")) return;
+
+  const timeoutId = window.setTimeout(() => {
+    toolbarTabOpenTimeoutByItem.delete(item);
+    closeToolbarTabDropdowns(item);
+    if (tabButton.classList.contains("is-active") && item.matches(":hover")) {
+      item.classList.add("is-open");
+    }
+  }, delayMs);
+  toolbarTabOpenTimeoutByItem.set(item, timeoutId);
 }
 
 let panelTableScrollObserver = null;
@@ -1113,6 +1190,83 @@ function getAllOwnerRawRows() {
     .filter((row) => rawRowMatchesFilters(row));
 }
 
+function getScopedOwnerRawRows(ownerIndex = null) {
+  if (ownerIndex === null || Number.isNaN(ownerIndex)) {
+    return getAllOwnerRawRows();
+  }
+
+  const isVisibleOwner = getRawDataOwnerScope().some((owner) => owner.originalIndex === ownerIndex);
+  if (!isVisibleOwner) return [];
+  return getOwnerRawRows(ownerIndex).filter((row) => rawRowMatchesFilters(row));
+}
+
+function getRawSidebarHeader(owner) {
+  if (owner) {
+    return getOwnerHeader(owner, {
+      className: "owner-raw-heading",
+      closeLabel: "Close raw data",
+      linksToDetail: true
+    });
+  }
+
+  return "";
+}
+
+function renderRawDataSidebar(ownerIndex = null) {
+  if (!ownerDetailsPanel) return;
+
+  const owner = ownerIndex !== null
+    ? owners.find((item) => item.originalIndex === ownerIndex) || null
+    : null;
+  const rows = getScopedOwnerRawRows(ownerIndex);
+  const tableMarkup = rows.length
+    ? `
+      <table class="owner-raw-table raw-data-table">
+        <thead>
+          <tr>
+            <th style="width: 4%"><span class="th-content raw-index-heading" aria-hidden="true">&nbsp;</span></th>
+            <th style="width: 23%"><span class="th-content">Name</span></th>
+            <th style="width: 23%"><span class="th-content">E-mail</span></th>
+            <th style="width: 18%"><span class="th-content">Phone number</span></th>
+            <th style="width: 16%"><span class="th-content">Location</span></th>
+            <th style="width: 12%"><span class="th-content">Franchise</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows
+            .map((row, rowIndex) => `
+              <tr class="raw-data-row" data-owner-index="${row.ownerIndex}" data-raw-row-index="${row.rowIndex}">
+                <td class="raw-index-cell">${rowIndex + 1}</td>
+                <td>
+                  <div class="raw-name-cell">
+                    <span class="ui-avatar raw-avatar" aria-hidden="true">${getInitials(row.name)}</span>
+                    <span class="raw-name">${row.name}</span>
+                  </div>
+                </td>
+                <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
+                <td><span class="raw-phone">${row.phone}</span></td>
+                <td><span class="raw-location">${row.location}</span></td>
+                <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
+              </tr>
+            `)
+            .join("")}
+        </tbody>
+      </table>
+    `
+    : `<p class="owner-raw-empty">No raw data matches the current filters.</p>`;
+
+  ownerDetailsPanel.innerHTML = `
+    <article class="owner-raw-panel">
+      ${getRawSidebarHeader(owner)}
+      <div class="owner-raw-table-wrap">
+        ${tableMarkup}
+      </div>
+    </article>
+  `;
+  ownerDetailsPanel.scrollTop = 0;
+  syncOwnerHeaderScrollState();
+}
+
 function setRawTableHeaders({ includeOwner = false } = {}) {
   if (!ownersTable || !tableWrap || ownerTableHeaders.length < 6) return;
 
@@ -1218,69 +1372,36 @@ function renderRawOwnerTable(ownerIndex) {
 }
 
 function renderGlobalRawDataTable({ keepPanelOpen = false, activeOwnerIndex = null } = {}) {
-  if (!tableBody) return;
-
-  const panelMode = getCurrentPanelMode();
-  const shouldKeepPanelOpen = keepPanelOpen || (
-    card?.classList.contains("is-map-open") &&
-    (panelMode === "map" || panelMode === "org")
-  );
+  if (!ownerDetailsPanel) return;
 
   globalRawDataViewOpen = true;
   activeRawOwnerIndex = activeOwnerIndex;
   activeDetailOwnerIndex = null;
-  activeOrgOwnerIndex = panelMode === "org" ? activeOwnerIndex : null;
-  activeMapOwnerIndex = panelMode === "map" ? activeOwnerIndex : null;
-
-  if (!shouldKeepPanelOpen) {
-    card?.classList.remove("is-map-open");
-    mapToggle?.setAttribute("aria-expanded", "false");
-    setPanelMode("map");
-  }
-
-  syncMapLocationFilter();
-  setRawTableHeaders({ includeOwner: true });
-
-  tableBody.innerHTML = getAllOwnerRawRows()
-    .map((row, rowIndex) => `
-      <tr class="raw-data-row" data-owner-index="${row.ownerIndex}" data-raw-row-index="${row.rowIndex}">
-        <td class="raw-index-cell">${rowIndex + 1}</td>
-        <td>
-          <div class="raw-name-cell">
-            <span class="ui-avatar raw-avatar" aria-hidden="true">${getInitials(row.name)}</span>
-            <span class="raw-name">${row.name}</span>
-          </div>
-        </td>
-        <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
-        <td><span class="raw-phone">${row.phone}</span></td>
-        <td><span class="raw-location">${row.location}</span></td>
-        <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
-      </tr>
-    `)
-    .join("");
-
-  tableWrap?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  activeOrgOwnerIndex = null;
+  activeMapOwnerIndex = null;
+  openMapPanel("raw", { scrollTable: false });
+  renderRawDataSidebar(activeOwnerIndex);
+  renderOwners(displayedOwners);
   refreshChangedRows();
-  syncStickyNameColumnDivider();
   syncToolbarTabState(getCurrentPanelMode());
 }
 
 function refreshFilteredViews() {
-  if (globalRawDataViewOpen) {
-    sortOwners();
-    renderGlobalRawDataTable();
-    updateFilterSummary();
-    return;
-  }
-
   applySort();
+
+  if (globalRawDataViewOpen) {
+    const visibleOwnerIndexes = new Set(getRawDataOwnerScope().map((owner) => owner.originalIndex));
+    const nextOwnerIndex = visibleOwnerIndexes.has(activeRawOwnerIndex) ? activeRawOwnerIndex : null;
+    renderGlobalRawDataTable({ keepPanelOpen: true, activeOwnerIndex: nextOwnerIndex });
+  }
 }
 
 function refitOpenMapToVisibleLocations() {
   const mapModeOpen =
     card?.classList.contains("is-map-open") &&
     !mapPanel?.classList.contains("is-details-mode") &&
-    !mapPanel?.classList.contains("is-org-mode");
+    !mapPanel?.classList.contains("is-org-mode") &&
+    !mapPanel?.classList.contains("is-raw-mode");
   if (!mapModeOpen) return;
   resizeOwnersMap();
   fitOwnersMapToVisibleLocations();
@@ -1301,6 +1422,11 @@ function closeOwnerRawData(ownerIndex) {
   activeMapOwnerIndex = panelMode === "map" ? ownerIndex : null;
   activeDetailOwnerIndex = panelMode === "details" ? ownerIndex : null;
   activeOrgOwnerIndex = panelMode === "org" ? ownerIndex : null;
+  if (panelMode === "raw") {
+    card?.classList.remove("is-map-open");
+    mapToggle?.setAttribute("aria-expanded", "false");
+    setPanelMode("map");
+  }
 
   applySort();
 }
@@ -1705,7 +1831,7 @@ function syncOpenOrgPanelWithSelection() {
 }
 
 function openOwnerOrgChart(ownerIndex, { scrollTable = false, updateAnchoredOwner = true } = {}) {
-  const shouldKeepRawTable = globalRawDataViewOpen;
+  globalRawDataViewOpen = false;
 
   if (activeOrgOwnerIndex === ownerIndex) {
     if (anchoredToolbarMode === "org") {
@@ -1714,23 +1840,15 @@ function openOwnerOrgChart(ownerIndex, { scrollTable = false, updateAnchoredOwne
       }
       renderOwnerOrgChart(ownerIndex);
       openMapPanel("org", { scrollTable });
-      if (shouldKeepRawTable) {
-        renderGlobalRawDataTable({ keepPanelOpen: true });
-      } else {
-        renderOwners(displayedOwners);
-        refreshChangedRows();
-      }
+      renderOwners(displayedOwners);
+      refreshChangedRows();
       return;
     }
 
     if (closeMapPanel()) return;
     syncMapLocationFilter();
-    if (shouldKeepRawTable) {
-      renderGlobalRawDataTable();
-    } else {
-      renderOwners(displayedOwners);
-      refreshChangedRows();
-    }
+    renderOwners(displayedOwners);
+    refreshChangedRows();
     return;
   }
 
@@ -1747,12 +1865,8 @@ function openOwnerOrgChart(ownerIndex, { scrollTable = false, updateAnchoredOwne
   syncMapLocationFilter();
   renderOwnerOrgChart(ownerIndex);
   openMapPanel("org", { scrollTable });
-  if (shouldKeepRawTable) {
-    renderGlobalRawDataTable({ keepPanelOpen: true });
-  } else {
-    renderOwners(displayedOwners);
-    refreshChangedRows();
-  }
+  renderOwners(displayedOwners);
+  refreshChangedRows();
 }
 
 function initializeOwnerDetailsMap(ownerIndex) {
@@ -1826,6 +1940,7 @@ function openOwnerDetails(ownerIndex) {
   activeDetailOwnerIndex = ownerIndex;
   activeOrgOwnerIndex = null;
   activeRawOwnerIndex = null;
+  globalRawDataViewOpen = false;
   renderOwnerDetails(owner);
   openMapPanel("details");
   initializeOwnerDetailsMap(ownerIndex);
@@ -2124,7 +2239,7 @@ function syncModeColumn() {
 }
 
 function renderOwners(rows) {
-  restoreOwnersTableView();
+  restoreOwnersTableView({ clearRaw: false, clearGlobalRaw: false });
 
   tableBody.innerHTML = rows
     .map(
@@ -2520,20 +2635,6 @@ function advanceChangeRow(delta) {
 
 sortHeaders.forEach((header) => {
   header.addEventListener("click", () => {
-    if (activeRawOwnerIndex !== null || globalRawDataViewOpen) {
-      if (anchoredToolbarMode === "raw" && globalRawDataViewOpen) {
-        sortOwners();
-        renderGlobalRawDataTable();
-        updateFilterSummary();
-        tableWrap.scrollTo({ top: 0, left: 0, behavior: "auto" });
-        return;
-      }
-
-      applySort();
-      tableWrap.scrollTo({ top: 0, behavior: "auto" });
-      return;
-    }
-
     const { sortKey } = header.dataset;
     if (!sortKey) return;
 
@@ -2559,6 +2660,7 @@ syncUpdatesStateClass();
 syncModifiedColumnToggleOption();
 syncReduceMotionToggleOption();
 syncReduceMotionStateClass();
+setPanelLayout("right");
 syncToolbarTabState("map");
 applySort();
 openMapPanel("map");
@@ -2621,6 +2723,11 @@ if (tableBody) {
 
     const row = event.target.closest("tr[data-owner-index]");
     if (!row) return;
+
+    if (globalRawDataViewOpen) {
+      openOwnerRawData(Number(row.dataset.ownerIndex));
+      return;
+    }
 
     openOwnerDetails(Number(row.dataset.ownerIndex));
   });
@@ -3056,29 +3163,33 @@ if (filterToggle && card) {
 
 if (mapToggle && card) {
   mapToggle.addEventListener("click", () => {
+    if (globalRawDataViewOpen) {
+      globalRawDataViewOpen = false;
+      activeRawOwnerIndex = null;
+      if (anchoredToolbarMode === "raw") {
+        anchoredToolbarMode = null;
+        anchoredToolbarOwnerIndex = null;
+      }
+      applySort();
+    }
+
     const mapModeOpen =
       card.classList.contains("is-map-open") &&
       !mapPanel?.classList.contains("is-details-mode") &&
-      !mapPanel?.classList.contains("is-org-mode");
+      !mapPanel?.classList.contains("is-org-mode") &&
+      !mapPanel?.classList.contains("is-raw-mode");
+    const rawModeOpen = card.classList.contains("is-map-open") && mapPanel?.classList.contains("is-raw-mode");
 
-    if (mapModeOpen && globalRawDataViewOpen) {
-      card.classList.remove("is-map-open");
-      mapToggle.setAttribute("aria-expanded", "false");
-      setPanelMode("map");
-      syncToolbarTabState(getCurrentPanelMode());
-      return;
-    }
-
-    if (globalRawDataViewOpen) {
-      anchoredToolbarMode = "raw";
+    if (rawModeOpen) {
+      anchoredToolbarMode = "map";
       anchoredToolbarOwnerIndex = null;
       activeMapOwnerIndex = null;
       activeDetailOwnerIndex = null;
       activeOrgOwnerIndex = null;
-      activeRawOwnerIndex = null;
       openMapPanel("map");
       syncMapLocationFilter();
-      renderGlobalRawDataTable({ keepPanelOpen: true });
+      renderOwners(displayedOwners);
+      refreshChangedRows();
       return;
     }
 
@@ -3089,7 +3200,8 @@ if (mapToggle && card) {
         card.classList.contains("is-map-open") &&
         !globalRawDataViewOpen &&
         !mapPanel?.classList.contains("is-details-mode") &&
-        !mapPanel?.classList.contains("is-org-mode")
+        !mapPanel?.classList.contains("is-org-mode") &&
+        !mapPanel?.classList.contains("is-raw-mode")
       ) {
         if (closeMapPanel()) return;
         renderOwners(displayedOwners);
@@ -3114,13 +3226,6 @@ if (mapToggle && card) {
       renderOwners(displayedOwners);
       refreshChangedRows();
       return;
-    }
-
-    if (globalRawDataViewOpen) {
-      anchoredToolbarMode = null;
-      anchoredToolbarOwnerIndex = null;
-      applySort();
-      tableWrap?.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }
 
     const detailsModeOpen = card.classList.contains("is-map-open") && mapPanel?.classList.contains("is-details-mode");
@@ -3164,8 +3269,7 @@ if (rawDataToggle) {
       anchoredToolbarMode = null;
       anchoredToolbarOwnerIndex = null;
       if (globalRawDataViewOpen) {
-        applySort();
-        tableWrap?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        closeOwnerRawData(activeRawOwnerIndex);
         return;
       }
 
@@ -3176,45 +3280,39 @@ if (rawDataToggle) {
     if (anchoredToolbarMode) {
       anchoredToolbarMode = "raw";
       anchoredToolbarOwnerIndex = null;
-      renderGlobalRawDataTable();
+      renderGlobalRawDataTable({ activeOwnerIndex: activeRawOwnerIndex });
       return;
     }
 
     if (globalRawDataViewOpen) {
-      applySort();
-      tableWrap?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      closeOwnerRawData(activeRawOwnerIndex);
       return;
     }
 
+    const selectedOwner = activeRawOwnerIndex
+      ?? activeDetailOwnerIndex
+      ?? activeOrgOwnerIndex
+      ?? activeMapOwnerIndex
+      ?? (selectedOwnerIndex && !ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null);
     anchoredToolbarMode = "raw";
     anchoredToolbarOwnerIndex = null;
-    renderGlobalRawDataTable();
+    renderGlobalRawDataTable({ activeOwnerIndex: selectedOwner });
   });
 }
 
 if (orgChartToggle && card) {
   orgChartToggle.addEventListener("click", () => {
-    const orgChartOpen = card.classList.contains("is-map-open") && mapPanel?.classList.contains("is-org-mode");
-
-    if (orgChartOpen && globalRawDataViewOpen) {
-      card.classList.remove("is-map-open");
-      mapToggle?.setAttribute("aria-expanded", "false");
-      setPanelMode("map");
-      syncToolbarTabState(getCurrentPanelMode());
-      return;
-    }
-
     if (globalRawDataViewOpen) {
-      anchoredToolbarMode = "raw";
-      anchoredToolbarOwnerIndex = null;
-      activeMapOwnerIndex = null;
-      activeDetailOwnerIndex = null;
-      activeOrgOwnerIndex = null;
+      globalRawDataViewOpen = false;
       activeRawOwnerIndex = null;
-      openToolbarOrgChart();
-      renderGlobalRawDataTable({ keepPanelOpen: true });
-      return;
+      if (anchoredToolbarMode === "raw") {
+        anchoredToolbarMode = null;
+        anchoredToolbarOwnerIndex = null;
+      }
+      applySort();
     }
+
+    const orgChartOpen = card.classList.contains("is-map-open") && mapPanel?.classList.contains("is-org-mode");
 
     if (anchoredToolbarMode === "org") {
       anchoredToolbarMode = null;
@@ -3300,12 +3398,8 @@ if (ownerDetailsPanel) {
 
     activeOrgOwnerIndex = null;
     renderDefaultOrgChartState();
-    if (globalRawDataViewOpen) {
-      renderGlobalRawDataTable({ keepPanelOpen: true });
-    } else {
-      renderOwners(displayedOwners);
-      refreshChangedRows();
-    }
+    renderOwners(displayedOwners);
+    refreshChangedRows();
   });
 
   ownerDetailsPanel.addEventListener("click", (event) => {
@@ -3331,6 +3425,14 @@ if (ownerDetailsPanel) {
       return;
     }
 
+    const rawRow = event.target.closest(".raw-data-row[data-owner-index][data-raw-row-index]");
+    if (rawRow) {
+      const ownerIndex = Number(rawRow.dataset.ownerIndex);
+      const rowIndex = Number(rawRow.dataset.rawRowIndex);
+      openPersonProfile(getPersonProfileFromRawRow(ownerIndex, rowIndex), rawRow);
+      return;
+    }
+
     const ownerAction = event.target.closest(".owner-header-owner-action");
     if (ownerAction) {
       openOwnerDetailsFromHeader(Number(ownerAction.dataset.ownerIndex));
@@ -3346,12 +3448,8 @@ if (ownerDetailsPanel) {
           anchoredToolbarOwnerIndex = null;
         }
         renderDefaultOrgChartState();
-        if (globalRawDataViewOpen) {
-          renderGlobalRawDataTable({ keepPanelOpen: true });
-        } else {
-          renderOwners(displayedOwners);
-          refreshChangedRows();
-        }
+        renderOwners(displayedOwners);
+        refreshChangedRows();
         return;
       }
 
@@ -3466,6 +3564,66 @@ if (toolbarDropdown) {
   });
 }
 
+if (toolbarTabItems.length) {
+  toolbarTabItems.forEach((item) => {
+    item.addEventListener("click", (event) => {
+      if (!(event.target instanceof Element)) return;
+
+      const layoutOption = event.target.closest(".toolbar-tab-layout-option[data-layout]");
+      if (layoutOption) {
+        event.preventDefault();
+        setPanelLayout(layoutOption.dataset.layout);
+        return;
+      }
+
+      const hidePanelOption = event.target.closest(".toolbar-tab-hide-panel-option");
+      if (!hidePanelOption) return;
+
+      event.preventDefault();
+      const tabButton = item.querySelector(".segmented-control-btn");
+      if (!(tabButton instanceof HTMLButtonElement)) return;
+
+      closeToolbarTabDropdowns();
+      tabButton.click();
+    });
+
+    item.addEventListener("mouseenter", () => {
+      scheduleToolbarTabDropdownOpen(item);
+    });
+
+    item.addEventListener("click", (event) => {
+      if (!(event.target instanceof Element)) return;
+      if (!event.target.closest(".segmented-control-btn")) return;
+      if (!event.isTrusted) return;
+
+      window.setTimeout(() => {
+        if (!item.matches(":hover")) return;
+        scheduleToolbarTabDropdownOpen(item);
+      }, 0);
+    });
+
+    item.addEventListener("mouseleave", () => {
+      clearToolbarTabOpenTimeout(item);
+      if (!item.classList.contains("is-open")) return;
+
+      clearToolbarTabCloseTimeout(item);
+      const timeoutId = window.setTimeout(() => {
+        toolbarTabCloseTimeoutByItem.delete(item);
+        if (!item.matches(":hover")) {
+          item.classList.remove("is-open");
+        }
+      }, TOOLBAR_TAB_DROPDOWN_CLOSE_DELAY_MS);
+      toolbarTabCloseTimeoutByItem.set(item, timeoutId);
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest(".toolbar-tab-item")) return;
+    closeToolbarTabDropdowns();
+  });
+}
+
 if (tableWrap) {
   tableWrap.addEventListener("scroll", syncStickyNameColumnDivider, { passive: true });
   window.addEventListener("resize", syncStickyNameColumnDivider);
@@ -3490,6 +3648,9 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key === "Escape" && toolbarDropdown?.hasAttribute("open")) {
     toolbarDropdown.removeAttribute("open");
+  }
+  if (event.key === "Escape") {
+    closeToolbarTabDropdowns();
   }
   if (event.key === "ArrowLeft") advanceChangeRow(-1);
   if (event.key === "ArrowRight") advanceChangeRow(1);
