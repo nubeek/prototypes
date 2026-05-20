@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Innovation Adoption Curve</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="site-header" aria-label="Wefranch preview navigation">
+    <ul class="site-header__inner">
+      <li class="app-menu">
+        <button class="app-menu__button" type="button" aria-label="Open menu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="12" viewBox="0 0 16 12" aria-hidden="true">
+            <path d="M 1 2 h 12 c 0.55 0 1 -0.45 1 -1 s -0.45 -1 -1 -1 H 1 C 0.45 0 0 0.45 0 1 s 0.45 1 1 1 Z m 14 3 H 1 c -0.55 0 -1 0.45 -1 1 s 0.45 1 1 1 h 14 c 0.55 0 1 -0.45 1 -1 s -0.45 -1 -1 -1 Z m -2 5 H 1 c -0.55 0 -1 0.45 -1 1 s 0.45 1 1 1 h 12 c 0.55 0 1 -0.45 1 -1 s -0.45 -1 -1 -1 Z"></path>
+          </svg>
+        </button>
+      </li>
+
+      <li class="brand-button">
+        <a href="/" aria-label="Wefranch home">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="16" viewBox="0 0 11 16" aria-hidden="true">
+            <path d="M 10.125 5.006 H 5.878 c -0.484 0 -0.877 0.425 -0.877 0.909 v 9.229 a 0.877 0.877 0 0 1 -0.876 0.877 H 0.877 a 0.877 0.877 0 0 1 -0.876 -0.877 V 2.708 c 0 -1.489 0.963 -2.695 2.45 -2.695 H 10.125 c 0.484 0 0.877 0.393 0.877 0.877 v 3.24 a 0.877 0.877 0 0 1 -0.877 0.876 Z m -0.199 1.213 a 0.615 0.615 0 0 1 1.072 0.411 v 3.749 c 0 0.34 -0.275 0.615 -0.615 0.615 H 6.609 a 0.615 0.615 0 0 1 -0.457 -1.027 l 3.774 -3.748 Z"></path>
+          </svg>
+        </a>
+      </li>
+
+      <li class="site-nav-wrap">
+        <nav class="site-nav" aria-label="Preview navigation">
+          <a class="site-nav__item site-nav__item--dropdown" href="#"><span>Franchisees</span></a>
+          <a class="site-nav__item site-nav__item--dropdown" href="#"><span>Franchisors</span></a>
+          <a class="site-nav__item" href="#"><span>Concepts</span></a>
+          <a class="site-nav__item" href="#"><span>Reviews</span></a>
+          <a class="site-nav__item site-nav__item--dropdown" href="#"><span>Resources</span></a>
+        </nav>
+      </li>
+
+      <li class="header-cta">
+        <a class="site-nav__item" href="#"><span>Sign in</span></a>
+        <a class="site-nav__item site-nav__item--accent" href="#"><span>Sign up</span></a>
+      </li>
+    </ul>
+  </header>
+
+  <main class="article-shell">
+    <section class="curve-panel" aria-labelledby="curve-title">
+      <div class="curve-visualization" aria-label="Innovation adoption curve visualization">
+        <header class="curve-heading">
+          <img class="curve-heading__logo" src="assets/logo-crumbl.jpg" alt="Crumbl" />
+          <h2 class="curve-heading__title">Crumbl Cookies Innovation Adoption Curve</h2>
+        </header>
+
+        <div class="curve-labels" id="curveLabels"></div>
+
+        <div class="curve-stage">
+          <svg class="curve-svg" viewBox="0 0 1000 360" role="img" aria-labelledby="curve-title curve-description" preserveAspectRatio="none">
+            <title id="curve-title">Innovation Adoption Curve</title>
+            <desc id="curve-description">A bell curve divided into adoption groups from innovators through laggards.</desc>
+            <defs>
+              <linearGradient id="curveFill" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#fff8fb" />
+                <stop offset="44%" stop-color="#f4dbe3" />
+                <stop offset="100%" stop-color="#e39eb2" />
+              </linearGradient>
+            </defs>
+            <clipPath id="activeCurveClip">
+              <rect id="activeCurveClipRect" x="0" y="0" width="0" height="360"></rect>
+            </clipPath>
+            <path class="curve-area" id="curveArea"></path>
+            <path class="curve-line" id="curveLine"></path>
+            <path class="curve-area curve-area--active" id="activeCurveArea" clip-path="url(#activeCurveClip)"></path>
+            <path class="curve-line curve-line--active" id="activeCurveLine" clip-path="url(#activeCurveClip)"></path>
+          </svg>
+          <div class="curve-rules" id="curveRules" aria-hidden="true"></div>
+          <div class="curve-hit-areas" id="curveHitAreas" aria-hidden="true"></div>
+        </div>
+
+        <div class="curve-percentages" id="curvePercentages"></div>
+        <div class="curve-toolbar curve-toolbar--stores">
+          <p class="stores-summary" id="storesSummary">Loading stores...</p>
+          <div class="curve-toolbar__controls">
+            <label class="curve-toolbar__label" for="curveGranularity">Granularity</label>
+            <select class="curve-toolbar__select" id="curveGranularity" aria-label="Curve granularity">
+              <option value="year" selected>Year</option>
+              <option value="quarter">Quarter</option>
+              <option value="month">Month</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="stores-table-wrap" aria-label="Crumbl stores list">
+          <table class="raw-data-table stores-table">
+            <thead>
+              <tr>
+                <th class="raw-index-heading" style="width: 40px">#</th>
+                <th style="width: 140px">City</th>
+                <th style="width: 140px">State</th>
+                <th style="width: 140px">Opened</th>
+                <th style="width: 140px">Website</th>
+              </tr>
+            </thead>
+            <tbody id="storesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <article class="article-copy" aria-labelledby="article-title">
+      <h1 id="article-title">The Crumbl Chasm</h1>
+      <p>
+        Crumbl Cookies did not just scale a dessert brand. It created a generation of franchise operators who
+        learned how to grow with a breakout concept early.
+      </p>
+      <p>
+        In the <em>Innovation Adoption Curve</em>, the most interesting group is often the <strong>Early Adopters</strong>. These are not
+        the first experimental risk-takers, but they are early enough to see the opportunity before the rest of
+        the market fully catches on.
+      </p>
+      <p>For Crumbl, this group matters because they <strong>crossed the chasm with the brand</strong>.</p>
+      <p>
+        They joined <em>before Crumbl became obvious</em>. They operated through the rapid-growth phase. And many saw the
+        upside of backing a consumer concept before it became saturated.
+      </p>
+      <p>That experience is powerful.</p>
+      <p>
+        Once operators have early success with a fast-scaling franchise, they are more likely to look for the
+        next brand with similar potential. Not because they are chasing trends, but because they understand the
+        pattern: <strong>strong product, clear demand, operational simplicity, social buzz, and territory expansion</strong>.
+      </p>
+      <p>
+        There is also a practical reason. Crumbl's best markets are no longer widely available. For many
+        operators, the path to opening more Crumbl locations may be limited, so the next logical move is
+        <strong>portfolio expansion</strong>.
+      </p>
+      <p>
+        You can already see this behavior in the market. Early Crumbl franchisees have since expanded into other
+        concepts — from fast-casual restaurants to emerging food and wellness brands — moving beyond single-unit
+        ownership into broader multi-unit portfolios.
+      </p>
+      <p><strong>This is the real opportunity behind the chart.</strong></p>
+      <p>
+        The Early Adopter segment is not just a slice of Crumbl's historical growth. It may be one of the best
+        audiences for the next wave of franchise development.
+      </p>
+      <p>
+        These operators have already seen what early momentum looks like. They know the value of getting in
+        before a concept becomes crowded. And if Crumbl gave them their first major win, they may now be looking
+        for the next one.
+      </p>
+      <p>
+        Call it the <strong>Crumbl Alumni Effect</strong>: a network of proven operators, shaped by one of the fastest-growing
+        franchise stories of the last decade, now searching for the next brand to scale.
+      </p>
+    </article>
+  </main>
+</body>
+</html>

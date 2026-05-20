@@ -7,6 +7,7 @@ Collection of static HTML/CSS/JS prototypes for different Wefranch concepts and 
 - `targets/` - target and owner-focused prototype.
 - `tour/` - franchise tour-focused prototype.
 - `cst/` - earlier CST prototype retained for reference.
+- `adoption-curve/` - article-style innovation adoption curve prototype.
 
 ## Local setup
 
@@ -15,8 +16,4 @@ Collection of static HTML/CSS/JS prototypes for different Wefranch concepts and 
    - `http://localhost:5500/targets/`
    - `http://localhost:5500/tour/`
    - `http://localhost:5500/cst/`
-
-## Notes
-
-- Some legacy CST files may still reference `window.CST_ENV` and a Mapbox token override via `.env.local`.
-- Keep any local secrets in git-ignored files only.
+   - `http://localhost:5500/adoption-curve/`

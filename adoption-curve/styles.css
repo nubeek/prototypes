@@ -1,0 +1,805 @@
+:root {
+  --page-bg: #ffffff;
+  --black: #0d0d0f;
+  --muted: #aaaaaa;
+  --rule: #e7e7e7;
+  --rule-strong: #e7e7e7;
+  --purple: #e39eb2;
+  --purple-line: #e39eb2;
+  --header-height: 77px;
+  --container-horizontal-padding: 30px;
+  --button-height: 48px;
+  --nav-spacing: 28px;
+  --shell-x-right: 36px;
+  --shell-x-left: 0px;
+  --article-gap: 30px;
+  --article-col: 1.5fr;
+  --curve-stage-min-height: 180px;
+  --curve-stage-max-height: 320px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--page-bg);
+  color: var(--black);
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+}
+
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  border-bottom: 1px solid transparent;
+  background-color: hsla(0, 0%, 100%, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+.site-header__inner {
+  list-style: none;
+  margin: 0 auto;
+  width: 100%;
+  padding: 14px 30px 14px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-header__inner li {
+  min-width: 0;
+}
+
+.app-menu {
+  flex: 0 0 auto;
+}
+
+.app-menu__button {
+  width: var(--button-height);
+  height: var(--button-height);
+  margin-right: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-menu__button svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 12px;
+}
+
+.brand-button {
+  flex: 0 0 auto;
+}
+
+.brand-button a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--button-height);
+  padding: 15px 17px;
+  border-radius: 10px;
+  border: 1px solid #e7e7e7;
+  background-color: transparent;
+}
+
+.brand-button path {
+  fill: #000;
+}
+
+.brand-button svg {
+  width: 11px;
+  height: 16px;
+}
+
+.site-nav-wrap {
+  flex: 1 1 auto;
+  padding-left: 20px;
+}
+
+.site-nav {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  gap: var(--nav-spacing);
+  white-space: nowrap;
+}
+
+.site-nav__item {
+  cursor: pointer;
+  box-sizing: border-box;
+  height: var(--button-height);
+  line-height: var(--button-height);
+  border-radius: 10px;
+  padding: 0 15px;
+  font-size: 16px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.site-nav__item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.site-nav__item span {
+  user-select: none;
+}
+
+.site-nav__item--dropdown::after {
+  content: "";
+  width: 11px;
+  height: 6px;
+  margin-left: 8px;
+  display: inline-block;
+  background-image: url("assets/chevron.svg");
+  background-repeat: no-repeat;
+  background-size: 11px 6px;
+  background-position: center;
+  transform: rotate(0deg);
+  opacity: 0.65;
+}
+
+.header-cta {
+  flex: 0 0 auto;
+  margin-left: var(--nav-spacing);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-nav__item--accent {
+  background-color: #6f61cf;
+  color: #fff;
+}
+
+.site-nav__item--accent span {
+  color: #fff;
+}
+
+.article-shell {
+  width: 100%;
+  margin-top: var(--header-height);
+  height: calc(100vh - var(--header-height));
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, var(--article-col));
+  gap: var(--article-gap);
+  padding: 28px 28px 0;
+  overflow: hidden;
+}
+
+.curve-panel {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 24px;
+  scrollbar-width: thin;
+}
+
+.curve-visualization {
+  width: 100%;
+  padding-top: 0;
+}
+
+.curve-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 0 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.curve-heading__logo {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+}
+
+.curve-heading__title {
+  margin: 0;
+  color: var(--black);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.curve-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  margin-bottom: 10px;
+}
+
+.curve-toolbar--stores {
+  margin-top: 0;
+  margin-bottom: 0;
+  border-top: 1px solid var(--rule-strong);
+  padding-top: 18px;
+}
+
+.curve-toolbar--stores .curve-toolbar__controls {
+  margin-left: auto;
+}
+
+.curve-toolbar__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.curve-toolbar__label {
+  color: var(--black);
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.curve-toolbar__select {
+  appearance: none;
+  min-width: 118px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background-color: #e9e9e9;
+  background-image: url("assets/chevron.svg");
+  background-repeat: no-repeat;
+  background-position: calc(100% - 14px) 50%;
+  background-size: 11px 6px;
+  color: var(--black);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 34px 0 14px;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.curve-toolbar__select:hover {
+  background-color: #dedede;
+}
+
+.curve-toolbar__select:focus {
+  border: 2px solid #e39eb2;
+  background-color: #ffffff;
+  outline: none;
+}
+
+.curve-labels,
+.curve-percentages {
+  display: grid;
+  grid-template-columns: var(--segment-columns);
+}
+
+.curve-label,
+.curve-percent {
+  min-width: 0;
+  text-align: center;
+}
+
+.curve-segment-control {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.curve-segment-control:focus-visible {
+  outline: 2px solid rgba(227, 158, 178, 0.55);
+  outline-offset: -2px;
+}
+
+.curve-segment-control__text {
+  position: relative;
+  z-index: 1;
+}
+
+.curve-visualization--filtered .curve-segment-control:not([aria-pressed="true"]) {
+  opacity: 0.38;
+}
+
+.curve-label {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #131315;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  padding: 0 8px;
+  white-space: pre-line;
+}
+
+.curve-label[aria-pressed="true"] {
+  color: #000;
+  font-weight: 600;
+}
+
+.curve-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(
+    var(--curve-stage-min-height),
+    calc(100vh - 680px),
+    var(--curve-stage-max-height)
+  );
+  overflow: visible;
+}
+
+.curve-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.curve-area {
+  fill: url("#curveFill");
+  opacity: 0.75;
+  transition: opacity 180ms ease;
+}
+
+.curve-line {
+  fill: none;
+  stroke: var(--purple-line);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  opacity: 0.75;
+  transition: opacity 180ms ease;
+}
+
+.curve-area--active,
+.curve-line--active {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.curve-visualization--filtered .curve-area:not(.curve-area--active),
+.curve-visualization--filtered .curve-line:not(.curve-line--active) {
+  opacity: 0.18;
+}
+
+.curve-visualization--filtered .curve-area--active,
+.curve-visualization--filtered .curve-line--active {
+  opacity: 1;
+}
+
+.curve-visualization--hovered .curve-area--active,
+.curve-visualization--hovered .curve-line--active {
+  opacity: 1;
+}
+
+.curve-rules {
+  position: absolute;
+  inset: -60px 0 0;
+  pointer-events: none;
+}
+
+.curve-hit-areas {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: var(--segment-columns);
+  z-index: 2;
+}
+
+.curve-hit-area {
+  appearance: none;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.curve-rule {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--x) - 3px);
+  width: 7px;
+}
+
+.curve-rule::before,
+.curve-rule::after {
+  content: "";
+  position: absolute;
+}
+
+.curve-rule::before {
+  top: 60px;
+  bottom: 0;
+  left: 0;
+  width: 7px;
+  background: #ffffff;
+}
+
+.curve-rule::after {
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 1px;
+  background: var(--rule);
+}
+
+.curve-percentages {
+  min-height: 52px;
+  border-top: 1px solid #e7e7e7;
+}
+
+.curve-percent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #19191c;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  padding: 24px 0 24px 0;
+}
+
+.curve-percent .curve-segment-control__text {
+  min-width: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 8px 14px;
+  line-height: 1;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: none;
+}
+
+.curve-percent:not([aria-pressed="true"]):hover .curve-segment-control__text,
+.curve-percent:not([aria-pressed="true"]):focus-visible .curve-segment-control__text {
+  background: #e7e7e7;
+}
+
+.curve-percent[data-hovered="true"]:not([aria-pressed="true"]) .curve-segment-control__text {
+  background: #e7e7e7;
+}
+
+.curve-percent[aria-pressed="true"] {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.curve-percent[aria-pressed="true"] .curve-segment-control__text {
+  background: #e39eb2;
+  box-shadow: 0 2px 12px rgba(227, 158, 178, 0.2);
+}
+
+.curve-percent:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 1px;
+  height: 24px;
+  background: var(--rule);
+  transform: translateY(-50%);
+}
+
+.curve-caption {
+  margin: 0;
+  color: var(--black);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.stores-summary {
+  margin: 0;
+  color: var(--black);
+  text-align: left;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.stores-table-wrap {
+  margin-top: 16px;
+  border-top: 1px solid #e6e6ea;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.stores-table-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.stores-table {
+  width: max(100%, 920px);
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.raw-data-table {
+  background: #fff;
+}
+
+.raw-data-table th {
+  text-align: left;
+  padding: 15px 14px;
+  border-right: 1px solid #ececf0;
+  border-bottom: 1px solid #e8e8ed;
+  background: #fff;
+  color: #111;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.raw-data-table th:last-child,
+.raw-data-table td:last-child {
+  border-right: 0;
+}
+
+.raw-data-table td {
+  height: 46px;
+  padding: 10px 14px;
+  border-right: 1px solid #ececf0;
+  border-bottom: 1px solid #e8e8ed;
+  background: #fff;
+  font-size: 15px;
+}
+
+.raw-data-table tbody tr:hover td {
+  background: #f4f4f4;
+}
+
+.raw-empty-cell {
+  color: #8c8c94;
+  text-align: center;
+}
+
+.raw-index-heading {
+  text-align: center;
+}
+
+.raw-index-cell {
+  color: #b7b7bd;
+  text-align: center;
+  font-weight: 500;
+}
+
+.raw-location,
+.raw-phone,
+.raw-email {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-link {
+  color: #e39eb2;
+  text-decoration: none;
+}
+
+.ui-link:hover {
+  text-decoration: underline;
+}
+
+.ui-ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.article-copy {
+  min-width: 360px;
+  padding: 0 0 20px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.article-copy h1 {
+  margin: -4px 0 26px;
+  color: var(--black);
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.article-copy p {
+  margin: 0 0 26px;
+  color: var(--black);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.article-copy p:last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --article-gap: 36px;
+    --shell-x-left: 8px;
+    --shell-x-right: 56px;
+  }
+}
+
+@media (max-width: 1110px) {
+  :root {
+    --nav-spacing: 14px;
+  }
+
+  .site-nav-wrap,
+  .header-cta {
+    display: none;
+  }
+
+  .site-header__inner {
+    justify-content: flex-start;
+    padding-right: 14px;
+  }
+}
+
+@media (max-width: 1020px) {
+  :root {
+    --shell-x-left: 24px;
+    --shell-x-right: 24px;
+  }
+
+  .article-shell {
+    height: calc(100vh - var(--header-height));
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 16px 16px 16px;
+    overflow-y: auto;
+  }
+
+  .curve-label {
+    font-size: 16px;
+    min-height: 56px;
+    padding-inline: 5px;
+  }
+
+  .curve-percent {
+    font-size: 16px;
+  }
+
+  .article-copy {
+    max-width: 680px;
+    padding-bottom: 0;
+    height: auto;
+    overflow: visible;
+  }
+
+  .article-copy h1 {
+    max-width: 460px;
+    font-size: 34px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 620px) {
+  :root {
+    --header-height: 58px;
+    --button-height: 38px;
+  }
+
+  .site-header__inner {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 14px;
+    padding-right: 5px;
+  }
+
+  .brand-button {
+    margin-left: 0;
+  }
+
+  .brand-button a {
+    padding-inline: 13px;
+  }
+
+  .article-shell {
+    padding: 16px;
+  }
+
+  .curve-visualization {
+    min-width: 560px;
+  }
+
+  .curve-toolbar {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .curve-toolbar__controls {
+    margin-left: auto;
+  }
+
+  .curve-panel {
+    margin-inline: -18px;
+    padding-inline: 18px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .curve-label {
+    font-size: 15px;
+  }
+
+  .curve-percent {
+    font-size: 16px;
+  }
+
+  .article-copy h1 {
+    font-size: 30px;
+  }
+
+  .curve-heading {
+    gap: 12px;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+  }
+
+  .curve-heading__logo {
+    width: 56px;
+    height: 56px;
+  }
+
+  .curve-heading__title {
+    font-size: 42px;
+  }
+}
