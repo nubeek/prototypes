@@ -226,6 +226,7 @@ button {
   padding: var(--panel-pad-top) 0 24px;
   border-bottom: 1px solid var(--rule-strong);
   background: var(--page-bg);
+  cursor: pointer;
 }
 
 .curve-heading__logo {
@@ -619,7 +620,7 @@ button {
 }
 
 .stores-table {
-  width: max(100%, 920px);
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
@@ -629,11 +630,14 @@ button {
   width: 40px;
 }
 
-.stores-col--city,
-.stores-col--state,
 .stores-col--opened,
 .stores-col--website {
-  width: 140px;
+  width: 120px;
+  min-width: 120px;
+}
+
+.stores-col--location {
+  width: auto;
 }
 
 .raw-data-table {
@@ -684,6 +688,13 @@ button {
   font-weight: 500;
 }
 
+.raw-data-table th.raw-index-heading,
+.raw-data-table td.raw-index-cell {
+  text-align: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .raw-location,
 .raw-phone,
 .raw-email {
@@ -692,6 +703,16 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.raw-location-link {
+  color: #c3778c;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.raw-location-link:hover {
+  text-decoration: underline;
 }
 
 .ui-link {
@@ -877,6 +898,17 @@ button {
 
   .stores-table-wrap {
     height: 240px;
+  }
+
+  .stores-col--opened,
+  .stores-col--website {
+    width: 118px;
+    min-width: 118px;
+  }
+
+  .raw-data-table th,
+  .raw-data-table td {
+    font-size: 14px;
   }
 
   .curve-toolbar {

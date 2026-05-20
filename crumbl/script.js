@@ -91,6 +91,21 @@ const toSafeUrl = (value) => {
   return null;
 };
 
+const toGoogleMapsUrl = (addressValue) => {
+  if (typeof addressValue !== "string") {
+    return null;
+  }
+
+  const address = addressValue.trim();
+
+  if (!address) {
+    return null;
+  }
+
+  const query = encodeURIComponent(address);
+  return `https://www.google.com/maps/search/?api=1&query=${query}`;
+};
+
 const getBucketStart = (date, granularity) => {
   const year = date.getUTCFullYear();
   const month = date.getUTCMonth();
@@ -452,7 +467,7 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
   if (!stores.length) {
     tableBody.innerHTML = `
       <tr>
-        <td class="raw-empty-cell" colspan="5">No stores found for this adoption category.</td>
+        <td class="raw-empty-cell" colspan="4">No stores found for this adoption category.</td>
       </tr>
     `;
     return;
@@ -460,10 +475,14 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
 
   tableBody.innerHTML = stores
     .map((store, index) => {
-      const city = escapeHtml(store.city || "N/A");
-      const state = escapeHtml(store.state || "N/A");
+      const location = escapeHtml(store.street || "N/A");
       const opened = escapeHtml(formatOpenedDate(store.date_opened));
+      const mapsUrl = toGoogleMapsUrl(store.street);
       const safeUrl = toSafeUrl(store.url);
+      const locationMarkup =
+        store.street && mapsUrl
+          ? `<a class="raw-location raw-location-link" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer">${location}</a>`
+          : `<span class="raw-location">${location}</span>`;
       const websiteMarkup = safeUrl
         ? `<a class="ui-link ui-ellipsis raw-email" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">Open</a>`
         : '<span class="raw-email">N/A</span>';
@@ -471,8 +490,7 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
       return `
         <tr>
           <td class="raw-index-cell">${index + 1}</td>
-          <td><span class="raw-location">${city}</span></td>
-          <td><span class="raw-phone">${state}</span></td>
+          <td>${locationMarkup}</td>
           <td><span class="raw-phone">${opened}</span></td>
           <td>${websiteMarkup}</td>
         </tr>
@@ -491,9 +509,20 @@ const loadCrumblData = async () => {
   return response.json();
 };
 
+const scrollPageToTop = () => {
+  const curvePanel = document.querySelector(".curve-panel");
+
+  if (curvePanel instanceof HTMLElement) {
+    curvePanel.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
 const initAdoptionCurve = async () => {
   const granularitySelect = document.getElementById("curveGranularity");
   const visualization = document.querySelector(".curve-visualization");
+  const curveHeading = document.querySelector(".curve-heading");
 
   const renderCurrentState = () => {
     renderAdoptionCurve(
@@ -506,6 +535,8 @@ const initAdoptionCurve = async () => {
   };
 
   renderAdoptionCurve(adoptionSegments);
+
+  curveHeading?.addEventListener("click", scrollPageToTop);
 
   visualization?.addEventListener("click", (event) => {
     const trigger = getSegmentTriggerFromTarget(event.target);
