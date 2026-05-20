@@ -16,4 +16,4 @@ Collection of static HTML/CSS/JS prototypes for different Wefranch concepts and 
    - `http://localhost:5500/targets/`
    - `http://localhost:5500/tour/`
    - `http://localhost:5500/cst/`
-   - `http://localhost:5500/adoption-curve/`
+   - `http://localhost:5500/crumbl/`

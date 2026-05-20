@@ -284,6 +284,18 @@ const createDivider = (position) => {
   return divider;
 };
 
+const getSegmentTriggerFromTarget = (target) => {
+  if (target instanceof Element) {
+    return target.closest("[data-segment-index]");
+  }
+
+  if (target instanceof Node && target.parentElement instanceof Element) {
+    return target.parentElement.closest("[data-segment-index]");
+  }
+
+  return null;
+};
+
 const renderAdoptionCurve = (
   segments,
   shape = curveShape,
@@ -328,11 +340,11 @@ const renderAdoptionCurve = (
   hitAreas.replaceChildren();
   visualization.style.setProperty("--segment-columns", columns);
   const highlightSegmentIndex =
-    activeSegmentIndex === null ? hoveredSegmentIndex : activeSegmentIndex;
+    hoveredSegmentIndex === null ? activeSegmentIndex : hoveredSegmentIndex;
   visualization.classList.toggle("curve-visualization--filtered", activeSegmentIndex !== null);
   visualization.classList.toggle(
     "curve-visualization--hovered",
-    activeSegmentIndex === null && hoveredSegmentIndex !== null
+    hoveredSegmentIndex !== null
   );
   area.setAttribute("d", areaPath);
   line.setAttribute("d", linePath);
@@ -341,7 +353,7 @@ const renderAdoptionCurve = (
 
   segments.forEach((segment, index) => {
     const isActive = activeSegmentIndex === index;
-    const isHovered = activeSegmentIndex === null && hoveredSegmentIndex === index;
+    const isHovered = hoveredSegmentIndex === index;
     labels.append(createSegmentControl(segment, index, "label", isActive, isHovered));
     percentages.append(createSegmentControl(segment, index, "percent", isActive, isHovered));
     hitAreas.append(createHitAreaControl(segment, index));
@@ -496,7 +508,7 @@ const initAdoptionCurve = async () => {
   renderAdoptionCurve(adoptionSegments);
 
   visualization?.addEventListener("click", (event) => {
-    const trigger = event.target.closest("[data-segment-index]");
+    const trigger = getSegmentTriggerFromTarget(event.target);
 
     if (!trigger) {
       return;
@@ -518,7 +530,7 @@ const initAdoptionCurve = async () => {
   };
 
   visualization?.addEventListener("mouseover", (event) => {
-    const trigger = event.target.closest("[data-segment-index]");
+    const trigger = getSegmentTriggerFromTarget(event.target);
     applyHoveredSegment(trigger ? Number(trigger.dataset.segmentIndex) : null);
   });
 
@@ -535,7 +547,7 @@ const initAdoptionCurve = async () => {
   });
 
   visualization?.addEventListener("focusin", (event) => {
-    const trigger = event.target.closest("[data-segment-index]");
+    const trigger = getSegmentTriggerFromTarget(event.target);
     applyHoveredSegment(trigger ? Number(trigger.dataset.segmentIndex) : null);
   });
 
