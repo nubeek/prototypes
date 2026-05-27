@@ -595,6 +595,33 @@ const thumbnailPseudoRandom = (seed) => {
   return x - Math.floor(x);
 };
 
+const buildBottomUpShuffledDropOrder = (positions, rowSpacing, seedOffset = 4201) => {
+  const count = positions.length;
+  const order = new Array(count);
+
+  if (!count) {
+    return order;
+  }
+
+  const safeRowSpacing = rowSpacing > 0 ? rowSpacing : 1;
+  const indexed = positions.map((pos, i) => ({
+    i,
+    row: Math.round(pos.y / safeRowSpacing),
+    rand: thumbnailPseudoRandom(i + seedOffset),
+  }));
+
+  indexed.sort((a, b) => {
+    if (a.row !== b.row) return a.row - b.row;
+    return a.rand - b.rand;
+  });
+
+  indexed.forEach((entry, rank) => {
+    order[entry.i] = rank;
+  });
+
+  return order;
+};
+
 const curveSampleCache = { source: null, samples: null, baselineY: 0, peakHeight: 0 };
 
 const getCurveLineSamples = () => {
@@ -867,8 +894,10 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
   const stack = document.createElement("div");
   stack.className = "curve-segment-thumbnail-stack";
 
+  const dropOrder = buildBottomUpShuffledDropOrder(positions, rowSpacing);
+
   visibleStores.forEach((store, index) => {
-    const ball = createSegmentThumbnail(store, index);
+    const ball = createSegmentThumbnail(store, dropOrder[index]);
     const pos = positions[index];
     ball.style.setProperty("--thumbnail-x", `${pos.x}px`);
     ball.style.setProperty("--thumbnail-y", `${pos.y}px`);
