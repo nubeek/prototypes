@@ -1,0 +1,112 @@
+/* Password gate, styled from the shared CST design tokens. */
+:root {
+  --access-font-sans: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --access-color-surface: #fff;
+  --access-color-surface-control: #e9e9e9;
+  --access-color-text: #111;
+  --access-color-text-soft: #222;
+  --access-color-brand-primary: #8065e8;
+  --access-color-brand-primary-hover: #765bdd;
+  --access-radius-md: 10px;
+  --access-radius-lg: 12px;
+  --access-control-height: 48px;
+  --access-transition-fast: 180ms ease;
+}
+
+body.access-locked {
+  overflow: hidden;
+}
+
+body.access-locked > :not(.access-gate) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+body:not(.access-locked) .access-gate {
+  display: none;
+}
+
+.access-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--access-color-surface);
+  color: var(--access-color-text-soft);
+  font-family: var(--access-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.access-gate__panel {
+  width: min(360px, 100%);
+  display: grid;
+  gap: 14px;
+}
+
+.access-gate__label {
+  color: var(--access-color-text);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.access-gate__input {
+  width: 100%;
+  height: var(--access-control-height);
+  border: 0;
+  border-radius: var(--access-radius-md);
+  outline: none;
+  background: var(--access-color-surface-control);
+  color: var(--access-color-text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 14px;
+  transition: background-color var(--access-transition-fast), box-shadow var(--access-transition-fast);
+}
+
+.access-gate__input:focus {
+  background: var(--access-color-surface);
+  box-shadow: 0 0 0 2px var(--access-color-brand-primary);
+}
+
+.access-gate .ui-control {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+}
+
+.access-gate .ui-button {
+  min-height: var(--access-control-height);
+  border-radius: var(--access-radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--access-transition-fast), color var(--access-transition-fast);
+}
+
+.access-gate .ui-button-primary {
+  background: var(--access-color-brand-primary);
+  color: var(--access-color-surface);
+  font-weight: 600;
+}
+
+.access-gate .ui-button-primary:hover {
+  background: var(--access-color-brand-primary-hover);
+}
+
+.access-gate__error {
+  margin: 0;
+  color: #911d1d;
+  font-size: 14px;
+  line-height: 1.35;
+}

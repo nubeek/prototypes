@@ -630,8 +630,13 @@ button {
   width: 40px;
 }
 
+.stores-col--name {
+  width: 180px;
+  min-width: 180px;
+}
+
 .stores-col--opened,
-.stores-col--website {
+.stores-col--contact {
   width: 120px;
   min-width: 120px;
 }
@@ -729,6 +734,45 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.raw-contact-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contact-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #c17389;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.contact-icon-link:not(.is-disabled):hover {
+  color: #a05a6e;
+}
+
+.contact-icon-link.is-disabled {
+  cursor: default;
+  opacity: 0.25;
+}
+
+.contact-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.contact-icon--web {
+  width: 16px;
+  height: 16px;
+}
+
+.contact-icon--linkedin {
+  width: 18px;
+  height: 18px;
 }
 
 /* Article */
@@ -901,9 +945,14 @@ button {
   }
 
   .stores-col--opened,
-  .stores-col--website {
+  .stores-col--contact {
     width: 118px;
     min-width: 118px;
+  }
+
+  .stores-col--name {
+    width: 150px;
+    min-width: 150px;
   }
 
   .raw-data-table th,

@@ -8,9 +8,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="../cst/access-gate.css">
+  <script src="../cst/access-gate.js" defer></script>
+  <script src="script.js?v=5" defer></script>
 </head>
-<body>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="password" autocomplete="current-password" autofocus>
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
   <header class="site-header" aria-label="Wefranch preview navigation">
     <ul class="site-header__inner">
       <li class="app-menu">
@@ -102,16 +113,18 @@
           <table class="raw-data-table stores-table">
             <colgroup>
               <col class="stores-col stores-col--index" />
-              <col class="stores-col stores-col--location" />
+              <col class="stores-col stores-col--name" />
+              <col class="stores-col stores-col--contact" />
               <col class="stores-col stores-col--opened" />
-              <col class="stores-col stores-col--website" />
+              <col class="stores-col stores-col--location" />
             </colgroup>
             <thead>
               <tr>
                 <th class="raw-index-heading">#</th>
-                <th>Location</th>
+                <th>Name</th>
+                <th>Contact</th>
                 <th>Opened</th>
-                <th>Website</th>
+                <th>Address</th>
               </tr>
             </thead>
             <tbody id="storesTableBody"></tbody>
