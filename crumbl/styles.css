@@ -865,6 +865,23 @@ button {
   padding-right: 0;
 }
 
+.raw-name {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.raw-name-thumbnail {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  background: #f1edf0;
+}
+
 .raw-location,
 .raw-phone,
 .raw-email {

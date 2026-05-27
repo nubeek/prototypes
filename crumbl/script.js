@@ -21,7 +21,7 @@ const curveState = {
   shape: curveShape,
 };
 
-const curveDataUrl = "data/crumbl.json?v=2";
+const curveDataUrl = "data/crumbl.json?v=3";
 const curveGranularities = {
   year: { stepMonths: 12 },
   quarter: { stepMonths: 3 },
@@ -87,7 +87,17 @@ const getAvatarInitials = (value) => {
 };
 
 const getAvatarImageUrl = (store) =>
-  toSafeUrl(store.owner_thumbnail || store.thumbnail_url || store.photo_url);
+  toSafeUrl(
+    store.owner_thumbnail ||
+      store.profile_picture ||
+      store.owner_profile_picture ||
+      store.owner_image_url ||
+      store.owner_image ||
+      store.thumbnail_url ||
+      store.photo_url ||
+      store.image_url ||
+      store.image
+  );
 
 const formatOpenedDate = (value) => {
   const parsedDate = parseOpenedDate(value);
@@ -167,6 +177,16 @@ const getContactIcon = (type, href, label) => {
   `;
 };
 
+const getContactRank = (store) => {
+  const hasWebsite = Boolean(toSafeUrl(store.url));
+  const hasLinkedin = Boolean(toSafeUrl(store.owner_linkedin));
+
+  if (hasWebsite && hasLinkedin) return 3;
+  if (hasWebsite) return 2;
+  if (hasLinkedin) return 1;
+  return 0;
+};
+
 const getContactIcons = (store) => {
   const label = store.owner_name || store.storefront_name || store.street || "store";
   const websiteUrl = toSafeUrl(store.url);
@@ -177,6 +197,29 @@ const getContactIcons = (store) => {
       ${getContactIcon("web", websiteUrl, label)}
       ${getContactIcon("linkedin", linkedinUrl, label)}
     </div>
+  `;
+};
+
+const getStoreNameMarkup = (store) => {
+  const ownerName = escapeHtml(store.owner_name || "-");
+  const imageUrl = getAvatarImageUrl(store);
+  const imageMarkup = imageUrl
+    ? `
+      <img
+        class="raw-name-thumbnail"
+        src="${escapeHtml(imageUrl)}"
+        alt=""
+        loading="lazy"
+        referrerpolicy="no-referrer"
+      >
+    `
+    : "";
+
+  return `
+    <span class="raw-name">
+      ${imageMarkup}
+      <span class="raw-phone">${ownerName}</span>
+    </span>
   `;
 };
 
@@ -520,31 +563,40 @@ const getStoresWithSegments = (records, segments) => {
   return stores;
 };
 
+const hasAvatarImage = (store) => Boolean(getAvatarImageUrl(store));
+
 const getSegmentThumbnailStores = (stores) => {
-  const seenOwners = new Set();
+  const seenOwnersWithoutImage = new Set();
   const selectedStores = [];
 
   stores.forEach((store) => {
+    if (hasAvatarImage(store)) {
+      selectedStores.push(store);
+      return;
+    }
+
     const ownerName = String(store.owner_name || "").trim();
 
     if (ownerName) {
       const ownerKey = ownerName.toLowerCase();
-
-      if (seenOwners.has(ownerKey)) {
+      if (seenOwnersWithoutImage.has(ownerKey)) {
         return;
       }
-
-      seenOwners.add(ownerKey);
-      selectedStores.push(store);
-      return;
+      seenOwnersWithoutImage.add(ownerKey);
     }
 
     selectedStores.push(store);
   });
 
   return selectedStores.sort((a, b) => {
+    const aHasImage = hasAvatarImage(a);
+    const bHasImage = hasAvatarImage(b);
     const aHasOwner = Boolean(a.owner_name);
     const bHasOwner = Boolean(b.owner_name);
+
+    if (aHasImage !== bHasImage) {
+      return aHasImage ? -1 : 1;
+    }
 
     if (aHasOwner !== bHasOwner) {
       return aHasOwner ? -1 : 1;
@@ -570,6 +622,8 @@ const createSegmentThumbnail = (store, index) => {
     image.src = imageUrl;
     image.alt = "";
     image.loading = "lazy";
+    image.decoding = "async";
+    image.referrerPolicy = "no-referrer";
     face.append(image);
   } else {
     face.textContent = getAvatarInitials(label);
@@ -864,11 +918,23 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
   const curveFitCap = columnFitMax.reduce((a, b) => a + b, 0);
   const segmentCap = Math.min(segmentThumbnailHardCap, curveFitCap);
 
+  const imageBackedStores = thumbnailStores.filter(hasAvatarImage);
+  const otherStores = thumbnailStores.filter((store) => !hasAvatarImage(store));
+
   const willOverflow = thumbnailStores.length > segmentCap;
-  const visibleCount = willOverflow
-    ? Math.max(0, segmentCap - 1)
-    : thumbnailStores.length;
-  const visibleStores = thumbnailStores.slice(0, visibleCount);
+  let visibleStores;
+
+  if (willOverflow) {
+    const reservedForBadge = 1;
+    const otherSlots = Math.max(
+      0,
+      segmentCap - reservedForBadge - imageBackedStores.length
+    );
+    visibleStores = imageBackedStores.concat(otherStores.slice(0, otherSlots));
+  } else {
+    visibleStores = thumbnailStores;
+  }
+
   const overflowCount = thumbnailStores.length - visibleStores.length;
 
   const { positions } = computeMarblePilePositions(
@@ -896,7 +962,9 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
 
   const dropOrder = buildBottomUpShuffledDropOrder(positions, rowSpacing);
 
-  visibleStores.forEach((store, index) => {
+  const pileStores = visibleStores.slice().reverse();
+
+  pileStores.forEach((store, index) => {
     const ball = createSegmentThumbnail(store, dropOrder[index]);
     const pos = positions[index];
     ball.style.setProperty("--thumbnail-x", `${pos.x}px`);
@@ -930,26 +998,29 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
       return activeSegmentIndex === null || store.segmentIndex === activeSegmentIndex;
     })
     .sort((a, b) => {
-      const aHasOwner = Boolean(a.owner_name);
-      const bHasOwner = Boolean(b.owner_name);
+      const aHasImage = hasAvatarImage(a);
+      const bHasImage = hasAvatarImage(b);
 
-      if (aHasOwner !== bHasOwner) {
-        return aHasOwner ? -1 : 1;
+      if (aHasImage !== bHasImage) {
+        return aHasImage ? -1 : 1;
       }
 
-      if (!a.openedDate && !b.openedDate) {
-        return String(a.street || "").localeCompare(String(b.street || ""));
-      }
-
-      if (!a.openedDate) {
+      if (a.openedDate && b.openedDate) {
+        if (a.openedDate.getTime() !== b.openedDate.getTime()) {
+          return a.openedDate - b.openedDate;
+        }
+      } else if (a.openedDate) {
+        return -1;
+      } else if (b.openedDate) {
         return 1;
       }
 
-      if (!b.openedDate) {
-        return -1;
+      const contactRank = getContactRank(b) - getContactRank(a);
+      if (contactRank !== 0) {
+        return contactRank;
       }
 
-      return a.openedDate - b.openedDate;
+      return String(a.street || "").localeCompare(String(b.street || ""));
     });
 
   if (storesSummary) {
@@ -972,7 +1043,6 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
 
   tableBody.innerHTML = stores
     .map((store, index) => {
-      const ownerName = escapeHtml(store.owner_name || "-");
       const location = escapeHtml(store.street || "-");
       const opened = escapeHtml(formatOpenedDate(store.date_opened));
       const mapsUrl = toGoogleMapsUrl(store.street);
@@ -981,11 +1051,12 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
           ? `<a class="raw-location raw-location-link" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer">${location}</a>`
           : `<span class="raw-location">${location}</span>`;
       const contactMarkup = getContactIcons(store);
+      const nameMarkup = getStoreNameMarkup(store);
 
       return `
         <tr>
           <td class="raw-index-cell">${index + 1}</td>
-          <td><span class="raw-phone">${ownerName}</span></td>
+          <td>${nameMarkup}</td>
           <td>${contactMarkup}</td>
           <td><span class="raw-phone">${opened}</span></td>
           <td>${locationMarkup}</td>
