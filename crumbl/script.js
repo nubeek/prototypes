@@ -5,6 +5,7 @@ const adoptionSegments = [
   { label: "Late\nMajority", percent: 34, endPosition: 68.7 },
   { label: "Laggards", percent: 16, endPosition: 100 },
 ];
+const chasmSegmentIndex = 1;
 
 const curveShape = {
   width: 1000,
@@ -26,6 +27,7 @@ const curveGranularities = {
   quarter: { stepMonths: 3 },
   month: { stepMonths: 1 },
 };
+const segmentThumbnailHardCap = 220;
 
 const openedDateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
@@ -63,6 +65,29 @@ const escapeHtml = (value) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+
+const getAvatarLabel = (store) =>
+  store.owner_name || store.storefront_name || store.city || store.street || "Crumbl operator";
+
+const getAvatarInitials = (value) => {
+  const words = String(value || "")
+    .trim()
+    .split(/[\s,./&-]+/)
+    .filter(Boolean);
+
+  if (!words.length) {
+    return "C";
+  }
+
+  return words
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase();
+};
+
+const getAvatarImageUrl = (store) =>
+  toSafeUrl(store.owner_thumbnail || store.thumbnail_url || store.photo_url);
 
 const formatOpenedDate = (value) => {
   const parsedDate = parseOpenedDate(value);
@@ -407,6 +432,10 @@ const renderAdoptionCurve = (
     hoveredSegmentIndex === null ? activeSegmentIndex : hoveredSegmentIndex;
   visualization.classList.toggle("curve-visualization--filtered", activeSegmentIndex !== null);
   visualization.classList.toggle(
+    "curve-visualization--chasm-hidden",
+    activeSegmentIndex === chasmSegmentIndex
+  );
+  visualization.classList.toggle(
     "curve-visualization--hovered",
     hoveredSegmentIndex !== null
   );
@@ -489,6 +518,373 @@ const getStoresWithSegments = (records, segments) => {
   });
 
   return stores;
+};
+
+const getSegmentThumbnailStores = (stores) => {
+  const seenOwners = new Set();
+  const selectedStores = [];
+
+  stores.forEach((store) => {
+    const ownerName = String(store.owner_name || "").trim();
+
+    if (ownerName) {
+      const ownerKey = ownerName.toLowerCase();
+
+      if (seenOwners.has(ownerKey)) {
+        return;
+      }
+
+      seenOwners.add(ownerKey);
+      selectedStores.push(store);
+      return;
+    }
+
+    selectedStores.push(store);
+  });
+
+  return selectedStores.sort((a, b) => {
+    const aHasOwner = Boolean(a.owner_name);
+    const bHasOwner = Boolean(b.owner_name);
+
+    if (aHasOwner !== bHasOwner) {
+      return aHasOwner ? -1 : 1;
+    }
+
+    return String(getAvatarLabel(a)).localeCompare(String(getAvatarLabel(b)));
+  });
+};
+
+const createSegmentThumbnail = (store, index) => {
+  const avatar = document.createElement("span");
+  const face = document.createElement("span");
+  const label = getAvatarLabel(store);
+  const imageUrl = getAvatarImageUrl(store);
+
+  avatar.className = "curve-segment-thumbnail";
+  avatar.style.setProperty("--thumbnail-index", String(index));
+  avatar.title = label;
+  face.className = "curve-segment-thumbnail__face";
+
+  if (imageUrl) {
+    const image = document.createElement("img");
+    image.src = imageUrl;
+    image.alt = "";
+    image.loading = "lazy";
+    face.append(image);
+  } else {
+    face.textContent = getAvatarInitials(label);
+  }
+
+  avatar.append(face);
+  return avatar;
+};
+
+const createOverflowBadge = (count, index) => {
+  const badge = document.createElement("span");
+  const face = document.createElement("span");
+  badge.className = "curve-segment-thumbnail curve-segment-thumbnail--overflow";
+  badge.style.setProperty("--thumbnail-index", String(index));
+  face.className = "curve-segment-thumbnail__face";
+  face.textContent = `+${count.toLocaleString()}`;
+  badge.append(face);
+  return badge;
+};
+
+const thumbnailPseudoRandom = (seed) => {
+  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+};
+
+const curveSampleCache = { source: null, samples: null, baselineY: 0, peakHeight: 0 };
+
+const getCurveLineSamples = () => {
+  const curveLine = document.getElementById("curveLine");
+  if (!curveLine) return null;
+  const pathD = curveLine.getAttribute("d");
+  if (!pathD) return null;
+  if (curveSampleCache.source === pathD && curveSampleCache.samples) {
+    return curveSampleCache;
+  }
+  let totalLength = 0;
+  try {
+    totalLength = curveLine.getTotalLength();
+  } catch (error) {
+    return null;
+  }
+  if (!totalLength) return null;
+  const sampleCount = 320;
+  const samples = new Array(sampleCount + 1);
+  let baselineY = 0;
+  let minY = Infinity;
+  for (let i = 0; i <= sampleCount; i++) {
+    const pt = curveLine.getPointAtLength((i / sampleCount) * totalLength);
+    samples[i] = { x: pt.x, y: pt.y };
+    if (pt.y > baselineY) baselineY = pt.y;
+    if (pt.y < minY) minY = pt.y;
+  }
+  samples.sort((a, b) => a.x - b.x);
+  curveSampleCache.source = pathD;
+  curveSampleCache.samples = samples;
+  curveSampleCache.baselineY = baselineY;
+  curveSampleCache.peakHeight = Math.max(1, baselineY - minY);
+  return curveSampleCache;
+};
+
+const getCurveHeightAtXPercent = (xPercent, viewBoxWidth = 1000) => {
+  const cache = getCurveLineSamples();
+  if (!cache) return 0;
+  const targetX = (xPercent / 100) * viewBoxWidth;
+  const { samples, baselineY } = cache;
+  let lo = 0;
+  let hi = samples.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (samples[mid].x <= targetX) lo = mid;
+    else hi = mid;
+  }
+  const a = samples[lo];
+  const b = samples[hi];
+  const span = b.x - a.x;
+  const t = span > 0 ? (targetX - a.x) / span : 0;
+  const y = a.y + (b.y - a.y) * t;
+  return Math.max(0, baselineY - y);
+};
+
+const curveWeightShapingExponent = 0.55;
+
+const computeSegmentColumnWeights = (segStartPct, segEndPct, numCols) => {
+  const cache = getCurveLineSamples();
+  if (!cache || numCols <= 0) {
+    return new Array(numCols).fill(1);
+  }
+  const peak = cache.peakHeight;
+  const weights = new Array(numCols);
+  for (let c = 0; c < numCols; c++) {
+    const relativeX = numCols === 1 ? 0.5 : (c + 0.5) / numCols;
+    const absoluteXPct = segStartPct + relativeX * (segEndPct - segStartPct);
+    const height = getCurveHeightAtXPercent(absoluteXPct);
+    const rawWeight = peak > 0 ? Math.max(0, height / peak) : 0;
+    weights[c] = Math.pow(rawWeight, curveWeightShapingExponent);
+  }
+  return weights;
+};
+
+const distributeBallsByColumnWeights = (totalCount, weights, perColMax) => {
+  const cols = weights.length;
+  const allocation = new Array(cols).fill(0);
+  if (totalCount <= 0 || cols === 0) return allocation;
+  const capLeft = perColMax ? perColMax.slice() : null;
+  let remaining = totalCount;
+  for (let pass = 0; pass < 6 && remaining > 0; pass++) {
+    let weightSum = 0;
+    for (let c = 0; c < cols; c++) {
+      if (!capLeft || capLeft[c] > 0) weightSum += weights[c];
+    }
+    if (weightSum <= 0) {
+      for (let c = 0; c < cols && remaining > 0; c++) {
+        if (capLeft && capLeft[c] <= 0) continue;
+        allocation[c]++;
+        if (capLeft) capLeft[c]--;
+        remaining--;
+      }
+      continue;
+    }
+    const fractions = [];
+    let placedThisPass = 0;
+    for (let c = 0; c < cols; c++) {
+      if (capLeft && capLeft[c] <= 0) continue;
+      const exact = (weights[c] / weightSum) * remaining;
+      const whole = Math.floor(exact);
+      const limit = capLeft ? Math.min(whole, capLeft[c]) : whole;
+      allocation[c] += limit;
+      if (capLeft) capLeft[c] -= limit;
+      placedThisPass += limit;
+      fractions.push({ i: c, frac: exact - whole });
+    }
+    remaining -= placedThisPass;
+    fractions.sort((a, b) => b.frac - a.frac);
+    for (let k = 0; k < fractions.length && remaining > 0; k++) {
+      const idx = fractions[k].i;
+      if (capLeft && capLeft[idx] <= 0) continue;
+      allocation[idx]++;
+      if (capLeft) capLeft[idx]--;
+      remaining--;
+    }
+  }
+  return allocation;
+};
+
+const computeMarblePilePositions = (count, widthPx, ballSize, columnWeights) => {
+  if (count <= 0 || widthPx <= 0) {
+    return { positions: [], cols: 0, colSpacing: 0, rowSpacing: 0 };
+  }
+
+  const overlap = ballSize * 0.28;
+  const colSpacing = Math.max(1, ballSize - overlap);
+  const rowSpacing = colSpacing * 0.82;
+  const maxCols = Math.max(1, Math.floor((widthPx - ballSize) / colSpacing) + 1);
+  const cols = Math.min(maxCols, Math.max(1, count));
+
+  let weights = columnWeights;
+  if (!weights || weights.length !== cols) {
+    weights = new Array(cols).fill(1);
+  }
+  if (weights.every((w) => w <= 0)) {
+    weights = weights.map(() => 1);
+  }
+
+  const ballsPerColumn = distributeBallsByColumnWeights(count, weights);
+  const maxBallsInAnyColumn = ballsPerColumn.reduce((m, n) => Math.max(m, n), 0);
+
+  const rowSpan = (cols - 1) * colSpacing;
+  const rowStartX = (widthPx - rowSpan) / 2;
+
+  const positions = [];
+  let placed = 0;
+
+  for (let row = 0; row < maxBallsInAnyColumn; row++) {
+    for (let col = 0; col < cols; col++) {
+      if (row >= ballsPerColumn[col]) continue;
+      const seed = placed + 1;
+      const baseX = rowStartX + col * colSpacing;
+      const baseY = row * rowSpacing + ballSize / 2;
+
+      const jitterX = (thumbnailPseudoRandom(seed) - 0.5) * colSpacing * 0.5;
+      const jitterY = (thumbnailPseudoRandom(seed + 1009) - 0.5) * rowSpacing * 0.4;
+      const rotation = (thumbnailPseudoRandom(seed + 2017) - 0.5) * 32;
+
+      positions.push({
+        x: baseX + jitterX,
+        y: Math.max(0, baseY + jitterY),
+        rotation,
+      });
+      placed++;
+    }
+  }
+
+  return { positions, cols, colSpacing, rowSpacing };
+};
+
+let lastRenderedSegmentKey = null;
+
+const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {}) => {
+  const container = document.getElementById("curveSegmentThumbnails");
+
+  if (!container) {
+    return;
+  }
+
+  const key = `${activeSegmentIndex}::${records?.length || 0}`;
+  if (!options.force && lastRenderedSegmentKey === key) {
+    return;
+  }
+  lastRenderedSegmentKey = key;
+
+  container.replaceChildren();
+  container.classList.toggle("is-visible", activeSegmentIndex !== null);
+
+  if (activeSegmentIndex === null || !records.length) {
+    container.style.removeProperty("--thumbnail-left");
+    container.style.removeProperty("--thumbnail-width");
+    container.style.removeProperty("--thumbnail-pile-height");
+    return;
+  }
+
+  const activeSegment = adoptionSegments[activeSegmentIndex];
+  const startPosition = getSegmentStartPosition(adoptionSegments, activeSegmentIndex);
+  const segmentWidth = activeSegment.endPosition - startPosition;
+  const stores = getStoresWithSegments(records, adoptionSegments).filter(
+    (store) => store.segmentIndex === activeSegmentIndex
+  );
+  const thumbnailStores = getSegmentThumbnailStores(stores);
+
+  if (!thumbnailStores.length) {
+    return;
+  }
+
+  container.style.setProperty("--thumbnail-left", `${startPosition}%`);
+  container.style.setProperty("--thumbnail-width", `${segmentWidth}%`);
+
+  const containerStyles = getComputedStyle(container);
+  const ballSize =
+    parseFloat(containerStyles.getPropertyValue("--thumbnail-size")) || 24;
+  const containerWidth = Math.max(ballSize, container.clientWidth);
+  const stage = container.parentElement;
+  const stageHeight = stage?.clientHeight || 200;
+  const maxPileHeight = Math.max(ballSize * 2.5, stageHeight * 0.88);
+
+  const overlap = ballSize * 0.28;
+  const colSpacing = Math.max(1, ballSize - overlap);
+  const rowSpacing = colSpacing * 0.82;
+  const colsForSegment = Math.max(
+    1,
+    Math.floor((containerWidth - ballSize) / colSpacing) + 1
+  );
+  const rowsForStage = Math.max(
+    1,
+    Math.floor((maxPileHeight - ballSize) / rowSpacing) + 1
+  );
+
+  const segmentEnd = startPosition + segmentWidth;
+  const columnWeights = computeSegmentColumnWeights(
+    startPosition,
+    segmentEnd,
+    colsForSegment
+  );
+  const columnFitMax = columnWeights.map((w) =>
+    Math.max(1, Math.ceil(w * rowsForStage))
+  );
+  const curveFitCap = columnFitMax.reduce((a, b) => a + b, 0);
+  const segmentCap = Math.min(segmentThumbnailHardCap, curveFitCap);
+
+  const willOverflow = thumbnailStores.length > segmentCap;
+  const visibleCount = willOverflow
+    ? Math.max(0, segmentCap - 1)
+    : thumbnailStores.length;
+  const visibleStores = thumbnailStores.slice(0, visibleCount);
+  const overflowCount = thumbnailStores.length - visibleStores.length;
+
+  const { positions } = computeMarblePilePositions(
+    visibleStores.length,
+    containerWidth,
+    ballSize,
+    columnWeights
+  );
+  const pileHeight = positions.reduce(
+    (max, pos) => Math.max(max, pos.y + ballSize / 2),
+    ballSize
+  );
+
+  const badgeY = overflowCount > 0 ? pileHeight + ballSize * 0.45 : 0;
+  const totalContainerHeight =
+    overflowCount > 0 ? badgeY + ballSize * 0.6 : pileHeight;
+
+  container.style.setProperty(
+    "--thumbnail-pile-height",
+    `${totalContainerHeight}px`
+  );
+
+  const stack = document.createElement("div");
+  stack.className = "curve-segment-thumbnail-stack";
+
+  visibleStores.forEach((store, index) => {
+    const ball = createSegmentThumbnail(store, index);
+    const pos = positions[index];
+    ball.style.setProperty("--thumbnail-x", `${pos.x}px`);
+    ball.style.setProperty("--thumbnail-y", `${pos.y}px`);
+    ball.style.setProperty("--thumbnail-rotation", `${pos.rotation}deg`);
+    stack.append(ball);
+  });
+
+  if (overflowCount > 0) {
+    const overflowBadge = createOverflowBadge(overflowCount, visibleStores.length);
+    overflowBadge.style.setProperty("--thumbnail-x", `${containerWidth / 2}px`);
+    overflowBadge.style.setProperty("--thumbnail-y", `${badgeY}px`);
+    overflowBadge.style.setProperty("--thumbnail-rotation", "0deg");
+    stack.append(overflowBadge);
+  }
+
+  container.append(stack);
 };
 
 const renderStoresTable = (records, activeSegmentIndex = null) => {
@@ -602,6 +998,7 @@ const initAdoptionCurve = async () => {
       curveState.activeSegmentIndex,
       curveState.hoveredSegmentIndex
     );
+    renderSegmentThumbnails(curveState.records, curveState.activeSegmentIndex);
     renderStoresTable(curveState.records, curveState.activeSegmentIndex);
   };
 
@@ -665,6 +1062,21 @@ const initAdoptionCurve = async () => {
     }
   });
 
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    if (curveState.activeSegmentIndex === null) {
+      return;
+    }
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => {
+      renderSegmentThumbnails(
+        curveState.records,
+        curveState.activeSegmentIndex,
+        { force: true }
+      );
+    }, 200);
+  });
+
   try {
     const records = await loadCrumblData();
     curveState.records = records;
@@ -673,6 +1085,7 @@ const initAdoptionCurve = async () => {
       const granularity = granularitySelect?.value || "year";
       const shape = buildCurveFromOpenings(records, granularity);
       curveState.shape = shape;
+      lastRenderedSegmentKey = null;
       renderCurrentState();
     };
 
