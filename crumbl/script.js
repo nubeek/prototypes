@@ -21,7 +21,7 @@ const curveState = {
   shape: curveShape,
 };
 
-const curveDataUrl = "data/crumbl.json?v=3";
+const curveDataUrl = "data/crumbl.json?v=4";
 const curveGranularities = {
   year: { stepMonths: 12 },
   quarter: { stepMonths: 3 },
@@ -107,6 +107,99 @@ const formatOpenedDate = (value) => {
   }
 
   return openedDateFormatter.format(parsedDate);
+};
+
+const pickFirstNonEmptyString = (...values) => {
+  for (const value of values) {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (trimmed) {
+        return trimmed;
+      }
+    }
+  }
+
+  return null;
+};
+
+const normalizeCrumblRecord = (record) => {
+  if (!record || typeof record !== "object") {
+    return null;
+  }
+
+  const nestedInstitution =
+    record.institution && typeof record.institution === "object"
+      ? record.institution
+      : null;
+  const nestedRootProfile =
+    nestedInstitution?.root_profile && typeof nestedInstitution.root_profile === "object"
+      ? nestedInstitution.root_profile
+      : null;
+  const nestedLocation =
+    record.location && typeof record.location === "object" ? record.location : null;
+  const nestedCoordinates =
+    nestedLocation?.coordinates && typeof nestedLocation.coordinates === "object"
+      ? nestedLocation.coordinates
+      : null;
+  const nestedRootProfileName = pickFirstNonEmptyString(nestedRootProfile?.name);
+  const ownerName = pickFirstNonEmptyString(
+    record.owner_name,
+    record.root_profile_name,
+    nestedRootProfileName
+  );
+  const rootProfileName = pickFirstNonEmptyString(
+    record.root_profile_name,
+    nestedRootProfileName,
+    record.owner_name
+  );
+
+  return {
+    ...record,
+    id: record.id ?? record.store_id ?? null,
+    phone: pickFirstNonEmptyString(record.phone, nestedRootProfile?.phone),
+    storefront_name: pickFirstNonEmptyString(record.storefront_name, record.name),
+    street: pickFirstNonEmptyString(record.street, nestedLocation?.address),
+    city: pickFirstNonEmptyString(record.city, nestedLocation?.city),
+    state: pickFirstNonEmptyString(record.state, nestedLocation?.state),
+    country: pickFirstNonEmptyString(record.country, nestedLocation?.country),
+    latitude: record.latitude ?? nestedCoordinates?.lat ?? null,
+    longitude: record.longitude ?? nestedCoordinates?.lng ?? null,
+    url: pickFirstNonEmptyString(record.url, nestedInstitution?.website),
+    email_address: pickFirstNonEmptyString(record.email_address, record.email),
+    owner_name: ownerName,
+    owner_email: pickFirstNonEmptyString(
+      record.owner_email,
+      nestedRootProfile?.email,
+      record.email
+    ),
+    root_profile_name: rootProfileName,
+    root_profile_id: record.root_profile_id ?? nestedRootProfile?.id ?? null,
+    root_profile_abbreviation: pickFirstNonEmptyString(
+      record.root_profile_abbreviation,
+      nestedRootProfile?.abbreviation
+    ),
+    root_profile_org_key: pickFirstNonEmptyString(
+      record.root_profile_org_key,
+      nestedRootProfile?.org_key
+    ),
+    root_profile_org_title: pickFirstNonEmptyString(
+      record.root_profile_org_title,
+      nestedRootProfile?.org_title
+    ),
+    owner_linkedin: pickFirstNonEmptyString(
+      record.owner_linkedin,
+      nestedRootProfile?.linkedin_link,
+      nestedInstitution?.linkedin_link
+    ),
+    institution_name: pickFirstNonEmptyString(
+      record.institution_name,
+      nestedInstitution?.name
+    ),
+    profile_picture: pickFirstNonEmptyString(
+      record.profile_picture,
+      nestedRootProfile?.profile_picture
+    ),
+  };
 };
 
 const toSafeUrl = (value) => {
@@ -201,7 +294,9 @@ const getContactIcons = (store) => {
 };
 
 const getStoreNameMarkup = (store) => {
-  const ownerName = escapeHtml(store.owner_name || "-");
+  const displayName = escapeHtml(
+    store.owner_name || store.institution_name || store.storefront_name || "-"
+  );
   const imageUrl = getAvatarImageUrl(store);
   const imageMarkup = imageUrl
     ? `
@@ -218,7 +313,7 @@ const getStoreNameMarkup = (store) => {
   return `
     <span class="raw-name">
       ${imageMarkup}
-      <span class="raw-phone">${ownerName}</span>
+      <span class="raw-phone">${displayName}</span>
     </span>
   `;
 };
@@ -919,21 +1014,13 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
   const segmentCap = Math.min(segmentThumbnailHardCap, curveFitCap);
 
   const imageBackedStores = thumbnailStores.filter(hasAvatarImage);
-  const otherStores = thumbnailStores.filter((store) => !hasAvatarImage(store));
-
-  const willOverflow = thumbnailStores.length > segmentCap;
-  let visibleStores;
-
-  if (willOverflow) {
-    const reservedForBadge = 1;
-    const otherSlots = Math.max(
-      0,
-      segmentCap - reservedForBadge - imageBackedStores.length
-    );
-    visibleStores = imageBackedStores.concat(otherStores.slice(0, otherSlots));
-  } else {
-    visibleStores = thumbnailStores;
-  }
+  const hiddenNonImageCount = thumbnailStores.length - imageBackedStores.length;
+  const needsOverflowBadge =
+    hiddenNonImageCount > 0 || imageBackedStores.length > segmentCap;
+  const visibleImageCap = needsOverflowBadge
+    ? Math.max(0, segmentCap - 1)
+    : segmentCap;
+  const visibleStores = imageBackedStores.slice(0, visibleImageCap);
 
   const overflowCount = thumbnailStores.length - visibleStores.length;
 
@@ -1073,7 +1160,15 @@ const loadCrumblData = async () => {
     throw new Error(`Unable to load ${curveDataUrl}`);
   }
 
-  return response.json();
+  const rawRecords = await response.json();
+
+  if (!Array.isArray(rawRecords)) {
+    return [];
+  }
+
+  return rawRecords
+    .map(normalizeCrumblRecord)
+    .filter((record) => record && record.id !== null);
 };
 
 const scrollPageToTop = () => {

@@ -511,7 +511,7 @@ button {
 .curve-segment-thumbnails {
   --thumbnail-left: 0%;
   --thumbnail-width: 0%;
-  --thumbnail-size: 24px;
+  --thumbnail-size: 38px;
   --thumbnail-drop-stagger: 22ms;
   --thumbnail-drop-distance: 200px;
   --thumbnail-pile-height: 0px;
@@ -792,18 +792,18 @@ button {
 }
 
 .stores-col--index {
-  width: 40px;
+  width: 52px;
 }
 
 .stores-col--name {
-  width: 180px;
-  min-width: 180px;
+  width: 240px;
+  min-width: 240px;
 }
 
 .stores-col--opened,
 .stores-col--contact {
-  width: 120px;
-  min-width: 120px;
+  width: 132px;
+  min-width: 132px;
 }
 
 .stores-col--location {
@@ -1035,7 +1035,7 @@ button {
   }
 
   .curve-segment-thumbnails {
-    --thumbnail-size: 22px;
+    --thumbnail-size: 32px;
     --thumbnail-drop-distance: 160px;
   }
 
@@ -1117,7 +1117,7 @@ button {
   }
 
   .curve-segment-thumbnails {
-    --thumbnail-size: 18px;
+    --thumbnail-size: 26px;
     --thumbnail-drop-distance: 130px;
     --thumbnail-drop-stagger: 18ms;
   }
