@@ -28,8 +28,8 @@ const curveGranularities = {
   month: { stepMonths: 1 },
 };
 const segmentThumbnailHardCap = 220;
-const lockedStoresVisibleCount = 5;
-const lockedStoresMaxRows = 15;
+// const lockedStoresVisibleCount = 5;
+// const lockedStoresMaxRows = 15;
 
 const openedDateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
@@ -1153,10 +1153,7 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
     return;
   }
 
-  const displayStores =
-    stores.length > lockedStoresVisibleCount
-      ? stores.slice(0, lockedStoresMaxRows)
-      : stores;
+  const displayStores = stores;
 
   tableBody.innerHTML = displayStores
     .map((store, index) => {
@@ -1169,7 +1166,7 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
           : `<span class="raw-location">${location}</span>`;
       const contactMarkup = getContactIcons(store);
       const nameMarkup = getStoreNameMarkup(store);
-      const lockedClass = index >= lockedStoresVisibleCount ? " class=\"is-locked\"" : "";
+      const lockedClass = "";
 
       return `
         <tr${lockedClass}>
