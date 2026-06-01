@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="../cst/access-gate.css">
   <script src="../cst/access-gate.js" defer></script>
-  <script src="script.js?v=23" defer></script>
+  <script src="script.js?v=34" defer></script>
 </head>
 <body class="access-locked">
   <div class="access-gate" data-access-gate>
@@ -87,12 +87,12 @@
             <path class="curve-line curve-line--active" id="activeCurveLine" clip-path="url(#activeCurveClip)"></path>
           </svg>
           <div class="curve-rules" id="curveRules" aria-hidden="true"></div>
-          <div class="curve-chasm-label" aria-hidden="true">
+          <!-- <div class="curve-chasm-label" aria-hidden="true">
             <span class="curve-chasm-label__line">"The</span>
             <span class="curve-chasm-label__line">Crumbl</span>
             <span class="curve-chasm-label__line">Chasm"</span>
             <img class="curve-chasm-label__border" src="assets/chasm-border.svg" alt="" />
-          </div>
+          </div> -->
           <div class="curve-segment-thumbnails" id="curveSegmentThumbnails" aria-hidden="true"></div>
           <div class="curve-hit-areas" id="curveHitAreas" aria-hidden="true"></div>
         </div>
@@ -100,14 +100,6 @@
         <div class="curve-percentages" id="curvePercentages"></div>
         <div class="curve-toolbar curve-toolbar--stores">
           <p class="stores-summary" id="storesSummary">Loading stores...</p>
-          <div class="curve-toolbar__controls">
-            <label class="curve-toolbar__label" for="curveGranularity">Granularity</label>
-            <select class="curve-toolbar__select" id="curveGranularity" aria-label="Curve granularity">
-              <option value="year" selected>Year</option>
-              <option value="quarter">Quarter</option>
-              <option value="month">Month</option>
-            </select>
-          </div>
         </div>
 
         <div class="stores-table-wrap" aria-label="Crumbl stores list">
@@ -130,6 +122,13 @@
             </thead>
             <tbody id="storesTableBody"></tbody>
           </table>
+          <div class="stores-upsell" id="storesUpsell" hidden>
+            <div class="stores-upsell__panel">
+              <h3 class="stores-upsell__title">Access the full operator database</h3>
+              <p class="stores-upsell__subtitle">Access verified operator data and identify your next cross-sell opportunity.</p>
+              <a class="stores-upsell__cta" href="https://wefranch.com/franchise#demo">Request a demo</a>
+            </div>
+          </div>
         </div>
       </div>
     </section>

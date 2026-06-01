@@ -21,13 +21,15 @@ const curveState = {
   shape: curveShape,
 };
 
-const curveDataUrl = "data/crumbl.json?v=4";
+const curveDataUrl = "data/crumbl.json?v=5";
 const curveGranularities = {
   year: { stepMonths: 12 },
   quarter: { stepMonths: 3 },
   month: { stepMonths: 1 },
 };
 const segmentThumbnailHardCap = 220;
+const lockedStoresVisibleCount = 5;
+const lockedStoresMaxRows = 15;
 
 const openedDateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
@@ -235,7 +237,12 @@ const toGoogleMapsUrl = (addressValue) => {
 };
 
 const getContactIcon = (type, href, label) => {
-  const iconLabel = type === "web" ? "website" : "LinkedIn";
+  const iconLabels = {
+    web: "website",
+    linkedin: "LinkedIn",
+    email: "email",
+  };
+  const iconLabel = iconLabels[type] || "contact";
   const iconMarkup =
     type === "web"
       ? `
@@ -243,11 +250,28 @@ const getContactIcon = (type, href, label) => {
           <path fill="currentColor" d="M10,11.28h-4.01c.38,1.6,1.06,3.11,2,4.45.94-1.34,1.62-2.85,2-4.45ZM4.35,4.72c.35-1.67.99-3.27,1.88-4.72C3.75.58,1.69,2.33.67,4.72h3.67ZM5.6,8c0,.55.04,1.1.1,1.64h4.6c.07-.54.1-1.09.1-1.64,0-.55-.04-1.1-.1-1.64h-4.6c-.07.54-.1,1.09-.1,1.64ZM11.65,4.72h3.67c-1.02-2.39-3.08-4.13-5.56-4.72.89,1.45,1.53,3.04,1.88,4.72ZM6,4.72h4.01c-.38-1.6-1.06-3.11-2-4.45-.94,1.34-1.62,2.85-2,4.45ZM11.65,11.28c-.35,1.67-.99,3.27-1.88,4.72,2.47-.58,4.54-2.33,5.56-4.72h-3.67ZM11.91,6.36c.06.55.09,1.09.09,1.64,0,.55-.03,1.1-.09,1.64h3.93c.22-1.08.22-2.2,0-3.28h-3.93ZM4.35,11.28H.67c1.02,2.39,3.08,4.13,5.56,4.72-.89-1.45-1.53-3.04-1.88-4.72ZM4.09,9.64c-.06-.55-.09-1.09-.09-1.64,0-.55.03-1.1.09-1.64H.16c-.22,1.08-.22,2.2,0,3.28h3.93Z"></path>
         </svg>
       `
+      : type === "email"
+      ? `
+        <span class="contact-icon contact-icon--email" aria-hidden="true"></span>
+      `
       : `
         <svg class="contact-icon contact-icon--linkedin" aria-hidden="true" width="18" height="18" viewBox="0 0 18 18">
           <path fill="currentColor" d="M9,0C4.03,0,0,4.03,0,9s4.03,9,9,9,9-4.03,9-9S13.97,0,9,0ZM6.78,13h-1.78v-5.98h1.78v5.98ZM5.92,6.2c-.59,0-1.07-.4-1.07-.99s.48-1.08,1.07-1.08,1,.48,1,1.08-.41.99-1,.99ZM13.51,13h-1.85v-2.91c0-.69-.01-1.59-.96-1.59s-1.11.76-1.11,1.54v2.96h-1.85v-5.98h1.78v.82h.03c.25-.47.85-.97,1.76-.97,1.87,0,2.22,1.24,2.22,2.85v3.28Z"></path>
         </svg>
       `;
+
+  if (type === "email") {
+    return `
+      <button
+        class="contact-icon-link contact-icon-link--button"
+        type="button"
+        data-scroll-to-demo
+        aria-label="Request a demo for ${escapeHtml(label)}"
+      >
+        ${iconMarkup}
+      </button>
+    `;
+  }
 
   if (!href) {
     return `
@@ -289,6 +313,7 @@ const getContactIcons = (store) => {
     <div class="raw-contact-icons" role="group" aria-label="Contact links for ${escapeHtml(label)}">
       ${getContactIcon("web", websiteUrl, label)}
       ${getContactIcon("linkedin", linkedinUrl, label)}
+      ${getContactIcon("email", null, label)}
     </div>
   `;
 };
@@ -1128,7 +1153,12 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
     return;
   }
 
-  tableBody.innerHTML = stores
+  const displayStores =
+    stores.length > lockedStoresVisibleCount
+      ? stores.slice(0, lockedStoresMaxRows)
+      : stores;
+
+  tableBody.innerHTML = displayStores
     .map((store, index) => {
       const location = escapeHtml(store.street || "-");
       const opened = escapeHtml(formatOpenedDate(store.date_opened));
@@ -1139,9 +1169,10 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
           : `<span class="raw-location">${location}</span>`;
       const contactMarkup = getContactIcons(store);
       const nameMarkup = getStoreNameMarkup(store);
+      const lockedClass = index >= lockedStoresVisibleCount ? " class=\"is-locked\"" : "";
 
       return `
-        <tr>
+        <tr${lockedClass}>
           <td class="raw-index-cell">${index + 1}</td>
           <td>${nameMarkup}</td>
           <td>${contactMarkup}</td>
@@ -1151,6 +1182,30 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
       `;
     })
     .join("");
+
+  updateStoresUpsell();
+};
+
+const updateStoresUpsell = () => {
+  const wrap = document.querySelector(".stores-table-wrap");
+  const upsell = document.getElementById("storesUpsell");
+  const tableBody = document.getElementById("storesTableBody");
+
+  if (!wrap || !upsell || !tableBody) {
+    return;
+  }
+
+  const firstLockedRow = tableBody.querySelector("tr.is-locked");
+
+  if (!firstLockedRow) {
+    upsell.hidden = true;
+    return;
+  }
+
+  const wrapRect = wrap.getBoundingClientRect();
+  const rowRect = firstLockedRow.getBoundingClientRect();
+  upsell.style.top = `${rowRect.top - wrapRect.top + wrap.scrollTop}px`;
+  upsell.hidden = false;
 };
 
 const loadCrumblData = async () => {
@@ -1181,8 +1236,28 @@ const scrollPageToTop = () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
+const scrollToDemoRequest = () => {
+  const curvePanel = document.querySelector(".curve-panel");
+  const upsell = document.getElementById("storesUpsell");
+  const fallbackTarget = document.querySelector(".stores-table-wrap");
+  const target =
+    upsell instanceof HTMLElement && !upsell.hidden ? upsell : fallbackTarget;
+
+  if (!(target instanceof HTMLElement)) {
+    return;
+  }
+
+  if (curvePanel instanceof HTMLElement) {
+    const panelRect = curvePanel.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const targetTop = targetRect.top - panelRect.top + curvePanel.scrollTop - 20;
+    curvePanel.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+  } else {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
+
 const initAdoptionCurve = async () => {
-  const granularitySelect = document.getElementById("curveGranularity");
   const visualization = document.querySelector(".curve-visualization");
   const curveHeading = document.querySelector(".curve-heading");
 
@@ -1200,6 +1275,18 @@ const initAdoptionCurve = async () => {
   renderAdoptionCurve(adoptionSegments);
 
   curveHeading?.addEventListener("click", scrollPageToTop);
+
+  document.addEventListener("click", (event) => {
+    const trigger =
+      event.target instanceof Element ? event.target.closest("[data-scroll-to-demo]") : null;
+
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    scrollToDemoRequest();
+  });
 
   visualization?.addEventListener("click", (event) => {
     const trigger = getSegmentTriggerFromTarget(event.target);
@@ -1259,16 +1346,14 @@ const initAdoptionCurve = async () => {
 
   let resizeTimer;
   window.addEventListener("resize", () => {
+    updateStoresUpsell();
+
     if (curveState.activeSegmentIndex === null) {
       return;
     }
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(() => {
-      renderSegmentThumbnails(
-        curveState.records,
-        curveState.activeSegmentIndex,
-        { force: true }
-      );
+      renderSegmentThumbnails(curveState.records, curveState.activeSegmentIndex, { force: true });
     }, 200);
   });
 
@@ -1276,16 +1361,9 @@ const initAdoptionCurve = async () => {
     const records = await loadCrumblData();
     curveState.records = records;
 
-    const renderForGranularity = () => {
-      const granularity = granularitySelect?.value || "year";
-      const shape = buildCurveFromOpenings(records, granularity);
-      curveState.shape = shape;
-      lastRenderedSegmentKey = null;
-      renderCurrentState();
-    };
-
-    granularitySelect?.addEventListener("change", renderForGranularity);
-    renderForGranularity();
+    curveState.shape = buildCurveFromOpenings(records, "quarter");
+    lastRenderedSegmentKey = null;
+    renderCurrentState();
   } catch (error) {
     console.warn(error);
   }

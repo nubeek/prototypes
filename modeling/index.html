@@ -11,9 +11,20 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="../cst/access-gate.css" />
+    <script src="../cst/access-gate.js" defer></script>
     <script src="script.js" defer></script>
   </head>
-  <body>
+  <body class="access-locked">
+    <div class="access-gate" data-access-gate>
+      <form class="access-gate__panel" data-access-form autocomplete="off">
+        <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+        <input class="access-gate__input" id="accessPassword" data-access-password type="password" autocomplete="current-password" autofocus />
+        <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+        <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+      </form>
+    </div>
+
     <section class="solution" aria-labelledby="solution-title">
       <div class="solution__inner">
         <p class="solution__eyebrow">The Solution</p>
