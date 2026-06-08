@@ -1653,6 +1653,10 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   filter: brightness(0) saturate(100%);
 }
 
+.filter-select-field.has-selection > img {
+  display: none;
+}
+
 .filter-native-select {
   display: none;
 }
@@ -1753,7 +1757,6 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 .filter-combobox-chip-toggle::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: calc(100% + 6px);
   left: 50%;
   z-index: 100;
   width: max-content;
@@ -1764,15 +1767,47 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
   color: #17171c;
   font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
+  font-weight: 400;
+  line-height: 1.15;
   text-align: center;
-  white-space: nowrap;
+  white-space: pre-line;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translate(-50%, -6px);
   transition: opacity 140ms ease, transform 200ms ease;
+}
+
+.filter-combobox-floating-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
+  color: #17171c;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.15;
+  text-align: center;
+  white-space: pre-line;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 140ms ease, transform 200ms ease;
+}
+
+.filter-combobox-floating-tooltip.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.filter-combobox-chip-toggle::after {
+  bottom: calc(100% + 6px);
+  transform: translate(-50%, -6px);
 }
 
 .filter-combobox-chip-toggle:hover::after,
@@ -1884,12 +1919,38 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   cursor: not-allowed;
 }
 
-.filter-combobox-clear {
-  display: none;
-}
-
 .filter-select-field.is-disabled img {
   filter: var(--color-chevron-soft);
+}
+
+.filter-combobox-clear {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 0;
+  line-height: 0;
+  transform: translateY(-50%);
+  transition: color var(--transition-fast);
+}
+
+.filter-combobox-clear:not([hidden]) {
+  display: inline-flex;
+}
+
+.filter-combobox-clear::before {
+  content: "";
+  width: 9.5px;
+  height: 9.5px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9'%3E%3Cpath fill-rule='evenodd' d='M5.921%2C4.500 L8.711%2C7.266 C9.102%2C7.656 9.102%2C8.290 8.711%2C8.680 C8.321%2C9.071 7.688%2C9.071 7.297%2C8.680 L4.500%2C5.908 L1.703%2C8.680 C1.312%2C9.071 0.679%2C9.071 0.289%2C8.680 C-0.102%2C8.290 -0.102%2C7.656 0.289%2C7.266 L3.079%2C4.500 L0.289%2C1.734 C-0.102%2C1.344 -0.102%2C0.710 0.289%2C0.320 C0.679%2C-0.071 1.312%2C-0.071 1.703%2C0.320 L4.500%2C3.092 L7.297%2C0.320 C7.688%2C-0.071 8.321%2C-0.071 8.711%2C0.320 C9.102%2C0.710 9.102%2C1.344 8.711%2C1.734 L5.921%2C4.500 Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9'%3E%3Cpath fill-rule='evenodd' d='M5.921%2C4.500 L8.711%2C7.266 C9.102%2C7.656 9.102%2C8.290 8.711%2C8.680 C8.321%2C9.071 7.688%2C9.071 7.297%2C8.680 L4.500%2C5.908 L1.703%2C8.680 C1.312%2C9.071 0.679%2C9.071 0.289%2C8.680 C-0.102%2C8.290 -0.102%2C7.656 0.289%2C7.266 L3.079%2C4.500 L0.289%2C1.734 C-0.102%2C1.344 -0.102%2C0.710 0.289%2C0.320 C0.679%2C-0.071 1.312%2C-0.071 1.703%2C0.320 L4.500%2C3.092 L7.297%2C0.320 C7.688%2C-0.071 8.321%2C-0.071 8.711%2C0.320 C9.102%2C0.710 9.102%2C1.344 8.711%2C1.734 L5.921%2C4.500 Z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 .filter-combobox-menu {
@@ -1979,6 +2040,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 }
 
 .filter-combobox-option-action {
+  position: relative;
   width: 24px;
   height: 24px;
   border: 0;

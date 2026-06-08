@@ -8,7 +8,6 @@ Collection of static HTML/CSS/JS prototypes for different Wefranch concepts and 
 - `tour/` - franchise tour-focused prototype.
 - `cst/` - earlier CST prototype retained for reference.
 - `adoption-curve/` - article-style innovation adoption curve prototype.
-- `crumbl/` - Crumbl-specific prototype.
 - `modeling/` - sell-side research and financial modeling prototype (interactive and video variants).
 
 ## Local setup
@@ -18,5 +17,17 @@ Collection of static HTML/CSS/JS prototypes for different Wefranch concepts and 
    - `http://localhost:5500/targets/`
    - `http://localhost:5500/tour/`
    - `http://localhost:5500/cst/`
-   - `http://localhost:5500/crumbl/`
    - `http://localhost:5500/modeling/`
+
+## Commit and push to GitHub
+
+From the project root:
+
+1. Check what changed:
+   - `git status`
+2. Stage your changes:
+   - `git add .`
+3. Commit:
+   - `git commit -m "Update prototypes README"`
+4. Push your current branch:
+   - `git push origin $(git branch --show-current)`

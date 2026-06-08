@@ -3129,6 +3129,8 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
   let searchQuery = "";
   let activeOptionIndex = -1;
   let renderedOptions = [];
+  let optionTooltip = null;
+  let optionTooltipTarget = null;
 
   select.classList.add("filter-native-select");
   select.multiple = true;
@@ -3169,6 +3171,51 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
   field.insertBefore(clearButton, chevron || null);
   menu.append(menuList);
   field.append(menu);
+
+  function getOptionTooltip() {
+    if (!optionTooltip) {
+      optionTooltip = document.createElement("div");
+      optionTooltip.className = "filter-combobox-floating-tooltip";
+    }
+
+    return optionTooltip;
+  }
+
+  function positionOptionTooltip(target) {
+    const tooltipText = target.dataset.tooltip;
+    if (!tooltipText) return;
+
+    const tooltip = getOptionTooltip();
+    tooltip.textContent = tooltipText;
+
+    if (!tooltip.isConnected) {
+      document.body.append(tooltip);
+    }
+
+    const targetRect = target.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportPadding = 8;
+    const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+    const left = Math.min(
+      Math.max(viewportPadding, centeredLeft),
+      window.innerWidth - tooltipRect.width - viewportPadding
+    );
+    const top = Math.max(viewportPadding, targetRect.top - tooltipRect.height - 6);
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+  }
+
+  function showOptionTooltip(event) {
+    optionTooltipTarget = event.currentTarget;
+    positionOptionTooltip(optionTooltipTarget);
+    getOptionTooltip().classList.add("is-visible");
+  }
+
+  function hideOptionTooltip() {
+    optionTooltipTarget = null;
+    optionTooltip?.classList.remove("is-visible");
+  }
 
   function getSelectedOptions() {
     const selectedValues = new Set(getFilterSelectValues(select));
@@ -3263,9 +3310,9 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
         chipToggle.setAttribute("aria-pressed", String(excluded));
         chipToggle.setAttribute(
           "aria-label",
-          excluded ? `Include ${option.label}` : `Exclude ${option.label}`
+          excluded ? `Include ${option.label} in results` : `Exclude ${option.label} from results`
         );
-        chipToggle.dataset.tooltip = excluded ? "Include" : "Exclude";
+        chipToggle.dataset.tooltip = excluded ? "Include\nin results" : "Exclude\nfrom results";
         chipToggle.addEventListener("mousedown", (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -3296,12 +3343,14 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
     });
 
     input.placeholder = selectedOptions.length ? "" : placeholder;
+    field.classList.toggle("has-selection", selectedOptions.length > 0);
     clearButton.hidden = !selectedOptions.length;
   }
 
   function closeCombobox({ restoreDisplay = true } = {}) {
     if (!isOpen) return;
 
+    hideOptionTooltip();
     isOpen = false;
     searchQuery = "";
     input.value = "";
@@ -3337,6 +3386,7 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
     const normalizedQuery = normalizeComboboxText(searchQuery);
     const selectedValues = new Set(getFilterSelectValues(select));
 
+    hideOptionTooltip();
     renderedOptions = getComboboxOptions(select).filter((option) => (
       !selectedValues.has(option.value) &&
       normalizeComboboxText(option.label).includes(normalizedQuery)
@@ -3378,20 +3428,25 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
         includeAction.className = "filter-combobox-option-action is-include";
         includeAction.type = "button";
         includeAction.tabIndex = -1;
-        includeAction.setAttribute("aria-label", `Include ${option.label}`);
-        includeAction.title = "Include";
+        includeAction.setAttribute("aria-label", `Include ${option.label} in results`);
+        includeAction.dataset.tooltip = "Include\nin results";
 
         excludeAction.className = "filter-combobox-option-action is-exclude";
         excludeAction.type = "button";
         excludeAction.tabIndex = -1;
-        excludeAction.setAttribute("aria-label", `Exclude ${option.label}`);
-        excludeAction.title = "Exclude";
+        excludeAction.setAttribute("aria-label", `Exclude ${option.label} from results`);
+        excludeAction.dataset.tooltip = "Exclude\nfrom results";
 
         [includeAction, excludeAction].forEach((actionButton) => {
           actionButton.addEventListener("mousedown", (event) => {
             event.preventDefault();
             event.stopPropagation();
           });
+          actionButton.addEventListener("mouseenter", showOptionTooltip);
+          actionButton.addEventListener("mouseleave", hideOptionTooltip);
+          actionButton.addEventListener("focus", showOptionTooltip);
+          actionButton.addEventListener("blur", hideOptionTooltip);
+          actionButton.addEventListener("click", hideOptionTooltip);
         });
 
         includeAction.addEventListener("click", (event) => {
@@ -3522,6 +3577,9 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
     setSelectedValues([]);
     input.focus({ preventScroll: true });
   });
+
+  menuList.addEventListener("scroll", hideOptionTooltip);
+  window.addEventListener("resize", hideOptionTooltip);
 
   field.addEventListener("mousedown", (event) => {
     if (event.target === input || menu.contains(event.target) || clearButton.contains(event.target)) return;
