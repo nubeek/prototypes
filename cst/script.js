@@ -4,6 +4,7 @@ const position = document.getElementById("changePosition");
 const prev = document.getElementById("prevChange");
 const next = document.getElementById("nextChange");
 const tableWrap = document.getElementById("tableWrap");
+const tableEmptyState = document.getElementById("tableEmptyState");
 const card = document.querySelector(".card");
 const filterToggle = document.getElementById("filterToggle");
 const filterToggleLabel = document.getElementById("filterToggleLabel");
@@ -12,11 +13,8 @@ const filterSummary = document.getElementById("filterSummary");
 const clearAllFilters = document.getElementById("clearAllFilters");
 const locationFilterSelect = document.getElementById("locationFilterSelect");
 const categoryFilterSelect = document.getElementById("categoryFilterSelect");
-const categoryFilterExclude = document.getElementById("categoryFilterExclude");
 const ownerFilterSelect = document.getElementById("ownerFilterSelect");
-const ownerFilterExclude = document.getElementById("ownerFilterExclude");
 const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
-const franchiseFilterExclude = document.getElementById("franchiseFilterExclude");
 const statusFilterInputs = Array.from(document.querySelectorAll(".status-filter-input"));
 const unitsMinRange = document.getElementById("unitsMinRange");
 const unitsMaxRange = document.getElementById("unitsMaxRange");
@@ -2284,6 +2282,12 @@ function syncModeColumn() {
 
 function renderOwners(rows) {
   restoreOwnersTableView({ clearRaw: false, clearGlobalRaw: false });
+  const isEmpty = rows.length === 0;
+
+  tableWrap?.classList.toggle("is-empty", isEmpty);
+  if (tableEmptyState) {
+    tableEmptyState.hidden = !isEmpty;
+  }
 
   tableBody.innerHTML = rows
     .map(
@@ -2826,6 +2830,12 @@ if (filterPanel) {
 
     const isCollapsed = section.classList.toggle("filter-section-collapsed");
     title.setAttribute("aria-expanded", String(!isCollapsed));
+
+    if (isCollapsed) {
+      section.querySelectorAll(".filter-field-select").forEach((select) => {
+        filterComboboxes.get(select)?.close();
+      });
+    }
   });
 }
 
@@ -3004,51 +3014,11 @@ function clearAllFilterSelections() {
   syncStatusFilterStates();
   syncUnitsFilterControls();
   syncContactsFilterControls();
-  syncOwnerExcludeState();
-  syncPerValueExcludeState(categoryFilterExclude, selectedCategoryValues, excludedCategoryValues);
-  syncPerValueExcludeState(franchiseFilterExclude, selectedFranchiseIndexes, excludedFranchiseIndexes);
   syncMapLocationFilter();
   refreshFilteredViews();
   refitOpenMapToVisibleLocations();
   syncOpenOrgPanelWithSelection();
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });
-}
-
-function syncOwnerExcludeState() {
-  if (!ownerFilterExclude) return;
-
-  syncPerValueExcludeState(ownerFilterExclude, selectedOwnerIndexes, excludedOwnerIndexes);
-}
-
-function syncPerValueExcludeState(checkbox, includedValues, excludedValues) {
-  if (!checkbox) return;
-
-  const includedCount = includedValues.length;
-  const excludedCount = excludedValues.length;
-  const hasSelection = includedCount + excludedCount > 0;
-  const label = checkbox.closest(".filter-check");
-
-  checkbox.disabled = !hasSelection;
-  checkbox.checked = hasSelection && includedCount === 0;
-  checkbox.indeterminate = includedCount > 0 && excludedCount > 0;
-  label?.classList.toggle("filter-check-muted", !hasSelection);
-  setFilterCheckboxState(checkbox, checkbox.checked);
-}
-
-function setSelectedFilterOptionsExcluded(select, excluded) {
-  if (!select) return;
-
-  Array.from(select.options).forEach((option) => {
-    if (!option.value || !option.selected) return;
-
-    if (excluded) {
-      option.dataset.exclude = "true";
-    } else {
-      delete option.dataset.exclude;
-    }
-  });
-
-  select.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 function normalizeComboboxText(value) {
@@ -3304,6 +3274,29 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
       chip.classList.toggle("is-excluded", excluded);
 
       if (allowExclude) {
+        chip.tabIndex = 0;
+        chip.setAttribute("role", "button");
+        chip.setAttribute("aria-pressed", String(excluded));
+        chip.setAttribute(
+          "aria-label",
+          excluded ? `Include ${option.label} in results` : `Exclude ${option.label} from results`
+        );
+        chip.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+        chip.addEventListener("click", (event) => {
+          event.stopPropagation();
+          setValueExcluded(option.value, !excluded);
+        });
+        chip.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+
+          event.preventDefault();
+          event.stopPropagation();
+          setValueExcluded(option.value, !excluded);
+        });
+
         const chipToggle = document.createElement("button");
         chipToggle.className = "filter-combobox-chip-toggle";
         chipToggle.type = "button";
@@ -3317,7 +3310,8 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
           event.preventDefault();
           event.stopPropagation();
         });
-        chipToggle.addEventListener("click", () => {
+        chipToggle.addEventListener("click", (event) => {
+          event.stopPropagation();
           setValueExcluded(option.value, !excluded);
         });
         chip.append(chipToggle);
@@ -3334,7 +3328,8 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
         event.preventDefault();
         event.stopPropagation();
       });
-      chipRemove.addEventListener("click", () => {
+      chipRemove.addEventListener("click", (event) => {
+        event.stopPropagation();
         removeSelectedValue(option.value);
       });
 
@@ -3582,6 +3577,12 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
   window.addEventListener("resize", hideOptionTooltip);
 
   field.addEventListener("mousedown", (event) => {
+    const section = field.closest(".filter-section");
+    if (section?.classList.contains("filter-section-collapsed")) {
+      event.preventDefault();
+      return;
+    }
+
     if (event.target === input || menu.contains(event.target) || clearButton.contains(event.target)) return;
     if (select.disabled) return;
 
@@ -3708,19 +3709,10 @@ if (categoryFilterSelect) {
   categoryFilterSelect.addEventListener("change", () => {
     selectedCategoryValues = getFilterSelectIncludedValues(categoryFilterSelect);
     excludedCategoryValues = getFilterSelectExcludedValues(categoryFilterSelect);
-    syncPerValueExcludeState(categoryFilterExclude, selectedCategoryValues, excludedCategoryValues);
     updateClearFiltersButton();
   });
 
   enhanceFilterCombobox(categoryFilterSelect, { allowExclude: true });
-}
-
-if (categoryFilterExclude) {
-  syncPerValueExcludeState(categoryFilterExclude, selectedCategoryValues, excludedCategoryValues);
-
-  categoryFilterExclude.addEventListener("change", () => {
-    setSelectedFilterOptionsExcluded(categoryFilterSelect, categoryFilterExclude.checked);
-  });
 }
 
 statusFilterInputs.forEach((checkbox) => {
@@ -3786,14 +3778,6 @@ if (clearAllFilters) {
   clearAllFilters.addEventListener("click", clearAllFilterSelections);
 }
 
-if (ownerFilterExclude) {
-  syncOwnerExcludeState();
-
-  ownerFilterExclude.addEventListener("change", () => {
-    setSelectedFilterOptionsExcluded(ownerFilterSelect, ownerFilterExclude.checked);
-  });
-}
-
 if (franchiseFilterSelect) {
   const franchiseNames = [
     ...new Set(owners.flatMap((owner) => getOwnerFranchises(owner)))
@@ -3811,7 +3795,6 @@ if (franchiseFilterSelect) {
     excludedFranchiseIndexes = getFilterSelectExcludedValues(franchiseFilterSelect);
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
-    syncPerValueExcludeState(franchiseFilterExclude, selectedFranchiseIndexes, excludedFranchiseIndexes);
     syncMapLocationFilter();
     refreshFilteredViews();
     refitOpenMapToVisibleLocations();
@@ -3820,14 +3803,6 @@ if (franchiseFilterSelect) {
   });
 
   enhanceFilterCombobox(franchiseFilterSelect, { allowExclude: true });
-}
-
-if (franchiseFilterExclude) {
-  syncPerValueExcludeState(franchiseFilterExclude, selectedFranchiseIndexes, excludedFranchiseIndexes);
-
-  franchiseFilterExclude.addEventListener("change", () => {
-    setSelectedFilterOptionsExcluded(franchiseFilterSelect, franchiseFilterExclude.checked);
-  });
 }
 
 if (filterToggle && card) {

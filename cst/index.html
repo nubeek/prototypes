@@ -59,11 +59,6 @@
             </select>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
-          <label class="filter-check filter-check-muted">
-            <input id="categoryFilterExclude" type="checkbox" disabled>
-            <span class="filter-checkbox" aria-hidden="true"></span>
-            <span>Exclude from results</span>
-          </label>
         </section>
 
         <section class="filter-section filter-section-collapsed">
@@ -77,11 +72,6 @@
             </select>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
-          <label class="filter-check filter-check-muted">
-            <input id="ownerFilterExclude" type="checkbox">
-            <span class="filter-checkbox" aria-hidden="true"></span>
-            <span>Exclude from results</span>
-          </label>
         </section>
 
         <section class="filter-section filter-section-collapsed">
@@ -95,11 +85,6 @@
             </select>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
-          <label class="filter-check filter-check-muted">
-            <input id="franchiseFilterExclude" type="checkbox">
-            <span class="filter-checkbox" aria-hidden="true"></span>
-            <span>Exclude from results</span>
-          </label>
         </section>
 
         <section class="filter-section filter-section-collapsed">
@@ -363,6 +348,7 @@
           </thead>
           <tbody id="ownersTableBody"></tbody>
         </table>
+        <p class="table-empty-state" id="tableEmptyState" role="status" hidden>We couldn't find anything matching your query.</p>
       </div>
 
       <aside class="map-panel" id="mapPanel" aria-label="Franchisee details">

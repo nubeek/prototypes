@@ -1607,6 +1607,32 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   display: none;
 }
 
+.filter-section-collapsed > .filter-select-field.has-selection {
+  display: block;
+  margin-top: 14px;
+}
+
+.filter-section-collapsed .filter-select-field.has-selection .filter-combobox-control {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: default;
+}
+
+.filter-section-collapsed .filter-select-field.has-selection .filter-combobox-control:hover,
+.filter-section-collapsed .filter-select-field.has-selection:focus-within .filter-combobox-control,
+.filter-section-collapsed .filter-select-field.has-selection.is-open .filter-combobox-control {
+  border-color: transparent;
+  background: transparent;
+}
+
+.filter-section-collapsed .filter-select-field.has-selection .filter-combobox-input,
+.filter-section-collapsed .filter-select-field.has-selection .filter-combobox-clear,
+.filter-section-collapsed .filter-select-field.has-selection .filter-combobox-menu {
+  display: none;
+}
+
 .filter-section-collapsed .filter-section-title img {
   transform: none;
 }
@@ -1720,6 +1746,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   gap: 6px;
   padding: 0 8px;
   line-height: 1;
+  cursor: pointer;
 }
 
 .filter-combobox-chip.is-excluded {
@@ -1844,11 +1871,6 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.filter-combobox-chip.is-excluded .filter-combobox-chip-label {
-  text-decoration: line-through;
-  text-decoration-color: rgba(196, 64, 64, 0.6);
 }
 
 .filter-combobox-chip-remove,
@@ -2009,6 +2031,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 }
 
 .filter-combobox-option {
+  position: relative;
   cursor: pointer;
   gap: 12px;
 }
@@ -2016,27 +2039,39 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 .filter-combobox-option-label {
   flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .filter-combobox-option-actions {
+  position: absolute;
+  top: 50%;
+  right: 16px;
   flex: 0 0 auto;
-  margin-left: auto;
+  margin-left: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   opacity: 0;
-  transform: translateX(4px);
+  pointer-events: none;
+  transform: translate(4px, -50%);
   transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.filter-combobox-option:hover .filter-combobox-option-label,
+.filter-combobox-option.is-active .filter-combobox-option-label,
+.filter-combobox-option:focus-within .filter-combobox-option-label {
+  max-width: calc(100% - 60px);
 }
 
 .filter-combobox-option:hover .filter-combobox-option-actions,
 .filter-combobox-option.is-active .filter-combobox-option-actions,
 .filter-combobox-option:focus-within .filter-combobox-option-actions {
   opacity: 1;
-  transform: translateX(0);
+  pointer-events: auto;
+  transform: translate(0, -50%);
 }
 
 .filter-combobox-option-action {
@@ -2923,9 +2958,32 @@ h1 {
   overflow-x: auto;
   overflow-y: auto;
   flex: 1;
+  position: relative;
   scroll-behavior: smooth;
   scrollbar-width: none;
   transition: margin-right 280ms ease, margin-bottom 280ms ease;
+}
+
+.table-wrap.is-empty table {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.table-empty-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 24px;
+  color: var(--color-text-muted);
+  font-size: 18px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.table-empty-state[hidden] {
+  display: none;
 }
 
 .card.is-map-open .table-wrap {
