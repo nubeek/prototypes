@@ -467,6 +467,7 @@ button {
   --thumbnail-width: 0%;
   --thumbnail-size: 38px;
   --thumbnail-drop-stagger: 22ms;
+  --thumbnail-segment-delay: 0ms;
   --thumbnail-drop-distance: 200px;
   --thumbnail-pile-height: 0px;
   position: absolute;
@@ -484,6 +485,14 @@ button {
 .curve-segment-thumbnails.is-visible {
   opacity: 1;
   transition: opacity 0s;
+}
+
+.curve-segment-thumbnail-layer {
+  position: absolute;
+  left: var(--thumbnail-left);
+  bottom: 0;
+  width: var(--thumbnail-width);
+  height: var(--thumbnail-pile-height);
 }
 
 .curve-segment-thumbnail-stack {
@@ -516,7 +525,10 @@ button {
   transform: translateX(var(--thumbnail-shift-x, 0px));
   transform-origin: 50% 100%;
   animation: thumbnail-marble-drop 700ms linear backwards;
-  animation-delay: calc(var(--thumbnail-index, 0) * var(--thumbnail-drop-stagger));
+  animation-delay: calc(
+    var(--thumbnail-segment-delay, 0ms) +
+      (var(--thumbnail-index, 0) * var(--thumbnail-drop-stagger))
+  );
 }
 
 .curve-segment-thumbnail__face {

@@ -8,19 +8,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <!-- <link rel="stylesheet" href="../cst/access-gate.css"> -->
-  <!-- <script src="../cst/access-gate.js" defer></script> -->
-  <script src="script.js?v=35" defer></script>
+  <link rel="stylesheet" href="../cst/access-gate.css">
+  <script src="../cst/access-gate.js" defer></script>
+  <script src="script.js?v=38" defer></script>
 </head>
-<body>
-  <!-- <div class="access-gate" data-access-gate>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
     <form class="access-gate__panel" data-access-form autocomplete="off">
       <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
       <input class="access-gate__input" id="accessPassword" data-access-password type="password" autocomplete="current-password" autofocus>
       <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
       <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
     </form>
-  </div> -->
+  </div>
 
   <header class="site-header" aria-label="Wefranch preview navigation">
     <ul class="site-header__inner">
@@ -77,14 +77,19 @@
                 <stop offset="44%" stop-color="#f4dbe3" />
                 <stop offset="100%" stop-color="#e39eb2" />
               </linearGradient>
+              <clipPath id="curveRevealClip">
+                <rect id="curveRevealClipRect" x="0" y="0" width="0" height="360"></rect>
+              </clipPath>
+              <clipPath id="activeCurveClip">
+                <rect id="activeCurveClipRect" x="0" y="0" width="0" height="360"></rect>
+              </clipPath>
             </defs>
-            <clipPath id="activeCurveClip">
-              <rect id="activeCurveClipRect" x="0" y="0" width="0" height="360"></rect>
-            </clipPath>
-            <path class="curve-area" id="curveArea"></path>
-            <path class="curve-line" id="curveLine"></path>
-            <path class="curve-area curve-area--active" id="activeCurveArea" clip-path="url(#activeCurveClip)"></path>
-            <path class="curve-line curve-line--active" id="activeCurveLine" clip-path="url(#activeCurveClip)"></path>
+            <g clip-path="url(#curveRevealClip)">
+              <path class="curve-area" id="curveArea"></path>
+              <path class="curve-line" id="curveLine"></path>
+              <path class="curve-area curve-area--active" id="activeCurveArea" clip-path="url(#activeCurveClip)"></path>
+              <path class="curve-line curve-line--active" id="activeCurveLine" clip-path="url(#activeCurveClip)"></path>
+            </g>
           </svg>
           <div class="curve-rules" id="curveRules" aria-hidden="true"></div>
           <!-- <div class="curve-chasm-label" aria-hidden="true">

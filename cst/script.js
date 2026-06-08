@@ -107,17 +107,18 @@ let changedRows = [];
 let activeIndex = 0;
 let changeNavEngaged = false;
 let displayedOwners = [...owners];
-let selectedLocationLabel = "";
-let selectedCategoryIndex = "";
-let selectedOwnerIndex = "";
-let selectedFranchiseIndex = "";
+let selectedLocationLabels = [];
+let excludedLocationLabels = [];
+let selectedCategoryValues = [];
+let excludedCategoryValues = [];
+let selectedOwnerIndexes = [];
+let excludedOwnerIndexes = [];
+let selectedFranchiseIndexes = [];
+let excludedFranchiseIndexes = [];
 let selectedUnitsMin = unitsFilterDefaults.min;
 let selectedUnitsMax = unitsFilterDefaults.max;
 let selectedContactsMin = contactsFilterDefaults.min;
 let selectedContactsMax = contactsFilterDefaults.max;
-let ownerFilterExcludesSelection = false;
-let categoryFilterExcludesSelection = false;
-let franchiseFilterExcludesSelection = false;
 let activeHighlightTimeout;
 let updatesEnabled = false;
 let modifiedColumnVisible = false;
@@ -141,6 +142,7 @@ let screenshotInProgress = false;
 let screenshotToastTimeout;
 const toolbarTabOpenTimeoutByItem = new WeakMap();
 const toolbarTabCloseTimeoutByItem = new WeakMap();
+const filterComboboxes = new Map();
 const PANEL_LAYOUT_CLASSES = {
   right: "is-panel-right",
   bottom: "is-panel-bottom",
@@ -201,7 +203,7 @@ function getMotionDelay(delay) {
   return usesReducedMotion() ? 0 : delay;
 }
 
-function getMapFilterLocationCenter(locationLabel = selectedLocationLabel) {
+function getMapFilterLocationCenter(locationLabel) {
   if (!locationLabel) return null;
 
   const locationCenters = [];
@@ -229,31 +231,37 @@ function getLocationDistanceMiles(location, center) {
   return 3958.8 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
-function mapLocationMatchesSelectedFilter(location, selectedMapLocationCenter) {
-  if (!selectedLocationLabel) return true;
-  if (location.label !== selectedLocationLabel) return false;
+function mapLocationMatchesSelectedFilter(location) {
+  if (excludedLocationLabels.includes(location.label)) return false;
+  if (!selectedLocationLabels.length) return true;
+  if (!selectedLocationLabels.includes(location.label)) return false;
+
+  const selectedMapLocationCenter = getMapFilterLocationCenter(location.label);
   if (!selectedMapLocationCenter) return true;
 
   return getLocationDistanceMiles(location, selectedMapLocationCenter) <= MAP_LOCATION_FILTER_RADIUS_MILES;
 }
 
 function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
-  const selectedMapOwnerIndex = selectedOwnerIndex && !ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null;
-  const excludedMapOwnerIndex = selectedOwnerIndex && ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null;
+  const selectedMapOwnerIndexes = selectedOwnerIndexes.length
+    ? new Set(selectedOwnerIndexes.map(Number))
+    : null;
+  const excludedMapOwnerIndexes = excludedOwnerIndexes.length
+    ? new Set(excludedOwnerIndexes.map(Number))
+    : null;
   const filteredMapOwnerIndexes = ownerIndex === null
     ? new Set(getFilteredOwners().map((owner) => owner.originalIndex))
     : null;
-  const selectedMapLocationCenter = getMapFilterLocationCenter();
 
   return (window.ownerLocationsData || [])
     .flatMap((owner, index) => {
       if (ownerIndex !== null && index !== ownerIndex) return [];
       if (filteredMapOwnerIndexes && !filteredMapOwnerIndexes.has(index)) return [];
-      if (ownerIndex === null && selectedMapOwnerIndex !== null && index !== selectedMapOwnerIndex) return [];
-      if (ownerIndex === null && excludedMapOwnerIndex !== null && index === excludedMapOwnerIndex) return [];
+      if (ownerIndex === null && selectedMapOwnerIndexes?.size && !selectedMapOwnerIndexes.has(index)) return [];
+      if (ownerIndex === null && excludedMapOwnerIndexes?.has(index)) return [];
 
       return owner.locations
-        .filter((location) => mapLocationMatchesSelectedFilter(location, selectedMapLocationCenter))
+        .filter((location) => mapLocationMatchesSelectedFilter(location))
         .map((location) => ({
           type: "Feature",
           properties: {
@@ -1178,12 +1186,19 @@ function closePersonProfile() {
 }
 
 function ownerMatchesOwnerFilter(owner) {
-  if (!selectedOwnerIndex) return true;
+  const selectedOwnerIndexSet = new Set(selectedOwnerIndexes.map(Number));
+  const excludedOwnerIndexSet = new Set(excludedOwnerIndexes.map(Number));
 
-  const ownerIndex = Number(selectedOwnerIndex);
-  return ownerFilterExcludesSelection
-    ? owner.originalIndex !== ownerIndex
-    : owner.originalIndex === ownerIndex;
+  if (excludedOwnerIndexSet.has(owner.originalIndex)) return false;
+  if (!selectedOwnerIndexSet.size) return true;
+  return selectedOwnerIndexSet.has(owner.originalIndex);
+}
+
+function getPrimarySelectedOwnerIndex() {
+  if (excludedOwnerIndexes.length || !selectedOwnerIndexes.length) return null;
+
+  const ownerIndex = Number(selectedOwnerIndexes[0]);
+  return Number.isNaN(ownerIndex) ? null : ownerIndex;
 }
 
 function getRawDataOwnerScope() {
@@ -1776,8 +1791,8 @@ function renderDefaultOrgChartState() {
   if (!ownerDetailsPanel) return;
 
   const selectableOwners = displayedOwners.length ? displayedOwners : owners;
-  const canUseSelectedOwner = Boolean(selectedOwnerIndex) && !ownerFilterExcludesSelection;
-  const selectedValue = canUseSelectedOwner ? selectedOwnerIndex : "";
+  const selectedOwnerIndex = getPrimarySelectedOwnerIndex();
+  const selectedValue = selectedOwnerIndex !== null ? String(selectedOwnerIndex) : "";
   const options = selectableOwners
     .map((owner) => {
       const value = String(owner.originalIndex);
@@ -1811,7 +1826,7 @@ function renderDefaultOrgChartState() {
 }
 
 function openToolbarOrgChart() {
-  const selectedOwner = selectedOwnerIndex && !ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null;
+  const selectedOwner = getPrimarySelectedOwnerIndex();
   const ownerIndexToOpen = activeOrgOwnerIndex ?? activeDetailOwnerIndex ?? selectedOwner;
 
   if (ownerIndexToOpen !== null && !Number.isNaN(ownerIndexToOpen)) {
@@ -1846,7 +1861,7 @@ function syncOpenOrgPanelWithSelection() {
   const isOrgPanelOpen = card?.classList.contains("is-map-open") && mapPanel?.classList.contains("is-org-mode");
   if (!isOrgPanelOpen) return;
 
-  const selectedOwner = selectedOwnerIndex && !ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null;
+  const selectedOwner = getPrimarySelectedOwnerIndex();
   if (selectedOwner !== null && !Number.isNaN(selectedOwner)) {
     if (activeOrgOwnerIndex !== selectedOwner) {
       openOwnerOrgChart(selectedOwner);
@@ -2390,19 +2405,29 @@ function compareLocationsForCurrentCycle(a, b) {
   return a.originalIndex - b.originalIndex;
 }
 
-function ownerHasLocationLabel(owner, locationLabel) {
-  if (!locationLabel) return true;
+function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
+  if (!locationLabels.length) return true;
 
   const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
-  return ownerLocations.some((location) => location.label === locationLabel);
+  return ownerLocations.some((location) => locationLabels.includes(location.label));
+}
+
+function ownerExcludesLocationLabel(owner, locationLabels = excludedLocationLabels) {
+  if (!locationLabels.length) return false;
+
+  const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
+  return ownerLocations.some((location) => locationLabels.includes(location.label));
 }
 
 function ownerMatchesFranchiseFilter(owner) {
-  if (!selectedFranchiseIndex) return true;
-
   const ownerFranchises = getOwnerFranchises(owner);
-  const hasFranchise = ownerFranchises.includes(selectedFranchiseIndex);
-  return franchiseFilterExcludesSelection ? !hasFranchise : hasFranchise;
+  const hasExcludedFranchise = ownerFranchises.some((franchiseName) => (
+    excludedFranchiseIndexes.includes(franchiseName)
+  ));
+  if (hasExcludedFranchise) return false;
+  if (!selectedFranchiseIndexes.length) return true;
+
+  return ownerFranchises.some((franchiseName) => selectedFranchiseIndexes.includes(franchiseName));
 }
 
 function unitsFilterIsActive() {
@@ -2424,16 +2449,18 @@ function ownerMatchesContactsFilter(owner) {
 }
 
 function rawRowMatchesFilters(row) {
-  if (selectedLocationLabel && row.location !== selectedLocationLabel) return false;
-  if (!selectedFranchiseIndex) return true;
+  if (excludedLocationLabels.includes(row.location)) return false;
+  if (selectedLocationLabels.length && !selectedLocationLabels.includes(row.location)) return false;
+  if (row.franchises.some((franchiseName) => excludedFranchiseIndexes.includes(franchiseName))) return false;
+  if (!selectedFranchiseIndexes.length) return true;
 
-  const hasFranchise = row.franchises.includes(selectedFranchiseIndex);
-  return franchiseFilterExcludesSelection ? !hasFranchise : hasFranchise;
+  return row.franchises.some((franchiseName) => selectedFranchiseIndexes.includes(franchiseName));
 }
 
 function getFilteredOwners() {
   return owners.filter((owner) => {
-    if (!ownerHasLocationLabel(owner, selectedLocationLabel)) return false;
+    if (!ownerHasLocationLabel(owner)) return false;
+    if (ownerExcludesLocationLabel(owner)) return false;
     if (!ownerMatchesFranchiseFilter(owner)) return false;
     if (!ownerMatchesUnitsFilter(owner)) return false;
     if (!ownerMatchesContactsFilter(owner)) return false;
@@ -2525,12 +2552,15 @@ function updateFilterSummary() {
 }
 
 function getAppliedFilterCount() {
-  const selectedFilterCount = [
-    selectedLocationLabel,
-    selectedCategoryIndex,
-    selectedOwnerIndex,
-    selectedFranchiseIndex
-  ].filter(Boolean).length;
+  const selectedFilterCount =
+    selectedLocationLabels.length +
+    excludedLocationLabels.length +
+    selectedCategoryValues.length +
+    excludedCategoryValues.length +
+    selectedOwnerIndexes.length +
+    excludedOwnerIndexes.length +
+    selectedFranchiseIndexes.length +
+    excludedFranchiseIndexes.length;
   const selectedStatusCount = statusFilterInputs.filter((checkbox) => checkbox.checked).length;
   const selectedUnitsCount = unitsFilterIsActive() ? 1 : 0;
   const selectedContactsCount = contactsFilterIsActive() ? 1 : 0;
@@ -2946,24 +2976,26 @@ function setContactsFilterRange(minValue, maxValue, { changed = "min", refresh =
 }
 
 function clearAllFilterSelections() {
-  selectedLocationLabel = "";
-  selectedCategoryIndex = "";
-  selectedOwnerIndex = "";
-  selectedFranchiseIndex = "";
+  selectedLocationLabels = [];
+  excludedLocationLabels = [];
+  selectedCategoryValues = [];
+  excludedCategoryValues = [];
+  selectedOwnerIndexes = [];
+  excludedOwnerIndexes = [];
+  selectedFranchiseIndexes = [];
+  excludedFranchiseIndexes = [];
   selectedUnitsMin = unitsFilterDefaults.min;
   selectedUnitsMax = unitsFilterDefaults.max;
   selectedContactsMin = contactsFilterDefaults.min;
   selectedContactsMax = contactsFilterDefaults.max;
-  ownerFilterExcludesSelection = false;
-  categoryFilterExcludesSelection = false;
-  franchiseFilterExcludesSelection = false;
   activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
 
-  if (locationFilterSelect) locationFilterSelect.value = "";
-  if (categoryFilterSelect) categoryFilterSelect.value = "";
-  if (ownerFilterSelect) ownerFilterSelect.value = "";
-  if (franchiseFilterSelect) franchiseFilterSelect.value = "";
+  setFilterSelectValues(locationFilterSelect, []);
+  setFilterSelectValues(categoryFilterSelect, []);
+  setFilterSelectValues(ownerFilterSelect, []);
+  setFilterSelectValues(franchiseFilterSelect, []);
+  syncFilterComboboxes();
 
   statusFilterInputs.forEach((checkbox) => {
     checkbox.checked = false;
@@ -2973,8 +3005,8 @@ function clearAllFilterSelections() {
   syncUnitsFilterControls();
   syncContactsFilterControls();
   syncOwnerExcludeState();
-  syncPassiveExcludeState(categoryFilterExclude, false, false);
-  syncPassiveExcludeState(franchiseFilterExclude, false, false);
+  syncPerValueExcludeState(categoryFilterExclude, selectedCategoryValues, excludedCategoryValues);
+  syncPerValueExcludeState(franchiseFilterExclude, selectedFranchiseIndexes, excludedFranchiseIndexes);
   syncMapLocationFilter();
   refreshFilteredViews();
   refitOpenMapToVisibleLocations();
@@ -2985,23 +3017,564 @@ function clearAllFilterSelections() {
 function syncOwnerExcludeState() {
   if (!ownerFilterExclude) return;
 
-  const hasOwnerSelection = Boolean(selectedOwnerIndex);
-  const label = ownerFilterExclude.closest(".filter-check");
-  ownerFilterExclude.disabled = !hasOwnerSelection;
-  ownerFilterExclude.checked = hasOwnerSelection && ownerFilterExcludesSelection;
-  label?.classList.toggle("filter-check-muted", !hasOwnerSelection);
-  setFilterCheckboxState(ownerFilterExclude, ownerFilterExclude.checked);
+  syncPerValueExcludeState(ownerFilterExclude, selectedOwnerIndexes, excludedOwnerIndexes);
 }
 
-function syncPassiveExcludeState(checkbox, hasSelection, excludesSelection) {
+function syncPerValueExcludeState(checkbox, includedValues, excludedValues) {
   if (!checkbox) return;
 
+  const includedCount = includedValues.length;
+  const excludedCount = excludedValues.length;
+  const hasSelection = includedCount + excludedCount > 0;
   const label = checkbox.closest(".filter-check");
+
   checkbox.disabled = !hasSelection;
-  checkbox.checked = hasSelection && excludesSelection;
+  checkbox.checked = hasSelection && includedCount === 0;
+  checkbox.indeterminate = includedCount > 0 && excludedCount > 0;
   label?.classList.toggle("filter-check-muted", !hasSelection);
   setFilterCheckboxState(checkbox, checkbox.checked);
 }
+
+function setSelectedFilterOptionsExcluded(select, excluded) {
+  if (!select) return;
+
+  Array.from(select.options).forEach((option) => {
+    if (!option.value || !option.selected) return;
+
+    if (excluded) {
+      option.dataset.exclude = "true";
+    } else {
+      delete option.dataset.exclude;
+    }
+  });
+
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function normalizeComboboxText(value) {
+  return value.trim().toLocaleLowerCase();
+}
+
+function getComboboxPlaceholder(select) {
+  const placeholderOption = Array.from(select.options).find((option) => option.value === "");
+  const placeholderText = placeholderOption?.textContent?.trim();
+
+  if (placeholderText) {
+    return placeholderText.replace(/\.\.\.$/, "");
+  }
+
+  return select.getAttribute("aria-label") || "Select option";
+}
+
+function getComboboxOptions(select) {
+  return Array.from(select.options)
+    .filter((option) => option.value !== "")
+    .map((option) => ({
+      label: option.textContent.trim(),
+      value: option.value
+    }));
+}
+
+function getFilterSelectValues(select) {
+  if (!select) return [];
+
+  return Array.from(select.options)
+    .filter((option) => option.value && option.selected)
+    .map((option) => option.value);
+}
+
+function getFilterSelectIncludedValues(select) {
+  if (!select) return [];
+
+  return Array.from(select.options)
+    .filter((option) => option.value && option.selected && option.dataset.exclude !== "true")
+    .map((option) => option.value);
+}
+
+function getFilterSelectExcludedValues(select) {
+  if (!select) return [];
+
+  return Array.from(select.options)
+    .filter((option) => option.value && option.selected && option.dataset.exclude === "true")
+    .map((option) => option.value);
+}
+
+function setFilterSelectValues(select, values) {
+  if (!select) return;
+
+  const selectedValueSet = new Set(values.map(String));
+  Array.from(select.options).forEach((option) => {
+    option.selected = Boolean(option.value) && selectedValueSet.has(option.value);
+    if (!option.selected) {
+      delete option.dataset.exclude;
+    }
+  });
+}
+
+function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
+  const field = select.closest(".filter-select-field");
+  if (!field) return null;
+  if (filterComboboxes.has(select)) return filterComboboxes.get(select);
+
+  const placeholder = getComboboxPlaceholder(select);
+  const control = document.createElement("div");
+  const chips = document.createElement("div");
+  const input = document.createElement("input");
+  const clearButton = document.createElement("button");
+  const menu = document.createElement("div");
+  const menuList = document.createElement("div");
+  const chevron = field.querySelector("img");
+  const menuId = `${select.id || "filter"}ComboboxOptions`;
+  let isOpen = false;
+  let searchQuery = "";
+  let activeOptionIndex = -1;
+  let renderedOptions = [];
+
+  select.classList.add("filter-native-select");
+  select.multiple = true;
+  select.tabIndex = -1;
+  select.setAttribute("aria-hidden", "true");
+
+  control.className = "filter-combobox-control";
+  control.setAttribute("role", "presentation");
+
+  chips.className = "filter-combobox-chips";
+
+  input.className = "filter-combobox-input";
+  input.type = "text";
+  input.autocomplete = "off";
+  input.spellcheck = false;
+  input.placeholder = placeholder;
+  input.setAttribute("aria-label", select.getAttribute("aria-label") || placeholder);
+  input.setAttribute("role", "combobox");
+  input.setAttribute("aria-autocomplete", "list");
+  input.setAttribute("aria-haspopup", "listbox");
+  input.setAttribute("aria-expanded", "false");
+  input.setAttribute("aria-controls", menuId);
+
+  clearButton.className = "filter-combobox-clear";
+  clearButton.type = "button";
+  clearButton.setAttribute("aria-label", `Clear ${placeholder}`);
+  clearButton.hidden = true;
+  clearButton.textContent = "×";
+
+  menu.className = "filter-combobox-menu";
+  menu.id = menuId;
+  menu.setAttribute("role", "listbox");
+  menu.setAttribute("aria-label", select.getAttribute("aria-label") || placeholder);
+  menuList.className = "filter-combobox-options";
+
+  control.append(chips, input);
+  field.insertBefore(control, chevron || null);
+  field.insertBefore(clearButton, chevron || null);
+  menu.append(menuList);
+  field.append(menu);
+
+  function getSelectedOptions() {
+    const selectedValues = new Set(getFilterSelectValues(select));
+    return getComboboxOptions(select).filter((option) => selectedValues.has(option.value));
+  }
+
+  function setActiveOption(index) {
+    const optionButtons = Array.from(menuList.querySelectorAll(".filter-combobox-option"));
+    if (!optionButtons.length) {
+      activeOptionIndex = -1;
+      input.removeAttribute("aria-activedescendant");
+      return;
+    }
+
+    activeOptionIndex = (index + optionButtons.length) % optionButtons.length;
+    optionButtons.forEach((optionButton, optionIndex) => {
+      const isActive = optionIndex === activeOptionIndex;
+      optionButton.classList.toggle("is-active", isActive);
+      if (isActive) {
+        input.setAttribute("aria-activedescendant", optionButton.id);
+        optionButton.scrollIntoView({ block: "nearest" });
+      }
+    });
+  }
+
+  function dispatchComboboxChange() {
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function setSelectedValues(values, { dispatch = true } = {}) {
+    setFilterSelectValues(select, values);
+    syncComboboxDisplay();
+
+    if (isOpen) {
+      renderComboboxOptions();
+    }
+
+    if (dispatch) {
+      dispatchComboboxChange();
+    }
+  }
+
+  function removeSelectedValue(value) {
+    const nextValues = getFilterSelectValues(select).filter((selectedValue) => selectedValue !== value);
+    setSelectedValues(nextValues);
+    input.focus({ preventScroll: true });
+  }
+
+  function isValueExcluded(value) {
+    const option = Array.from(select.options).find((candidate) => candidate.value === value);
+    return option?.dataset.exclude === "true";
+  }
+
+  function setOptionExcluded(value, excluded) {
+    const option = Array.from(select.options).find((candidate) => candidate.value === value);
+    if (!option) return;
+
+    if (excluded) {
+      option.dataset.exclude = "true";
+    } else {
+      delete option.dataset.exclude;
+    }
+  }
+
+  function setValueExcluded(value, excluded) {
+    setOptionExcluded(value, excluded);
+    syncComboboxDisplay();
+    if (isOpen) {
+      renderComboboxOptions();
+    }
+    dispatchComboboxChange();
+    input.focus({ preventScroll: true });
+  }
+
+  function syncComboboxDisplay() {
+    const selectedOptions = getSelectedOptions();
+    chips.innerHTML = "";
+
+    selectedOptions.forEach((option) => {
+      const excluded = allowExclude && isValueExcluded(option.value);
+      const chip = document.createElement("span");
+      const chipLabel = document.createElement("span");
+      const chipRemove = document.createElement("button");
+
+      chip.className = "filter-combobox-chip";
+      chip.classList.toggle("is-excluded", excluded);
+
+      if (allowExclude) {
+        const chipToggle = document.createElement("button");
+        chipToggle.className = "filter-combobox-chip-toggle";
+        chipToggle.type = "button";
+        chipToggle.setAttribute("aria-pressed", String(excluded));
+        chipToggle.setAttribute(
+          "aria-label",
+          excluded ? `Include ${option.label}` : `Exclude ${option.label}`
+        );
+        chipToggle.dataset.tooltip = excluded ? "Include" : "Exclude";
+        chipToggle.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+        chipToggle.addEventListener("click", () => {
+          setValueExcluded(option.value, !excluded);
+        });
+        chip.append(chipToggle);
+      }
+
+      chipLabel.className = "filter-combobox-chip-label";
+      chipLabel.textContent = option.label;
+
+      chipRemove.className = "filter-combobox-chip-remove";
+      chipRemove.type = "button";
+      chipRemove.setAttribute("aria-label", `Remove ${option.label}`);
+      chipRemove.textContent = "×";
+      chipRemove.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      chipRemove.addEventListener("click", () => {
+        removeSelectedValue(option.value);
+      });
+
+      chip.append(chipLabel, chipRemove);
+      chips.append(chip);
+    });
+
+    input.placeholder = selectedOptions.length ? "" : placeholder;
+    clearButton.hidden = !selectedOptions.length;
+  }
+
+  function closeCombobox({ restoreDisplay = true } = {}) {
+    if (!isOpen) return;
+
+    isOpen = false;
+    searchQuery = "";
+    input.value = "";
+    renderedOptions = [];
+    activeOptionIndex = -1;
+    field.classList.remove("is-open");
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+    menuList.innerHTML = "";
+
+    if (restoreDisplay) {
+      syncComboboxDisplay();
+    }
+  }
+
+  function selectComboboxOption(value, { excluded = false } = {}) {
+    const currentValues = getFilterSelectValues(select);
+    if (currentValues.includes(value)) return;
+
+    searchQuery = "";
+    input.value = "";
+    setFilterSelectValues(select, [...currentValues, value]);
+    setOptionExcluded(value, excluded);
+    syncComboboxDisplay();
+    if (isOpen) {
+      renderComboboxOptions();
+    }
+    dispatchComboboxChange();
+    input.focus({ preventScroll: true });
+  }
+
+  function renderComboboxOptions() {
+    const normalizedQuery = normalizeComboboxText(searchQuery);
+    const selectedValues = new Set(getFilterSelectValues(select));
+
+    renderedOptions = getComboboxOptions(select).filter((option) => (
+      !selectedValues.has(option.value) &&
+      normalizeComboboxText(option.label).includes(normalizedQuery)
+    ));
+
+    menuList.innerHTML = "";
+
+    if (!renderedOptions.length) {
+      const emptyState = document.createElement("div");
+      emptyState.className = "filter-combobox-empty";
+      emptyState.textContent = "No results found";
+      menuList.append(emptyState);
+      setActiveOption(-1);
+      return;
+    }
+
+    renderedOptions.forEach((option, index) => {
+      const optionButton = document.createElement(allowExclude ? "div" : "button");
+      const optionLabel = document.createElement("span");
+      optionButton.className = "filter-combobox-option";
+      if (!allowExclude) {
+        optionButton.type = "button";
+      }
+      optionButton.id = `${menuId}-${index}`;
+      optionButton.dataset.value = option.value;
+      optionButton.setAttribute("role", "option");
+      optionButton.setAttribute("aria-selected", "false");
+      optionLabel.className = "filter-combobox-option-label";
+      optionLabel.textContent = option.label;
+      optionButton.append(optionLabel);
+
+      if (allowExclude) {
+        const optionActions = document.createElement("span");
+        const includeAction = document.createElement("button");
+        const excludeAction = document.createElement("button");
+
+        optionActions.className = "filter-combobox-option-actions";
+
+        includeAction.className = "filter-combobox-option-action is-include";
+        includeAction.type = "button";
+        includeAction.tabIndex = -1;
+        includeAction.setAttribute("aria-label", `Include ${option.label}`);
+        includeAction.title = "Include";
+
+        excludeAction.className = "filter-combobox-option-action is-exclude";
+        excludeAction.type = "button";
+        excludeAction.tabIndex = -1;
+        excludeAction.setAttribute("aria-label", `Exclude ${option.label}`);
+        excludeAction.title = "Exclude";
+
+        [includeAction, excludeAction].forEach((actionButton) => {
+          actionButton.addEventListener("mousedown", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+        });
+
+        includeAction.addEventListener("click", (event) => {
+          event.stopPropagation();
+          selectComboboxOption(option.value);
+        });
+
+        excludeAction.addEventListener("click", (event) => {
+          event.stopPropagation();
+          selectComboboxOption(option.value, { excluded: true });
+        });
+
+        optionActions.append(includeAction, excludeAction);
+        optionButton.append(optionActions);
+      }
+
+      optionButton.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+      });
+
+      optionButton.addEventListener("click", () => {
+        selectComboboxOption(option.value);
+        input.focus({ preventScroll: true });
+      });
+
+      menuList.append(optionButton);
+    });
+
+    if (activeOptionIndex >= renderedOptions.length) {
+      activeOptionIndex = -1;
+    }
+
+    if (activeOptionIndex >= 0) {
+      setActiveOption(activeOptionIndex);
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function openCombobox({ selectInputText = false } = {}) {
+    if (select.disabled) return;
+
+    isOpen = true;
+    searchQuery = "";
+    field.classList.add("is-open");
+    input.setAttribute("aria-expanded", "true");
+    syncComboboxDisplay();
+    renderComboboxOptions();
+
+    if (selectInputText) {
+      input.focus({ preventScroll: true });
+    }
+  }
+
+  function syncDisabledState() {
+    const isDisabled = select.disabled;
+    input.disabled = isDisabled;
+    field.classList.toggle("is-disabled", isDisabled);
+
+    if (isDisabled) {
+      closeCombobox();
+    }
+  }
+
+  input.addEventListener("focus", () => {
+    openCombobox({ selectInputText: true });
+  });
+
+  input.addEventListener("input", () => {
+    searchQuery = input.value;
+
+    if (!isOpen) {
+      isOpen = true;
+      field.classList.add("is-open");
+      input.setAttribute("aria-expanded", "true");
+    }
+
+    renderComboboxOptions();
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Backspace" && input.value === "") {
+      const currentValues = getFilterSelectValues(select);
+      if (currentValues.length) {
+        event.preventDefault();
+        setSelectedValues(currentValues.slice(0, -1));
+      }
+      return;
+    }
+
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!isOpen) {
+        openCombobox();
+        if (renderedOptions.length) {
+          setActiveOption(event.key === "ArrowDown" ? 0 : renderedOptions.length - 1);
+        }
+        return;
+      }
+      setActiveOption(activeOptionIndex + (event.key === "ArrowDown" ? 1 : -1));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      if (!isOpen || activeOptionIndex < 0) return;
+      event.preventDefault();
+      selectComboboxOption(renderedOptions[activeOptionIndex].value);
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeCombobox();
+      input.blur();
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    window.setTimeout(() => closeCombobox(), 100);
+  });
+
+  clearButton.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+
+  clearButton.addEventListener("click", () => {
+    setSelectedValues([]);
+    input.focus({ preventScroll: true });
+  });
+
+  field.addEventListener("mousedown", (event) => {
+    if (event.target === input || menu.contains(event.target) || clearButton.contains(event.target)) return;
+    if (select.disabled) return;
+
+    const wasOpen = isOpen;
+    event.preventDefault();
+    input.focus({ preventScroll: true });
+
+    if (wasOpen) {
+      closeCombobox();
+    } else {
+      openCombobox({ selectInputText: true });
+    }
+  });
+
+  select.addEventListener("change", () => {
+    syncComboboxDisplay();
+    if (isOpen) {
+      renderComboboxOptions();
+    }
+  });
+
+  const comboboxApi = {
+    close: closeCombobox,
+    sync() {
+      syncDisabledState();
+      syncComboboxDisplay();
+      if (isOpen) {
+        renderComboboxOptions();
+      }
+    }
+  };
+
+  filterComboboxes.set(select, comboboxApi);
+  comboboxApi.sync();
+  return comboboxApi;
+}
+
+function syncFilterComboboxes() {
+  filterComboboxes.forEach((combobox) => {
+    combobox.sync();
+  });
+}
+
+document.addEventListener("mousedown", (event) => {
+  filterComboboxes.forEach((combobox, select) => {
+    const field = select.closest(".filter-select-field");
+    if (!field?.contains(event.target)) {
+      combobox.close();
+    }
+  });
+});
 
 if (locationFilterSelect) {
   const locationSource = (window.ownerLocationsData || []).flatMap((owner) => owner.locations);
@@ -3017,13 +3590,16 @@ if (locationFilterSelect) {
   });
 
   locationFilterSelect.addEventListener("change", () => {
-    selectedLocationLabel = locationFilterSelect.value;
+    selectedLocationLabels = getFilterSelectIncludedValues(locationFilterSelect);
+    excludedLocationLabels = getFilterSelectExcludedValues(locationFilterSelect);
     activeMapOwnerIndex = null;
     syncMapLocationFilter();
     refreshFilteredViews();
     refitOpenMapToVisibleLocations();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });
+
+  enhanceFilterCombobox(locationFilterSelect, { allowExclude: true });
 }
 
 if (ownerFilterSelect) {
@@ -3035,8 +3611,8 @@ if (ownerFilterSelect) {
   });
 
   ownerFilterSelect.addEventListener("change", () => {
-    selectedOwnerIndex = ownerFilterSelect.value;
-    ownerFilterExcludesSelection = ownerFilterExcludesSelection && Boolean(selectedOwnerIndex);
+    selectedOwnerIndexes = getFilterSelectIncludedValues(ownerFilterSelect);
+    excludedOwnerIndexes = getFilterSelectExcludedValues(ownerFilterSelect);
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
     syncOwnerExcludeState();
@@ -3046,31 +3622,46 @@ if (ownerFilterSelect) {
     syncOpenOrgPanelWithSelection();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });
+
+  enhanceFilterCombobox(ownerFilterSelect, { allowExclude: true });
 }
 
 if (categoryFilterSelect) {
-  owners.forEach((owner) => {
+  const categoryNames = [
+    "Children Programs",
+    "Education & Children",
+    "Home and Building Services",
+    "Food and Beverage",
+    "Retail Products and Services",
+    "Professional Business Services",
+    "Health and Beauty",
+    "Fitness"
+  ];
+
+  categoryFilterSelect.disabled = false;
+
+  categoryNames.forEach((categoryName) => {
     const option = document.createElement("option");
-    option.value = String(owner.originalIndex);
-    option.textContent = owner.ownerName;
+    option.value = categoryName;
+    option.textContent = categoryName;
     categoryFilterSelect.append(option);
   });
 
   categoryFilterSelect.addEventListener("change", () => {
-    selectedCategoryIndex = categoryFilterSelect.value;
-    categoryFilterExcludesSelection = categoryFilterExcludesSelection && Boolean(selectedCategoryIndex);
-    syncPassiveExcludeState(categoryFilterExclude, Boolean(selectedCategoryIndex), categoryFilterExcludesSelection);
+    selectedCategoryValues = getFilterSelectIncludedValues(categoryFilterSelect);
+    excludedCategoryValues = getFilterSelectExcludedValues(categoryFilterSelect);
+    syncPerValueExcludeState(categoryFilterExclude, selectedCategoryValues, excludedCategoryValues);
     updateClearFiltersButton();
   });
+
+  enhanceFilterCombobox(categoryFilterSelect, { allowExclude: true });
 }
 
 if (categoryFilterExclude) {
-  syncPassiveExcludeState(categoryFilterExclude, Boolean(selectedCategoryIndex), categoryFilterExcludesSelection);
+  syncPerValueExcludeState(categoryFilterExclude, selectedCategoryValues, excludedCategoryValues);
 
   categoryFilterExclude.addEventListener("change", () => {
-    categoryFilterExcludesSelection = categoryFilterExclude.checked;
-    setFilterCheckboxState(categoryFilterExclude, categoryFilterExclude.checked);
-    updateClearFiltersButton();
+    setSelectedFilterOptionsExcluded(categoryFilterSelect, categoryFilterExclude.checked);
   });
 }
 
@@ -3141,15 +3732,7 @@ if (ownerFilterExclude) {
   syncOwnerExcludeState();
 
   ownerFilterExclude.addEventListener("change", () => {
-    ownerFilterExcludesSelection = ownerFilterExclude.checked;
-    activeMapOwnerIndex = null;
-    activeOrgOwnerIndex = null;
-    setFilterCheckboxState(ownerFilterExclude, ownerFilterExclude.checked);
-    syncMapLocationFilter();
-    refreshFilteredViews();
-    refitOpenMapToVisibleLocations();
-    syncOpenOrgPanelWithSelection();
-    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+    setSelectedFilterOptionsExcluded(ownerFilterSelect, ownerFilterExclude.checked);
   });
 }
 
@@ -3166,32 +3749,26 @@ if (franchiseFilterSelect) {
   });
 
   franchiseFilterSelect.addEventListener("change", () => {
-    selectedFranchiseIndex = franchiseFilterSelect.value;
-    franchiseFilterExcludesSelection = franchiseFilterExcludesSelection && Boolean(selectedFranchiseIndex);
+    selectedFranchiseIndexes = getFilterSelectIncludedValues(franchiseFilterSelect);
+    excludedFranchiseIndexes = getFilterSelectExcludedValues(franchiseFilterSelect);
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
-    syncPassiveExcludeState(franchiseFilterExclude, Boolean(selectedFranchiseIndex), franchiseFilterExcludesSelection);
+    syncPerValueExcludeState(franchiseFilterExclude, selectedFranchiseIndexes, excludedFranchiseIndexes);
     syncMapLocationFilter();
     refreshFilteredViews();
     refitOpenMapToVisibleLocations();
     syncOpenOrgPanelWithSelection();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });
+
+  enhanceFilterCombobox(franchiseFilterSelect, { allowExclude: true });
 }
 
 if (franchiseFilterExclude) {
-  syncPassiveExcludeState(franchiseFilterExclude, Boolean(selectedFranchiseIndex), franchiseFilterExcludesSelection);
+  syncPerValueExcludeState(franchiseFilterExclude, selectedFranchiseIndexes, excludedFranchiseIndexes);
 
   franchiseFilterExclude.addEventListener("change", () => {
-    franchiseFilterExcludesSelection = franchiseFilterExclude.checked;
-    activeMapOwnerIndex = null;
-    activeOrgOwnerIndex = null;
-    setFilterCheckboxState(franchiseFilterExclude, franchiseFilterExclude.checked);
-    syncMapLocationFilter();
-    refreshFilteredViews();
-    refitOpenMapToVisibleLocations();
-    syncOpenOrgPanelWithSelection();
-    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+    setSelectedFilterOptionsExcluded(franchiseFilterSelect, franchiseFilterExclude.checked);
   });
 }
 
@@ -3339,7 +3916,7 @@ if (rawDataToggle) {
       ?? activeDetailOwnerIndex
       ?? activeOrgOwnerIndex
       ?? activeMapOwnerIndex
-      ?? (selectedOwnerIndex && !ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null);
+      ?? getPrimarySelectedOwnerIndex();
     anchoredToolbarMode = "raw";
     anchoredToolbarOwnerIndex = null;
     renderGlobalRawDataTable({ activeOwnerIndex: selectedOwner });
@@ -3376,9 +3953,7 @@ if (orgChartToggle && card) {
 
     if (anchoredToolbarMode) {
       anchoredToolbarMode = "org";
-      anchoredToolbarOwnerIndex = activeOrgOwnerIndex ?? activeDetailOwnerIndex ?? (
-        selectedOwnerIndex && !ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null
-      );
+      anchoredToolbarOwnerIndex = activeOrgOwnerIndex ?? activeDetailOwnerIndex ?? getPrimarySelectedOwnerIndex();
       openToolbarOrgChart();
       return;
     }
@@ -3391,9 +3966,7 @@ if (orgChartToggle && card) {
     }
 
     anchoredToolbarMode = "org";
-    anchoredToolbarOwnerIndex = activeOrgOwnerIndex ?? activeDetailOwnerIndex ?? (
-      selectedOwnerIndex && !ownerFilterExcludesSelection ? Number(selectedOwnerIndex) : null
-    );
+    anchoredToolbarOwnerIndex = activeOrgOwnerIndex ?? activeDetailOwnerIndex ?? getPrimarySelectedOwnerIndex();
     openToolbarOrgChart();
   });
 }

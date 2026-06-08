@@ -17,25 +17,16 @@ const curveShape = {
 const curveState = {
   activeSegmentIndex: null,
   hoveredSegmentIndex: null,
-  records: [],
+  dataset: null,
   shape: curveShape,
 };
 
-const curveDataUrl = "data/crumbl.json?v=5";
-const curveGranularities = {
-  year: { stepMonths: 12 },
-  quarter: { stepMonths: 3 },
-  month: { stepMonths: 1 },
-};
+const curveDataUrl = "data/crumbl.json?v=10";
 const segmentThumbnailHardCap = 220;
-// const lockedStoresVisibleCount = 5;
-// const lockedStoresMaxRows = 15;
-
-const openedDateFormatter = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-});
+const segmentFillStaggerMs = 320;
+const curveRevealDurationMs = 1200;
+const lockedStoresVisibleCount = 5;
+const lockedStoresMaxRows = 15;
 
 const formatPercent = (value) => {
   if (Number.isInteger(value)) {
@@ -45,21 +36,6 @@ const formatPercent = (value) => {
   return `${value.toFixed(1)}%`;
 };
 
-const parseOpenedDate = (value) => {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
-
-  if (!match) {
-    return null;
-  }
-
-  const [, year, month, day] = match;
-  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-};
-
 const escapeHtml = (value) =>
   String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -67,142 +43,6 @@ const escapeHtml = (value) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
-
-const getAvatarLabel = (store) =>
-  store.owner_name || store.storefront_name || store.city || store.street || "Crumbl operator";
-
-const getAvatarInitials = (value) => {
-  const words = String(value || "")
-    .trim()
-    .split(/[\s,./&-]+/)
-    .filter(Boolean);
-
-  if (!words.length) {
-    return "C";
-  }
-
-  return words
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase();
-};
-
-const getAvatarImageUrl = (store) =>
-  toSafeUrl(
-    store.owner_thumbnail ||
-      store.profile_picture ||
-      store.owner_profile_picture ||
-      store.owner_image_url ||
-      store.owner_image ||
-      store.thumbnail_url ||
-      store.photo_url ||
-      store.image_url ||
-      store.image
-  );
-
-const formatOpenedDate = (value) => {
-  const parsedDate = parseOpenedDate(value);
-
-  if (!parsedDate) {
-    return "-";
-  }
-
-  return openedDateFormatter.format(parsedDate);
-};
-
-const pickFirstNonEmptyString = (...values) => {
-  for (const value of values) {
-    if (typeof value === "string") {
-      const trimmed = value.trim();
-      if (trimmed) {
-        return trimmed;
-      }
-    }
-  }
-
-  return null;
-};
-
-const normalizeCrumblRecord = (record) => {
-  if (!record || typeof record !== "object") {
-    return null;
-  }
-
-  const nestedInstitution =
-    record.institution && typeof record.institution === "object"
-      ? record.institution
-      : null;
-  const nestedRootProfile =
-    nestedInstitution?.root_profile && typeof nestedInstitution.root_profile === "object"
-      ? nestedInstitution.root_profile
-      : null;
-  const nestedLocation =
-    record.location && typeof record.location === "object" ? record.location : null;
-  const nestedCoordinates =
-    nestedLocation?.coordinates && typeof nestedLocation.coordinates === "object"
-      ? nestedLocation.coordinates
-      : null;
-  const nestedRootProfileName = pickFirstNonEmptyString(nestedRootProfile?.name);
-  const ownerName = pickFirstNonEmptyString(
-    record.owner_name,
-    record.root_profile_name,
-    nestedRootProfileName
-  );
-  const rootProfileName = pickFirstNonEmptyString(
-    record.root_profile_name,
-    nestedRootProfileName,
-    record.owner_name
-  );
-
-  return {
-    ...record,
-    id: record.id ?? record.store_id ?? null,
-    phone: pickFirstNonEmptyString(record.phone, nestedRootProfile?.phone),
-    storefront_name: pickFirstNonEmptyString(record.storefront_name, record.name),
-    street: pickFirstNonEmptyString(record.street, nestedLocation?.address),
-    city: pickFirstNonEmptyString(record.city, nestedLocation?.city),
-    state: pickFirstNonEmptyString(record.state, nestedLocation?.state),
-    country: pickFirstNonEmptyString(record.country, nestedLocation?.country),
-    latitude: record.latitude ?? nestedCoordinates?.lat ?? null,
-    longitude: record.longitude ?? nestedCoordinates?.lng ?? null,
-    url: pickFirstNonEmptyString(record.url, nestedInstitution?.website),
-    email_address: pickFirstNonEmptyString(record.email_address, record.email),
-    owner_name: ownerName,
-    owner_email: pickFirstNonEmptyString(
-      record.owner_email,
-      nestedRootProfile?.email,
-      record.email
-    ),
-    root_profile_name: rootProfileName,
-    root_profile_id: record.root_profile_id ?? nestedRootProfile?.id ?? null,
-    root_profile_abbreviation: pickFirstNonEmptyString(
-      record.root_profile_abbreviation,
-      nestedRootProfile?.abbreviation
-    ),
-    root_profile_org_key: pickFirstNonEmptyString(
-      record.root_profile_org_key,
-      nestedRootProfile?.org_key
-    ),
-    root_profile_org_title: pickFirstNonEmptyString(
-      record.root_profile_org_title,
-      nestedRootProfile?.org_title
-    ),
-    owner_linkedin: pickFirstNonEmptyString(
-      record.owner_linkedin,
-      nestedRootProfile?.linkedin_link,
-      nestedInstitution?.linkedin_link
-    ),
-    institution_name: pickFirstNonEmptyString(
-      record.institution_name,
-      nestedInstitution?.name
-    ),
-    profile_picture: pickFirstNonEmptyString(
-      record.profile_picture,
-      nestedRootProfile?.profile_picture
-    ),
-  };
-};
 
 const toSafeUrl = (value) => {
   if (typeof value !== "string") {
@@ -221,6 +61,20 @@ const toSafeUrl = (value) => {
   return null;
 };
 
+const getAvatarImageUrl = (item) =>
+  toSafeUrl(
+    item.imageUrl ||
+      item.owner_thumbnail ||
+      item.profile_picture ||
+      item.owner_profile_picture ||
+      item.owner_image_url ||
+      item.owner_image ||
+      item.thumbnail_url ||
+      item.photo_url ||
+      item.image_url ||
+      item.image
+  );
+
 const toGoogleMapsUrl = (addressValue) => {
   if (typeof addressValue !== "string") {
     return null;
@@ -236,7 +90,137 @@ const toGoogleMapsUrl = (addressValue) => {
   return `https://www.google.com/maps/search/?api=1&query=${query}`;
 };
 
-const getContactIcon = (type, href, label) => {
+const sanitizePositiveInteger = (value) => {
+  if (!Number.isFinite(value) || value < 0) {
+    return 0;
+  }
+
+  return Math.floor(value);
+};
+
+const sanitizeCurveBucket = (bucket, index) => {
+  if (!bucket || typeof bucket !== "object") {
+    return null;
+  }
+
+  return {
+    timestamp: Number.isFinite(bucket.timestamp) ? bucket.timestamp : index,
+    count: sanitizePositiveInteger(bucket.count),
+  };
+};
+
+const sanitizeThumbnail = (thumbnail) => {
+  if (!thumbnail || typeof thumbnail !== "object") {
+    return null;
+  }
+
+  const imageUrl = toSafeUrl(thumbnail.imageUrl);
+
+  if (!imageUrl) {
+    return null;
+  }
+
+  return { imageUrl };
+};
+
+const sanitizeStoreRow = (row) => {
+  if (!row || typeof row !== "object") {
+    return null;
+  }
+
+  const name = typeof row.name === "string" && row.name.trim() ? row.name.trim() : "-";
+  const address =
+    typeof row.address === "string" && row.address.trim() ? row.address.trim() : null;
+  const openedLabel =
+    typeof row.openedLabel === "string" && row.openedLabel.trim()
+      ? row.openedLabel.trim()
+      : "-";
+
+  return {
+    name,
+    address,
+    openedLabel,
+    openedTimestamp: Number.isFinite(row.openedTimestamp) ? row.openedTimestamp : null,
+    imageUrl: toSafeUrl(row.imageUrl),
+    websiteUrl: toSafeUrl(row.websiteUrl),
+    linkedinUrl: toSafeUrl(row.linkedinUrl),
+    hasEmail: Boolean(row.hasEmail),
+  };
+};
+
+const createEmptySegmentDataset = () => ({
+  storeCount: 0,
+  hiddenThumbnailCount: 0,
+  yearRange: null,
+  thumbnails: [],
+  rows: [],
+});
+
+const sanitizeYearRange = (value) => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const startYear = Number.isInteger(value.startYear) ? value.startYear : null;
+  const endYear = Number.isInteger(value.endYear) ? value.endYear : null;
+
+  if (startYear === null || endYear === null) {
+    return null;
+  }
+
+  return { startYear, endYear };
+};
+
+const formatSegmentYearRange = (yearRange, fallbackPercent) => {
+  if (!yearRange) {
+    return formatPercent(fallbackPercent);
+  }
+
+  if (yearRange.startYear === yearRange.endYear) {
+    return String(yearRange.startYear);
+  }
+
+  return `${yearRange.startYear}-${yearRange.endYear}`;
+};
+
+const getDefaultCurveDataset = () => ({
+  totalStores: 0,
+  curveBuckets: [],
+  segments: adoptionSegments.map(() => createEmptySegmentDataset()),
+});
+
+const sortCompactRows = (a, b) => {
+  const aHasImage = hasAvatarImage(a);
+  const bHasImage = hasAvatarImage(b);
+
+  if (aHasImage !== bHasImage) {
+    return aHasImage ? -1 : 1;
+  }
+
+  if (a.openedTimestamp !== null && b.openedTimestamp !== null) {
+    if (a.openedTimestamp !== b.openedTimestamp) {
+      return a.openedTimestamp - b.openedTimestamp;
+    }
+  } else if (a.openedTimestamp !== null) {
+    return -1;
+  } else if (b.openedTimestamp !== null) {
+    return 1;
+  }
+
+  const contactRank = getContactRank(b) - getContactRank(a);
+  if (contactRank !== 0) {
+    return contactRank;
+  }
+
+  const addressCompare = String(a.address || "").localeCompare(String(b.address || ""));
+  if (addressCompare !== 0) {
+    return addressCompare;
+  }
+
+  return String(a.name || "").localeCompare(String(b.name || ""));
+};
+
+const getContactIcon = (type, href, label, isAvailable = true) => {
   const iconLabels = {
     web: "website",
     linkedin: "LinkedIn",
@@ -261,6 +245,14 @@ const getContactIcon = (type, href, label) => {
       `;
 
   if (type === "email") {
+    if (!isAvailable) {
+      return `
+        <span class="contact-icon-link is-disabled" aria-label="${iconLabel} unavailable">
+          ${iconMarkup}
+        </span>
+      `;
+    }
+
     return `
       <button
         class="contact-icon-link contact-icon-link--button"
@@ -295,33 +287,30 @@ const getContactIcon = (type, href, label) => {
 };
 
 const getContactRank = (store) => {
-  const hasWebsite = Boolean(toSafeUrl(store.url));
-  const hasLinkedin = Boolean(toSafeUrl(store.owner_linkedin));
+  const hasWebsite = Boolean(store.websiteUrl);
+  const hasLinkedin = Boolean(store.linkedinUrl);
+  const hasEmail = Boolean(store.hasEmail);
 
-  if (hasWebsite && hasLinkedin) return 3;
-  if (hasWebsite) return 2;
-  if (hasLinkedin) return 1;
-  return 0;
+  return [hasWebsite, hasLinkedin, hasEmail].filter(Boolean).length;
 };
 
 const getContactIcons = (store) => {
-  const label = store.owner_name || store.storefront_name || store.street || "store";
-  const websiteUrl = toSafeUrl(store.url);
-  const linkedinUrl = toSafeUrl(store.owner_linkedin);
+  const label = store.name || store.address || "store";
+  const websiteUrl = store.websiteUrl || null;
+  const linkedinUrl = store.linkedinUrl || null;
+  const hasEmail = Boolean(store.hasEmail);
 
   return `
     <div class="raw-contact-icons" role="group" aria-label="Contact links for ${escapeHtml(label)}">
       ${getContactIcon("web", websiteUrl, label)}
       ${getContactIcon("linkedin", linkedinUrl, label)}
-      ${getContactIcon("email", null, label)}
+      ${getContactIcon("email", null, label, hasEmail)}
     </div>
   `;
 };
 
 const getStoreNameMarkup = (store) => {
-  const displayName = escapeHtml(
-    store.owner_name || store.institution_name || store.storefront_name || "-"
-  );
+  const displayName = escapeHtml(store.name || "-");
   const imageUrl = getAvatarImageUrl(store);
   const imageMarkup = imageUrl
     ? `
@@ -341,85 +330,6 @@ const getStoreNameMarkup = (store) => {
       <span class="raw-phone">${displayName}</span>
     </span>
   `;
-};
-
-const getBucketStart = (date, granularity) => {
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth();
-
-  if (granularity === "year") {
-    return new Date(Date.UTC(year, 0, 1));
-  }
-
-  if (granularity === "quarter") {
-    return new Date(Date.UTC(year, Math.floor(month / 3) * 3, 1));
-  }
-
-  if (granularity === "month") {
-    return new Date(Date.UTC(year, month, 1));
-  }
-
-  return new Date(Date.UTC(year, 0, 1));
-};
-
-const advanceBucket = (date, granularity) => {
-  const next = new Date(date);
-  const config = curveGranularities[granularity] || curveGranularities.year;
-
-  if (config.stepMonths) {
-    next.setUTCMonth(next.getUTCMonth() + config.stepMonths);
-  }
-
-  return next;
-};
-
-const getUniqueOpeningDates = (records) => {
-  const datesByStore = new Map();
-
-  records.forEach((record) => {
-    if (!record.id || !record.date_opened || datesByStore.has(record.id)) {
-      return;
-    }
-
-    const openedDate = parseOpenedDate(record.date_opened);
-
-    if (openedDate) {
-      datesByStore.set(record.id, openedDate);
-    }
-  });
-
-  return Array.from(datesByStore.values()).sort((a, b) => a - b);
-};
-
-const buildOpeningBuckets = (dates, granularity) => {
-  if (!dates.length) {
-    return [];
-  }
-
-  const counts = new Map();
-
-  dates.forEach((date) => {
-    const bucket = getBucketStart(date, granularity).getTime();
-    counts.set(bucket, (counts.get(bucket) || 0) + 1);
-  });
-
-  const firstBucket = getBucketStart(dates[0], granularity);
-  const lastBucket = getBucketStart(dates[dates.length - 1], granularity);
-  const buckets = [];
-
-  for (
-    let bucket = firstBucket;
-    bucket <= lastBucket;
-    bucket = advanceBucket(bucket, granularity)
-  ) {
-    const timestamp = bucket.getTime();
-    buckets.push({
-      timestamp,
-      count: counts.get(timestamp) || 0,
-    });
-  }
-
-  return buckets;
 };
 
 const pointsToSmoothPath = (points) => {
@@ -457,15 +367,16 @@ const pointsToSmoothPath = (points) => {
   return commands.join(" ");
 };
 
-const buildCurveFromOpenings = (records, granularity) => {
-  const dates = getUniqueOpeningDates(records);
-  const buckets = buildOpeningBuckets(dates, granularity);
-
+const buildCurveFromBuckets = (buckets) => {
   if (buckets.length < 2) {
     return curveShape;
   }
 
   const maxCount = Math.max(...buckets.map((bucket) => bucket.count));
+  if (!maxCount) {
+    return curveShape;
+  }
+
   const zeroLine = 338;
   const topLine = 45;
   const points = buckets.map((bucket, index) => {
@@ -492,12 +403,6 @@ const getSegmentStartPosition = (segments, index) => {
   return index === 0 ? 0 : segments[index - 1].endPosition;
 };
 
-const getSegmentEndPercent = (segments, index) => {
-  return segments
-    .slice(0, index + 1)
-    .reduce((total, segment) => total + segment.percent, 0);
-};
-
 const getSegmentAriaLabel = (segment) => {
   return `${segment.label.replace(/\s+/g, " ")} stores`;
 };
@@ -505,6 +410,7 @@ const getSegmentAriaLabel = (segment) => {
 const createSegmentControl = (segment, index, type, isActive, isHovered) => {
   const control = document.createElement("button");
   const text = document.createElement("span");
+  const secondaryText = formatSegmentYearRange(segment.yearRange, segment.percent);
 
   control.type = "button";
   control.className = `curve-segment-control curve-${type}`;
@@ -513,9 +419,16 @@ const createSegmentControl = (segment, index, type, isActive, isHovered) => {
   control.setAttribute("aria-pressed", String(isActive));
   control.setAttribute("aria-label", `Filter ${getSegmentAriaLabel(segment)}`);
   text.className = "curve-segment-control__text";
-  text.textContent = type === "label" ? segment.label : formatPercent(segment.percent);
+  text.textContent = type === "label" ? segment.label : secondaryText;
   control.append(text);
   return control;
+};
+
+const getRenderableSegments = (dataset) => {
+  return adoptionSegments.map((segment, index) => ({
+    ...segment,
+    yearRange: dataset?.segments?.[index]?.yearRange || null,
+  }));
 };
 
 const createHitAreaControl = (segment, index) => {
@@ -633,108 +546,15 @@ const renderAdoptionCurve = (
   activeClip.setAttribute("width", String(clipWidth));
 };
 
-const getUniqueStores = (records) => {
-  const storesById = new Map();
-
-  records.forEach((record) => {
-    if (!record || !record.id || storesById.has(record.id)) {
-      return;
-    }
-
-    storesById.set(record.id, record);
-  });
-
-  return Array.from(storesById.values());
-};
-
-const getStoresWithSegments = (records, segments) => {
-  const stores = getUniqueStores(records)
-    .map((store) => ({
-      ...store,
-      openedDate: parseOpenedDate(store.date_opened),
-      segmentIndex: null,
-    }))
-    .sort((a, b) => {
-      if (!a.openedDate && !b.openedDate) {
-        return String(a.street || "").localeCompare(String(b.street || ""));
-      }
-
-      if (!a.openedDate) {
-        return 1;
-      }
-
-      if (!b.openedDate) {
-        return -1;
-      }
-
-      return a.openedDate - b.openedDate;
-    });
-
-  const datedStores = stores.filter((store) => store.openedDate);
-  const totalDatedStores = datedStores.length;
-
-  datedStores.forEach((store, index) => {
-    const cumulativePosition = ((index + 1) / totalDatedStores) * 100;
-    store.segmentIndex = segments.findIndex(
-      (_segment, segmentIndex) => cumulativePosition <= getSegmentEndPercent(segments, segmentIndex)
-    );
-  });
-
-  return stores;
-};
-
 const hasAvatarImage = (store) => Boolean(getAvatarImageUrl(store));
-
-const getSegmentThumbnailStores = (stores) => {
-  const seenOwnersWithoutImage = new Set();
-  const selectedStores = [];
-
-  stores.forEach((store) => {
-    if (hasAvatarImage(store)) {
-      selectedStores.push(store);
-      return;
-    }
-
-    const ownerName = String(store.owner_name || "").trim();
-
-    if (ownerName) {
-      const ownerKey = ownerName.toLowerCase();
-      if (seenOwnersWithoutImage.has(ownerKey)) {
-        return;
-      }
-      seenOwnersWithoutImage.add(ownerKey);
-    }
-
-    selectedStores.push(store);
-  });
-
-  return selectedStores.sort((a, b) => {
-    const aHasImage = hasAvatarImage(a);
-    const bHasImage = hasAvatarImage(b);
-    const aHasOwner = Boolean(a.owner_name);
-    const bHasOwner = Boolean(b.owner_name);
-
-    if (aHasImage !== bHasImage) {
-      return aHasImage ? -1 : 1;
-    }
-
-    if (aHasOwner !== bHasOwner) {
-      return aHasOwner ? -1 : 1;
-    }
-
-    return String(getAvatarLabel(a)).localeCompare(String(getAvatarLabel(b)));
-  });
-};
 
 const createSegmentThumbnail = (store, index) => {
   const avatar = document.createElement("span");
   const face = document.createElement("span");
-  const label = getAvatarLabel(store);
   const imageUrl = getAvatarImageUrl(store);
 
   avatar.className = "curve-segment-thumbnail";
   avatar.style.setProperty("--thumbnail-index", String(index));
-  avatar.title = label;
   face.className = "curve-segment-thumbnail__face";
 
   if (imageUrl) {
@@ -745,8 +565,6 @@ const createSegmentThumbnail = (store, index) => {
     image.decoding = "async";
     image.referrerPolicy = "no-referrer";
     face.append(image);
-  } else {
-    face.textContent = getAvatarInitials(label);
   }
 
   avatar.append(face);
@@ -967,24 +785,210 @@ const computeMarblePilePositions = (count, widthPx, ballSize, columnWeights) => 
 };
 
 let lastRenderedSegmentKey = null;
+let curveRevealFrame = null;
+let hasPlayedCurveReveal = false;
 
-const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {}) => {
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const setCurveRevealProgress = (progress, shape = curveShape) => {
+  const revealClip = document.getElementById("curveRevealClipRect");
+
+  if (!revealClip) {
+    return;
+  }
+
+  const safeProgress = clamp(progress, 0, 1);
+  revealClip.setAttribute("x", "0");
+  revealClip.setAttribute("width", String(shape.width * safeProgress));
+};
+
+const animateCurveReveal = (shape = curveShape) => {
+  if (hasPlayedCurveReveal) {
+    setCurveRevealProgress(1, shape);
+    return;
+  }
+
+  hasPlayedCurveReveal = true;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) {
+    setCurveRevealProgress(1, shape);
+    return;
+  }
+
+  if (curveRevealFrame !== null) {
+    window.cancelAnimationFrame(curveRevealFrame);
+  }
+
+  const startTime = performance.now();
+  const easing = (value) => 1 - Math.pow(1 - value, 3);
+
+  const frame = (now) => {
+    const elapsed = now - startTime;
+    const progress = clamp(elapsed / curveRevealDurationMs, 0, 1);
+    setCurveRevealProgress(easing(progress), shape);
+
+    if (progress < 1) {
+      curveRevealFrame = window.requestAnimationFrame(frame);
+      return;
+    }
+
+    curveRevealFrame = null;
+  };
+
+  setCurveRevealProgress(0, shape);
+  curveRevealFrame = window.requestAnimationFrame(frame);
+};
+
+const renderSegmentThumbnails = (dataset, activeSegmentIndex = null, options = {}) => {
   const container = document.getElementById("curveSegmentThumbnails");
 
   if (!container) {
     return;
   }
 
-  const key = `${activeSegmentIndex}::${records?.length || 0}`;
+  const segmentData =
+    activeSegmentIndex === null ? null : dataset?.segments?.[activeSegmentIndex] || null;
+  const segmentSignature =
+    dataset?.segments
+      ?.map(
+        (segment) =>
+          `${segment?.thumbnails?.length || 0}:${segment?.hiddenThumbnailCount || 0}`
+      )
+      .join("|") || "";
+  const key = `${activeSegmentIndex}::${dataset?.totalStores || 0}::${segmentSignature}`;
   if (!options.force && lastRenderedSegmentKey === key) {
     return;
   }
   lastRenderedSegmentKey = key;
 
   container.replaceChildren();
-  container.classList.toggle("is-visible", activeSegmentIndex !== null);
+  container.classList.remove("is-visible");
 
-  if (activeSegmentIndex === null || !records.length) {
+  if (activeSegmentIndex === null) {
+    container.style.setProperty("--thumbnail-left", "0%");
+    container.style.setProperty("--thumbnail-width", "100%");
+
+    const containerStyles = getComputedStyle(container);
+    const ballSize = parseFloat(containerStyles.getPropertyValue("--thumbnail-size")) || 24;
+    const stage = container.parentElement;
+    const stageHeight = stage?.clientHeight || 200;
+    const maxPileHeight = Math.max(ballSize * 2.5, stageHeight * 0.88);
+    const totalContainerWidth = Math.max(ballSize, container.clientWidth);
+
+    let tallestPile = 0;
+
+    adoptionSegments.forEach((segment, segmentIndex) => {
+      const currentSegmentData = dataset?.segments?.[segmentIndex] || null;
+      if (!currentSegmentData) {
+        return;
+      }
+
+      const imageBackedStores = currentSegmentData.thumbnails || [];
+      const hiddenNonImageCount = currentSegmentData.hiddenThumbnailCount || 0;
+      if (!imageBackedStores.length && hiddenNonImageCount === 0) {
+        return;
+      }
+
+      const startPosition = getSegmentStartPosition(adoptionSegments, segmentIndex);
+      const segmentWidth = segment.endPosition - startPosition;
+      const segmentWidthPx = Math.max(ballSize, totalContainerWidth * (segmentWidth / 100));
+      const overlap = ballSize * 0.28;
+      const colSpacing = Math.max(1, ballSize - overlap);
+      const rowSpacing = colSpacing * 0.82;
+      const colsForSegment = Math.max(
+        1,
+        Math.floor((segmentWidthPx - ballSize) / colSpacing) + 1
+      );
+      const rowsForStage = Math.max(
+        1,
+        Math.floor((maxPileHeight - ballSize) / rowSpacing) + 1
+      );
+      const segmentEnd = startPosition + segmentWidth;
+      const columnWeights = computeSegmentColumnWeights(
+        startPosition,
+        segmentEnd,
+        colsForSegment
+      );
+      const columnFitMax = columnWeights.map((weight) =>
+        Math.max(1, Math.ceil(weight * rowsForStage))
+      );
+      const curveFitCap = columnFitMax.reduce((sum, value) => sum + value, 0);
+      const segmentCap = Math.min(segmentThumbnailHardCap, curveFitCap);
+      const needsOverflowBadge =
+        hiddenNonImageCount > 0 || imageBackedStores.length > segmentCap;
+      const visibleImageCap = needsOverflowBadge
+        ? Math.max(0, segmentCap - 1)
+        : segmentCap;
+      const visibleStores = imageBackedStores.slice(0, visibleImageCap);
+      const overflowCount =
+        hiddenNonImageCount + Math.max(0, imageBackedStores.length - visibleStores.length);
+
+      const { positions } = computeMarblePilePositions(
+        visibleStores.length,
+        segmentWidthPx,
+        ballSize,
+        columnWeights
+      );
+      const pileHeight = positions.reduce(
+        (max, pos) => Math.max(max, pos.y + ballSize / 2),
+        ballSize
+      );
+      const badgeY = overflowCount > 0 ? pileHeight + ballSize * 0.45 : 0;
+      const totalHeight = overflowCount > 0 ? badgeY + ballSize * 0.6 : pileHeight;
+      tallestPile = Math.max(tallestPile, totalHeight);
+
+      const layer = document.createElement("div");
+      layer.className = "curve-segment-thumbnail-layer";
+      layer.style.setProperty("--thumbnail-left", `${startPosition}%`);
+      layer.style.setProperty("--thumbnail-width", `${segmentWidth}%`);
+      layer.style.setProperty("--thumbnail-pile-height", `${totalHeight}px`);
+
+      const stack = document.createElement("div");
+      stack.className = "curve-segment-thumbnail-stack";
+      const dropOrder = buildBottomUpShuffledDropOrder(positions, rowSpacing);
+      const pileStores = visibleStores.slice().reverse();
+
+      pileStores.forEach((store, index) => {
+        const ball = createSegmentThumbnail(store, dropOrder[index]);
+        const pos = positions[index];
+        ball.style.setProperty("--thumbnail-x", `${pos.x}px`);
+        ball.style.setProperty("--thumbnail-y", `${pos.y}px`);
+        ball.style.setProperty("--thumbnail-rotation", `${pos.rotation}deg`);
+        ball.style.setProperty(
+          "--thumbnail-segment-delay",
+          `${segmentIndex * segmentFillStaggerMs}ms`
+        );
+        stack.append(ball);
+      });
+
+      if (overflowCount > 0) {
+        const overflowBadge = createOverflowBadge(overflowCount, visibleStores.length);
+        overflowBadge.style.setProperty("--thumbnail-x", `${segmentWidthPx / 2}px`);
+        overflowBadge.style.setProperty("--thumbnail-y", `${badgeY}px`);
+        overflowBadge.style.setProperty("--thumbnail-rotation", "0deg");
+        overflowBadge.style.setProperty(
+          "--thumbnail-segment-delay",
+          `${segmentIndex * segmentFillStaggerMs}ms`
+        );
+        stack.append(overflowBadge);
+      }
+
+      layer.append(stack);
+      container.append(layer);
+    });
+
+    if (!container.children.length) {
+      container.style.removeProperty("--thumbnail-pile-height");
+      return;
+    }
+
+    container.style.setProperty("--thumbnail-pile-height", `${tallestPile}px`);
+    container.classList.add("is-visible");
+    return;
+  }
+
+  if (!segmentData) {
     container.style.removeProperty("--thumbnail-left");
     container.style.removeProperty("--thumbnail-width");
     container.style.removeProperty("--thumbnail-pile-height");
@@ -994,12 +998,10 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
   const activeSegment = adoptionSegments[activeSegmentIndex];
   const startPosition = getSegmentStartPosition(adoptionSegments, activeSegmentIndex);
   const segmentWidth = activeSegment.endPosition - startPosition;
-  const stores = getStoresWithSegments(records, adoptionSegments).filter(
-    (store) => store.segmentIndex === activeSegmentIndex
-  );
-  const thumbnailStores = getSegmentThumbnailStores(stores);
+  const imageBackedStores = segmentData.thumbnails || [];
+  const hiddenNonImageCount = segmentData.hiddenThumbnailCount || 0;
 
-  if (!thumbnailStores.length) {
+  if (!imageBackedStores.length && hiddenNonImageCount === 0) {
     return;
   }
 
@@ -1038,8 +1040,6 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
   const curveFitCap = columnFitMax.reduce((a, b) => a + b, 0);
   const segmentCap = Math.min(segmentThumbnailHardCap, curveFitCap);
 
-  const imageBackedStores = thumbnailStores.filter(hasAvatarImage);
-  const hiddenNonImageCount = thumbnailStores.length - imageBackedStores.length;
   const needsOverflowBadge =
     hiddenNonImageCount > 0 || imageBackedStores.length > segmentCap;
   const visibleImageCap = needsOverflowBadge
@@ -1047,7 +1047,8 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
     : segmentCap;
   const visibleStores = imageBackedStores.slice(0, visibleImageCap);
 
-  const overflowCount = thumbnailStores.length - visibleStores.length;
+  const overflowCount =
+    hiddenNonImageCount + Math.max(0, imageBackedStores.length - visibleStores.length);
 
   const { positions } = computeMarblePilePositions(
     visibleStores.length,
@@ -1082,6 +1083,7 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
     ball.style.setProperty("--thumbnail-x", `${pos.x}px`);
     ball.style.setProperty("--thumbnail-y", `${pos.y}px`);
     ball.style.setProperty("--thumbnail-rotation", `${pos.rotation}deg`);
+    ball.style.setProperty("--thumbnail-segment-delay", "0ms");
     stack.append(ball);
   });
 
@@ -1090,13 +1092,122 @@ const renderSegmentThumbnails = (records, activeSegmentIndex = null, options = {
     overflowBadge.style.setProperty("--thumbnail-x", `${containerWidth / 2}px`);
     overflowBadge.style.setProperty("--thumbnail-y", `${badgeY}px`);
     overflowBadge.style.setProperty("--thumbnail-rotation", "0deg");
+    overflowBadge.style.setProperty("--thumbnail-segment-delay", "0ms");
     stack.append(overflowBadge);
   }
 
   container.append(stack);
+  container.classList.add("is-visible");
 };
 
-const renderStoresTable = (records, activeSegmentIndex = null) => {
+const lockedPlaceholderNames = [
+  "Verified operator",
+  "Portfolio operator",
+  "Multi-unit owner",
+  "Regional franchisee",
+  "Growth-stage operator",
+];
+
+const lockedPlaceholderAddresses = [
+  "Full address available with access",
+  "Market location available with access",
+  "Verified contact details available with access",
+  "Territory information available with access",
+  "Operator profile available with access",
+];
+
+const buildMockRowPools = (dataset) => {
+  const avatars = [];
+  const websites = [];
+  const linkedins = [];
+  const openedRows = [];
+
+  dataset?.segments?.forEach((segment) => {
+    segment?.thumbnails?.forEach((thumbnail) => {
+      if (thumbnail?.imageUrl) {
+        avatars.push(thumbnail.imageUrl);
+      }
+    });
+
+    segment?.rows?.forEach((row) => {
+      if (row?.imageUrl) {
+        avatars.push(row.imageUrl);
+      }
+      if (row?.websiteUrl) {
+        websites.push(row.websiteUrl);
+      }
+      if (row?.linkedinUrl) {
+        linkedins.push(row.linkedinUrl);
+      }
+      if (row?.openedLabel) {
+        openedRows.push({
+          openedLabel: row.openedLabel,
+          openedTimestamp: row.openedTimestamp,
+        });
+      }
+    });
+  });
+
+  openedRows.sort((a, b) => (a.openedTimestamp || 0) - (b.openedTimestamp || 0));
+
+  return { avatars, websites, linkedins, openedRows };
+};
+
+const pickDeterministicPoolValue = (values, index, seedOffset) => {
+  if (!values.length) {
+    return null;
+  }
+
+  const randomValue = thumbnailPseudoRandom(index + seedOffset);
+  const poolIndex = Math.floor(randomValue * values.length) % values.length;
+  return values[poolIndex];
+};
+
+const createMockStoreRow = (index, pools) => {
+  const latestOpenedRow = pools.openedRows[pools.openedRows.length - 1] || null;
+
+  return {
+    name: lockedPlaceholderNames[index % lockedPlaceholderNames.length],
+    address: lockedPlaceholderAddresses[index % lockedPlaceholderAddresses.length],
+    openedLabel: latestOpenedRow?.openedLabel || "Dec 14, 2023",
+    openedTimestamp: latestOpenedRow?.openedTimestamp || null,
+    imageUrl: pickDeterministicPoolValue(pools.avatars, index, 101),
+    websiteUrl:
+      pickDeterministicPoolValue(pools.websites, index, 211) || "https://crumblcookies.com/",
+    linkedinUrl:
+      pickDeterministicPoolValue(pools.linkedins, index, 307) || "https://www.linkedin.com/",
+    hasEmail: true,
+  };
+};
+
+const getDisplayStores = (dataset, activeSegmentIndex = null) => {
+  if (!dataset) {
+    return { totalStores: 0, visibleStores: 0, rows: [] };
+  }
+
+  const totalStores = dataset.totalStores || 0;
+  const visibleStores =
+    activeSegmentIndex === null
+      ? totalStores
+      : dataset.segments[activeSegmentIndex]?.storeCount || 0;
+  const baseRows =
+    activeSegmentIndex === null
+      ? dataset.segments.flatMap((segment) => segment.rows).sort(sortCompactRows)
+      : [...(dataset.segments[activeSegmentIndex]?.rows || [])];
+  const rows = baseRows.slice(0, lockedStoresMaxRows).map((row) => ({ ...row }));
+  const hiddenStoreCount = Math.max(0, visibleStores - rows.length);
+  const placeholderCount = Math.min(lockedStoresMaxRows - rows.length, hiddenStoreCount);
+  const placeholderOffset = rows.length;
+  const mockRowPools = buildMockRowPools(dataset);
+
+  for (let index = 0; index < placeholderCount; index += 1) {
+    rows.push(createMockStoreRow(placeholderOffset + index, mockRowPools));
+  }
+
+  return { totalStores, visibleStores, rows };
+};
+
+const renderStoresTable = (dataset, activeSegmentIndex = null) => {
   const tableBody = document.getElementById("storesTableBody");
   const storesSummary = document.getElementById("storesSummary");
 
@@ -1104,47 +1215,16 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
     return;
   }
 
-  const allStores = getStoresWithSegments(records, adoptionSegments);
-  const stores = allStores
-    .filter((store) => {
-      return activeSegmentIndex === null || store.segmentIndex === activeSegmentIndex;
-    })
-    .sort((a, b) => {
-      const aHasImage = hasAvatarImage(a);
-      const bHasImage = hasAvatarImage(b);
-
-      if (aHasImage !== bHasImage) {
-        return aHasImage ? -1 : 1;
-      }
-
-      if (a.openedDate && b.openedDate) {
-        if (a.openedDate.getTime() !== b.openedDate.getTime()) {
-          return a.openedDate - b.openedDate;
-        }
-      } else if (a.openedDate) {
-        return -1;
-      } else if (b.openedDate) {
-        return 1;
-      }
-
-      const contactRank = getContactRank(b) - getContactRank(a);
-      if (contactRank !== 0) {
-        return contactRank;
-      }
-
-      return String(a.street || "").localeCompare(String(b.street || ""));
-    });
+  const { totalStores, visibleStores, rows } = getDisplayStores(dataset, activeSegmentIndex);
 
   if (storesSummary) {
-    const totalStores = allStores.length;
-    const visibleStores = stores.length;
     storesSummary.textContent =
       activeSegmentIndex === null
         ? `${totalStores.toLocaleString()} stores`
         : `${visibleStores.toLocaleString()} of ${totalStores.toLocaleString()} stores`;
   }
 
-  if (!stores.length) {
+  if (!rows.length) {
     tableBody.innerHTML = `
       <tr>
         <td class="raw-empty-cell" colspan="5">No stores found for this adoption category.</td>
@@ -1153,20 +1233,18 @@ const renderStoresTable = (records, activeSegmentIndex = null) => {
     return;
   }
 
-  const displayStores = stores;
-
-  tableBody.innerHTML = displayStores
+  tableBody.innerHTML = rows
     .map((store, index) => {
-      const location = escapeHtml(store.street || "-");
-      const opened = escapeHtml(formatOpenedDate(store.date_opened));
-      const mapsUrl = toGoogleMapsUrl(store.street);
+      const location = escapeHtml(store.address || "-");
+      const opened = escapeHtml(store.openedLabel || "-");
+      const mapsUrl = toGoogleMapsUrl(store.address);
       const locationMarkup =
-        store.street && mapsUrl
+        store.address && mapsUrl
           ? `<a class="raw-location raw-location-link" href="${escapeHtml(mapsUrl)}" target="_blank" rel="noopener noreferrer">${location}</a>`
           : `<span class="raw-location">${location}</span>`;
       const contactMarkup = getContactIcons(store);
       const nameMarkup = getStoreNameMarkup(store);
-      const lockedClass = "";
+      const lockedClass = index >= lockedStoresVisibleCount ? " class=\"is-locked\"" : "";
 
       return `
         <tr${lockedClass}>
@@ -1212,15 +1290,49 @@ const loadCrumblData = async () => {
     throw new Error(`Unable to load ${curveDataUrl}`);
   }
 
-  const rawRecords = await response.json();
+  const payload = await response.json();
 
-  if (!Array.isArray(rawRecords)) {
-    return [];
+  if (!payload || typeof payload !== "object") {
+    return getDefaultCurveDataset();
   }
 
-  return rawRecords
-    .map(normalizeCrumblRecord)
-    .filter((record) => record && record.id !== null);
+  const segments = adoptionSegments.map((_, index) => {
+    const rawSegment = Array.isArray(payload.segments) ? payload.segments[index] : null;
+
+    if (!rawSegment || typeof rawSegment !== "object") {
+      return createEmptySegmentDataset();
+    }
+
+    const rows = (Array.isArray(rawSegment.rows) ? rawSegment.rows : [])
+      .map(sanitizeStoreRow)
+      .filter(Boolean)
+      .slice(0, lockedStoresVisibleCount);
+
+    return {
+      storeCount: Math.max(sanitizePositiveInteger(rawSegment.storeCount), rows.length),
+      hiddenThumbnailCount: sanitizePositiveInteger(rawSegment.hiddenThumbnailCount),
+      yearRange: sanitizeYearRange(rawSegment.yearRange),
+      thumbnails: (Array.isArray(rawSegment.thumbnails) ? rawSegment.thumbnails : [])
+        .map(sanitizeThumbnail)
+        .filter(Boolean),
+      rows,
+    };
+  });
+
+  const curveBuckets = (Array.isArray(payload.curveBuckets) ? payload.curveBuckets : [])
+    .map((bucket, index) => sanitizeCurveBucket(bucket, index))
+    .filter(Boolean)
+    .sort((a, b) => a.timestamp - b.timestamp);
+  const totalStores = Math.max(
+    sanitizePositiveInteger(payload.totalStores),
+    segments.reduce((total, segment) => total + segment.storeCount, 0)
+  );
+
+  return {
+    totalStores,
+    curveBuckets,
+    segments,
+  };
 };
 
 const scrollPageToTop = () => {
@@ -1259,17 +1371,18 @@ const initAdoptionCurve = async () => {
   const curveHeading = document.querySelector(".curve-heading");
 
   const renderCurrentState = () => {
+    const renderableSegments = getRenderableSegments(curveState.dataset);
     renderAdoptionCurve(
-      adoptionSegments,
+      renderableSegments,
       curveState.shape,
       curveState.activeSegmentIndex,
       curveState.hoveredSegmentIndex
     );
-    renderSegmentThumbnails(curveState.records, curveState.activeSegmentIndex);
-    renderStoresTable(curveState.records, curveState.activeSegmentIndex);
+    renderSegmentThumbnails(curveState.dataset, curveState.activeSegmentIndex);
+    renderStoresTable(curveState.dataset, curveState.activeSegmentIndex);
   };
 
-  renderAdoptionCurve(adoptionSegments);
+  renderAdoptionCurve(getRenderableSegments(curveState.dataset));
 
   curveHeading?.addEventListener("click", scrollPageToTop);
 
@@ -1350,17 +1463,18 @@ const initAdoptionCurve = async () => {
     }
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(() => {
-      renderSegmentThumbnails(curveState.records, curveState.activeSegmentIndex, { force: true });
+      renderSegmentThumbnails(curveState.dataset, curveState.activeSegmentIndex, { force: true });
     }, 200);
   });
 
   try {
-    const records = await loadCrumblData();
-    curveState.records = records;
+    const dataset = await loadCrumblData();
+    curveState.dataset = dataset;
 
-    curveState.shape = buildCurveFromOpenings(records, "quarter");
+    curveState.shape = buildCurveFromBuckets(dataset.curveBuckets);
     lastRenderedSegmentKey = null;
     renderCurrentState();
+    animateCurveReveal(curveState.shape);
   } catch (error) {
     console.warn(error);
   }
