@@ -256,44 +256,6 @@ function loadMoreRawDataRows(pageType) {
   renderRawDataSidebar(activeRawOwnerIndex, { resetPagination: false });
 }
 
-function setRawTableHeaders({ includeOwner = false } = {}) {
-  if (!ownersTable || !tableWrap || ownerTableHeaders.length < 6) return;
-
-  const rawHeaders = includeOwner
-    ? [
-        { html: `<span class="th-content raw-index-heading" aria-hidden="true">&nbsp;</span>`, width: "4%" },
-        { html: `<span class="th-content">Name</span>`, width: "21%" },
-        { html: `<span class="th-content">E-mail</span>`, width: "20%" },
-        { html: `<span class="th-content">Phone number</span>`, width: "18%" },
-        { html: `<span class="th-content">Location</span>`, width: "19%" },
-        { html: `<span class="th-content">Franchise</span>`, width: "18%" }
-      ]
-    : [
-        { html: `<span class="th-content raw-index-heading" aria-hidden="true">&nbsp;</span>`, width: "4%" },
-        { html: `<span class="th-content">Name</span>`, width: "22%" },
-        { html: `<span class="th-content">E-mail</span>`, width: "20%" },
-        { html: `<span class="th-content">Phone number</span>`, width: "18%" },
-        { html: `<span class="th-content">Location</span>`, width: "20%" },
-        { html: `<span class="th-content">Franchise</span>`, width: "16%" }
-      ];
-
-  ownersTable.classList.add("raw-data-table");
-  tableWrap.classList.add("is-raw-data-view");
-
-  ownerTableHeaders.forEach((header, index) => {
-    const rawHeader = rawHeaders[index];
-    header.hidden = !rawHeader;
-    header.classList.remove("sortable-header", "right");
-    header.removeAttribute("aria-sort");
-    header.removeAttribute("data-sort-key");
-
-    if (rawHeader) {
-      header.innerHTML = rawHeader.html;
-      header.style.width = rawHeader.width;
-    }
-  });
-}
-
 function restoreOwnersTableView({ clearRaw = true, clearGlobalRaw = true } = {}) {
   if (clearRaw) {
     activeRawOwnerIndex = null;
@@ -330,44 +292,13 @@ function restoreOwnersTableView({ clearRaw = true, clearGlobalRaw = true } = {})
   syncToolbarTabState(getCurrentPanelMode());
 }
 
-function renderRawOwnerTable(ownerIndex) {
-  if (!tableBody) return;
-
-  const rows = getOwnerRawRows(ownerIndex);
-  activeRawOwnerIndex = ownerIndex;
-  globalRawDataViewOpen = false;
-  setRawTableHeaders();
-
-  tableBody.innerHTML = rows
-    .map(getRawContactRowMarkup)
-    .join("");
-
-  tableWrap?.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  syncStickyNameColumnDivider();
-}
-
-function renderGlobalRawDataTable({ keepPanelOpen = false, activeOwnerIndex = null } = {}) {
-  if (!ownerDetailsPanel) return;
-
-  globalRawDataViewOpen = true;
-  activeRawOwnerIndex = activeOwnerIndex;
-  activeDetailOwnerIndex = null;
-  activeOrgOwnerIndex = null;
-  activeMapOwnerIndex = null;
-  openMapPanel("raw", { scrollTable: false });
-  renderRawDataSidebar(activeOwnerIndex);
-  renderOwners(displayedOwners);
-  refreshChangedRows();
-  syncToolbarTabState(getCurrentPanelMode());
-}
-
 function refreshFilteredViews() {
   applySort();
 
   if (globalRawDataViewOpen) {
     const visibleOwnerIndexes = new Set(getRawDataOwnerScope().map((owner) => owner.originalIndex));
     const nextOwnerIndex = visibleOwnerIndexes.has(activeRawOwnerIndex) ? activeRawOwnerIndex : null;
-    renderGlobalRawDataTable({ keepPanelOpen: true, activeOwnerIndex: nextOwnerIndex });
+    openSidebar("raw", nextOwnerIndex);
   }
 }
 
@@ -380,35 +311,6 @@ function refitOpenMapToVisibleLocations() {
   if (!mapModeOpen) return;
   resizeOwnersMap();
   fitOwnersMapToVisibleLocations();
-}
-
-function openOwnerRawData(ownerIndex) {
-  const owner = owners.find((item) => item.originalIndex === ownerIndex);
-  if (!isRawDataAvailable(owner)) return;
-
-  renderGlobalRawDataTable({ keepPanelOpen: true, activeOwnerIndex: ownerIndex });
-}
-
-function openDefaultRawDataView() {
-  anchoredToolbarOwnerIndex = null;
-  renderGlobalRawDataTable({ keepPanelOpen: true, activeOwnerIndex: null });
-}
-
-function closeOwnerRawData(ownerIndex) {
-  const panelMode = getCurrentPanelMode();
-
-  globalRawDataViewOpen = false;
-  activeRawOwnerIndex = null;
-  activeMapOwnerIndex = panelMode === "map" ? ownerIndex : null;
-  activeDetailOwnerIndex = panelMode === "details" ? ownerIndex : null;
-  activeOrgOwnerIndex = panelMode === "org" ? ownerIndex : null;
-  if (panelMode === "raw") {
-    card?.classList.remove("is-map-open");
-    mapToggle?.setAttribute("aria-expanded", "false");
-    setPanelMode("map");
-  }
-
-  applySort();
 }
 
 function syncOwnerHeaderScrollState() {

@@ -48,18 +48,11 @@ function getFilterSectionSettings() {
     }, {});
 }
 
-function getPersistablePanelMode() {
-  if (!card?.classList.contains("is-map-open")) return null;
-
-  const panelMode = getCurrentPanelMode();
-  return PERSISTABLE_PANEL_MODES.has(panelMode) ? panelMode : "map";
-}
-
 function getCurrentViewSettings() {
   return {
     version: 1,
-    panelOpen: Boolean(card?.classList.contains("is-map-open")),
-    panelMode: getPersistablePanelMode(),
+    panelOpen: Boolean(lockedToolbarMode),
+    panelMode: lockedToolbarMode,
     panelLayout: currentPanelLayout,
     updatesEnabled,
     modifiedColumnVisible,
@@ -212,41 +205,15 @@ function restoreSavedPanelSettings(settings) {
   setPanelLayout(savedLayout);
   setFilterPanelOpen(Boolean(settings?.filters?.open));
 
-  if (settings?.panelOpen === false) {
-    card?.classList.remove("is-map-open");
-    mapToggle?.setAttribute("aria-expanded", "false");
-    anchoredToolbarMode = null;
-    anchoredToolbarOwnerIndex = null;
-    activeMapOwnerIndex = null;
-    activeDetailOwnerIndex = null;
-    activeOrgOwnerIndex = null;
-    activeRawOwnerIndex = null;
-    globalRawDataViewOpen = false;
-    setPanelMode("map");
-    renderOwners(displayedOwners);
-    refreshChangedRows();
+  const savedMode = PERSISTABLE_PANEL_MODES.has(settings?.panelMode) ? settings.panelMode : null;
+
+  if (settings?.panelOpen === false || !savedMode) {
+    closeSidebar();
     return;
   }
 
-  const savedMode = PERSISTABLE_PANEL_MODES.has(settings?.panelMode) ? settings.panelMode : "map";
-  anchoredToolbarMode = savedMode;
-  anchoredToolbarOwnerIndex = null;
-  activeMapOwnerIndex = null;
-  activeDetailOwnerIndex = null;
-  activeOrgOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  globalRawDataViewOpen = false;
-
-  if (savedMode === "org") {
-    openToolbarOrgChart();
-  } else if (savedMode === "raw") {
-    renderGlobalRawDataTable({ activeOwnerIndex: getPrimarySelectedOwnerIndex() });
-  } else {
-    openMapPanel("map");
-    syncMapLocationFilter();
-    renderOwners(displayedOwners);
-    refreshChangedRows();
-  }
+  lockedToolbarMode = savedMode;
+  openSidebar(savedMode, savedMode === "map" ? null : getPrimarySelectedOwnerIndex());
 }
 
 function restoreSavedViewSettings() {
@@ -278,13 +245,8 @@ function resetViewSettings() {
       direction: "descending"
     };
     locationSortCycleActive = false;
-    anchoredToolbarMode = "map";
-    anchoredToolbarOwnerIndex = null;
-    activeMapOwnerIndex = null;
-    activeDetailOwnerIndex = null;
-    activeOrgOwnerIndex = null;
-    activeRawOwnerIndex = null;
-    globalRawDataViewOpen = false;
+    lockedToolbarMode = "map";
+    clearSidebarOwnerState();
 
     syncModeColumn();
     syncUpdatesToggleOption();

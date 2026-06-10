@@ -153,8 +153,10 @@ let activeDetailOwnerIndex = null;
 let activeOrgOwnerIndex = null;
 let activeRawOwnerIndex = null;
 let globalRawDataViewOpen = false;
-let anchoredToolbarMode = null;
-let anchoredToolbarOwnerIndex = null;
+// Set only by manual toolbar tab clicks ("map" | "org" | "raw" | null).
+// A locked tab is highlighted; closing its sidebar requires the toolbar or
+// the hide-panel option, while the sidebar X only clears the selected owner.
+let lockedToolbarMode = "map";
 let currentPanelLayout = "right";
 let lastProfileModalTrigger = null;
 let ownersMapResizeObserver = null;

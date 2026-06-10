@@ -51,14 +51,14 @@ if (tableBody) {
     const locationButton = event.target.closest(".locations");
     if (locationButton) {
       event.stopPropagation();
-      handleLocationFilterClick(Number(locationButton.dataset.ownerIndex));
+      toggleRowSidebarView("map", Number(locationButton.dataset.ownerIndex), { scrollTable: true });
       return;
     }
 
     const contactsButton = event.target.closest(".contacts-action");
     if (contactsButton) {
       event.stopPropagation();
-      openOwnerOrgChart(Number(contactsButton.dataset.ownerIndex), { scrollTable: true });
+      toggleRowSidebarView("org", Number(contactsButton.dataset.ownerIndex), { scrollTable: true });
       return;
     }
 
@@ -72,22 +72,6 @@ if (tableBody) {
       return;
     }
 
-    const rawRow = event.target.closest(".raw-data-row[data-owner-index][data-raw-row-index]");
-    if (rawRow) {
-      const ownerIndex = Number(rawRow.dataset.ownerIndex);
-      const rowIndex = Number(rawRow.dataset.rawRowIndex);
-      openPersonProfile(getPersonProfileFromRawRow(ownerIndex, rowIndex), rawRow);
-      return;
-    }
-
-    const rawUnitRow = event.target.closest(".raw-unit-row[data-owner-index][data-unit-row-index]");
-    if (rawUnitRow) {
-      const ownerIndex = Number(rawUnitRow.dataset.ownerIndex);
-      const unitIndex = Number(rawUnitRow.dataset.unitRowIndex);
-      openPersonProfile(getPersonProfileFromUnitRow(ownerIndex, unitIndex), rawUnitRow);
-      return;
-    }
-
     const ownerIconLink = event.target.closest(".owner-icon-link");
     if (ownerIconLink) {
       event.stopPropagation();
@@ -98,33 +82,10 @@ if (tableBody) {
     if (!row) return;
 
     const ownerIndex = Number(row.dataset.ownerIndex);
+    const owner = owners.find((item) => item.originalIndex === ownerIndex);
+    if (!owner || !isRawDataAvailable(owner)) return;
 
-    if (card?.classList.contains("is-map-open") && getCurrentPanelMode() === "map") {
-      showOwnerMapView(ownerIndex);
-      return;
-    }
-
-    if (globalRawDataViewOpen) {
-      if (activeRawOwnerIndex === ownerIndex) {
-        openDefaultRawDataView();
-        return;
-      }
-
-      openOwnerRawData(ownerIndex);
-      return;
-    }
-
-    if (anchoredToolbarMode === "org") {
-      if (activeOrgOwnerIndex === ownerIndex) {
-        openDefaultOrgChartView();
-        return;
-      }
-
-      openOwnerOrgChart(ownerIndex);
-      return;
-    }
-
-    openOwnerDetails(ownerIndex);
+    toggleRowSidebarView("raw", ownerIndex);
   });
 }
 
@@ -342,190 +303,15 @@ if (filterToggle && card) {
 }
 
 if (mapToggle && card) {
-  mapToggle.addEventListener("click", () => {
-    if (globalRawDataViewOpen) {
-      globalRawDataViewOpen = false;
-      activeRawOwnerIndex = null;
-      if (anchoredToolbarMode === "raw") {
-        anchoredToolbarMode = null;
-        anchoredToolbarOwnerIndex = null;
-      }
-      applySort();
-    }
-
-    const mapModeOpen =
-      card.classList.contains("is-map-open") &&
-      !mapPanel?.classList.contains("is-details-mode") &&
-      !mapPanel?.classList.contains("is-org-mode") &&
-      !mapPanel?.classList.contains("is-raw-mode");
-    const rawModeOpen = card.classList.contains("is-map-open") && mapPanel?.classList.contains("is-raw-mode");
-
-    if (rawModeOpen) {
-      anchoredToolbarMode = "map";
-      anchoredToolbarOwnerIndex = null;
-      activeMapOwnerIndex = null;
-      activeDetailOwnerIndex = null;
-      activeOrgOwnerIndex = null;
-      openMapPanel("map");
-      syncMapLocationFilter();
-      renderOwners(displayedOwners);
-      refreshChangedRows();
-      return;
-    }
-
-    if (anchoredToolbarMode === "map") {
-      anchoredToolbarMode = null;
-      anchoredToolbarOwnerIndex = null;
-      if (
-        card.classList.contains("is-map-open") &&
-        !globalRawDataViewOpen &&
-        !mapPanel?.classList.contains("is-details-mode") &&
-        !mapPanel?.classList.contains("is-org-mode") &&
-        !mapPanel?.classList.contains("is-raw-mode")
-      ) {
-        if (closeMapPanel()) return;
-        renderOwners(displayedOwners);
-        refreshChangedRows();
-        return;
-      }
-
-      syncToolbarTabState(getCurrentPanelMode());
-      return;
-    }
-
-    if (anchoredToolbarMode) {
-      anchoredToolbarMode = "map";
-      anchoredToolbarOwnerIndex = null;
-      activeMapOwnerIndex = null;
-      activeDetailOwnerIndex = null;
-      activeOrgOwnerIndex = null;
-      activeRawOwnerIndex = null;
-      globalRawDataViewOpen = false;
-      openMapPanel("map");
-      syncMapLocationFilter();
-      renderOwners(displayedOwners);
-      refreshChangedRows();
-      return;
-    }
-
-    const detailsModeOpen = card.classList.contains("is-map-open") && mapPanel?.classList.contains("is-details-mode");
-
-    if (detailsModeOpen) {
-      anchoredToolbarMode = "map";
-      anchoredToolbarOwnerIndex = null;
-      activeDetailOwnerIndex = null;
-      activeOrgOwnerIndex = null;
-      openMapPanel("map");
-      if (!globalRawDataViewOpen) {
-        renderOwners(displayedOwners);
-        refreshChangedRows();
-      }
-      return;
-    }
-
-    const isOpen = card.classList.toggle("is-map-open");
-    mapToggle.setAttribute("aria-expanded", String(isOpen));
-
-    if (isOpen) {
-      anchoredToolbarMode = "map";
-      anchoredToolbarOwnerIndex = null;
-      setPanelMode("map");
-      initializeOwnersMap();
-      window.setTimeout(() => {
-        resizeOwnersMap();
-        fitOwnersMapToVisibleLocations();
-      }, getMotionDelay(280));
-    } else {
-      anchoredToolbarMode = null;
-      anchoredToolbarOwnerIndex = null;
-      setPanelMode("map");
-    }
-  });
+  mapToggle.addEventListener("click", () => handleToolbarTabClick("map"));
 }
 
 if (rawDataToggle) {
-  rawDataToggle.addEventListener("click", () => {
-    if (anchoredToolbarMode === "raw") {
-      anchoredToolbarMode = null;
-      anchoredToolbarOwnerIndex = null;
-      if (globalRawDataViewOpen) {
-        closeOwnerRawData(activeRawOwnerIndex);
-        return;
-      }
-
-      syncToolbarTabState(getCurrentPanelMode());
-      return;
-    }
-
-    if (anchoredToolbarMode) {
-      anchoredToolbarMode = "raw";
-      anchoredToolbarOwnerIndex = null;
-      renderGlobalRawDataTable({ activeOwnerIndex: activeRawOwnerIndex });
-      return;
-    }
-
-    if (globalRawDataViewOpen) {
-      closeOwnerRawData(activeRawOwnerIndex);
-      return;
-    }
-
-    const selectedOwner = activeRawOwnerIndex
-      ?? activeDetailOwnerIndex
-      ?? activeOrgOwnerIndex
-      ?? activeMapOwnerIndex
-      ?? getPrimarySelectedOwnerIndex();
-    anchoredToolbarMode = "raw";
-    anchoredToolbarOwnerIndex = null;
-    renderGlobalRawDataTable({ activeOwnerIndex: selectedOwner });
-  });
+  rawDataToggle.addEventListener("click", () => handleToolbarTabClick("raw"));
 }
 
 if (orgChartToggle && card) {
-  orgChartToggle.addEventListener("click", () => {
-    if (globalRawDataViewOpen) {
-      globalRawDataViewOpen = false;
-      activeRawOwnerIndex = null;
-      if (anchoredToolbarMode === "raw") {
-        anchoredToolbarMode = null;
-        anchoredToolbarOwnerIndex = null;
-      }
-      applySort();
-    }
-
-    const orgChartOpen = card.classList.contains("is-map-open") && mapPanel?.classList.contains("is-org-mode");
-
-    if (anchoredToolbarMode === "org") {
-      anchoredToolbarMode = null;
-      anchoredToolbarOwnerIndex = null;
-      if (card.classList.contains("is-map-open") && mapPanel?.classList.contains("is-org-mode")) {
-        if (closeMapPanel()) return;
-        renderOwners(displayedOwners);
-        refreshChangedRows();
-        return;
-      }
-
-      syncToolbarTabState(getCurrentPanelMode());
-      return;
-    }
-
-    if (anchoredToolbarMode) {
-      anchoredToolbarMode = "org";
-      anchoredToolbarOwnerIndex = activeOrgOwnerIndex ?? activeDetailOwnerIndex ?? getPrimarySelectedOwnerIndex();
-      openToolbarOrgChart();
-      return;
-    }
-
-    if (orgChartOpen) {
-      if (closeMapPanel()) return;
-      renderOwners(displayedOwners);
-      refreshChangedRows();
-      return;
-    }
-
-    anchoredToolbarMode = "org";
-    anchoredToolbarOwnerIndex = activeOrgOwnerIndex ?? activeDetailOwnerIndex ?? getPrimarySelectedOwnerIndex();
-    openToolbarOrgChart();
-  });
+  orgChartToggle.addEventListener("click", () => handleToolbarTabClick("org"));
 }
 
 if (mapPanel && ownerMapHeader) {
@@ -547,7 +333,7 @@ if (mapPanel && ownerMapHeader) {
     const closeButton = event.target.closest(".owner-detail-close");
     if (!closeButton || !ownerMapHeader.contains(closeButton)) return;
 
-    clearOwnerMapFilter();
+    handleSidebarClose();
   });
 }
 
@@ -557,25 +343,7 @@ if (ownerDetailsPanel) {
     const target = event.target;
     if (!(target instanceof HTMLSelectElement) || target.id !== "orgOwnerPicker") return;
 
-    const shouldReturnToEmptyOrgChart = anchoredToolbarMode === "org";
-    if (shouldReturnToEmptyOrgChart) {
-      anchoredToolbarOwnerIndex = null;
-    } else {
-      anchoredToolbarMode = null;
-      anchoredToolbarOwnerIndex = null;
-    }
-
-    if (target.value) {
-      openOwnerOrgChart(Number(target.value), {
-        updateAnchoredOwner: !shouldReturnToEmptyOrgChart
-      });
-      return;
-    }
-
-    activeOrgOwnerIndex = null;
-    renderDefaultOrgChartState();
-    renderOwners(displayedOwners);
-    refreshChangedRows();
+    openSidebar("org", target.value ? Number(target.value) : null);
   });
 
   ownerDetailsPanel.addEventListener("click", (event) => {
@@ -630,28 +398,14 @@ if (ownerDetailsPanel) {
     }
 
     const closeButton = event.target.closest(".owner-detail-close");
-    if (closeButton && card && mapToggle) {
-      const isOrgMode = mapPanel?.classList.contains("is-org-mode");
-      if (isOrgMode) {
-        activeOrgOwnerIndex = null;
-        if (anchoredToolbarMode === "org") {
-          anchoredToolbarOwnerIndex = null;
-        }
-        renderDefaultOrgChartState();
-        renderOwners(displayedOwners);
-        refreshChangedRows();
-        return;
-      }
-
-      if (closeMapPanel()) return;
-      renderOwners(displayedOwners);
-      refreshChangedRows();
+    if (closeButton) {
+      handleSidebarClose();
       return;
     }
 
     const mapLink = event.target.closest(".owner-detail-map-link");
     if (mapLink) {
-      showOwnerMapView(Number(mapLink.dataset.ownerIndex));
+      toggleRowSidebarView("map", Number(mapLink.dataset.ownerIndex));
       return;
     }
 
@@ -784,11 +538,8 @@ if (toolbarTabItems.length) {
       if (!hidePanelOption) return;
 
       event.preventDefault();
-      const tabButton = item.querySelector(".segmented-control-btn");
-      if (!(tabButton instanceof HTMLButtonElement)) return;
-
       closeToolbarTabDropdowns();
-      tabButton.click();
+      closeSidebar();
     });
 
     item.addEventListener("mouseenter", () => {

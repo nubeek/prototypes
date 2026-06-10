@@ -191,91 +191,157 @@ function syncMapLocationFilter() {
   fitOwnersMapToVisibleLocations();
 }
 
-function restoreAnchoredToolbarMode() {
-  if (!anchoredToolbarMode) return false;
+function getActiveSidebarOwnerIndex() {
+  if (!card?.classList.contains("is-map-open")) return null;
 
-  if (anchoredToolbarMode === "raw") {
-    return false;
-  }
-
-  activeMapOwnerIndex = null;
-  activeDetailOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  globalRawDataViewOpen = false;
-
-  if (anchoredToolbarMode === "org") {
-    activeOrgOwnerIndex = anchoredToolbarOwnerIndex;
-    syncMapLocationFilter();
-
-    if (anchoredToolbarOwnerIndex !== null) {
-      renderOwnerOrgChart(anchoredToolbarOwnerIndex);
-    } else {
-      renderDefaultOrgChartState();
-    }
-
-    openMapPanel("org");
-  } else {
-    activeOrgOwnerIndex = null;
-    openMapPanel("map");
-    syncMapLocationFilter();
-  }
-
-  renderOwners(displayedOwners);
-  refreshChangedRows();
-  return true;
+  const mode = getCurrentPanelMode();
+  if (mode === "raw") return activeRawOwnerIndex;
+  if (mode === "org") return activeOrgOwnerIndex;
+  if (mode === "details") return activeDetailOwnerIndex;
+  return activeMapOwnerIndex;
 }
 
-function closeMapPanel() {
-  if (!card || !mapToggle) return false;
-
-  if (restoreAnchoredToolbarMode()) return true;
-
+function clearSidebarOwnerState() {
   activeMapOwnerIndex = null;
   activeDetailOwnerIndex = null;
   activeOrgOwnerIndex = null;
   activeRawOwnerIndex = null;
-  card.classList.remove("is-map-open");
-  mapToggle.setAttribute("aria-expanded", "false");
-  setPanelMode("map");
-  return false;
+  globalRawDataViewOpen = false;
 }
 
-function handleLocationFilterClick(ownerIndex) {
-  const wasActive = activeMapOwnerIndex === ownerIndex;
-
-  if (wasActive && card?.classList.contains("is-map-open")) {
-    if (closeMapPanel()) return;
-    syncMapLocationFilter();
-    renderOwners(displayedOwners);
-    refreshChangedRows();
+function resetPanelModeAfterClose(closingMode) {
+  if (closingMode === "map" || !mapPanel || usesReducedMotion()) {
+    setPanelMode("map");
     return;
   }
 
-  activeMapOwnerIndex = ownerIndex;
-  activeDetailOwnerIndex = null;
-  activeOrgOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  openMapPanel("map", { scrollTable: true });
-  syncMapLocationFilter();
-  renderOwners(displayedOwners);
-  refreshChangedRows();
+  const resetMode = (event) => {
+    if (event && (event.target !== mapPanel || event.propertyName !== "transform")) return;
+
+    mapPanel.removeEventListener("transitionend", resetMode);
+    mapPanel.removeEventListener("transitioncancel", resetMode);
+
+    if (!card?.classList.contains("is-map-open")) {
+      setPanelMode("map");
+    }
+  };
+
+  mapPanel.addEventListener("transitionend", resetMode);
+  mapPanel.addEventListener("transitioncancel", resetMode);
 }
 
-function clearOwnerMapFilter() {
-  if (activeMapOwnerIndex === null) return;
+function openSidebar(mode, ownerIndex = null, { scrollTable = false } = {}) {
+  const owner = ownerIndex !== null
+    ? owners.find((item) => item.originalIndex === ownerIndex)
+    : null;
+  if (mode === "details" && !owner) return;
 
-  activeMapOwnerIndex = null;
+  clearSidebarOwnerState();
+
+  if (mode === "raw") {
+    globalRawDataViewOpen = true;
+    activeRawOwnerIndex = owner ? ownerIndex : null;
+    openMapPanel("raw", { scrollTable: false });
+    renderRawDataSidebar(activeRawOwnerIndex);
+  } else if (mode === "org") {
+    const hasOrgChart = owner ? Boolean(getOwnerOrgChart(ownerIndex)?.nodes?.length) : false;
+    activeOrgOwnerIndex = hasOrgChart ? ownerIndex : null;
+    if (hasOrgChart) {
+      renderOwnerOrgChart(ownerIndex);
+    } else {
+      renderDefaultOrgChartState();
+    }
+    openMapPanel("org", { scrollTable });
+  } else if (mode === "details") {
+    activeDetailOwnerIndex = ownerIndex;
+    renderOwnerDetails(owner);
+    openMapPanel("details");
+    initializeOwnerDetailsMap(ownerIndex);
+  } else {
+    activeMapOwnerIndex = owner ? ownerIndex : null;
+    openMapPanel("map", { scrollTable });
+  }
+
   syncMapLocationFilter();
-  resizeOwnersMap();
   renderOwners(displayedOwners);
   refreshChangedRows();
+  syncToolbarTabState(getCurrentPanelMode());
+}
+
+function closeSidebar() {
+  const closingMode = getCurrentPanelMode();
+
+  lockedToolbarMode = null;
+  clearSidebarOwnerState();
+  card?.classList.remove("is-map-open");
+  mapToggle?.setAttribute("aria-expanded", "false");
+  resetPanelModeAfterClose(closingMode);
+  renderOwners(displayedOwners);
+  refreshChangedRows();
+  syncToolbarTabState(closingMode);
+}
+
+function handleToolbarTabClick(mode) {
+  const isPanelOpen = card?.classList.contains("is-map-open");
+  const currentMode = getCurrentPanelMode();
+
+  if (isPanelOpen && currentMode === mode) {
+    if (lockedToolbarMode === mode) {
+      closeSidebar();
+    } else {
+      lockedToolbarMode = mode;
+      syncToolbarTabState(currentMode);
+    }
+    return;
+  }
+
+  let carriedOwnerIndex = isPanelOpen ? getActiveSidebarOwnerIndex() : null;
+  if (mode === "raw" && carriedOwnerIndex !== null) {
+    const owner = owners.find((item) => item.originalIndex === carriedOwnerIndex);
+    if (!isRawDataAvailable(owner)) {
+      carriedOwnerIndex = null;
+    }
+  }
+
+  lockedToolbarMode = mode;
+  openSidebar(mode, carriedOwnerIndex);
+}
+
+function handleSidebarClose() {
+  const currentMode = getCurrentPanelMode();
+
+  if (lockedToolbarMode === currentMode) {
+    openSidebar(currentMode, null);
+    return;
+  }
+
+  closeSidebar();
+}
+
+function toggleRowSidebarView(mode, ownerIndex, { scrollTable = false } = {}) {
+  const isOpenForOwner =
+    card?.classList.contains("is-map-open") &&
+    getCurrentPanelMode() === mode &&
+    getActiveSidebarOwnerIndex() === ownerIndex;
+
+  if (isOpenForOwner) {
+    if (lockedToolbarMode === mode) {
+      openSidebar(mode, null);
+    } else {
+      closeSidebar();
+    }
+    return;
+  }
+
+  if (lockedToolbarMode !== mode) {
+    lockedToolbarMode = null;
+  }
+  openSidebar(mode, ownerIndex, { scrollTable });
 }
 
 function openOwnerDetailsFromHeader(ownerIndex) {
-  anchoredToolbarMode = null;
-  anchoredToolbarOwnerIndex = null;
-  activeMapOwnerIndex = null;
-  openOwnerDetails(ownerIndex);
+  lockedToolbarMode = null;
+  openSidebar("details", ownerIndex);
 }
 
 function setPanelMode(mode) {
@@ -331,19 +397,22 @@ function getCurrentPanelMode() {
   return "map";
 }
 
-function syncToolbarTabState(mode = "map") {
+function syncToolbarTabButton(button, isOpen, isLocked) {
+  if (!button) return;
+
+  button.classList.toggle("is-expanded", isOpen);
+  button.classList.toggle("is-active", isOpen && isLocked);
+  button.setAttribute("aria-pressed", String(isOpen && isLocked));
+}
+
+function syncToolbarTabState(mode = getCurrentPanelMode()) {
   const isFilterOpen = card?.classList.contains("is-filter-open");
-  const isPanelOpen = card?.classList.contains("is-map-open");
-  const mapActive = isPanelOpen && mode === "map";
-  const orgActive = isPanelOpen && mode === "org";
-  const rawActive = globalRawDataViewOpen;
+  const isPanelOpen = Boolean(card?.classList.contains("is-map-open"));
+
   filterToggle?.classList.toggle("is-active", Boolean(isFilterOpen));
-  mapToggle?.classList.toggle("is-active", Boolean(mapActive));
-  mapToggle?.setAttribute("aria-pressed", String(Boolean(mapActive)));
-  orgChartToggle?.classList.toggle("is-active", Boolean(orgActive));
-  orgChartToggle?.setAttribute("aria-pressed", String(Boolean(orgActive)));
-  rawDataToggle?.classList.toggle("is-active", Boolean(rawActive));
-  rawDataToggle?.setAttribute("aria-pressed", String(Boolean(rawActive)));
+  syncToolbarTabButton(mapToggle, isPanelOpen && mode === "map", lockedToolbarMode === "map");
+  syncToolbarTabButton(orgChartToggle, isPanelOpen && mode === "org", lockedToolbarMode === "org");
+  syncToolbarTabButton(rawDataToggle, isPanelOpen && mode === "raw", lockedToolbarMode === "raw");
   closeToolbarTabDropdowns();
   syncOwnerHeaderViewState();
   persistViewSettings();
@@ -379,13 +448,13 @@ function scheduleToolbarTabDropdownOpen(item, delayMs = TOOLBAR_TAB_DROPDOWN_OPE
   const tabButton = item.querySelector(".segmented-control-btn");
   clearToolbarTabCloseTimeout(item);
   clearToolbarTabOpenTimeout(item);
-  if (!tabButton?.classList.contains("is-active")) return;
+  if (!tabButton?.classList.contains("is-expanded")) return;
   if (item.classList.contains("is-open")) return;
 
   const timeoutId = window.setTimeout(() => {
     toolbarTabOpenTimeoutByItem.delete(item);
     closeToolbarTabDropdowns(item);
-    if (tabButton.classList.contains("is-active") && item.matches(":hover")) {
+    if (tabButton.classList.contains("is-expanded") && item.matches(":hover")) {
       item.classList.add("is-open");
     }
   }, delayMs);

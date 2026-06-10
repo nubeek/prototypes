@@ -148,72 +148,17 @@ function syncOwnerHeaderViewState() {
   });
 }
 
-function showOwnerMapView(ownerIndex) {
-  activeMapOwnerIndex = ownerIndex;
-  activeDetailOwnerIndex = null;
-  activeOrgOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  anchoredToolbarMode = null;
-  anchoredToolbarOwnerIndex = null;
-  globalRawDataViewOpen = false;
-
-  openMapPanel("map");
-  syncMapLocationFilter();
-  renderOwners(displayedOwners);
-  refreshChangedRows();
-  syncOwnerHeaderViewState();
-}
-
-function showOwnerDetailView(ownerIndex) {
-  anchoredToolbarMode = null;
-  anchoredToolbarOwnerIndex = null;
-  globalRawDataViewOpen = false;
-  activeMapOwnerIndex = null;
-  activeOrgOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  openOwnerDetails(ownerIndex);
-}
-
 function handleOwnerHeaderViewButton(button) {
   const ownerIndex = Number(button.dataset.ownerIndex);
   const view = button.dataset.ownerHeaderView;
   if (Number.isNaN(ownerIndex) || button.disabled) return;
-  if (isOwnerHeaderViewActive(view, ownerIndex)) {
-    if (view === "raw") {
-      closeOwnerRawData(ownerIndex);
-      syncOwnerHeaderViewState();
-    } else if (view === "details" || view === "map" || view === "org") {
-      showOwnerDetailView(ownerIndex);
-    }
-    return;
-  }
+  if (!["details", "map", "org", "raw"].includes(view)) return;
+  if (isOwnerHeaderViewActive(view, ownerIndex)) return;
 
-  if (view === "details") {
-    showOwnerDetailView(ownerIndex);
-    return;
+  if (lockedToolbarMode !== view) {
+    lockedToolbarMode = null;
   }
-
-  if (view === "map") {
-    showOwnerMapView(ownerIndex);
-    return;
-  }
-
-  if (view === "org") {
-    anchoredToolbarMode = null;
-    anchoredToolbarOwnerIndex = null;
-    globalRawDataViewOpen = false;
-    activeRawOwnerIndex = null;
-    openOwnerOrgChart(ownerIndex);
-    syncOwnerHeaderViewState();
-    return;
-  }
-
-  if (view === "raw") {
-    anchoredToolbarMode = null;
-    anchoredToolbarOwnerIndex = null;
-    openOwnerRawData(ownerIndex);
-    syncOwnerHeaderViewState();
-  }
+  openSidebar(view, ownerIndex);
 }
 
 function getOwnerHeader(owner, { className = "", closeLabel = "Close owner panel", linksToDetail = false } = {}) {

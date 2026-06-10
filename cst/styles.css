@@ -2626,13 +2626,15 @@ h1 {
   transform: translateX(-2px);
 }
 
-.toolbar-tabs .segmented-control-btn.is-active {
+/* Expanded shows the tab label (sidebar open via row or toolbar);
+   the background highlight is reserved for .is-active (locked via toolbar). */
+.toolbar-tabs .segmented-control-btn.is-expanded {
   width: auto;
   grid-template-columns: var(--control-height) max-content;
   padding: 0 14px 0 0;
 }
 
-.toolbar-tabs .segmented-control-btn.is-active .toolbar-tab-label {
+.toolbar-tabs .segmented-control-btn.is-expanded .toolbar-tab-label {
   margin-left: -5px;
   opacity: 1;
   visibility: visible;
@@ -2640,7 +2642,7 @@ h1 {
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.toolbar-tab-item .segmented-control-btn:not(.is-active) + .toolbar-tab-dropdown {
+.toolbar-tab-item .segmented-control-btn:not(.is-expanded) + .toolbar-tab-dropdown {
   display: none;
 }
 

@@ -355,38 +355,6 @@ function renderDefaultOrgChartState() {
   syncOwnerHeaderScrollState();
 }
 
-function openToolbarOrgChart() {
-  const selectedOwner = getPrimarySelectedOwnerIndex();
-  const ownerIndexToOpen = activeOrgOwnerIndex ?? activeDetailOwnerIndex ?? selectedOwner;
-
-  if (ownerIndexToOpen !== null && !Number.isNaN(ownerIndexToOpen)) {
-    openOwnerOrgChart(ownerIndexToOpen);
-    return;
-  }
-
-  activeMapOwnerIndex = null;
-  activeDetailOwnerIndex = null;
-  activeOrgOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  openMapPanel("org");
-  renderDefaultOrgChartState();
-  renderOwners(displayedOwners);
-  refreshChangedRows();
-}
-
-function openDefaultOrgChartView() {
-  globalRawDataViewOpen = false;
-  activeMapOwnerIndex = null;
-  activeDetailOwnerIndex = null;
-  activeOrgOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  anchoredToolbarOwnerIndex = null;
-  openMapPanel("org");
-  renderDefaultOrgChartState();
-  renderOwners(displayedOwners);
-  refreshChangedRows();
-}
-
 function syncOpenOrgPanelWithSelection() {
   const isOrgPanelOpen = card?.classList.contains("is-map-open") && mapPanel?.classList.contains("is-org-mode");
   if (!isOrgPanelOpen) return;
@@ -394,7 +362,7 @@ function syncOpenOrgPanelWithSelection() {
   const selectedOwner = getPrimarySelectedOwnerIndex();
   if (selectedOwner !== null && !Number.isNaN(selectedOwner)) {
     if (activeOrgOwnerIndex !== selectedOwner) {
-      openOwnerOrgChart(selectedOwner);
+      openSidebar("org", selectedOwner);
     }
     return;
   }
@@ -402,45 +370,6 @@ function syncOpenOrgPanelWithSelection() {
   if (activeOrgOwnerIndex === null) {
     renderDefaultOrgChartState();
   }
-}
-
-function openOwnerOrgChart(ownerIndex, { scrollTable = false, updateAnchoredOwner = true } = {}) {
-  globalRawDataViewOpen = false;
-
-  if (activeOrgOwnerIndex === ownerIndex) {
-    if (anchoredToolbarMode === "org") {
-      if (updateAnchoredOwner) {
-        anchoredToolbarOwnerIndex = ownerIndex;
-      }
-      renderOwnerOrgChart(ownerIndex);
-      openMapPanel("org", { scrollTable });
-      renderOwners(displayedOwners);
-      refreshChangedRows();
-      return;
-    }
-
-    if (closeMapPanel()) return;
-    syncMapLocationFilter();
-    renderOwners(displayedOwners);
-    refreshChangedRows();
-    return;
-  }
-
-  const owner = owners.find((item) => item.originalIndex === ownerIndex);
-  if (!owner) return;
-
-  activeMapOwnerIndex = null;
-  activeOrgOwnerIndex = ownerIndex;
-  if (anchoredToolbarMode === "org" && updateAnchoredOwner) {
-    anchoredToolbarOwnerIndex = ownerIndex;
-  }
-  activeDetailOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  syncMapLocationFilter();
-  renderOwnerOrgChart(ownerIndex);
-  openMapPanel("org", { scrollTable });
-  renderOwners(displayedOwners);
-  refreshChangedRows();
 }
 
 function initializeOwnerDetailsMap(ownerIndex) {
@@ -495,29 +424,3 @@ function initializeOwnerDetailsMap(ownerIndex) {
   });
 }
 
-function openOwnerDetails(ownerIndex) {
-  const isSameOwnerDetailsOpen =
-    activeDetailOwnerIndex === ownerIndex &&
-    card?.classList.contains("is-map-open") &&
-    mapPanel?.classList.contains("is-details-mode");
-
-  if (isSameOwnerDetailsOpen) {
-    if (closeMapPanel()) return;
-    renderOwners(displayedOwners);
-    refreshChangedRows();
-    return;
-  }
-
-  const owner = owners.find((item) => item.originalIndex === ownerIndex);
-  if (!owner) return;
-
-  activeDetailOwnerIndex = ownerIndex;
-  activeOrgOwnerIndex = null;
-  activeRawOwnerIndex = null;
-  globalRawDataViewOpen = false;
-  renderOwnerDetails(owner);
-  openMapPanel("details");
-  initializeOwnerDetailsMap(ownerIndex);
-  renderOwners(displayedOwners);
-  refreshChangedRows();
-}
