@@ -85,6 +85,55 @@ const OWNER_HEADQUARTERS_CENTERS = [
   { label: "Asheville, North Carolina", lat: 35.5951, lng: -82.5515 }
 ];
 
+const UNIT_OWNER_FIRST_NAMES = [
+  "Jordan",
+  "Taylor",
+  "Morgan",
+  "Casey",
+  "Alex",
+  "Jamie",
+  "Riley",
+  "Cameron",
+  "Avery",
+  "Quinn",
+  "Parker",
+  "Reese",
+  "Drew",
+  "Skyler",
+  "Hayden",
+  "Rowan"
+];
+
+const UNIT_OWNER_LAST_NAMES = [
+  "Anderson",
+  "Baker",
+  "Campbell",
+  "Diaz",
+  "Edwards",
+  "Foster",
+  "Garcia",
+  "Hughes",
+  "Johnson",
+  "Kim",
+  "Lewis",
+  "Morris",
+  "Nelson",
+  "Patel",
+  "Robinson",
+  "Stewart"
+];
+
+const UNIT_OWNER_EMAIL_DOMAINS = [
+  "gmail.com",
+  "yahoo.com",
+  "outlook.com",
+  "hotmail.com",
+  "icloud.com",
+  "aol.com",
+  "proton.me",
+  "live.com"
+];
+
 function ownerLocationRandom(seed) {
   const value = Math.sin(seed) * 10000;
   return value - Math.floor(value);
@@ -130,12 +179,90 @@ function getBoundedOwnerLocation(center, distanceMiles, seed, ownerIndex) {
   return ownerLocationOffset(center, distanceMiles * 0.35, seed + 7919, ownerIndex);
 }
 
+function getOwnerLocationDistanceMiles(location, center) {
+  const latitudeDelta = (location.lat - center.lat) * Math.PI / 180;
+  const longitudeDelta = (location.lng - center.lng) * Math.PI / 180;
+  const locationLatitude = location.lat * Math.PI / 180;
+  const centerLatitude = center.lat * Math.PI / 180;
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(locationLatitude) * Math.cos(centerLatitude) * Math.sin(longitudeDelta / 2) ** 2;
+
+  return 3958.8 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function getNearestOwnerLocationLabel(location) {
+  const centers = [...OWNER_LOCATION_CENTERS, ...OWNER_HEADQUARTERS_CENTERS];
+  const nearestCenter = centers.reduce((nearest, center) => {
+    const distance = getOwnerLocationDistanceMiles(location, center);
+    return !nearest || distance < nearest.distance ? { center, distance } : nearest;
+  }, null);
+
+  return nearestCenter?.center.label || "";
+}
+
 function getOwnerLocationRadius(locationCount) {
   if (locationCount >= 250) return 1000;
   if (locationCount >= 150) return 750;
   if (locationCount >= 80) return 500;
   if (locationCount >= 50) return 250;
   return 140;
+}
+
+function getOwnerUnitCount(owner) {
+  const unitCount = Number(owner.unitCount);
+  if (Number.isFinite(unitCount)) return unitCount;
+
+  const locationCount = Number(owner.locations);
+  if (Number.isFinite(locationCount)) return locationCount;
+
+  return Array.isArray(owner.units) ? owner.units.length : 0;
+}
+
+function getOwnerUnitDomain(owner) {
+  const primaryEmail = owner.email || owner.contacts?.[0]?.email || "";
+  return primaryEmail.split("@")[1] || `${String(owner.ownerName || "owner").toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
+}
+
+function getOwnerPrimaryFranchise(owner) {
+  if (Array.isArray(owner.franchises) && owner.franchises.length) return owner.franchises[0];
+  return String(owner.franchise || "Franchise").split(",")[0].trim() || "Franchise";
+}
+
+function getOwnerUnitPhone(ownerIndex, locationIndex) {
+  const areaCodes = ["704", "980", "404", "214", "303", "717", "909", "615", "602", "407"];
+  const areaCode = areaCodes[(ownerIndex + locationIndex) % areaCodes.length];
+  const prefix = String(555 + ((ownerIndex * 19 + locationIndex * 37) % 350)).padStart(3, "0");
+  const line = String(1000 + ((ownerIndex * 173 + locationIndex * 463) % 9000)).padStart(4, "0");
+
+  return `+1 (${areaCode}) ${prefix}-${line}`;
+}
+
+function getOwnerUnitSlug(owner, locationIndex) {
+  const ownerSlug = String(owner.ownerName || "owner")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "");
+
+  return `${ownerSlug}.unit.${String(locationIndex + 1).padStart(3, "0")}`;
+}
+
+function getOwnerUnitContactName(ownerIndex, locationIndex) {
+  const cycleOffset = Math.floor(locationIndex / UNIT_OWNER_FIRST_NAMES.length);
+  const firstName = UNIT_OWNER_FIRST_NAMES[(ownerIndex * 5 + locationIndex * 3) % UNIT_OWNER_FIRST_NAMES.length];
+  const lastName = UNIT_OWNER_LAST_NAMES[
+    (ownerIndex * 7 + locationIndex * 5 + cycleOffset * 3) % UNIT_OWNER_LAST_NAMES.length
+  ];
+  return `${firstName} ${lastName}`;
+}
+
+function getOwnerUnitContactEmail(name, ownerIndex, locationIndex) {
+  const slug = name.toLowerCase().replace(/[^a-z\s]/g, "").trim().replace(/\s+/g, ".");
+  const suffix = 10 + ((ownerIndex * 37 + locationIndex * 19) % 90);
+  const domain = UNIT_OWNER_EMAIL_DOMAINS[(ownerIndex + locationIndex) % UNIT_OWNER_EMAIL_DOMAINS.length];
+
+  return `${slug}${suffix}@${domain}`;
 }
 
 function getOwnerHeadquartersCenter(ownerIndex) {
@@ -151,8 +278,9 @@ function getCloseLocationCount(locationCount, ownerIndex) {
 
 function getLocationDistanceFromHeadquarters(locationCount, locationIndex, closeCount, seed) {
   const maxDistance = getOwnerLocationRadius(locationCount);
+  const closeRank = Math.floor(ownerLocationRandom(seed + 97) * locationCount);
 
-  if (locationIndex < closeCount) {
+  if (closeRank < closeCount) {
     const closeMax = Math.min(maxDistance * 0.2, locationCount >= 80 ? 36 : 18);
     return 3 + ownerLocationRandom(seed + 113) * closeMax;
   }
@@ -162,9 +290,10 @@ function getLocationDistanceFromHeadquarters(locationCount, locationIndex, close
 }
 
 function getOwnerLocations(owner, ownerIndex) {
-  const locationCount = owner.locations || 0;
+  const locationCount = getOwnerUnitCount(owner);
   const headquartersCenter = getOwnerHeadquartersCenter(ownerIndex);
   const closeCount = getCloseLocationCount(locationCount, ownerIndex);
+  const franchiseName = getOwnerPrimaryFranchise(owner);
 
   return Array.from({ length: locationCount }, (_, locationIndex) => {
     const seed = (ownerIndex + 1) * 10000 + locationIndex + 1;
@@ -175,15 +304,30 @@ function getOwnerLocations(owner, ownerIndex) {
       seed
     );
 
+    const location = getBoundedOwnerLocation(headquartersCenter, distanceFromHeadquarters, seed, ownerIndex);
+    const unitOwnerName = getOwnerUnitContactName(ownerIndex, locationIndex);
+
     return {
-      ...getBoundedOwnerLocation(headquartersCenter, distanceFromHeadquarters, seed, ownerIndex),
-      label: headquartersCenter.label
+      id: `${getOwnerUnitSlug(owner, locationIndex)}`,
+      name: unitOwnerName,
+      email: getOwnerUnitContactEmail(unitOwnerName, ownerIndex, locationIndex),
+      phone: getOwnerUnitPhone(ownerIndex, locationIndex),
+      franchise: franchiseName,
+      ...location,
+      label: getNearestOwnerLocationLabel(location)
     };
   });
 }
 
-window.ownerLocationsData = (window.ownersData || []).map((owner, ownerIndex) => ({
-  ownerName: owner.ownerName,
-  color: OWNER_LOCATION_COLORS[ownerIndex % OWNER_LOCATION_COLORS.length],
-  locations: getOwnerLocations(owner, ownerIndex)
-}));
+window.ownerLocationsData = (window.ownersData || []).map((owner, ownerIndex) => {
+  const units = getOwnerLocations(owner, ownerIndex);
+
+  owner.units = units;
+
+  return {
+    ownerName: owner.ownerName,
+    color: OWNER_LOCATION_COLORS[ownerIndex % OWNER_LOCATION_COLORS.length],
+    locations: units,
+    units
+  };
+});

@@ -82,8 +82,18 @@ function getTopManagementCount(contactCount, ownerIndex) {
   return 1 + (ownerIndex % 2);
 }
 
+function getOwnerOrgContactCount(owner) {
+  const contactCount = Number(owner.contactCount);
+  if (Number.isFinite(contactCount)) return contactCount;
+
+  if (Array.isArray(owner.contacts)) return owner.contacts.length;
+
+  const legacyContactCount = Number(owner.contacts);
+  return Number.isFinite(legacyContactCount) ? legacyContactCount : 1;
+}
+
 function getUnitedFpOrgChart(owner) {
-  const contactCount = Math.max(1, owner.contacts || 1);
+  const contactCount = Math.max(1, getOwnerOrgContactCount(owner));
   const nodes = [
     createOrgNode("united-ceo", "Michael Fisch", "Founder & CEO", null),
     createOrgNode("united-president", "Scott Wolff", "President & Managing Director", "united-ceo"),
@@ -109,7 +119,7 @@ function getUnitedFpOrgChart(owner) {
 }
 
 function getGeneratedOrgChart(owner, ownerIndex) {
-  const contactCount = Math.max(1, owner.contacts || 1);
+  const contactCount = Math.max(1, getOwnerOrgContactCount(owner));
   const topManagementCount = Math.min(contactCount, getTopManagementCount(contactCount, ownerIndex));
   const nodes = [];
 

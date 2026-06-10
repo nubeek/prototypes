@@ -1,4 +1,4 @@
-/* Password gate, styled from the shared CST design tokens. */
+/* Password gate shared by all prototypes under this folder. */
 :root {
   --access-font-sans: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --access-color-surface: #fff;
@@ -17,11 +17,21 @@ body.access-locked {
   overflow: hidden;
 }
 
+html.access-granted body.access-locked {
+  overflow: auto;
+}
+
 body.access-locked > :not(.access-gate) {
   visibility: hidden;
   pointer-events: none;
 }
 
+html.access-granted body.access-locked > :not(.access-gate) {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+html.access-granted .access-gate,
 body:not(.access-locked) .access-gate {
   display: none;
 }

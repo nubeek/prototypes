@@ -9,14 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="access-gate.css">
-  <script src="access-gate.js" defer></script>
+  <script src="../gate.js"></script>
+  <link rel="stylesheet" href="../gate.css">
 </head>
 <body class="access-locked">
   <div class="access-gate" data-access-gate>
-    <form class="access-gate__panel" data-access-form autocomplete="off">
+    <form class="access-gate__panel" data-access-form autocomplete="on" method="post" action="./">
       <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
-      <input class="access-gate__input" id="accessPassword" data-access-password type="password" autocomplete="current-password" autofocus>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
       <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
       <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
     </form>
@@ -215,6 +215,9 @@
                     <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
                       <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
                     </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
+                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
+                    </button>
                     <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
                       <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
                     </button>
@@ -242,6 +245,9 @@
                     <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
                       <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
                     </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
+                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
+                    </button>
                     <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
                       <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
                     </button>
@@ -268,6 +274,9 @@
                   <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
                     <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
                       <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
+                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
                     </button>
                     <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
                       <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
@@ -326,6 +335,10 @@
                 <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Take screenshot</span>
               </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Reset view</span>
+              </button>
             </div>
           </details>
           <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn toolbar-search-btn toolbar-btn-divider-left" type="button" aria-label="Search" title="Search" disabled>
@@ -374,6 +387,19 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src=".env.local"></script>
-  <script src="script.js"></script>
+  <script>
+    if (!window.CST_ENV) {
+      document.write('<script src="../.env.local"><\/script>');
+    }
+  </script>
+  <script src="scripts/01-dom-state.js"></script>
+  <script src="scripts/02-view-settings.js"></script>
+  <script src="scripts/03-map-panel.js"></script>
+  <script src="scripts/04-owner-profile.js"></script>
+  <script src="scripts/05-raw-data.js"></script>
+  <script src="scripts/06-owner-details-org.js"></script>
+  <script src="scripts/07-table-sort.js"></script>
+  <script src="scripts/08-filters-combobox.js"></script>
+  <script src="scripts/09-bootstrap.js"></script>
 </body>
 </html>
