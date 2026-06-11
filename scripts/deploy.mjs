@@ -10,6 +10,7 @@ const DEFAULT_OUTPUT_DIR = path.join(REPO_ROOT, "_out");
 const PUBLIC_PATH_REWRITES = new Map([
   ["../../scripts/", "../scripts/"],
   ["../../styles/", "../styles/"],
+  ["../../assets/", "../assets/"],
   ["../../.env.local", "../.env.local"],
 ]);
 
@@ -90,6 +91,7 @@ const rewritePublicPaths = async (directory) => {
 const copySiteShell = async () => {
   await mkdir(outputDir, { recursive: true });
   await cp(path.join(REPO_ROOT, "index.html"), path.join(outputDir, "index.html"));
+  await copyDirectory(path.join(REPO_ROOT, "assets"), path.join(outputDir, "assets"));
   await copyDirectory(path.join(REPO_ROOT, "styles"), path.join(outputDir, "styles"));
   await copyDirectory(path.join(REPO_ROOT, "scripts"), path.join(outputDir, "scripts"));
   await writeFile(path.join(outputDir, ".nojekyll"), "");

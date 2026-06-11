@@ -92,19 +92,9 @@ h1 {
   margin-bottom: 28px;
 }
 
-.router-kicker {
-  margin: 0 0 10px;
-  color: var(--color-brand);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
 .router-title {
   margin-bottom: 10px;
-  font-size: clamp(32px, 5vw, 54px);
+  font-size: clamp(18px, 4vw, 42px);
   line-height: 0.95;
   letter-spacing: -0.04em;
 }
@@ -115,17 +105,6 @@ h1 {
   color: var(--color-text-soft);
   font-size: 16px;
   line-height: 1.6;
-}
-
-.router-count {
-  flex: 0 0 auto;
-  border-radius: var(--radius-pill);
-  background: var(--color-brand-soft);
-  color: var(--color-brand);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
-  padding: 10px 14px;
 }
 
 .prototype-list {
@@ -199,10 +178,6 @@ h1 {
 
   .router-header {
     display: grid;
-  }
-
-  .router-count {
-    width: fit-content;
   }
 
   .prototype-path {

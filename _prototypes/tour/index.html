@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Franchise Tour 2026</title>
+    <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../../assets/x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="../../assets/x96.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="../../assets/x192.png" />
+    <link rel="manifest" href="../../assets/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,7 +24,7 @@
   </head>
   <body class="access-locked">
     <div class="access-gate" data-access-gate>
-      <form class="access-gate__panel" data-access-form autocomplete="on" method="post" action="./">
+      <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="./">
         <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
         <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus />
         <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
