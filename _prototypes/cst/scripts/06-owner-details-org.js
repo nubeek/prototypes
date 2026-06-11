@@ -8,6 +8,7 @@ function renderOwnerDetails(owner) {
 
   const website = getOwnerWebsite(owner);
   const franchises = getOwnerFranchises(owner);
+  const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
   const franchiseMarkup = franchises
     .map(
       (franchise) => `
@@ -34,6 +35,14 @@ function renderOwnerDetails(owner) {
         <h3 class="ui-section-title">Contact</h3>
         <p class="ui-body-text">${owner.contactName}</p>
         <span class="ui-link owner-detail-email">${owner.email}</span>
+        <button
+          class="ui-control ui-button ui-button-primary owner-detail-contact-lead-action ${hasSavedLead ? "is-saved" : ""}"
+          type="button"
+          data-owner-index="${owner.originalIndex}"
+          aria-label="${hasSavedLead ? `Remove ${owner.contactName} from leads` : `Save ${owner.contactName} as a lead`}"
+        >
+          ${hasSavedLead ? "Remove from leads" : "Save as lead"}
+        </button>
       </section>
 
       <section class="owner-detail-section">

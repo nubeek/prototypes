@@ -77,6 +77,21 @@ if (tableBody) {
       return;
     }
 
+    const hideResultsButton = event.target.closest(".contact-hide-results-action");
+    if (hideResultsButton) {
+      event.stopPropagation();
+      const ownerIndex = Number(hideResultsButton.dataset.ownerIndex);
+      if (!Number.isFinite(ownerIndex)) return;
+
+      if (hideResultsButton.classList.contains("is-hidden")) {
+        hiddenContactOwnerIndexes.delete(ownerIndex);
+      } else {
+        hiddenContactOwnerIndexes.add(ownerIndex);
+      }
+      applySort();
+      return;
+    }
+
     const contactProfileButton = event.target.closest(".contact-profile-action");
     if (contactProfileButton) {
       event.stopPropagation();
@@ -326,8 +341,8 @@ if (mapToggle && card) {
   mapToggle.addEventListener("click", () => handleToolbarTabClick("map"));
 }
 
-if (rawDataToggle) {
-  rawDataToggle.addEventListener("click", () => handleToolbarTabClick("raw"));
+if (contactsToggle) {
+  contactsToggle.addEventListener("click", () => handleToolbarTabClick("raw"));
 }
 
 if (orgChartToggle && card) {
@@ -426,6 +441,34 @@ if (ownerDetailsPanel) {
     const mapLink = event.target.closest(".owner-detail-map-link");
     if (mapLink) {
       toggleRowSidebarView("map", Number(mapLink.dataset.ownerIndex));
+      return;
+    }
+
+    const detailLeadButton = event.target.closest(".owner-detail-contact-lead-action");
+    if (detailLeadButton) {
+      const ownerIndex = Number(detailLeadButton.dataset.ownerIndex);
+      if (!Number.isFinite(ownerIndex)) return;
+
+      if (savedLeadOwnerIndexes.has(ownerIndex)) {
+        savedLeadOwnerIndexes.delete(ownerIndex);
+      } else {
+        savedLeadOwnerIndexes.add(ownerIndex);
+      }
+
+      const owner = owners.find((item) => item.originalIndex === ownerIndex);
+      const hasSavedLead = savedLeadOwnerIndexes.has(ownerIndex);
+      detailLeadButton.classList.toggle("is-saved", hasSavedLead);
+      detailLeadButton.textContent = hasSavedLead ? "Remove from leads" : "Save as lead";
+      if (owner) {
+        detailLeadButton.setAttribute(
+          "aria-label",
+          hasSavedLead
+            ? `Remove ${owner.contactName} from leads`
+            : `Save ${owner.contactName} as a lead`
+        );
+      }
+
+      applySort();
       return;
     }
 
@@ -602,6 +645,7 @@ if (toolbarTabItems.length) {
 if (tableWrap) {
   tableWrap.addEventListener("scroll", syncStickyNameColumnDivider, { passive: true });
   window.addEventListener("resize", syncStickyNameColumnDivider);
+  window.addEventListener("resize", syncOwnerRawTableDividers);
   syncStickyNameColumnDivider();
 }
 

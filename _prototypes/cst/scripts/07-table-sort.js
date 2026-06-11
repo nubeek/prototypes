@@ -329,6 +329,7 @@ function renderOwners(rows) {
     .map(
       (owner) => {
         const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
+        const isContactHidden = hiddenContactOwnerIndexes.has(owner.originalIndex);
 
         return `
         <tr
@@ -352,7 +353,7 @@ function renderOwners(rows) {
             </div>
           </td>
           <td class="contact-cell">
-            <div class="contact-cell-action ${hasSavedLead ? "is-lead-saved" : ""}">
+            <div class="contact-cell-action ${hasSavedLead ? "is-lead-saved" : ""} ${isContactHidden ? "is-contact-hidden" : ""}">
               <button
                 class="ui-control contact-profile-action"
                 type="button"
@@ -364,13 +365,22 @@ function renderOwners(rows) {
                   <span class="ui-link ui-ellipsis email">${owner.email}</span>
                 </span>
               </button>
-              <button
-                class="ui-control contact-add-lead-action ${hasSavedLead ? "is-saved" : ""}"
-                type="button"
-                data-owner-index="${owner.originalIndex}"
-                aria-label="${hasSavedLead ? `Remove ${owner.contactName} from leads` : `Save ${owner.contactName} as a lead`}"
-                data-tooltip="${hasSavedLead ? "Remove from leads" : "Save as lead"}"
-              ></button>
+              <div class="contact-row-actions">
+                <button
+                  class="ui-control contact-hide-results-action ${isContactHidden ? "is-hidden" : ""}"
+                  type="button"
+                  data-owner-index="${owner.originalIndex}"
+                  aria-label="${isContactHidden ? `Show ${owner.contactName} in results` : `Hide ${owner.contactName} from results`}"
+                  data-tooltip="${isContactHidden ? "Show in results" : "Hide from results"}"
+                ></button>
+                <button
+                  class="ui-control contact-add-lead-action ${hasSavedLead ? "is-saved" : ""}"
+                  type="button"
+                  data-owner-index="${owner.originalIndex}"
+                  aria-label="${hasSavedLead ? `Remove ${owner.contactName} from leads` : `Save ${owner.contactName} as a lead`}"
+                  data-tooltip="${hasSavedLead ? "Remove from leads" : "Save as lead"}"
+                ></button>
+              </div>
             </div>
           </td>
           <td class="contacts-mode-cell">${getContactsColumn(owner)}</td>

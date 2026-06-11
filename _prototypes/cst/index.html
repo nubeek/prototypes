@@ -22,6 +22,7 @@
   <div class="access-gate" data-access-gate>
     <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="./">
       <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input type="text" name="username" autocomplete="username" value="prototype-access" hidden readonly>
       <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
       <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
       <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
@@ -265,12 +266,12 @@
               </div>
             </div>
             <div class="toolbar-tab-item">
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="rawDataToggle" type="button" aria-label="Toggle raw data view" aria-pressed="false">
-                <img class="toolbar-asset-icon raw-data-toggle-icon" src="assets/table.svg" alt="" aria-hidden="true">
-                <span class="toolbar-tab-label">Database</span>
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="contactsToggle" type="button" aria-label="Toggle contacts view" aria-pressed="false">
+                <img class="toolbar-asset-icon contacts-toggle-icon" src="assets/contacts.svg" alt="" aria-hidden="true">
+                <span class="toolbar-tab-label">Contacts</span>
               </button>
               <div class="toolbar-tab-dropdown">
-                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Database panel options menu">
+                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Contacts panel options menu">
                   <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
                     <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
                     <span class="toolbar-dropdown-label">Hide panel</span>

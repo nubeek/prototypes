@@ -3,90 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wefranch Prototypes</title>
-    <link rel="icon" href="assets/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/x16.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/x32.png" />
-    <link rel="icon" type="image/png" sizes="96x96" href="assets/x96.png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="assets/x192.png" />
-    <link rel="manifest" href="assets/manifest.json" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/router.css">
-  <script src="scripts/gate.js"></script>
-  <link rel="stylesheet" href="styles/gate.css">
+  <title>Redirecting...</title>
+  <meta http-equiv="refresh" content="0; url=/_prototypes/" />
+  <script>
+    window.location.replace("/_prototypes/");
+  </script>
 </head>
-<body class="access-locked">
-  <div class="access-gate" data-access-gate>
-    <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="./">
-      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
-      <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
-      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
-      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
-    </form>
-  </div>
-
-  <main class="prototype-router" aria-labelledby="routerTitle">
-    <section class="router-card">
-      <header class="router-header">
-        <div>
-          <h1 class="router-title" id="routerTitle">Prototypes</h1>
-          <p class="router-copy">
-            Select one of the currently available prototype folders. Each link opens
-            the standalone prototype codebase for that concept.
-          </p>
-        </div>
-      </header>
-
-      <ul class="prototype-list" aria-label="Available prototypes">
-        <li>
-          <a class="prototype-link" href="cst/">
-            <span>
-              <span class="prototype-name">CST</span>
-              <span class="prototype-description">Earlier CST owner and franchise search prototype.</span>
-            </span>
-            <span class="prototype-path">/cst/</span>
-          </a>
-        </li>
-        <li>
-          <a class="prototype-link" href="decimal/">
-            <span>
-              <span class="prototype-name">Decimal</span>
-              <span class="prototype-description">Summary income statement and investment table prototype.</span>
-            </span>
-            <span class="prototype-path">/decimal/</span>
-          </a>
-        </li>
-        <li>
-          <a class="prototype-link" href="modeling/">
-            <span>
-              <span class="prototype-name">Modeling</span>
-              <span class="prototype-description">Sell-side research and financial modeling prototype.</span>
-            </span>
-            <span class="prototype-path">/modeling/</span>
-          </a>
-        </li>
-        <li>
-          <a class="prototype-link" href="targets/">
-            <span>
-              <span class="prototype-name">Targets</span>
-              <span class="prototype-description">Target and owner-focused prototype.</span>
-            </span>
-            <span class="prototype-path">/targets/</span>
-          </a>
-        </li>
-        <li>
-          <a class="prototype-link" href="tour/">
-            <span>
-              <span class="prototype-name">Tour</span>
-              <span class="prototype-description">Franchise tour-focused prototype.</span>
-            </span>
-            <span class="prototype-path">/tour/</span>
-          </a>
-        </li>
-      </ul>
-    </section>
-  </main>
+<body>
+  <p>Redirecting to <a href="/_prototypes/">/_prototypes/</a>...</p>
 </body>
 </html>

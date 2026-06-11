@@ -412,7 +412,7 @@ function syncToolbarTabState(mode = getCurrentPanelMode()) {
   filterToggle?.classList.toggle("is-active", Boolean(isFilterOpen));
   syncToolbarTabButton(mapToggle, isPanelOpen && mode === "map", lockedToolbarMode === "map");
   syncToolbarTabButton(orgChartToggle, isPanelOpen && mode === "org", lockedToolbarMode === "org");
-  syncToolbarTabButton(rawDataToggle, isPanelOpen && mode === "raw", lockedToolbarMode === "raw");
+  syncToolbarTabButton(contactsToggle, isPanelOpen && mode === "raw", lockedToolbarMode === "raw");
   closeToolbarTabDropdowns();
   syncOwnerHeaderViewState();
   persistViewSettings();

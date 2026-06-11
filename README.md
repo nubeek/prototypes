@@ -1,4 +1,4 @@
-# Wefranch Prototypes
+# Prototypes
 
 Collection of static HTML/CSS/JS prototypes for different Wefranch concepts and experiences.
 

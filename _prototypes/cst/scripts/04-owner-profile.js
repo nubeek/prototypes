@@ -108,9 +108,9 @@ function getOwnerHeaderViewControls(owner) {
     },
     {
       view: "raw",
-      label: "Show owner raw data",
-      title: "Raw data",
-      icon: "assets/table.svg",
+      label: "Show owner contacts",
+      title: "Contacts",
+      icon: "assets/contacts.svg",
       iconClass: "segmented-control-btn-divider-left",
       disabled: rawDataDisabled
     }
@@ -120,7 +120,7 @@ function getOwnerHeaderViewControls(owner) {
     <div class="owner-detail-header-actions segmented-control" aria-label="Owner views">
       ${buttons.map((button) => {
         const isActive = isOwnerHeaderViewActive(button.view, ownerIndex);
-        const rawIconClass = button.view === "raw" ? " raw-data-toggle-icon" : "";
+        const contactsIconClass = button.view === "raw" ? " contacts-toggle-icon" : "";
         const imageClass = button.imageClass ? ` ${button.imageClass}` : "";
         return `
           <button
@@ -133,7 +133,7 @@ function getOwnerHeaderViewControls(owner) {
             aria-pressed="${String(isActive)}"
             ${button.disabled ? "disabled aria-disabled=\"true\"" : ""}
           >
-            <img class="toolbar-asset-icon${rawIconClass}${imageClass}" src="${button.icon}" alt="" aria-hidden="true">
+            <img class="toolbar-asset-icon${contactsIconClass}${imageClass}" src="${button.icon}" alt="" aria-hidden="true">
           </button>
         `;
       }).join("")}
@@ -398,7 +398,7 @@ function renderPersonProfile(profile) {
     </div>
 
     <div class="profile-modal-actions">
-      <button class="ui-control ui-button ui-button-primary profile-modal-primary" type="button">${primaryActionLabel}</button>
+      <button class="ui-control ui-button ui-button-primary profile-modal-primary ${isLeadSaved ? "is-saved" : ""}" type="button">${primaryActionLabel}</button>
       <button class="ui-control ui-button ui-button-secondary profile-modal-secondary" type="button">Close</button>
     </div>
   `;

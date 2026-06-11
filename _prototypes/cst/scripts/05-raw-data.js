@@ -91,7 +91,7 @@ function getRawSidebarHeader(owner) {
   if (owner) {
     return getOwnerHeader(owner, {
       className: "owner-raw-heading",
-      closeLabel: "Close raw data",
+      closeLabel: "Close contacts",
       linksToDetail: true
     });
   }
@@ -205,6 +205,19 @@ function getRawTableMarkup(rows, { emptyMessage, rowMarkup, pageType = null }) {
   `;
 }
 
+function syncOwnerRawTableDividers() {
+  const rawTableWrap = ownerDetailsPanel?.querySelector(".owner-raw-table-wrap");
+  if (!rawTableWrap) return;
+
+  const hasHorizontalOverflow = rawTableWrap.scrollWidth > rawTableWrap.clientWidth;
+  const hasLeftOverlap = rawTableWrap.scrollLeft > 0;
+  const hasVerticalOverflow = rawTableWrap.scrollHeight > rawTableWrap.clientHeight;
+  const hasTopOverlap = rawTableWrap.scrollTop > 0;
+
+  rawTableWrap.classList.toggle("is-name-column-overlap", hasHorizontalOverflow && hasLeftOverlap);
+  rawTableWrap.classList.toggle("is-header-row-overlap", hasVerticalOverflow && hasTopOverlap);
+}
+
 function renderRawDataSidebar(ownerIndex = null, { resetPagination = true } = {}) {
   if (!ownerDetailsPanel) return;
 
@@ -224,28 +237,22 @@ function renderRawDataSidebar(ownerIndex = null, { resetPagination = true } = {}
     rowMarkup: getRawContactRowMarkup,
     pageType: "contacts"
   });
-  const unitsTableMarkup = getRawTableMarkup(getScopedOwnerUnitRows(ownerIndex), {
-    emptyMessage: "No units match the current filters.",
-    rowMarkup: getRawUnitRowMarkup,
-    pageType: "units"
-  });
 
   ownerDetailsPanel.innerHTML = `
     <article class="owner-raw-panel">
       ${getRawSidebarHeader(owner)}
       <div class="owner-raw-table-wrap">
-        <section class="owner-raw-section" aria-labelledby="ownerRawContactsTitle">
-          <h2 class="owner-raw-section-title" id="ownerRawContactsTitle">Contacts</h2>
+        <section class="owner-raw-section">
           ${contactsTableMarkup}
-        </section>
-        <section class="owner-raw-section" aria-labelledby="ownerRawUnitsTitle">
-          <h2 class="owner-raw-section-title" id="ownerRawUnitsTitle">Units</h2>
-          ${unitsTableMarkup}
         </section>
       </div>
     </article>
   `;
   ownerDetailsPanel.scrollTop = resetPagination ? 0 : previousScrollTop;
+  ownerDetailsPanel
+    .querySelector(".owner-raw-table-wrap")
+    ?.addEventListener("scroll", syncOwnerRawTableDividers, { passive: true });
+  syncOwnerRawTableDividers();
   syncOwnerHeaderScrollState();
 }
 

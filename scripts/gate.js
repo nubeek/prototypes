@@ -17,17 +17,18 @@
     document.documentElement.classList.add(ACCESS_GRANTED_CLASS);
   }
 
-  // Remove the password that the GET submission appends to the URL so it does
-  // not linger in the address bar or browser history after unlocking.
+  // Remove the credentials that the GET submission appends to the URL so they
+  // do not linger in the address bar or browser history after unlocking.
   const stripCredentialsFromUrl = () => {
     try {
       const url = new URL(window.location.href);
 
-      if (!url.searchParams.has("password")) {
+      if (!url.searchParams.has("password") && !url.searchParams.has("username")) {
         return;
       }
 
       url.searchParams.delete("password");
+      url.searchParams.delete("username");
       const search = url.searchParams.toString();
       const cleaned = url.pathname + (search ? `?${search}` : "") + url.hash;
       window.history.replaceState(null, "", cleaned);
