@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">F45 Training logo</title>
+  <rect width="120" height="120" rx="18" fill="#101820"/>
+  <path fill="#e21d2f" d="M22 24h54v16H40v12h31v16H40v28H22V24Z"/>
+  <path fill="#ffffff" d="M77 24h18v43h10v15H95v14H78V82H51V68l26-44Zm1 26L67 67h11V50Z"/>
+</svg>

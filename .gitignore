@@ -1,1 +1,8 @@
+.DS_Store
 .env.local
+/_out/
+/cst/
+/decimal/
+/modeling/
+/targets/
+/tour/

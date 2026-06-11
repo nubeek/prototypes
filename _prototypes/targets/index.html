@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owners Changes Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../scripts/gate.js"></script>
+  <link rel="stylesheet" href="../../styles/gate.css">
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="on" method="post" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <label class="prototype-switcher prototype-switcher-floating">
+    <span class="sr-only">Prototype mode</span>
+    <select id="prototypeMode" aria-label="Prototype mode">
+      <option value="modified">Modified</option>
+      <option value="contacts">Contacts</option>
+      <option value="combined" selected>Combined</option>
+    </select>
+  </label>
+
+  <main class="card">
+    <div class="header">
+      <div class="title-block">
+        <h1>Owners</h1>
+        <div class="subtitle-count">23 records updated</div>
+      </div>
+
+      <div class="header-actions">
+        <div class="change-nav" aria-label="Updates navigation">
+          <button class="mark-read" id="markRead">Mark all read</button>
+          <div class="pager">
+            <button class="circle-btn" id="prevChange" aria-label="Previous update" title="Previous update">
+              <img class="nav-chevron nav-chevron-left" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </button>
+            <span class="pager-divider" aria-hidden="true"></span>
+            <!-- <span class="change-position" id="changePosition">1 / 4</span> -->
+            <button class="circle-btn" id="nextChange" aria-label="Next update" title="Next update">
+              <img class="nav-chevron nav-chevron-right" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap" id="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 28%"><span class="th-content">Name <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+            <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 26%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+            <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 20%"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+            <th class="sortable-header" id="modeColumnHeader" data-sort-key="modified" aria-sort="none" style="width: 15%"><span class="th-content"><span id="modeColumnLabel">Modified</span> <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+            <th class="sortable-header right" id="combinedContactsHeader" data-sort-key="contacts" aria-sort="none" style="width: 11%" hidden><span class="th-content">Contacts <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+            <th class="sortable-header right" id="locationsColumnHeader" data-sort-key="locations" aria-sort="none" style="width: 11%"><span class="th-content">Locations <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+          </tr>
+        </thead>
+        <tbody id="ownersTableBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="data/owners.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

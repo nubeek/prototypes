@@ -1,0 +1,211 @@
+/* Router page styles derived from the CST prototype visual system. */
+:root {
+  --font-sans: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-surface: #fff;
+  --color-surface-subtle: #f8f7fd;
+  --color-surface-control: #e9e9e9;
+  --color-border: #e7e7e7;
+  --color-text: #111;
+  --color-text-soft: #222;
+  --color-brand: #7a63dd;
+  --color-brand-primary: #8065e8;
+  --color-brand-soft: #e9ddff;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --transition-fast: 180ms ease;
+  --shadow-tile: 0 4px 5px rgba(0, 0, 0, 0.03);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: auto;
+  min-width: 320px;
+  height: auto;
+  min-height: 100vh;
+  overflow: auto;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-soft);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ui-control {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+}
+
+.ui-button {
+  min-height: 48px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.ui-button-primary {
+  background: var(--color-brand-primary);
+  color: var(--color-surface);
+  font-weight: 600;
+}
+
+h1 {
+  margin: 0;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.prototype-router {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(20px, 5vw, 64px);
+}
+
+.router-card {
+  width: min(900px, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 60px rgba(38, 31, 75, 0.12);
+  padding: clamp(20px, 4vw, 36px);
+}
+
+.router-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.router-kicker {
+  margin: 0 0 10px;
+  color: var(--color-brand);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.router-title {
+  margin-bottom: 10px;
+  font-size: clamp(32px, 5vw, 54px);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.router-copy {
+  max-width: 560px;
+  margin: 0;
+  color: var(--color-text-soft);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.router-count {
+  flex: 0 0 auto;
+  border-radius: var(--radius-pill);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 10px 14px;
+}
+
+.prototype-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prototype-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 84px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 18px 20px;
+  text-decoration: none;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.prototype-link:hover,
+.prototype-link:focus-visible {
+  border-color: #d8d0f6;
+  background: var(--color-surface-subtle);
+  box-shadow: var(--shadow-tile);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.prototype-name {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.prototype-description {
+  display: block;
+  color: #666;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.prototype-path {
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-control);
+  color: var(--color-text-soft);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .router-header,
+  .prototype-link {
+    grid-template-columns: 1fr;
+  }
+
+  .router-header {
+    display: grid;
+  }
+
+  .router-count {
+    width: fit-content;
+  }
+
+  .prototype-path {
+    width: fit-content;
+  }
+}
