@@ -139,6 +139,7 @@ function clearAllFilterSelections() {
   excludedOwnerIndexes = [];
   selectedFranchiseIndexes = [];
   excludedFranchiseIndexes = [];
+  searchQuery = "";
   selectedUnitsMin = unitsFilterDefaults.min;
   selectedUnitsMax = unitsFilterDefaults.max;
   selectedContactsMin = contactsFilterDefaults.min;
@@ -150,6 +151,13 @@ function clearAllFilterSelections() {
   setFilterSelectValues(categoryFilterSelect, []);
   setFilterSelectValues(ownerFilterSelect, []);
   setFilterSelectValues(franchiseFilterSelect, []);
+  if (toolbarSearchInput) {
+    toolbarSearchInput.value = "";
+    toolbarSearchInput.closest(".toolbar-search-btn")?.classList.remove("is-active-search");
+    if (toolbarSearchClear) {
+      toolbarSearchClear.hidden = true;
+    }
+  }
   syncFilterComboboxes();
 
   statusFilterInputs.forEach((checkbox) => {

@@ -4,14 +4,10 @@ sortHeaders.forEach((header) => {
     if (!sortKey) return;
 
     if (sortState.key === sortKey) {
-      if (sortKey === "locations") {
-        locationSortCycleActive = true;
-      }
       sortState.direction = sortState.direction === "ascending" ? "descending" : "ascending";
     } else {
       sortState.key = sortKey;
       sortState.direction = getInitialSortDirection(sortKey);
-      locationSortCycleActive = sortKey === "locations" ? false : locationSortCycleActive;
     }
 
     applySort();
@@ -19,30 +15,13 @@ sortHeaders.forEach((header) => {
   });
 });
 
-syncModeColumn();
-syncUpdatesToggleOption();
-syncUpdatesStateClass();
-syncModifiedColumnToggleOption();
+syncColumnWidths();
 syncReduceMotionToggleOption();
 syncReduceMotionStateClass();
 setPanelLayout("right");
 syncToolbarTabState("map");
 applySort();
 openMapPanel("map");
-
-if (markRead) {
-  markRead.addEventListener("click", () => {
-    owners.forEach((owner) => {
-      owner.addedContacts = 0;
-      owner.addedLocations = 0;
-      owner.changed = false;
-    });
-    applySort();
-  });
-}
-
-if (prev) prev.addEventListener("click", () => advanceChangeRow(-1));
-if (next) next.addEventListener("click", () => advanceChangeRow(1));
 
 if (tableBody) {
   tableBody.addEventListener("click", (event) => {
@@ -58,7 +37,7 @@ if (tableBody) {
     const contactsButton = event.target.closest(".contacts-action");
     if (contactsButton) {
       event.stopPropagation();
-      toggleRowSidebarView("org", Number(contactsButton.dataset.ownerIndex), { scrollTable: true });
+      toggleRowSidebarView("raw", Number(contactsButton.dataset.ownerIndex), { scrollTable: true });
       return;
     }
 
@@ -73,7 +52,7 @@ if (tableBody) {
       } else {
         savedLeadOwnerIndexes.add(ownerIndex);
       }
-      applySort();
+      refreshContactStateViews();
       return;
     }
 
@@ -88,7 +67,7 @@ if (tableBody) {
       } else {
         hiddenContactOwnerIndexes.add(ownerIndex);
       }
-      applySort();
+      refreshContactStateViews();
       return;
     }
 
@@ -233,7 +212,13 @@ if (categoryFilterSelect) {
   categoryFilterSelect.addEventListener("change", () => {
     selectedCategoryValues = getFilterSelectIncludedValues(categoryFilterSelect);
     excludedCategoryValues = getFilterSelectExcludedValues(categoryFilterSelect);
-    updateClearFiltersButton();
+    activeMapOwnerIndex = null;
+    activeOrgOwnerIndex = null;
+    syncMapLocationFilter();
+    refreshFilteredViews();
+    refitOpenMapToVisibleLocations();
+    syncOpenOrgPanelWithSelection();
+    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });
 
   enhanceFilterCombobox(categoryFilterSelect, { allowExclude: true });
@@ -337,6 +322,32 @@ if (filterToggle && card) {
   });
 }
 
+if (toolbarSearchInput) {
+  const searchField = toolbarSearchInput.closest(".toolbar-search-btn");
+  toolbarSearchInput.addEventListener("input", () => {
+    searchQuery = toolbarSearchInput.value.trim().toLocaleLowerCase();
+    searchField?.classList.toggle("is-active-search", Boolean(searchQuery));
+    if (toolbarSearchClear) {
+      toolbarSearchClear.hidden = !searchQuery;
+    }
+    activeMapOwnerIndex = null;
+    activeOrgOwnerIndex = null;
+    syncMapLocationFilter();
+    refreshFilteredViews();
+    refitOpenMapToVisibleLocations();
+    syncOpenOrgPanelWithSelection();
+    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+  });
+
+  if (toolbarSearchClear) {
+    toolbarSearchClear.addEventListener("click", () => {
+      toolbarSearchInput.value = "";
+      toolbarSearchInput.dispatchEvent(new Event("input", { bubbles: true }));
+      toolbarSearchInput.focus();
+    });
+  }
+}
+
 if (mapToggle && card) {
   mapToggle.addEventListener("click", () => handleToolbarTabClick("map"));
 }
@@ -410,6 +421,30 @@ if (ownerDetailsPanel) {
       return;
     }
 
+    const rawLeadButton = event.target.closest(".raw-data-row .contact-add-lead-action");
+    if (rawLeadButton) {
+      event.stopPropagation();
+      const ownerIndex = Number(rawLeadButton.dataset.ownerIndex);
+      const nodeId = rawLeadButton.dataset.nodeId ?? null;
+      if (Number.isFinite(ownerIndex)) {
+        toggleContactLeadSaved(ownerIndex, nodeId);
+        refreshContactStateViews();
+      }
+      return;
+    }
+
+    const rawHideButton = event.target.closest(".raw-data-row .contact-hide-results-action");
+    if (rawHideButton) {
+      event.stopPropagation();
+      const ownerIndex = Number(rawHideButton.dataset.ownerIndex);
+      const nodeId = rawHideButton.dataset.nodeId ?? null;
+      if (Number.isFinite(ownerIndex)) {
+        toggleContactHidden(ownerIndex, nodeId);
+        refreshContactStateViews();
+      }
+      return;
+    }
+
     const rawRow = event.target.closest(".raw-data-row[data-owner-index][data-raw-row-index]");
     if (rawRow) {
       const ownerIndex = Number(rawRow.dataset.ownerIndex);
@@ -468,7 +503,7 @@ if (ownerDetailsPanel) {
         );
       }
 
-      applySort();
+      refreshContactStateViews();
       return;
     }
 
@@ -531,34 +566,6 @@ if (ownerDetailsPanel) {
   });
 }
 
-if (updatesToggleOption) {
-  updatesToggleOption.addEventListener("click", () => {
-    updatesEnabled = !updatesEnabled;
-    syncUpdatesToggleOption();
-    syncUpdatesStateClass();
-    applySort();
-    persistViewSettings();
-  });
-}
-
-if (modifiedColumnToggleOption) {
-  modifiedColumnToggleOption.addEventListener("click", () => {
-    modifiedColumnVisible = !modifiedColumnVisible;
-
-    if (!modifiedColumnVisible && sortState.key === "modified") {
-      sortState = {
-        key: "locations",
-        direction: "descending"
-      };
-      locationSortCycleActive = false;
-    }
-
-    syncModeColumn();
-    applySort();
-    persistViewSettings();
-  });
-}
-
 if (reduceMotionToggleOption) {
   reduceMotionToggleOption.addEventListener("click", () => {
     reduceMotionEnabled = !reduceMotionEnabled;
@@ -570,17 +577,64 @@ if (reduceMotionToggleOption) {
 
 if (takeScreenshotOption) {
   takeScreenshotOption.addEventListener("click", () => {
+    closeToolbarSettingsSubmenu();
     takeViewportScreenshot();
   });
 }
 
 if (resetViewOption) {
-  resetViewOption.addEventListener("click", resetViewSettings);
+  resetViewOption.addEventListener("click", () => {
+    closeToolbarSettingsSubmenu();
+    resetViewSettings();
+  });
+}
+
+function setToolbarSettingsSubmenuOpen(isOpen) {
+  if (!toolbarSettingsSubmenu || !toolbarSettingsSubmenuTrigger) return;
+
+  toolbarSettingsSubmenu.classList.toggle("is-open", isOpen);
+  toolbarSettingsSubmenuTrigger.setAttribute("aria-expanded", String(isOpen));
+}
+
+function closeToolbarSettingsSubmenu() {
+  setToolbarSettingsSubmenuOpen(false);
+}
+
+if (toolbarSettingsSubmenu && toolbarSettingsSubmenuTrigger) {
+  toolbarSettingsSubmenuTrigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setToolbarSettingsSubmenuOpen(true);
+  });
+
+  toolbarSettingsSubmenu.addEventListener("mouseenter", () => {
+    setToolbarSettingsSubmenuOpen(true);
+  });
+
+  toolbarSettingsSubmenu.addEventListener("mouseleave", closeToolbarSettingsSubmenu);
+
+  toolbarSettingsSubmenu.addEventListener("focusin", () => {
+    setToolbarSettingsSubmenuOpen(true);
+  });
+
+  toolbarSettingsSubmenu.addEventListener("focusout", (event) => {
+    if (event.relatedTarget instanceof Node && toolbarSettingsSubmenu.contains(event.relatedTarget)) return;
+    closeToolbarSettingsSubmenu();
+  });
 }
 
 if (toolbarDropdown) {
   document.addEventListener("click", (event) => {
-    if (!toolbarDropdown.open || toolbarDropdown.contains(event.target)) return;
+    if (!toolbarDropdown.open) return;
+
+    if (toolbarDropdown.contains(event.target)) {
+      if (!toolbarSettingsSubmenu?.contains(event.target)) {
+        closeToolbarSettingsSubmenu();
+      }
+      return;
+    }
+
+    closeToolbarSettingsSubmenu();
     toolbarDropdown.removeAttribute("open");
   });
 }
@@ -657,13 +711,10 @@ if (profileModal) {
     if (saveLeadButton) {
       const ownerIndex = Number(profileModal.dataset.ownerIndex);
       if (Number.isFinite(ownerIndex)) {
-        if (savedLeadOwnerIndexes.has(ownerIndex)) {
-          savedLeadOwnerIndexes.delete(ownerIndex);
-        } else {
-          savedLeadOwnerIndexes.add(ownerIndex);
-        }
+        const nodeId = profileModal.dataset.nodeId ?? null;
+        toggleContactLeadSaved(ownerIndex, nodeId);
         closePersonProfile();
-        applySort();
+        refreshContactStateViews();
       }
       return;
     }
@@ -681,11 +732,10 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   if (event.key === "Escape" && toolbarDropdown?.hasAttribute("open")) {
+    closeToolbarSettingsSubmenu();
     toolbarDropdown.removeAttribute("open");
   }
   if (event.key === "Escape") {
     closeToolbarTabDropdowns();
   }
-  if (event.key === "ArrowLeft") advanceChangeRow(-1);
-  if (event.key === "ArrowRight") advanceChangeRow(1);
 });

@@ -229,6 +229,12 @@ function getOwnerPrimaryFranchise(owner) {
   return String(owner.franchise || "Franchise").split(",")[0].trim() || "Franchise";
 }
 
+function getOwnerCategory(owner) {
+  if (Array.isArray(owner.categories) && owner.categories.length) return owner.categories[0];
+  if (typeof owner.category === "string" && owner.category.trim()) return owner.category.trim();
+  return "Fitness";
+}
+
 function getOwnerUnitPhone(ownerIndex, locationIndex) {
   const areaCodes = ["704", "980", "404", "214", "303", "717", "909", "615", "602", "407"];
   const areaCode = areaCodes[(ownerIndex + locationIndex) % areaCodes.length];
@@ -294,6 +300,7 @@ function getOwnerLocations(owner, ownerIndex) {
   const headquartersCenter = getOwnerHeadquartersCenter(ownerIndex);
   const closeCount = getCloseLocationCount(locationCount, ownerIndex);
   const franchiseName = getOwnerPrimaryFranchise(owner);
+  const category = getOwnerCategory(owner);
 
   return Array.from({ length: locationCount }, (_, locationIndex) => {
     const seed = (ownerIndex + 1) * 10000 + locationIndex + 1;
@@ -313,6 +320,7 @@ function getOwnerLocations(owner, ownerIndex) {
       email: getOwnerUnitContactEmail(unitOwnerName, ownerIndex, locationIndex),
       phone: getOwnerUnitPhone(ownerIndex, locationIndex),
       franchise: franchiseName,
+      category,
       ...location,
       label: getNearestOwnerLocationLabel(location)
     };

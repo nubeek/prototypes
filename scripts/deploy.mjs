@@ -13,6 +13,7 @@ const PUBLIC_PATH_REWRITES = new Map([
   ["../../assets/", "../assets/"],
   ["../../.env.local", "../.env.local"],
 ]);
+const LOCAL_REDIRECT_SCRIPT_PATTERN = /\n?  <script data-local-prototypes-redirect>[\s\S]*?<\/script>\n?/;
 
 const args = process.argv.slice(2);
 const outputIndex = args.indexOf("--out");
@@ -90,7 +91,10 @@ const rewritePublicPaths = async (directory) => {
 
 const copySiteShell = async () => {
   await mkdir(outputDir, { recursive: true });
-  await cp(path.join(REPO_ROOT, "index.html"), path.join(outputDir, "index.html"));
+  const indexSource = await readFile(path.join(REPO_ROOT, "index.html"), "utf8");
+  const publicIndex = indexSource.replace(LOCAL_REDIRECT_SCRIPT_PATTERN, "\n");
+
+  await writeFile(path.join(outputDir, "index.html"), publicIndex);
   await copyDirectory(path.join(REPO_ROOT, "assets"), path.join(outputDir, "assets"));
   await copyDirectory(path.join(REPO_ROOT, "styles"), path.join(outputDir, "styles"));
   await copyDirectory(path.join(REPO_ROOT, "scripts"), path.join(outputDir, "scripts"));

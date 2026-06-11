@@ -20,7 +20,9 @@ function getPrimarySelectedOwnerIndex() {
 
 function getRawDataOwnerScope() {
   return owners.filter((owner) => (
+    ownerMatchesSearchQuery(owner) &&
     ownerMatchesOwnerFilter(owner) &&
+    ownerMatchesCategoryFilter(owner) &&
     ownerMatchesFranchiseFilter(owner) &&
     ownerMatchesUnitsFilter(owner) &&
     ownerMatchesContactsFilter(owner)
@@ -50,6 +52,7 @@ function getOwnerUnitRows(ownerIndex) {
 
   const franchises = getOwnerFranchises(owner);
   const primaryFranchise = franchises[0] || "Franchise";
+  const ownerCategory = owner.category || "Fitness";
 
   return ownerLocationData.units.map((unit, unitIndex) => ({
     ownerIndex: owner.originalIndex,
@@ -58,6 +61,8 @@ function getOwnerUnitRows(ownerIndex) {
     email: unit.email,
     phone: unit.phone,
     location: unit.label || "",
+    category: unit.category || ownerCategory,
+    categories: [unit.category || ownerCategory],
     franchises: [unit.franchise || primaryFranchise]
   }));
 }
@@ -65,6 +70,13 @@ function getOwnerUnitRows(ownerIndex) {
 function unitRowMatchesFilters(row) {
   if (excludedLocationLabels.includes(row.location)) return false;
   if (selectedLocationLabels.length && !selectedLocationLabels.includes(row.location)) return false;
+  const rowCategories = Array.isArray(row.categories) && row.categories.length
+    ? row.categories
+    : [row.category || "Fitness"];
+  if (rowCategories.some((category) => excludedCategoryValues.includes(category))) return false;
+  if (selectedCategoryValues.length && !rowCategories.some((category) => selectedCategoryValues.includes(category))) {
+    return false;
+  }
   if (row.franchises.some((franchiseName) => excludedFranchiseIndexes.includes(franchiseName))) return false;
   if (!selectedFranchiseIndexes.length) return true;
 
@@ -101,10 +113,10 @@ function getRawSidebarHeader(owner) {
 
 const RAW_SIDEBAR_COLUMN_WIDTHS = {
   index: "4%",
-  name: "24%",
-  email: "24%",
-  phone: "18%",
-  location: "18%",
+  name: "30%",
+  email: "22%",
+  phone: "16%",
+  location: "16%",
   franchise: "12%"
 };
 
@@ -124,13 +136,39 @@ function getRawTableHeader(widths = RAW_SIDEBAR_COLUMN_WIDTHS) {
 }
 
 function getRawContactRowMarkup(row, rowIndex) {
+  const isLeadSaved = isContactLeadSaved(row.ownerIndex, row.nodeId);
+  const isHidden = isContactHidden(row.ownerIndex, row.nodeId);
+
   return `
-    <tr class="raw-data-row" data-owner-index="${row.ownerIndex}" data-raw-row-index="${row.rowIndex}">
+    <tr
+      class="raw-data-row ${isHidden ? "is-contact-hidden" : ""} ${isLeadSaved ? "is-lead-saved" : ""}"
+      data-owner-index="${row.ownerIndex}"
+      data-raw-row-index="${row.rowIndex}"
+      data-node-id="${row.nodeId}"
+    >
       <td class="raw-index-cell">${rowIndex + 1}</td>
       <td>
-        <div class="raw-name-cell">
+        <div class="raw-name-cell ${isLeadSaved ? "is-lead-saved" : ""} ${isHidden ? "is-contact-hidden" : ""}">
           <span class="ui-avatar raw-avatar" aria-hidden="true">${getInitials(row.name)}</span>
           <span class="raw-name">${row.name}</span>
+          <div class="contact-row-actions raw-row-actions">
+            <button
+              class="ui-control contact-hide-results-action ${isHidden ? "is-hidden" : ""}"
+              type="button"
+              data-owner-index="${row.ownerIndex}"
+              data-node-id="${row.nodeId}"
+              aria-label="${isHidden ? `Show ${row.name} in results` : `Hide ${row.name} from results`}"
+              data-tooltip="${isHidden ? "Show in results" : "Hide from results"}"
+            ></button>
+            <button
+              class="ui-control contact-add-lead-action ${isLeadSaved ? "is-saved" : ""}"
+              type="button"
+              data-owner-index="${row.ownerIndex}"
+              data-node-id="${row.nodeId}"
+              aria-label="${isLeadSaved ? `Remove ${row.name} from leads` : `Save ${row.name} as a lead`}"
+              data-tooltip="${isLeadSaved ? "Remove from leads" : "Save as lead"}"
+            ></button>
+          </div>
         </div>
       </td>
       <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
@@ -294,9 +332,16 @@ function restoreOwnersTableView({ clearRaw = true, clearGlobalRaw = true } = {})
     }
   });
 
-  syncModeColumn();
   syncSortHeaders();
   syncToolbarTabState(getCurrentPanelMode());
+}
+
+function refreshContactStateViews() {
+  applySort();
+
+  if (globalRawDataViewOpen) {
+    renderRawDataSidebar(activeRawOwnerIndex, { resetPagination: false });
+  }
 }
 
 function refreshFilteredViews() {

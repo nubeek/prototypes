@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Owners Changes Mockup</title>
+  <title>Owners Mockup</title>
     <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="../../assets/x32.png" />
@@ -204,7 +204,62 @@
             <span id="filterToggleLabel">Filters</span>
           </button>
           <span class="toolbar-divider" aria-hidden="true"></span>
-          <div class="toolbar-tabs segmented-control">
+          <label class="toolbar-search-btn toolbar-btn" for="toolbarSearchInput" role="search">
+            <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+            <input
+              class="toolbar-search-input"
+              id="toolbarSearchInput"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Search by name, brand or location..."
+              aria-label="Search owners, contacts, locations, and franchises"
+            >
+            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
+          </label>
+        </div>
+
+        <div class="toolbar-group toolbar-actions">
+          <details class="toolbar-dropdown">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
+              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Export CSV</span>
+              </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Email campaign</span>
+              </button>
+              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+              <div class="toolbar-submenu" data-toolbar-submenu>
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
+                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
+                  <span class="toolbar-dropdown-label">Settings</span>
+                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <div class="ui-menu toolbar-submenu-menu" id="toolbarSettingsSubmenu" role="menu" aria-label="Settings menu">
+                  <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+                    <span class="toolbar-switch" aria-hidden="true"></span>
+                    <span class="toolbar-dropdown-label">Reduce motion</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Take screenshot</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Reset view</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
+          <div class="toolbar-tabs segmented-control toolbar-btn-divider-left">
             <div class="toolbar-tab-item">
               <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" aria-controls="mapPanel" aria-expanded="false">
                 <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
@@ -297,72 +352,16 @@
             </div>
           </div>
         </div>
-
-        <div class="toolbar-group toolbar-actions">
-          <div class="change-nav" hidden>
-            <button class="ui-control ui-button ui-button-ghost mark-read" id="markRead" type="button">Mark all read</button>
-            <div class="pager segmented-control" hidden>
-              <span class="change-position sr-only" id="changePosition">0 / 0</span>
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn segmented-control-btn" id="prevChange" type="button" aria-label="Previous update">
-                <img class="nav-chevron nav-chevron-left" src="assets/chevron.svg" alt="" aria-hidden="true">
-              </button>
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn segmented-control-btn segmented-control-btn-divider-left" id="nextChange" type="button" aria-label="Next update">
-                <img class="nav-chevron nav-chevron-right" src="assets/chevron.svg" alt="" aria-hidden="true">
-              </button>
-            </div>
-          </div>
-          <button class="ui-control ui-button ui-button-ghost toolbar-btn toolbar-btn-divider-left export-csv-btn" type="button" aria-label="Export CSV" title="Export CSV">
-            <img class="toolbar-asset-icon export-csv-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
-            <span>Export CSV</span>
-          </button>
-          <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn" type="button" aria-label="Inbox" title="Inbox">
-            <img class="toolbar-asset-icon" src="assets/mail.svg" alt="" aria-hidden="true">
-          </button>
-          <details class="toolbar-dropdown">
-            <summary class="ui-control ui-button ui-button-ghost mark-read toolbar-menu toolbar-btn" aria-label="More options" title="More options">
-              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
-              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-            </summary>
-            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
-              <button class="ui-menu-item toolbar-dropdown-option" id="updatesToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
-                <span class="toolbar-switch" aria-hidden="true"></span>
-                <span class="toolbar-dropdown-label">Updates</span>
-              </button>
-              <button class="ui-menu-item toolbar-dropdown-option" id="modifiedColumnToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
-                <span class="toolbar-switch" aria-hidden="true"></span>
-                <span class="toolbar-dropdown-label">Date modified</span>
-              </button>
-              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-              <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
-                <span class="toolbar-switch" aria-hidden="true"></span>
-                <span class="toolbar-dropdown-label">Reduce motion</span>
-              </button>
-              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Take screenshot</span>
-              </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Reset view</span>
-              </button>
-            </div>
-          </details>
-          <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn toolbar-search-btn toolbar-btn-divider-left" type="button" aria-label="Search" title="Search" disabled>
-            <img class="toolbar-asset-icon" src="assets/search.svg" alt="" aria-hidden="true">
-          </button>
-        </div>
       </div>
 
       <div class="table-wrap" id="tableWrap">
         <table>
           <thead>
             <tr>
-              <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 26%"><span class="th-content">Name <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-              <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 26%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 31%"><span class="th-content">Name <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 31%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="combinedContactsHeader" data-sort-key="contacts" aria-sort="none" style="width: 12%"><span class="th-content">Contacts <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="locationsColumnHeader" data-sort-key="locations" aria-sort="none" style="width: 12%"><span class="th-content">Units <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-              <th class="sortable-header" id="modeColumnHeader" data-sort-key="modified" aria-sort="none" style="width: 12%"><span class="th-content"><span id="modeColumnLabel">Modified</span> <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 12%"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
             </tr>
           </thead>

@@ -19,10 +19,6 @@ function ensureOwnersMapResizeObserver() {
   ownersMapResizeObserver.observe(ownersMapContainer);
 }
 
-function setChangePositionLabel(text) {
-  if (position) position.textContent = text;
-}
-
 function usesReducedMotion() {
   return reduceMotionEnabled;
 }
@@ -264,7 +260,6 @@ function openSidebar(mode, ownerIndex = null, { scrollTable = false } = {}) {
 
   syncMapLocationFilter();
   renderOwners(displayedOwners);
-  refreshChangedRows();
   syncToolbarTabState(getCurrentPanelMode());
 }
 
@@ -277,7 +272,6 @@ function closeSidebar() {
   mapToggle?.setAttribute("aria-expanded", "false");
   resetPanelModeAfterClose(closingMode);
   renderOwners(displayedOwners);
-  refreshChangedRows();
   syncToolbarTabState(closingMode);
 }
 

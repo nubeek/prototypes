@@ -46,29 +46,16 @@ function getOwnerIcons(owner) {
   `;
 }
 
-function getAddedBadge(count) {
-  return count > 0 ? `<span class="ui-badge added-count">+${count}</span>` : "";
-}
-
-function showsContactUpdates() {
-  return updatesEnabled;
-}
-
-function ownerHasContactUpdate(owner) {
-  return owner.addedContacts > 0 || owner.addedLocations > 0;
-}
-
 function getContactsColumn(owner) {
   return `
     <button
-      class="ui-control ui-row-action contacts-action ${activeOrgOwnerIndex === owner.originalIndex ? "is-active" : ""}"
+      class="ui-control ui-row-action contacts-action ${activeRawOwnerIndex === owner.originalIndex ? "is-active" : ""}"
       type="button"
       data-owner-index="${owner.originalIndex}"
-      aria-pressed="${activeOrgOwnerIndex === owner.originalIndex}"
-      aria-label="Show ${owner.ownerName} organization chart"
+      aria-pressed="${activeRawOwnerIndex === owner.originalIndex}"
+      aria-label="Show ${owner.ownerName} contacts"
     >
       <span>${getOwnerContactCount(owner)}</span>
-      ${showsContactUpdates() ? getAddedBadge(owner.addedContacts) : ""}
       <img class="contact-chevron" src="assets/arrows.svg" alt="" aria-hidden="true">
     </button>
   `;
@@ -100,40 +87,6 @@ function getFranchiseLogosColumn(owner) {
       `).join("")}
     </div>
   `;
-}
-
-function formatModifiedDate(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const year = String(date.getFullYear());
-  return `${month}/${day}/${year}`;
-}
-
-function getModeColumn(owner) {
-  return `<span class="modified-date">${formatModifiedDate(owner.modified)}</span>`;
-}
-
-function ownerHasVisibleChange(owner) {
-  if (!updatesEnabled) return false;
-  return owner.changed || ownerHasContactUpdate(owner);
-}
-
-function syncUpdatesToggleOption() {
-  if (!updatesToggleOption) return;
-  updatesToggleOption.setAttribute("aria-checked", String(updatesEnabled));
-}
-
-function syncUpdatesStateClass() {
-  if (!card) return;
-  card.classList.toggle("updates-disabled", !updatesEnabled);
-}
-
-function syncModifiedColumnToggleOption() {
-  if (!modifiedColumnToggleOption) return;
-  modifiedColumnToggleOption.setAttribute("aria-checked", String(modifiedColumnVisible));
 }
 
 function syncReduceMotionToggleOption() {
@@ -289,31 +242,14 @@ async function takeViewportScreenshot() {
 }
 
 function syncColumnWidths() {
-  const widths = modifiedColumnVisible ? columnWidths : columnWidthsWithoutModified;
-
-  ownerColumnHeader.style.width = widths.owner;
-  contactColumnHeader.style.width = widths.contact;
-  franchiseColumnHeader.style.width = widths.franchise;
-  locationsColumnHeader.style.width = widths.locations;
-
-  if (modifiedColumnVisible) {
-    modeColumnHeader.style.width = widths.mode;
-  }
+  ownerColumnHeader.style.width = columnWidths.owner;
+  contactColumnHeader.style.width = columnWidths.contact;
+  franchiseColumnHeader.style.width = columnWidths.franchise;
+  locationsColumnHeader.style.width = columnWidths.locations;
 
   if (combinedContactsHeader) {
-    combinedContactsHeader.style.width = widths.contacts;
+    combinedContactsHeader.style.width = columnWidths.contacts;
   }
-}
-
-function syncModeColumn() {
-  modeColumnHeader.dataset.sortKey = "modified";
-  const currentModeColumnLabel = document.getElementById("modeColumnLabel") || modeColumnLabel;
-  currentModeColumnLabel.textContent = "Modified";
-  modeColumnHeader.classList.toggle("right", modifiedColumnVisible);
-  modeColumnHeader.hidden = !modifiedColumnVisible;
-  combinedContactsHeader.hidden = false;
-  syncColumnWidths();
-  syncModifiedColumnToggleOption();
 }
 
 function renderOwners(rows) {
@@ -333,7 +269,7 @@ function renderOwners(rows) {
 
         return `
         <tr
-          class="${ownerHasVisibleChange(owner) ? "changed" : ""} ${activeDetailOwnerIndex === owner.originalIndex || activeOrgOwnerIndex === owner.originalIndex || activeMapOwnerIndex === owner.originalIndex || activeRawOwnerIndex === owner.originalIndex ? "is-selected" : ""}"
+          class="${activeDetailOwnerIndex === owner.originalIndex || activeOrgOwnerIndex === owner.originalIndex || activeMapOwnerIndex === owner.originalIndex || activeRawOwnerIndex === owner.originalIndex ? "is-selected" : ""}"
           data-owner-index="${owner.originalIndex}"
         >
           <td>
@@ -393,11 +329,9 @@ function renderOwners(rows) {
               aria-label="Show ${owner.ownerName} locations on the map"
             >
               <span>${getOwnerUnitCount(owner)}</span>
-              ${showsContactUpdates() ? getAddedBadge(owner.addedLocations) : ""}
               <img class="location-chevron" src="assets/arrows.svg" alt="" aria-hidden="true">
             </button>
           </td>
-          ${modifiedColumnVisible ? `<td class="modified-cell">${getModeColumn(owner)}</td>` : ""}
           <td>${getFranchiseLogosColumn(owner)}</td>
         </tr>
       `;
@@ -407,7 +341,6 @@ function renderOwners(rows) {
 }
 
 function getSortValue(owner, key) {
-  if (key === "modified") return new Date(owner.modified).getTime();
   if (key === "contacts") return getOwnerContactCount(owner);
   if (key === "locations") return getOwnerUnitCount(owner);
   if (key === "franchise") return getFranchiseCount(owner);
@@ -429,50 +362,11 @@ function getNameSortGroup(owner) {
 }
 
 function getInitialSortDirection(sortKey) {
-  if (sortKey === "modified" || sortKey === "contacts" || sortKey === "locations" || sortKey === "franchise") {
+  if (sortKey === "contacts" || sortKey === "locations" || sortKey === "franchise") {
     return "descending";
   }
 
   return "ascending";
-}
-
-function getContactsModeSortPriority(owner, sortKey) {
-  if (sortKey === "contacts") return owner.addedContacts > 0 ? 0 : 1;
-  return 0;
-}
-
-function compareLocationsForCurrentCycle(a, b) {
-  const aHasLocationChange = a.addedLocations > 0;
-  const bHasLocationChange = b.addedLocations > 0;
-
-  // Initial/default locations sort: pure highest-to-lowest count.
-  if (!locationSortCycleActive && sortState.direction === "descending") {
-    const defaultComparison = getOwnerUnitCount(b) - getOwnerUnitCount(a);
-    if (defaultComparison !== 0) return defaultComparison;
-    return a.originalIndex - b.originalIndex;
-  }
-
-  if (sortState.direction === "ascending") {
-    // First click from default: unchanged rows first, then lowest counts.
-    if (aHasLocationChange !== bHasLocationChange) {
-      return aHasLocationChange ? 1 : -1;
-    }
-    const ascendingComparison = getOwnerUnitCount(a) - getOwnerUnitCount(b);
-    if (ascendingComparison !== 0) return ascendingComparison;
-    return a.originalIndex - b.originalIndex;
-  }
-
-  // Next click: changed rows first (low-to-high), unchanged rows high-to-low.
-  if (aHasLocationChange !== bHasLocationChange) {
-    return aHasLocationChange ? -1 : 1;
-  }
-
-  const mixedComparison = aHasLocationChange
-    ? getOwnerUnitCount(a) - getOwnerUnitCount(b)
-    : getOwnerUnitCount(b) - getOwnerUnitCount(a);
-
-  if (mixedComparison !== 0) return mixedComparison;
-  return a.originalIndex - b.originalIndex;
 }
 
 function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
@@ -487,6 +381,33 @@ function ownerExcludesLocationLabel(owner, locationLabels = excludedLocationLabe
 
   const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
   return ownerLocations.some((location) => locationLabels.includes(location.label));
+}
+
+function getOwnerCategories(owner) {
+  if (Array.isArray(owner.categories) && owner.categories.length) {
+    return [...new Set(owner.categories.map((value) => String(value).trim()).filter(Boolean))];
+  }
+
+  if (typeof owner.category === "string" && owner.category.trim()) {
+    return [owner.category.trim()];
+  }
+
+  const unitCategories = (window.ownerLocationsData?.[owner.originalIndex]?.units || [])
+    .map((unit) => unit.category)
+    .filter((value) => typeof value === "string" && value.trim())
+    .map((value) => value.trim());
+  if (unitCategories.length) {
+    return [...new Set(unitCategories)];
+  }
+
+  return ["Fitness"];
+}
+
+function ownerMatchesCategoryFilter(owner) {
+  const ownerCategories = getOwnerCategories(owner);
+  if (ownerCategories.some((category) => excludedCategoryValues.includes(category))) return false;
+  if (!selectedCategoryValues.length) return true;
+  return ownerCategories.some((category) => selectedCategoryValues.includes(category));
 }
 
 function ownerMatchesFranchiseFilter(owner) {
@@ -518,9 +439,56 @@ function ownerMatchesContactsFilter(owner) {
   return Number.isFinite(contacts) && contacts >= selectedContactsMin && contacts <= selectedContactsMax;
 }
 
+function getOwnerSearchIndex(owner) {
+  const cachedValue = ownerSearchIndexById.get(owner.originalIndex);
+  if (cachedValue) return cachedValue;
+
+  const locationData = window.ownerLocationsData?.[owner.originalIndex];
+  const locations = Array.isArray(locationData?.locations) ? locationData.locations : [];
+  const units = Array.isArray(locationData?.units) ? locationData.units : [];
+  const searchTokens = [
+    owner.ownerName,
+    owner.contactName,
+    owner.email,
+    owner.franchise,
+    owner.category,
+    ...(Array.isArray(owner.categories) ? owner.categories : []),
+    ...locations.flatMap((location) => [location.label, location.city, location.state, location.address]),
+    ...units.flatMap((unit) => [
+      unit.name,
+      unit.label,
+      unit.city,
+      unit.state,
+      unit.address,
+      unit.category,
+      unit.franchise,
+      unit.email,
+      unit.phone
+    ])
+  ]
+    .filter((value) => value !== null && value !== undefined)
+    .map((value) => String(value).trim().toLocaleLowerCase())
+    .filter(Boolean);
+  const indexedText = searchTokens.join(" ");
+  ownerSearchIndexById.set(owner.originalIndex, indexedText);
+  return indexedText;
+}
+
+function ownerMatchesSearchQuery(owner) {
+  if (!searchQuery) return true;
+  return getOwnerSearchIndex(owner).includes(searchQuery);
+}
+
 function rawRowMatchesFilters(row) {
   if (excludedLocationLabels.includes(row.location)) return false;
   if (selectedLocationLabels.length && !selectedLocationLabels.includes(row.location)) return false;
+  const rowCategories = Array.isArray(row.categories) && row.categories.length
+    ? row.categories
+    : [row.category || "Fitness"];
+  if (rowCategories.some((category) => excludedCategoryValues.includes(category))) return false;
+  if (selectedCategoryValues.length && !rowCategories.some((category) => selectedCategoryValues.includes(category))) {
+    return false;
+  }
   if (row.franchises.some((franchiseName) => excludedFranchiseIndexes.includes(franchiseName))) return false;
   if (!selectedFranchiseIndexes.length) return true;
 
@@ -529,8 +497,10 @@ function rawRowMatchesFilters(row) {
 
 function getFilteredOwners() {
   return owners.filter((owner) => {
+    if (!ownerMatchesSearchQuery(owner)) return false;
     if (!ownerHasLocationLabel(owner)) return false;
     if (ownerExcludesLocationLabel(owner)) return false;
+    if (!ownerMatchesCategoryFilter(owner)) return false;
     if (!ownerMatchesFranchiseFilter(owner)) return false;
     if (!ownerMatchesUnitsFilter(owner)) return false;
     if (!ownerMatchesContactsFilter(owner)) return false;
@@ -581,17 +551,6 @@ function sortOwners() {
       return a.originalIndex - b.originalIndex;
     }
 
-    if (sortState.key === "locations") {
-      return compareLocationsForCurrentCycle(a, b);
-    }
-
-    const priorityComparison =
-      getContactsModeSortPriority(a, sortState.key) - getContactsModeSortPriority(b, sortState.key);
-
-    if (priorityComparison !== 0) {
-      return priorityComparison;
-    }
-
     const valueA = getSortValue(a, sortState.key);
     const valueB = getSortValue(b, sortState.key);
 
@@ -632,10 +591,11 @@ function getAppliedFilterCount() {
     selectedFranchiseIndexes.length +
     excludedFranchiseIndexes.length;
   const selectedStatusCount = statusFilterInputs.filter((checkbox) => checkbox.checked).length;
+  const selectedSearchCount = searchQuery ? 1 : 0;
   const selectedUnitsCount = unitsFilterIsActive() ? 1 : 0;
   const selectedContactsCount = contactsFilterIsActive() ? 1 : 0;
 
-  return selectedFilterCount + selectedStatusCount + selectedUnitsCount + selectedContactsCount;
+  return selectedFilterCount + selectedStatusCount + selectedSearchCount + selectedUnitsCount + selectedContactsCount;
 }
 
 function updateClearFiltersButton() {
@@ -670,51 +630,11 @@ function syncSortHeaders() {
   });
 }
 
-function updateHeaderState() {
-  const updatedCount = owners.filter((owner) => ownerHasVisibleChange(owner)).length;
-  const totalCount = owners.length;
-  const hasUpdates = updatedCount > 0;
-
-  if (subtitle) {
-    subtitle.textContent = hasUpdates
-      ? `${updatedCount} of ${totalCount} records updated`
-      : `${totalCount} records up to date`;
-
-    subtitle.classList.toggle("is-resolved", !hasUpdates);
-  }
-
-  if (changeNav) changeNav.hidden = !hasUpdates;
-  if (markRead) markRead.hidden = !hasUpdates;
-  if (pager) pager.hidden = !hasUpdates;
-}
-
 function applySort() {
-  changeNavEngaged = false;
-  clearTimeout(activeHighlightTimeout);
   sortOwners();
   renderOwners(displayedOwners);
-  refreshChangedRows();
   syncSortHeaders();
   updateFilterSummary();
-  updateHeaderState();
-
-  if (!changedRows.length) {
-    setChangePositionLabel("0 / 0");
-  }
-}
-
-function refreshChangedRows() {
-  changedRows = Array.from(document.querySelectorAll("tr.changed"));
-  if (!changedRows.length) {
-    setChangePositionLabel("0 / 0");
-    return;
-  }
-  if (changeNavEngaged) {
-    activeIndex = Math.min(activeIndex, changedRows.length - 1);
-    setChangePositionLabel(`${activeIndex + 1} / ${changedRows.length}`);
-  } else {
-    setChangePositionLabel(`0 / ${changedRows.length}`);
-  }
 }
 
 function syncStickyNameColumnDivider() {
@@ -727,39 +647,3 @@ function syncStickyNameColumnDivider() {
   tableWrap.classList.toggle("is-header-row-overlap", hasVerticalOverflow && hasTopOverlap);
 }
 
-function advanceChangeRow(delta) {
-  if (!changedRows.length) {
-    setChangePositionLabel("0 / 0");
-    return;
-  }
-
-  if (!changeNavEngaged) {
-    changeNavEngaged = true;
-    activeIndex = delta > 0 ? 0 : changedRows.length - 1;
-  } else {
-    activeIndex = (activeIndex + delta + changedRows.length) % changedRows.length;
-  }
-
-  changedRows.forEach((row) => {
-    row.classList.remove("is-active");
-  });
-
-  const activeRow = changedRows[activeIndex];
-  activeRow.classList.add("is-active");
-  clearTimeout(activeHighlightTimeout);
-  activeHighlightTimeout = setTimeout(() => {
-    activeRow.classList.remove("is-active");
-  }, getMotionDelay(ACTIVE_HIGHLIGHT_FADE_MS));
-
-  setChangePositionLabel(`${activeIndex + 1} / ${changedRows.length}`);
-
-  const wrapRect = tableWrap.getBoundingClientRect();
-  const rowRect = activeRow.getBoundingClientRect();
-  const offset = rowRect.top - wrapRect.top + tableWrap.scrollTop;
-  const target = offset - tableWrap.clientHeight / 2 + activeRow.offsetHeight / 2;
-
-  tableWrap.scrollTo({
-    top: target,
-    behavior: usesReducedMotion() ? "auto" : "smooth"
-  });
-}

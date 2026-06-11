@@ -310,6 +310,85 @@ function getOwnerRawRows(ownerIndex) {
   }));
 }
 
+function getOwnerMainContactNodeId(ownerIndex) {
+  const owner = owners.find((item) => item.originalIndex === ownerIndex);
+  if (!owner) return null;
+
+  const rows = getOwnerRawRows(ownerIndex);
+  if (!rows.length) return null;
+
+  const matchingRow = rows.find((row) => row.name === owner.contactName) || rows[0];
+  return matchingRow ? matchingRow.nodeId : null;
+}
+
+function getContactStateKey(ownerIndex, nodeId) {
+  return `${ownerIndex}:${nodeId}`;
+}
+
+function resolveContactNodeId(ownerIndex, nodeId) {
+  return nodeId != null && nodeId !== "" ? nodeId : getOwnerMainContactNodeId(ownerIndex);
+}
+
+// The owner's main contact shares state with the owner-level lead/hide sets so
+// the owners table and contacts table stay in sync. Any other contact uses a
+// per-node key.
+function isOwnerMainContactNode(ownerIndex, nodeId) {
+  const resolved = resolveContactNodeId(ownerIndex, nodeId);
+  return resolved != null && getOwnerMainContactNodeId(ownerIndex) === resolved;
+}
+
+function isContactLeadSaved(ownerIndex, nodeId) {
+  if (!Number.isFinite(ownerIndex)) return false;
+  if (isOwnerMainContactNode(ownerIndex, nodeId)) {
+    return savedLeadOwnerIndexes.has(ownerIndex);
+  }
+  return savedLeadContactKeys.has(getContactStateKey(ownerIndex, resolveContactNodeId(ownerIndex, nodeId)));
+}
+
+function setContactLeadSaved(ownerIndex, nodeId, value) {
+  if (!Number.isFinite(ownerIndex)) return;
+  if (isOwnerMainContactNode(ownerIndex, nodeId)) {
+    if (value) savedLeadOwnerIndexes.add(ownerIndex);
+    else savedLeadOwnerIndexes.delete(ownerIndex);
+    return;
+  }
+  const key = getContactStateKey(ownerIndex, resolveContactNodeId(ownerIndex, nodeId));
+  if (value) savedLeadContactKeys.add(key);
+  else savedLeadContactKeys.delete(key);
+}
+
+function toggleContactLeadSaved(ownerIndex, nodeId) {
+  const next = !isContactLeadSaved(ownerIndex, nodeId);
+  setContactLeadSaved(ownerIndex, nodeId, next);
+  return next;
+}
+
+function isContactHidden(ownerIndex, nodeId) {
+  if (!Number.isFinite(ownerIndex)) return false;
+  if (isOwnerMainContactNode(ownerIndex, nodeId)) {
+    return hiddenContactOwnerIndexes.has(ownerIndex);
+  }
+  return hiddenContactKeys.has(getContactStateKey(ownerIndex, resolveContactNodeId(ownerIndex, nodeId)));
+}
+
+function setContactHidden(ownerIndex, nodeId, value) {
+  if (!Number.isFinite(ownerIndex)) return;
+  if (isOwnerMainContactNode(ownerIndex, nodeId)) {
+    if (value) hiddenContactOwnerIndexes.add(ownerIndex);
+    else hiddenContactOwnerIndexes.delete(ownerIndex);
+    return;
+  }
+  const key = getContactStateKey(ownerIndex, resolveContactNodeId(ownerIndex, nodeId));
+  if (value) hiddenContactKeys.add(key);
+  else hiddenContactKeys.delete(key);
+}
+
+function toggleContactHidden(ownerIndex, nodeId) {
+  const next = !isContactHidden(ownerIndex, nodeId);
+  setContactHidden(ownerIndex, nodeId, next);
+  return next;
+}
+
 function getPersonProfileFromRawRow(ownerIndex, rowIndex) {
   const owner = owners.find((item) => item.originalIndex === ownerIndex);
   const row = getOwnerRawRows(ownerIndex)[rowIndex];
@@ -317,6 +396,7 @@ function getPersonProfileFromRawRow(ownerIndex, rowIndex) {
 
   return {
     ownerIndex,
+    nodeId: row.nodeId,
     name: row.name,
     ownerName: owner.ownerName,
     title: row.title,
@@ -333,6 +413,7 @@ function getPersonProfileFromUnitRow(ownerIndex, unitIndex) {
 
   return {
     ownerIndex,
+    nodeId: null,
     name: row.name,
     ownerName: owner.ownerName,
     title: "Operator",
@@ -357,6 +438,7 @@ function getPersonProfileFromOwnerContact(ownerIndex) {
 
   return {
     ownerIndex,
+    nodeId: matchingRow?.nodeId ?? null,
     name: owner.contactName || matchingRow?.name || owner.ownerName,
     ownerName: owner.ownerName,
     title: matchingRow?.title || "Prospect",
@@ -368,7 +450,7 @@ function getPersonProfileFromOwnerContact(ownerIndex) {
 
 function renderPersonProfile(profile) {
   if (!profileModalContent) return;
-  const isLeadSaved = Number.isFinite(profile.ownerIndex) && savedLeadOwnerIndexes.has(profile.ownerIndex);
+  const isLeadSaved = Number.isFinite(profile.ownerIndex) && isContactLeadSaved(profile.ownerIndex, profile.nodeId);
   const primaryActionLabel = isLeadSaved ? "Remove from leads" : "Save as lead";
 
   profileModalContent.innerHTML = `
@@ -404,31 +486,61 @@ function renderPersonProfile(profile) {
   `;
 }
 
+const PROFILE_MODAL_CLOSE_DURATION_MS = 320;
+let profileModalCloseTimeoutId = null;
+
+function finalizePersonProfileClose() {
+  if (!profileModal) return;
+
+  profileModal.classList.remove("is-open", "is-closing");
+  profileModal.hidden = true;
+  delete profileModal.dataset.ownerIndex;
+  delete profileModal.dataset.nodeId;
+  if (profileModalContent) profileModalContent.innerHTML = "";
+  profileModalCloseTimeoutId = null;
+
+  if (lastProfileModalTrigger instanceof HTMLElement) {
+    lastProfileModalTrigger.focus({ preventScroll: true });
+  }
+  lastProfileModalTrigger = null;
+}
+
 function openPersonProfile(profile, trigger = null) {
   if (!profile || !profileModal) return;
 
+  if (profileModalCloseTimeoutId) {
+    window.clearTimeout(profileModalCloseTimeoutId);
+    profileModalCloseTimeoutId = null;
+  }
+  profileModal.classList.remove("is-closing");
   lastProfileModalTrigger = trigger;
   if (Number.isFinite(profile.ownerIndex)) {
     profileModal.dataset.ownerIndex = String(profile.ownerIndex);
   } else {
     delete profileModal.dataset.ownerIndex;
   }
+  if (profile.nodeId != null) {
+    profileModal.dataset.nodeId = String(profile.nodeId);
+  } else {
+    delete profileModal.dataset.nodeId;
+  }
   renderPersonProfile(profile);
   profileModal.hidden = false;
-  profileModal.classList.add("is-open");
+  profileModal.classList.remove("is-open");
+  window.requestAnimationFrame(() => {
+    if (!profileModal || profileModal.hidden) return;
+    profileModal.classList.add("is-open");
+  });
   profileModal.querySelector(".profile-modal-close")?.focus();
 }
 
 function closePersonProfile() {
   if (!profileModal || profileModal.hidden) return;
 
-  profileModal.classList.remove("is-open");
-  profileModal.hidden = true;
-  delete profileModal.dataset.ownerIndex;
-  if (profileModalContent) profileModalContent.innerHTML = "";
-
-  if (lastProfileModalTrigger instanceof HTMLElement) {
-    lastProfileModalTrigger.focus({ preventScroll: true });
+  if (profileModalCloseTimeoutId) {
+    window.clearTimeout(profileModalCloseTimeoutId);
   }
-  lastProfileModalTrigger = null;
+  profileModal.classList.remove("is-open");
+  profileModal.classList.add("is-closing");
+  profileModalCloseTimeoutId = window.setTimeout(finalizePersonProfileClose, PROFILE_MODAL_CLOSE_DURATION_MS);
 }

@@ -1,13 +1,11 @@
 const tableBody = document.getElementById("ownersTableBody");
-const markRead = document.getElementById("markRead");
-const position = document.getElementById("changePosition");
-const prev = document.getElementById("prevChange");
-const next = document.getElementById("nextChange");
 const tableWrap = document.getElementById("tableWrap");
 const tableEmptyState = document.getElementById("tableEmptyState");
 const card = document.querySelector(".card");
 const filterToggle = document.getElementById("filterToggle");
 const filterToggleLabel = document.getElementById("filterToggleLabel");
+const toolbarSearchInput = document.getElementById("toolbarSearchInput");
+const toolbarSearchClear = document.getElementById("toolbarSearchClear");
 const filterPanel = document.getElementById("filterPanel");
 const filterSummary = document.getElementById("filterSummary");
 const clearAllFilters = document.getElementById("clearAllFilters");
@@ -36,20 +34,15 @@ const ownerDetailsPanel = document.getElementById("ownerDetailsPanel");
 const profileModal = document.getElementById("profileModal");
 const profileModalContent = document.getElementById("profileModalContent");
 const toolbarDropdown = document.querySelector(".toolbar-dropdown");
-const updatesToggleOption = document.getElementById("updatesToggleOption");
-const modifiedColumnToggleOption = document.getElementById("modifiedColumnToggleOption");
+const toolbarSettingsSubmenu = document.querySelector("[data-toolbar-submenu]");
+const toolbarSettingsSubmenuTrigger = document.getElementById("toolbarSettingsSubmenuTrigger");
 const reduceMotionToggleOption = document.getElementById("reduceMotionToggleOption");
 const takeScreenshotOption = document.getElementById("takeScreenshotOption");
 const resetViewOption = document.getElementById("resetViewOption");
-const subtitle = document.querySelector(".subtitle-count");
-const changeNav = document.querySelector(".change-nav");
-const pager = document.querySelector(".pager");
 const sortHeaders = Array.from(document.querySelectorAll(".sortable-header"));
 const ownerColumnHeader = document.getElementById("ownerColumnHeader");
 const contactColumnHeader = document.getElementById("contactColumnHeader");
 const franchiseColumnHeader = document.getElementById("franchiseColumnHeader");
-const modeColumnHeader = document.getElementById("modeColumnHeader");
-const modeColumnLabel = document.getElementById("modeColumnLabel");
 const combinedContactsHeader = document.getElementById("combinedContactsHeader");
 const locationsColumnHeader = document.getElementById("locationsColumnHeader");
 const ownersTable = tableBody?.closest("table");
@@ -57,7 +50,6 @@ const ownerTableHeaders = [
   ownerColumnHeader,
   contactColumnHeader,
   franchiseColumnHeader,
-  modeColumnHeader,
   combinedContactsHeader,
   locationsColumnHeader
 ].filter(Boolean);
@@ -91,7 +83,6 @@ const contactsFilterDefaults = {
 const activeIconColor = "#7a63dd";
 const inactiveIconColor = "rgba(122, 99, 221, 0.15)";
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
-const ACTIVE_HIGHLIGHT_FADE_MS = 220;
 const TOOLBAR_TAB_DROPDOWN_OPEN_DELAY_MS = 800;
 const TOOLBAR_TAB_DROPDOWN_CLOSE_DELAY_MS = 800;
 const MAPBOX_ACCESS_TOKEN = window.CST_ENV?.MAPBOX_ACCESS_TOKEN
@@ -124,10 +115,9 @@ function getOwnerUnitCount(owner) {
   return Array.isArray(owner.units) ? owner.units.length : 0;
 }
 
-let changedRows = [];
-let activeIndex = 0;
-let changeNavEngaged = false;
 let displayedOwners = [...owners];
+let searchQuery = "";
+const ownerSearchIndexById = new Map();
 let selectedLocationLabels = [];
 let excludedLocationLabels = [];
 let selectedCategoryValues = [];
@@ -140,9 +130,6 @@ let selectedUnitsMin = unitsFilterDefaults.min;
 let selectedUnitsMax = unitsFilterDefaults.max;
 let selectedContactsMin = contactsFilterDefaults.min;
 let selectedContactsMax = contactsFilterDefaults.max;
-let activeHighlightTimeout;
-let updatesEnabled = false;
-let modifiedColumnVisible = false;
 let reduceMotionEnabled = false;
 let ownersMap;
 let ownersMapInitialized = false;
@@ -159,8 +146,13 @@ let globalRawDataViewOpen = false;
 let lockedToolbarMode = "map";
 let currentPanelLayout = "right";
 let lastProfileModalTrigger = null;
+// Owner-level lead/hide state keyed by owner.originalIndex, representing the
+// owner's main contact. Additional org-chart contacts are tracked per node in
+// the keyed sets below.
 const savedLeadOwnerIndexes = new Set();
 const hiddenContactOwnerIndexes = new Set();
+const savedLeadContactKeys = new Set();
+const hiddenContactKeys = new Set();
 let ownersMapResizeObserver = null;
 let ownersMapResizeFrame = null;
 let screenshotInProgress = false;
@@ -181,16 +173,7 @@ let sortState = {
   key: "locations",
   direction: "descending"
 };
-let locationSortCycleActive = false;
 const columnWidths = {
-  owner: "26%",
-  contact: "26%",
-  mode: "12%",
-  contacts: "12%",
-  locations: "12%",
-  franchise: "12%"
-};
-const columnWidthsWithoutModified = {
   owner: "31%",
   contact: "31%",
   contacts: "12%",

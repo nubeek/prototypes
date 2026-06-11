@@ -3,206 +3,162 @@ const ownerSeedRows = [
     ownerName: "United FP",
     primaryContact: { name: "Scott Wolff", email: "scottwolff@unitedfp.com" },
     franchiseNames: ["Planet Fitness", "Snap Fitness"],
-    modified: "May 2, 2026",
     contactCount: 15,
     unitCount: 499,
     logoFilename: "united_fp",
     webEnabled: true,
-    linkedinEnabled: true,
-    changed: false
+    linkedinEnabled: true
   },
   {
     ownerName: "Argonne Capital",
     primaryContact: { name: "Mark Rashford", email: "rashford@argonnecapital.com" },
     franchiseNames: ["Planet Fitness", "Snap Fitness"],
-    modified: "May 8, 2026",
     contactCount: 12,
     unitCount: 257,
     logoFilename: "argonne_capital",
     webEnabled: true,
-    linkedinEnabled: true,
-    changed: true,
-    addedContacts: 2
+    linkedinEnabled: true
   },
   {
     ownerName: "Trilantic Capital Management",
     primaryContact: { name: "Cedric Itten", email: "cedricitten@trilantic.com" },
     franchiseNames: ["Planet Fitness", "Snap Fitness"],
-    modified: "May 2, 2026",
     contactCount: 8,
     unitCount: 182,
     logoFilename: "trilantic_capital_management",
     webEnabled: true,
-    linkedinEnabled: false,
-    changed: false
+    linkedinEnabled: false
   },
   {
     ownerName: "Olympus Partners",
     primaryContact: { name: "Josh Appleseed", email: "josh@olympuspartners.com" },
     franchiseNames: ["Planet Fitness", "Snap Fitness"],
-    modified: "May 2, 2026",
     contactCount: 8,
     unitCount: 97,
     logoFilename: "olympus_partners",
     webEnabled: true,
-    linkedinEnabled: false,
-    changed: false,
-    addedLocations: 20
+    linkedinEnabled: false
   },
   {
     ownerName: "TowerBrook",
     primaryContact: { name: "Michael Scott", email: "m.scott@towerbrook.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 8, 2026",
     contactCount: 5,
     unitCount: 82,
     logoFilename: "towerbrook",
     webEnabled: false,
-    linkedinEnabled: false,
-    changed: true,
-    addedContacts: 2
+    linkedinEnabled: false
   },
   {
     ownerName: "Planet Fitness Corporate",
     primaryContact: { name: "Chris Rondeau", email: "partners@planetfitness.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 2, 2026",
     contactCount: 4,
     unitCount: 50,
     logoFilename: "planet_fitness_corporate",
     webEnabled: true,
-    linkedinEnabled: true,
-    changed: false
+    linkedinEnabled: true
   },
   {
     ownerName: "Baseline Mayfair",
     primaryContact: { name: "Rachel Green", email: "r.green@baselinemayfair.com" },
     franchiseNames: ["Crunch Fitness"],
-    modified: "May 2, 2026",
     contactCount: 7,
     unitCount: 76,
     logoFilename: "baseline_mayfair",
     webEnabled: true,
-    linkedinEnabled: false,
-    changed: false,
-    addedContacts: 1,
-    addedLocations: 6
+    linkedinEnabled: false
   },
   {
     ownerName: "Black Duck Partners",
     primaryContact: { name: "Tom Hardy", email: "tom@blackduckpartners.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 2, 2026",
     contactCount: 6,
     unitCount: 63,
     logoFilename: "black_duck_partners",
     webEnabled: true,
-    linkedinEnabled: true,
-    changed: false
+    linkedinEnabled: true
   },
   {
     ownerName: "Easy Mile Fitness",
     primaryContact: { name: "Angela Reed", email: "angela@easymilefitness.com" },
     franchiseNames: ["Gold's Gym"],
-    modified: "May 2, 2026",
     contactCount: 3,
     unitCount: 41,
     logoFilename: "easy_mile_fitness",
     webEnabled: false,
-    linkedinEnabled: false,
-    changed: false
+    linkedinEnabled: false
   },
   {
     ownerName: "Epic Fitness",
     primaryContact: { name: "Chris Martin", email: "chris@epicfitness.com" },
     franchiseNames: ["Orangetheory"],
-    modified: "May 2, 2026",
     contactCount: 9,
     unitCount: 118,
     logoFilename: "epic_fitness",
     webEnabled: true,
-    linkedinEnabled: false,
-    changed: false,
-    addedContacts: 1,
-    addedLocations: 12
+    linkedinEnabled: false
   },
   {
     ownerName: "Flynn Fitness",
     primaryContact: { name: "Olivia Stone", email: "olivia@flynnfitness.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 2, 2026",
     contactCount: 11,
     unitCount: 205,
     logoFilename: "flynn_fitness",
     webEnabled: true,
-    linkedinEnabled: true,
-    changed: false,
-    addedContacts: 2
+    linkedinEnabled: true
   },
   {
     ownerName: "Ohana Growth Partners",
     primaryContact: { name: "Henry Allen", email: "henry@ohanagrowthpartners.com" },
     franchiseNames: ["Snap Fitness", "Planet Fitness"],
-    modified: "May 2, 2026",
     contactCount: 4,
     unitCount: 34,
     logoFilename: "ohana_growth_partners",
     webEnabled: false,
-    linkedinEnabled: true,
-    changed: false,
-    addedLocations: 3
+    linkedinEnabled: true
   },
   {
     ownerName: "Pinnacle",
     primaryContact: { name: "Monica Hall", email: "monica@pinnaclefranchise.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 8, 2026",
     contactCount: 6,
     unitCount: 91,
     logoFilename: "pinnacle",
     webEnabled: true,
-    linkedinEnabled: true,
-    changed: true,
-    addedContacts: 1,
-    addedLocations: 8
+    linkedinEnabled: true
   },
   {
     ownerName: "SBJ",
     primaryContact: { name: "Ben Carter", email: "ben@sbjoperators.com" },
     franchiseNames: ["Club Pilates"],
-    modified: "May 2, 2026",
     contactCount: 5,
     unitCount: 52,
     logoFilename: "sbj",
     webEnabled: true,
-    linkedinEnabled: false,
-    changed: false
+    linkedinEnabled: false
   },
   {
     ownerName: "York Capital Management",
     primaryContact: { name: "Evan Wright", email: "evan@yorkcapital.com" },
     franchiseNames: ["F45 Training"],
-    modified: "May 2, 2026",
     contactCount: 2,
     unitCount: 29,
     logoFilename: "york_capital_management",
     webEnabled: false,
-    linkedinEnabled: false,
-    changed: false
+    linkedinEnabled: false
   },
   {
     ownerName: "National Fitness Partners",
     primaryContact: { name: "Stephen Kindler Jr.", email: "info@nfpfit.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 8, 2026",
     contactCount: 12,
     unitCount: 205,
     logoFilename: "argonne_capital",
     logoAsset: "national_fitness_partners.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
-    addedLocations: 5,
     sourceNotes: [
       "Public sources describe National Fitness Partners as Argonne-backed and operating 200+ Planet Fitness clubs across 14 states."
     ],
@@ -212,14 +168,12 @@ const ownerSeedRows = [
     ownerName: "Taymax Group",
     primaryContact: { name: "Taymax Leadership Team", email: "info@taymaxgroup.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 8, 2026",
     contactCount: 10,
     unitCount: 175,
     logoFilename: "trilantic_capital_management",
     logoAsset: "taymax_group.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
     sourceNotes: [
       "Franchise Times reports Taymax as one of the largest Planet Fitness franchisees, backed by Trilantic North America."
     ],
@@ -229,15 +183,12 @@ const ownerSeedRows = [
     ownerName: "Grand Fitness Partners",
     primaryContact: { name: "Wayne Orvis", email: "info@grandfitnesspartners.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 8, 2026",
     contactCount: 8,
     unitCount: 98,
     logoFilename: "flynn_fitness",
     logoAsset: "grand_fitness_partners.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
-    addedLocations: 9,
     sourceNotes: [
       "Franchise Times reports Flynn Group acquired Grand Fitness Partners and its 98 Planet Fitness locations."
     ],
@@ -247,14 +198,12 @@ const ownerSeedRows = [
     ownerName: "Excel Fitness Holdings",
     primaryContact: { name: "Excel Fitness Leadership Team", email: "info@excelfitness.com" },
     franchiseNames: ["Planet Fitness"],
-    modified: "May 8, 2026",
     contactCount: 8,
     unitCount: 90,
     logoFilename: "olympus_partners",
     logoAsset: "excel_fitness_holdings.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
     sourceNotes: [
       "Industry coverage describes Excel Fitness Holdings as a Planet Fitness franchisee acquired by Olympus Partners with 90+ units."
     ],
@@ -264,15 +213,12 @@ const ownerSeedRows = [
     ownerName: "Fitness Ventures LLC",
     primaryContact: { name: "Brian Hibbard", email: "info@fitnessventuresllc.com" },
     franchiseNames: ["Crunch Fitness"],
-    modified: "May 8, 2026",
     contactCount: 11,
     unitCount: 115,
     logoFilename: "baseline_mayfair",
     logoAsset: "fitness_ventures_llc.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
-    addedLocations: 23,
     sourceNotes: [
       "Fitness Ventures describes itself as the largest Crunch Fitness franchise operator, with 115 locations across 30 states and backing from Meaningful Partners."
     ],
@@ -282,15 +228,12 @@ const ownerSeedRows = [
     ownerName: "CR Fitness Holdings",
     primaryContact: { name: "Vince Julien", email: "info@crfitnessholdings.com" },
     franchiseNames: ["Crunch Fitness"],
-    modified: "May 8, 2026",
     contactCount: 9,
     unitCount: 90,
     logoFilename: "baseline_mayfair",
     logoAsset: "cr_fitness_holdings.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
-    addedLocations: 24,
     sourceNotes: [
       "Business Wire reports CR Fitness Holdings operates nearly 90 Crunch Fitness clubs and has backing from North Castle Partners and Sixth Street."
     ],
@@ -300,14 +243,12 @@ const ownerSeedRows = [
     ownerName: "Riser Fitness",
     primaryContact: { name: "Jeff Nash", email: "info@riserfitness.com" },
     franchiseNames: ["Club Pilates"],
-    modified: "May 8, 2026",
     contactCount: 8,
     unitCount: 110,
     logoFilename: "sbj",
     logoAsset: "riser_fitness.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
     sourceNotes: [
       "Franchise Times reports Riser Fitness operates 110+ Club Pilates locations and has growth capital from Fortress Investment Group."
     ],
@@ -317,15 +258,12 @@ const ownerSeedRows = [
     ownerName: "Aligned Fitness Holdings",
     primaryContact: { name: "Aligned Fitness Leadership Team", email: "info@alignedfitness.com" },
     franchiseNames: ["Club Pilates"],
-    modified: "May 8, 2026",
     contactCount: 6,
     unitCount: 61,
     logoFilename: "sbj",
     logoAsset: "aligned_fitness_holdings.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
-    addedLocations: 6,
     sourceNotes: [
       "Athletech News reports Aligned Fitness Holdings is backed by Eagle Merchant Partners and operates 61 Club Pilates studios after recent acquisitions."
     ],
@@ -335,14 +273,12 @@ const ownerSeedRows = [
     ownerName: "Bandon Holdings",
     primaryContact: { name: "Bandon Holdings Leadership Team", email: "info@bandonholdings.com" },
     franchiseNames: ["Anytime Fitness"],
-    modified: "May 8, 2026",
     contactCount: 9,
     unitCount: 213,
     logoFilename: "easy_mile_fitness",
     logoAsset: "bandon_holdings.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
     sourceNotes: [
       "Industry coverage describes Bandon Holdings as a large Anytime Fitness franchisee acquired by Sentinel Capital Partners with 213 locations."
     ],
@@ -352,15 +288,12 @@ const ownerSeedRows = [
     ownerName: "Omega Fitness",
     primaryContact: { name: "Omega Fitness Leadership Team", email: "info@omegafitness.com" },
     franchiseNames: ["Anytime Fitness"],
-    modified: "May 8, 2026",
     contactCount: 7,
     unitCount: 120,
     logoFilename: "easy_mile_fitness",
     logoAsset: "omega_fitness.png",
     webEnabled: true,
     linkedinEnabled: true,
-    changed: true,
-    addedLocations: 21,
     sourceNotes: [
       "Industry coverage reports Rainier-backed Omega Fitness acquired 21 Anytime Fitness locations, growing to roughly 120 clubs."
     ],
@@ -494,10 +427,6 @@ function getOwnerContacts(owner, ownerIndex) {
   return uniqueBy(contacts, (contact) => contact.email || contact.name);
 }
 
-function getNewestDate(left, right) {
-  return new Date(left).getTime() >= new Date(right).getTime() ? left : right;
-}
-
 function getDedupedOwnerSeeds(rows) {
   const ownerMap = new Map();
 
@@ -519,10 +448,6 @@ function getDedupedOwnerSeeds(rows) {
       ...existing,
       contactCount: Math.max(existing.contactCount || 0, row.contactCount || 0),
       unitCount: Math.max(existing.unitCount || 0, row.unitCount || 0),
-      modified: getNewestDate(existing.modified, row.modified),
-      changed: Boolean(existing.changed || row.changed),
-      addedContacts: Math.max(existing.addedContacts || 0, row.addedContacts || 0),
-      addedLocations: Math.max(existing.addedLocations || 0, row.addedLocations || 0),
       webEnabled: Boolean(existing.webEnabled || row.webEnabled),
       linkedinEnabled: Boolean(existing.linkedinEnabled || row.linkedinEnabled),
       franchiseNames: mergeUniqueStrings(existing.franchiseNames || [], row.franchiseNames || []),
@@ -538,8 +463,8 @@ window.ownersData = getDedupedOwnerSeeds(ownerSeedRows).map((owner, index) => {
   const contacts = getOwnerContacts(owner, index);
   const primaryContact = contacts[0];
   const unitCount = owner.unitCount || 0;
-  const hasAnyUpdate = owner.changed || owner.addedContacts > 0 || owner.addedLocations > 0;
   const franchises = mergeUniqueStrings(owner.franchiseNames || []);
+  const category = owner.category || "Fitness";
 
   return {
     ...owner,
@@ -548,13 +473,12 @@ window.ownersData = getDedupedOwnerSeeds(ownerSeedRows).map((owner, index) => {
     unitCount,
     locations: unitCount,
     units: [],
+    category,
+    categories: [category],
     contactName: primaryContact.name,
     email: primaryContact.email,
     franchise: franchises.join(", "),
     franchises,
-    modified: hasAnyUpdate ? "May 8, 2026" : owner.modified,
-    addedContacts: owner.addedContacts || 0,
-    addedLocations: owner.addedLocations || 0,
     logoSrc: `assets/logos/${owner.logoAsset || `${owner.logoFilename}.jpg`}`,
     logoAlt: `${owner.ownerName} logo`,
     hasWebsite: owner.webEnabled,

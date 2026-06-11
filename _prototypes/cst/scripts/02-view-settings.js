@@ -54,8 +54,6 @@ function getCurrentViewSettings() {
     panelOpen: Boolean(lockedToolbarMode),
     panelMode: lockedToolbarMode,
     panelLayout: currentPanelLayout,
-    updatesEnabled,
-    modifiedColumnVisible,
     reduceMotionEnabled,
     filters: {
       open: Boolean(card?.classList.contains("is-filter-open")),
@@ -137,13 +135,7 @@ function restoreFilterSectionState(sectionSettings = {}) {
 }
 
 function restoreSavedOptionSettings(settings) {
-  updatesEnabled = Boolean(settings?.updatesEnabled);
-  modifiedColumnVisible = Boolean(settings?.modifiedColumnVisible);
   reduceMotionEnabled = Boolean(settings?.reduceMotionEnabled);
-  syncModeColumn();
-  syncUpdatesToggleOption();
-  syncUpdatesStateClass();
-  syncModifiedColumnToggleOption();
   syncReduceMotionToggleOption();
   syncReduceMotionStateClass();
 }
@@ -237,21 +229,14 @@ function resetViewSettings() {
 
   try {
     removeSavedViewSettings();
-    updatesEnabled = false;
-    modifiedColumnVisible = false;
     reduceMotionEnabled = false;
     sortState = {
       key: "locations",
       direction: "descending"
     };
-    locationSortCycleActive = false;
     lockedToolbarMode = "map";
     clearSidebarOwnerState();
 
-    syncModeColumn();
-    syncUpdatesToggleOption();
-    syncUpdatesStateClass();
-    syncModifiedColumnToggleOption();
     syncReduceMotionToggleOption();
     syncReduceMotionStateClass();
     clearAllFilterSelections();
