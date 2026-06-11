@@ -15,6 +15,6 @@ Local development uses `_prototypes/`. You do not need `_out/`.
 
 Run this single command from the project root:
 
-- `git add -A && git commit -m "Update prototypes" && git push origin "$(git branch --show-current)"`
+- `git add -A && git commit -m "Bug fixes" && git push origin "$(git branch --show-current)""`
 
 This push triggers GitHub Actions, which builds and deploys GitHub Pages.
