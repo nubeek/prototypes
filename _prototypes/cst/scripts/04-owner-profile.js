@@ -40,7 +40,31 @@ function getFranchiseSlug(franchiseName) {
 
 const franchiseLogoFileOverrides = {
   "Anytime Fitness": "anytime_fitness.svg",
-  "F45 Training": "f45_training.svg"
+  "F45 Training": "f45_training.svg",
+  "OrangeTheory Fitness": "orangetheory.jpg",
+  "Crumbl Cookies": "crumbl_cookies.png",
+  "The Learning Experience": "the_learning_experience.png",
+  "Drybar": "drybar.png",
+  "Ace Handyman Services": "ace_handyman_services.png",
+  "StretchLab": "stretchlab.png",
+  "Mathnasium": "mathnasium.png",
+  "MaidPro": "maidpro.png",
+  "Wendy's": "wendys.png",
+  "Chili's": "chilis.png",
+  "Papa John's": "papa_johns.png",
+  "Five Guys": "five_guys.png",
+  "Krispy Kreme": "krispy_kreme.png",
+  "Jimmy John's": "jimmy_johns.png",
+  "Dunkin'": "dunkin.png",
+  "Blaze Pizza": "blaze_pizza.png",
+  "Outback Steakhouse": "outback_steakhouse.png",
+  "Smoothie King": "smoothie_king.png",
+  "Starbucks": "starbucks.png",
+  "Qdoba": "qdoba.png",
+  "Title Boxing Club": "title_boxing_club.png",
+  "Popeyes Louisiana Kitchen": "popeyes_louisiana_kitchen.png",
+  "Tropical Smoothie Cafe": "tropical_smoothie_cafe.png",
+  "Aussie Pet Mobile": "aussie_pet_mobile.png"
 };
 
 function getFranchiseLogoSrc(franchiseName) {

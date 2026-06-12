@@ -326,40 +326,183 @@ function renderOwnerOrgChart(ownerIndex) {
   syncOwnerHeaderScrollState();
 }
 
+function getOwnerSearchOwners() {
+  return displayedOwners.length ? displayedOwners : owners;
+}
+
+function getOwnerSearchFieldMarkup() {
+  return `
+    <div class="owner-search" data-owner-search>
+      <div class="owner-search-field">
+        <img class="owner-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+        <input
+          type="text"
+          class="owner-search-input"
+          placeholder="Search owners..."
+          autocomplete="off"
+          spellcheck="false"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-controls="ownerSearchMenu"
+          aria-label="Search owners"
+        >
+      </div>
+      <div class="owner-search-menu" id="ownerSearchMenu" role="listbox" aria-label="Owner search results">
+        <div class="owner-search-options"></div>
+      </div>
+    </div>
+  `;
+}
+
+function setupOwnerSearchField(mode) {
+  const field = ownerDetailsPanel?.querySelector("[data-owner-search]");
+  if (!field) return;
+
+  const input = field.querySelector(".owner-search-input");
+  const optionsList = field.querySelector(".owner-search-options");
+  if (!input || !optionsList) return;
+
+  let renderedOwners = [];
+  let activeIndex = -1;
+  let isOpen = false;
+
+  function closeMenu() {
+    if (!isOpen) return;
+    isOpen = false;
+    activeIndex = -1;
+    field.classList.remove("is-open");
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+    optionsList.innerHTML = "";
+  }
+
+  function setActiveOption(index) {
+    const optionButtons = Array.from(optionsList.querySelectorAll(".owner-search-option"));
+    if (!optionButtons.length) {
+      activeIndex = -1;
+      input.removeAttribute("aria-activedescendant");
+      return;
+    }
+
+    activeIndex = (index + optionButtons.length) % optionButtons.length;
+    optionButtons.forEach((optionButton, optionIndex) => {
+      const isActive = optionIndex === activeIndex;
+      optionButton.classList.toggle("is-active", isActive);
+      if (isActive) {
+        input.setAttribute("aria-activedescendant", optionButton.id);
+        optionButton.scrollIntoView({ block: "nearest" });
+      }
+    });
+  }
+
+  function selectOwner(ownerIndex) {
+    closeMenu();
+    openSidebar(mode, ownerIndex, { scrollTable: true });
+  }
+
+  function renderOptions() {
+    const query = normalizeComboboxText(input.value);
+    renderedOwners = getOwnerSearchOwners().filter((owner) => (
+      normalizeComboboxText(owner.ownerName).includes(query)
+    ));
+
+    optionsList.innerHTML = "";
+
+    if (!renderedOwners.length) {
+      const emptyState = document.createElement("div");
+      emptyState.className = "owner-search-empty";
+      emptyState.textContent = "No results found";
+      optionsList.append(emptyState);
+      activeIndex = -1;
+      return;
+    }
+
+    renderedOwners.forEach((owner, index) => {
+      const optionButton = document.createElement("button");
+      optionButton.type = "button";
+      optionButton.className = "owner-search-option";
+      optionButton.id = `ownerSearchOption-${index}`;
+      optionButton.dataset.ownerIndex = String(owner.originalIndex);
+      optionButton.setAttribute("role", "option");
+      optionButton.setAttribute("aria-selected", "false");
+      optionButton.textContent = owner.ownerName;
+      optionButton.addEventListener("mousedown", (event) => event.preventDefault());
+      optionButton.addEventListener("click", () => selectOwner(owner.originalIndex));
+      optionsList.append(optionButton);
+    });
+
+    if (activeIndex >= renderedOwners.length) {
+      activeIndex = -1;
+    }
+  }
+
+  function openMenu() {
+    if (isOpen) return;
+    isOpen = true;
+    field.classList.add("is-open");
+    input.setAttribute("aria-expanded", "true");
+    renderOptions();
+  }
+
+  input.addEventListener("focus", openMenu);
+
+  input.addEventListener("input", () => {
+    if (!isOpen) {
+      openMenu();
+    } else {
+      renderOptions();
+    }
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!isOpen) {
+        openMenu();
+        if (renderedOwners.length) {
+          setActiveOption(event.key === "ArrowDown" ? 0 : renderedOwners.length - 1);
+        }
+        return;
+      }
+      setActiveOption(activeIndex + (event.key === "ArrowDown" ? 1 : -1));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      if (!isOpen || activeIndex < 0) return;
+      event.preventDefault();
+      selectOwner(renderedOwners[activeIndex].originalIndex);
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeMenu();
+      input.blur();
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    window.setTimeout(closeMenu, 120);
+  });
+}
+
 function renderDefaultOrgChartState() {
   if (!ownerDetailsPanel) return;
 
-  const selectableOwners = displayedOwners.length ? displayedOwners : owners;
-  const selectedOwnerIndex = getPrimarySelectedOwnerIndex();
-  const selectedValue = selectedOwnerIndex !== null ? String(selectedOwnerIndex) : "";
-  const options = selectableOwners
-    .map((owner) => {
-      const value = String(owner.originalIndex);
-      const isSelected = value === selectedValue ? " selected" : "";
-      return `<option value="${value}"${isSelected}>${owner.ownerName}</option>`;
-    })
-    .join("");
-
   ownerDetailsPanel.innerHTML = `
     <article class="owner-org-panel owner-org-panel-empty">
-      <div class="owner-org-selector">
-        <label for="orgOwnerPicker">
-          <span>Select owner</span>
-          <img src="assets/chevron.svg" alt="" aria-hidden="true">
-        </label>
-        <select id="orgOwnerPicker" aria-label="Select owner for organization chart">
-          <option value="">Select owner</option>
-          ${options}
-        </select>
+      <div class="owner-empty-content">
+        <p class="owner-org-empty-message">
+          Select an owner from the table on the left, or search by owner name below to load their organization chart.
+        </p>
+        ${getOwnerSearchFieldMarkup()}
       </div>
-      <p class="owner-org-empty-message">
-        Select an
-        <button type="button" class="ui-control ui-text-button owner-org-inline-trigger" data-open-org-owner-picker>owner</button><br>
-        to load their organization chart.
-      </p>
     </article>
   `;
 
+  setupOwnerSearchField("org");
   ownerDetailsPanel.scrollTop = 0;
   syncOwnerHeaderScrollState();
 }

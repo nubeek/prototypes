@@ -111,6 +111,19 @@ function getRawSidebarHeader(owner) {
   return "";
 }
 
+function getDefaultRawDataStateMarkup() {
+  return `
+    <article class="owner-raw-panel owner-raw-panel-empty">
+      <div class="owner-empty-content">
+        <p class="owner-org-empty-message owner-raw-empty-message">
+          Select an owner from the table on the left, or search by owner name below to load their full contact list.
+        </p>
+        ${getOwnerSearchFieldMarkup()}
+      </div>
+    </article>
+  `;
+}
+
 const RAW_SIDEBAR_COLUMN_WIDTHS = {
   index: "4%",
   name: "30%",
@@ -270,6 +283,15 @@ function renderRawDataSidebar(ownerIndex = null, { resetPagination = true } = {}
   const owner = ownerIndex !== null
     ? owners.find((item) => item.originalIndex === ownerIndex) || null
     : null;
+
+  if (!owner) {
+    ownerDetailsPanel.innerHTML = getDefaultRawDataStateMarkup();
+    setupOwnerSearchField("raw");
+    ownerDetailsPanel.scrollTop = 0;
+    syncOwnerHeaderScrollState();
+    return;
+  }
+
   const contactsTableMarkup = getRawTableMarkup(getScopedOwnerRawRows(ownerIndex), {
     emptyMessage: "No contacts match the current filters.",
     rowMarkup: getRawContactRowMarkup,
@@ -345,6 +367,9 @@ function refreshContactStateViews() {
 }
 
 function refreshFilteredViews() {
+  if (isDatasetTableView()) {
+    locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
+  }
   applySort();
 
   if (globalRawDataViewOpen) {

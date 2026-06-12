@@ -259,7 +259,7 @@ function openSidebar(mode, ownerIndex = null, { scrollTable = false } = {}) {
   }
 
   syncMapLocationFilter();
-  renderOwners(displayedOwners);
+  renderActiveTable();
   syncToolbarTabState(getCurrentPanelMode());
 }
 
@@ -271,7 +271,7 @@ function closeSidebar() {
   card?.classList.remove("is-map-open");
   mapToggle?.setAttribute("aria-expanded", "false");
   resetPanelModeAfterClose(closingMode);
-  renderOwners(displayedOwners);
+  renderActiveTable();
   syncToolbarTabState(closingMode);
 }
 

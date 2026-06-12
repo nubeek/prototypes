@@ -204,62 +204,7 @@
             <span id="filterToggleLabel">Filters</span>
           </button>
           <span class="toolbar-divider" aria-hidden="true"></span>
-          <label class="toolbar-search-btn toolbar-btn" for="toolbarSearchInput" role="search">
-            <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
-            <input
-              class="toolbar-search-input"
-              id="toolbarSearchInput"
-              type="search"
-              inputmode="search"
-              autocomplete="off"
-              placeholder="Search by name, brand or location..."
-              aria-label="Search owners, contacts, locations, and franchises"
-            >
-            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
-          </label>
-        </div>
-
-        <div class="toolbar-group toolbar-actions">
-          <details class="toolbar-dropdown">
-            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
-              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
-              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-            </summary>
-            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Export CSV</span>
-              </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Email campaign</span>
-              </button>
-              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-              <div class="toolbar-submenu" data-toolbar-submenu>
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
-                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">Settings</span>
-                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-                </button>
-                <div class="ui-menu toolbar-submenu-menu" id="toolbarSettingsSubmenu" role="menu" aria-label="Settings menu">
-                  <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
-                    <span class="toolbar-switch" aria-hidden="true"></span>
-                    <span class="toolbar-dropdown-label">Reduce motion</span>
-                  </button>
-                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Take screenshot</span>
-                  </button>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Reset view</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </details>
-          <div class="toolbar-tabs segmented-control toolbar-btn-divider-left">
+          <div class="toolbar-tabs segmented-control">
             <div class="toolbar-tab-item">
               <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" aria-controls="mapPanel" aria-expanded="false">
                 <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
@@ -351,6 +296,103 @@
               </div>
             </div>
           </div>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <label class="toolbar-search-btn toolbar-btn" for="toolbarSearchInput" role="search">
+            <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+            <input
+              class="toolbar-search-input"
+              id="toolbarSearchInput"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Search by name, brand or location..."
+              aria-label="Search owners, contacts, locations, and franchises"
+            >
+            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
+          </label>
+        </div>
+
+        <div class="toolbar-group toolbar-actions">
+          <details class="toolbar-dropdown" id="toolbarMenuDropdown">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
+              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Export CSV</span>
+              </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Email campaign</span>
+              </button>
+              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+              <div class="toolbar-submenu" data-toolbar-submenu>
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
+                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
+                  <span class="toolbar-dropdown-label">Settings</span>
+                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <div class="ui-menu toolbar-submenu-menu" id="toolbarSettingsSubmenu" role="menu" aria-label="Settings menu">
+                  <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+                    <span class="toolbar-switch" aria-hidden="true"></span>
+                    <span class="toolbar-dropdown-label">Reduce motion</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Take screenshot</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Reset view</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <details class="toolbar-dropdown table-switcher-dropdown">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn table-switcher-trigger" aria-label="Switch table view" title="Switch table view">
+              <img class="toolbar-asset-icon table-switcher-icon" id="tableSwitcherIcon" src="assets/owners.svg" alt="" aria-hidden="true">
+              <span id="tableSwitcherLabel">Owners</span>
+              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu table-switcher-menu" role="menu" aria-label="Table switcher menu">
+              <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="true" data-table-view="owners">
+                <img class="toolbar-dropdown-icon table-switcher-option-icon" src="assets/owners.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Owners</span>
+                <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
+              </button>
+              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+              <div class="toolbar-submenu table-switcher-submenu">
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger table-switcher-submenu-trigger" id="tableDatasetsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="tableDatasetsSubmenu" data-dataset-connected="false">
+                  <img class="toolbar-dropdown-icon table-switcher-option-icon table-switcher-dataset-icon" src="assets/dataset.svg?v=2" alt="" aria-hidden="true">
+                  <span class="toolbar-dropdown-label">Datasets</span>
+                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <div class="ui-menu toolbar-submenu-menu table-switcher-submenu-menu" id="tableDatasetsSubmenu" role="menu" aria-label="Datasets menu">
+                  <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="false" data-table-view="locations">
+                    <span class="toolbar-dropdown-label">Locations</span>
+                    <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="false" data-table-view="userProfiles">
+                    <span class="toolbar-dropdown-label">User profiles</span>
+                    <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="false" data-table-view="searchers">
+                    <span class="toolbar-dropdown-label">Searchers</span>
+                    <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="false" data-table-view="athletes">
+                    <span class="toolbar-dropdown-label">Athletes</span>
+                    <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -358,11 +400,14 @@
         <table>
           <thead>
             <tr>
+              <th id="locationNumberColumnHeader" hidden><span class="th-content">#</span></th>
               <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 31%"><span class="th-content">Name <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 31%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="combinedContactsHeader" data-sort-key="contacts" aria-sort="none" style="width: 12%"><span class="th-content">Contacts <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="locationsColumnHeader" data-sort-key="locations" aria-sort="none" style="width: 12%"><span class="th-content">Units <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 12%"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header" id="organizationColumnHeader" data-sort-key="ownerName" aria-sort="none" hidden><span class="th-content">Institution <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header" id="categoryColumnHeader" data-sort-key="category" aria-sort="none" hidden><span class="th-content">Category <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
             </tr>
           </thead>
           <tbody id="ownersTableBody"></tbody>
@@ -389,6 +434,7 @@
 
   <script src="data/owners.js"></script>
   <script src="data/locations.js"></script>
+  <script src="data/prospect-datasets.js"></script>
   <script src="data/org-chart.js"></script>
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>

@@ -10,6 +10,9 @@ sortHeaders.forEach((header) => {
       sortState.direction = getInitialSortDirection(sortKey);
     }
 
+    if (isDatasetTableView()) {
+      locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
+    }
     applySort();
     tableWrap.scrollTo({ top: 0, behavior: "auto" });
   });
@@ -24,8 +27,38 @@ applySort();
 openMapPanel("map");
 
 if (tableBody) {
+  tableBody.addEventListener("change", (event) => {
+    const checkbox = event.target;
+    if (!(checkbox instanceof HTMLInputElement) || !checkbox.classList.contains("location-row-checkbox")) return;
+
+    const rowId = checkbox.dataset.locationRowId;
+    if (!rowId) return;
+
+    if (checkbox.checked) {
+      selectedLocationRowIds.add(rowId);
+    } else {
+      selectedLocationRowIds.delete(rowId);
+    }
+
+    checkbox.closest("tr[data-location-row-id]")?.classList.toggle("is-checked", checkbox.checked);
+    syncLocationHeaderCheckboxState(displayedLocations);
+  });
+
   tableBody.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
+
+    const locationRowSelect = event.target.closest(".location-row-select");
+    if (locationRowSelect) {
+      event.stopPropagation();
+      return;
+    }
+
+    const locationLoadMoreRow = event.target.closest("[data-location-load-more]");
+    if (locationLoadMoreRow) {
+      event.stopPropagation();
+      loadMoreLocationRows();
+      return;
+    }
 
     const locationButton = event.target.closest(".locations");
     if (locationButton) {
@@ -74,8 +107,12 @@ if (tableBody) {
     const contactProfileButton = event.target.closest(".contact-profile-action");
     if (contactProfileButton) {
       event.stopPropagation();
+      const ownerIndex = Number(contactProfileButton.dataset.ownerIndex);
+      const unitIndex = Number(contactProfileButton.dataset.unitIndex);
       openPersonProfile(
-        getPersonProfileFromOwnerContact(Number(contactProfileButton.dataset.ownerIndex)),
+        Number.isFinite(unitIndex)
+          ? getPersonProfileFromUnitRow(ownerIndex, unitIndex)
+          : getPersonProfileFromOwnerContact(ownerIndex),
         contactProfileButton
       );
       return;
@@ -84,6 +121,15 @@ if (tableBody) {
     const ownerIconLink = event.target.closest(".owner-icon-link");
     if (ownerIconLink) {
       event.stopPropagation();
+      return;
+    }
+
+    const locationRow = event.target.closest("tr[data-owner-index][data-unit-index]");
+    if (currentTableView === "locations" && locationRow) {
+      event.stopPropagation();
+      const ownerIndex = Number(locationRow.dataset.ownerIndex);
+      const unitIndex = Number(locationRow.dataset.unitIndex);
+      openPersonProfile(getPersonProfileFromUnitRow(ownerIndex, unitIndex), locationRow);
       return;
     }
 
@@ -100,6 +146,37 @@ if (tableBody) {
     if (rowSidebarMode === "raw" && !isRawDataAvailable(owner)) return;
 
     toggleRowSidebarView(rowSidebarMode, ownerIndex);
+  });
+
+  tableBody.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    if (!(event.target instanceof Element)) return;
+
+    const locationLoadMoreRow = event.target.closest("[data-location-load-more]");
+    if (!locationLoadMoreRow) return;
+
+    event.preventDefault();
+    loadMoreLocationRows();
+  });
+}
+
+if (ownersTable) {
+  ownersTable.addEventListener("change", (event) => {
+    const checkbox = event.target;
+    if (!(checkbox instanceof HTMLInputElement) || !checkbox.classList.contains("location-select-all-checkbox")) return;
+    if (!isDatasetTableView()) return;
+
+    const shouldSelect = checkbox.checked;
+    displayedLocations.forEach((row) => {
+      if (shouldSelect) {
+        selectedLocationRowIds.add(row.id);
+      } else {
+        selectedLocationRowIds.delete(row.id);
+      }
+    });
+
+    renderLocations(displayedLocations);
+    syncSortHeaders();
   });
 }
 
@@ -140,8 +217,16 @@ document.addEventListener("mousedown", (event) => {
 
 if (locationFilterSelect) {
   const locationSource = (window.ownerLocationsData || []).flatMap((owner) => owner.locations);
+  const prospectLocationLabels = Object.values(window.prospectDatasetsData || {})
+    .flatMap((dataset) => dataset.rows || [])
+    .map((row) => row.location)
+    .map(normalizeDatasetCellValue)
+    .filter(Boolean);
   const locationLabels = [
-    ...new Set(locationSource.map((location) => location.label).filter(Boolean))
+    ...new Set([
+      ...locationSource.map((location) => location.label).filter(Boolean),
+      ...prospectLocationLabels
+    ])
   ].sort((a, b) => collator.compare(a, b));
 
   locationLabels.forEach((locationLabel) => {
@@ -189,15 +274,23 @@ if (ownerFilterSelect) {
 }
 
 if (categoryFilterSelect) {
+  const prospectCategoryNames = Object.values(window.prospectDatasetsData || {})
+    .flatMap((dataset) => dataset.rows || [])
+    .map((row) => row.category)
+    .map(normalizeDatasetCellValue)
+    .filter(Boolean);
   const categoryNames = [
-    "Children Programs",
-    "Education & Children",
-    "Home and Building Services",
-    "Food and Beverage",
-    "Retail Products and Services",
-    "Professional Business Services",
-    "Health and Beauty",
-    "Fitness"
+    ...new Set([
+      "Children Programs",
+      "Education & Children",
+      "Home and Building Services",
+      "Food and Beverage",
+      "Retail Products and Services",
+      "Professional Business Services",
+      "Health and Beauty",
+      "Fitness",
+      ...prospectCategoryNames
+    ])
   ];
 
   categoryFilterSelect.disabled = false;
@@ -288,8 +381,14 @@ if (clearAllFilters) {
 }
 
 if (franchiseFilterSelect) {
+  const prospectFranchiseNames = Object.values(window.prospectDatasetsData || {})
+    .flatMap((dataset) => dataset.rows || [])
+    .flatMap((row) => getDatasetValueList(row.franchise));
   const franchiseNames = [
-    ...new Set(owners.flatMap((owner) => getOwnerFranchises(owner)))
+    ...new Set([
+      ...owners.flatMap((owner) => getOwnerFranchises(owner)),
+      ...prospectFranchiseNames
+    ])
   ].sort((a, b) => collator.compare(a, b));
 
   franchiseNames.forEach((franchiseName) => {
@@ -385,29 +484,9 @@ if (mapPanel && ownerMapHeader) {
 
 if (ownerDetailsPanel) {
   ownerDetailsPanel.addEventListener("scroll", syncOwnerHeaderScrollState);
-  ownerDetailsPanel.addEventListener("change", (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLSelectElement) || target.id !== "orgOwnerPicker") return;
-
-    openSidebar("org", target.value ? Number(target.value) : null);
-  });
 
   ownerDetailsPanel.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
-
-    const openOwnerPickerTrigger = event.target.closest("[data-open-org-owner-picker]");
-    if (openOwnerPickerTrigger) {
-      const ownerPicker = ownerDetailsPanel.querySelector("#orgOwnerPicker");
-      if (ownerPicker instanceof HTMLSelectElement) {
-        ownerPicker.focus();
-        if (typeof ownerPicker.showPicker === "function") {
-          ownerPicker.showPicker();
-        } else {
-          ownerPicker.click();
-        }
-      }
-      return;
-    }
 
     const viewButton = event.target.closest(".owner-header-view-btn");
     if (viewButton) {
@@ -600,6 +679,13 @@ function closeToolbarSettingsSubmenu() {
   setToolbarSettingsSubmenuOpen(false);
 }
 
+function closeToolbarDropdowns(exceptDropdown = null) {
+  toolbarDropdowns.forEach((dropdown) => {
+    if (dropdown === exceptDropdown) return;
+    dropdown.removeAttribute("open");
+  });
+}
+
 if (toolbarSettingsSubmenu && toolbarSettingsSubmenuTrigger) {
   toolbarSettingsSubmenuTrigger.addEventListener("click", (event) => {
     event.preventDefault();
@@ -623,19 +709,33 @@ if (toolbarSettingsSubmenu && toolbarSettingsSubmenuTrigger) {
   });
 }
 
-if (toolbarDropdown) {
+if (toolbarDropdowns.length) {
   document.addEventListener("click", (event) => {
-    if (!toolbarDropdown.open) return;
+    const openDropdown = toolbarDropdowns.find((dropdown) => dropdown.open);
+    if (!openDropdown) return;
 
-    if (toolbarDropdown.contains(event.target)) {
-      if (!toolbarSettingsSubmenu?.contains(event.target)) {
+    if (openDropdown.contains(event.target)) {
+      closeToolbarDropdowns(openDropdown);
+      if (openDropdown === toolbarDropdown && !toolbarSettingsSubmenu?.contains(event.target)) {
         closeToolbarSettingsSubmenu();
       }
       return;
     }
 
     closeToolbarSettingsSubmenu();
-    toolbarDropdown.removeAttribute("open");
+    closeToolbarDropdowns();
+  });
+}
+
+if (tableSwitcherDropdown) {
+  tableSwitcherDropdown.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const option = event.target.closest(".table-switcher-option[data-table-view]");
+    if (!option) return;
+
+    event.preventDefault();
+    setMainTableView(option.dataset.tableView);
   });
 }
 
@@ -731,9 +831,9 @@ document.addEventListener("keydown", (event) => {
     closePersonProfile();
     return;
   }
-  if (event.key === "Escape" && toolbarDropdown?.hasAttribute("open")) {
+  if (event.key === "Escape" && toolbarDropdowns.some((dropdown) => dropdown.open)) {
     closeToolbarSettingsSubmenu();
-    toolbarDropdown.removeAttribute("open");
+    closeToolbarDropdowns();
   }
   if (event.key === "Escape") {
     closeToolbarTabDropdowns();

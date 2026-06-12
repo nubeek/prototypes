@@ -61,7 +61,7 @@ function getContactsColumn(owner) {
   `;
 }
 
-function getFranchiseLogosColumn(owner) {
+function getFranchiseLogosColumn(owner, { showNames = false, containerTag = "div" } = {}) {
   const franchises = getOwnerFranchises(owner);
 
   if (!franchises.length) {
@@ -69,23 +69,56 @@ function getFranchiseLogosColumn(owner) {
   }
 
   return `
-    <div class="franchise-logos" role="list" aria-label="${franchises.join(", ")}">
+    <${containerTag} class="franchise-logos ${showNames ? "franchise-logos-with-names" : ""}" role="list" aria-label="${franchises.join(", ")}">
       ${franchises.map((franchise) => `
-        <span
-          class="ui-tile franchise-logo"
-          role="listitem"
-          aria-label="${franchise}"
-          data-tooltip="${franchise}"
-        >
-          <span class="franchise-logo-fallback">${getInitials(franchise)}</span>
-          <img
-            src="${getFranchiseLogoSrc(franchise)}"
-            alt=""
-            onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+        <span class="franchise-item" role="listitem" aria-label="${franchise}">
+          <span
+            class="ui-tile franchise-logo"
+            data-tooltip="${franchise}"
           >
+            <span class="franchise-logo-fallback">${getInitials(franchise)}</span>
+            <img
+              src="${getFranchiseLogoSrc(franchise)}"
+              alt=""
+              onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+            >
+          </span>
+          ${showNames ? `<span class="franchise-name">${franchise}</span>` : ""}
         </span>
       `).join("")}
-    </div>
+    </${containerTag}>
+  `;
+}
+
+function getLocationOrganizationColumn(row) {
+  const owner = row.owner;
+
+  return `
+    <span class="location-organization-cell">
+      <span class="ui-tile logo location-organization-logo" aria-hidden="true">
+        <span class="owner-logo-fallback">${getInitials(owner.ownerName)}</span>
+        <img
+          src="${owner.logoSrc}"
+          alt=""
+          onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+        >
+      </span>
+      <span class="location-table-value location-table-organization">${owner.ownerName}</span>
+    </span>
+  `;
+}
+
+function getLocationCellProfileAction(row, content, label) {
+  return `
+    <button
+      class="ui-control contact-profile-action location-cell-action"
+      type="button"
+      data-owner-index="${row.ownerIndex}"
+      data-unit-index="${row.unitIndex}"
+      aria-label="${label}"
+    >
+      ${content}
+    </button>
   `;
 }
 
@@ -252,8 +285,159 @@ function syncColumnWidths() {
   }
 }
 
-function renderOwners(rows) {
+const prospectDatasetTableOptions = Object.entries(window.prospectDatasetsData || {}).reduce(
+  (options, [view, dataset]) => ({
+    ...options,
+    [view]: {
+      label: dataset.label || view,
+      icon: "assets/dataset.svg?v=2"
+    }
+  }),
+  {}
+);
+const TABLE_VIEW_OPTIONS = {
+  owners: {
+    label: "Owners",
+    icon: "assets/owners.svg"
+  },
+  locations: {
+    label: "Locations",
+    icon: "assets/dataset.svg?v=2"
+  },
+  ...prospectDatasetTableOptions
+};
+const DATASET_TABLE_VIEWS = new Set(["locations", ...Object.keys(prospectDatasetTableOptions)]);
+
+function isDatasetTableView(tableView = currentTableView) {
+  return DATASET_TABLE_VIEWS.has(tableView);
+}
+
+const LOCATION_TABLE_HEADERS = [
+  { header: locationNumberColumnHeader, label: "", sortKey: "", width: "64px" },
+  { header: ownerColumnHeader, label: "Name", sortKey: "contactName", width: "220px" },
+  { header: contactColumnHeader, label: "Location", sortKey: "location", width: "220px" },
+  { header: combinedContactsHeader, label: "Contact email", sortKey: "email", width: "220px" },
+  { header: locationsColumnHeader, label: "Phone", sortKey: "phone", width: "220px" },
+  { header: franchiseColumnHeader, label: "Franchise", sortKey: "franchise", width: "220px" },
+  { header: organizationColumnHeader, label: "Institution", sortKey: "ownerName", width: "220px" },
+  { header: categoryColumnHeader, label: "Category", sortKey: "category", width: "200px" }
+].filter((config) => config.header);
+
+function getLocationSelectionState(rows = displayedLocations) {
+  const selectedCount = rows.reduce((count, row) => (
+    selectedLocationRowIds.has(row.id) ? count + 1 : count
+  ), 0);
+  const totalCount = rows.length;
+  const allSelected = totalCount > 0 && selectedCount === totalCount;
+  const partiallySelected = selectedCount > 0 && selectedCount < totalCount;
+
+  return {
+    totalCount,
+    selectedCount,
+    allSelected,
+    partiallySelected
+  };
+}
+
+function getLocationSelectAllHeaderMarkup(rows = displayedLocations) {
+  const { allSelected } = getLocationSelectionState(rows);
+
+  return `
+    <label class="location-row-select location-select-all" aria-label="Select all location rows">
+      <input
+        class="location-row-checkbox location-select-all-checkbox"
+        type="checkbox"
+        ${allSelected ? "checked" : ""}
+      >
+      <span class="location-row-checkbox-visual" aria-hidden="true"></span>
+    </label>
+  `;
+}
+
+function syncLocationHeaderCheckboxState(rows = displayedLocations) {
+  const selectAllLabel = locationNumberColumnHeader?.querySelector(".location-select-all");
+  const selectAllCheckbox = locationNumberColumnHeader?.querySelector(".location-select-all-checkbox");
+  if (!(selectAllLabel instanceof HTMLLabelElement) || !(selectAllCheckbox instanceof HTMLInputElement)) return;
+
+  const { allSelected, partiallySelected } = getLocationSelectionState(rows);
+  selectAllCheckbox.checked = allSelected;
+  selectAllCheckbox.indeterminate = partiallySelected;
+  selectAllLabel.classList.toggle("is-indeterminate", partiallySelected);
+}
+
+function getSortableHeaderMarkup(label) {
+  return `<span class="th-content">${label} <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span>`;
+}
+
+function setMainTableHeader(header, { label, sortKey, width }) {
+  header.hidden = false;
+  header.style.width = width;
+
+  if (sortKey) {
+    header.className = "sortable-header";
+    header.dataset.sortKey = sortKey;
+    header.setAttribute("aria-sort", "none");
+    header.innerHTML = getSortableHeaderMarkup(label);
+  } else {
+    header.className = "location-number-header";
+    header.removeAttribute("data-sort-key");
+    header.removeAttribute("aria-sort");
+    header.innerHTML = getLocationSelectAllHeaderMarkup();
+  }
+}
+
+function syncLocationTableView() {
   restoreOwnersTableView({ clearRaw: false, clearGlobalRaw: false });
+  ownersTable?.classList.add("locations-table");
+  tableWrap?.classList.add("is-locations-view");
+  LOCATION_TABLE_HEADERS.forEach((config) => setMainTableHeader(config.header, config));
+}
+
+function syncOwnersTableView() {
+  restoreOwnersTableView({ clearRaw: false, clearGlobalRaw: false });
+  ownersTable?.classList.remove("locations-table");
+  tableWrap?.classList.remove("is-locations-view");
+}
+
+function syncTableSwitcherState() {
+  const tableView = TABLE_VIEW_OPTIONS[currentTableView] || TABLE_VIEW_OPTIONS.owners;
+  const isDatasetView = isDatasetTableView();
+  if (tableSwitcherIcon) {
+    tableSwitcherIcon.src = tableView.icon;
+  }
+  if (tableSwitcherLabel) {
+    tableSwitcherLabel.textContent = tableView.label;
+  }
+  tableSwitcherOptions.forEach((option) => {
+    option.setAttribute("aria-checked", String(option.dataset.tableView === currentTableView));
+  });
+  tableDatasetsSubmenuTrigger?.setAttribute(
+    "data-dataset-connected",
+    String(isDatasetView)
+  );
+  tableSwitcherDropdown?.setAttribute("data-dataset-active", String(isDatasetView));
+}
+
+function setMainTableView(nextView) {
+  if (!TABLE_VIEW_OPTIONS[nextView] || nextView === currentTableView) {
+    tableSwitcherDropdown?.removeAttribute("open");
+    return;
+  }
+
+  tableSortStates[currentTableView] = { ...sortState };
+  currentTableView = nextView;
+  sortState = { ...tableSortStates[currentTableView] };
+  if (isDatasetTableView()) {
+    locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
+  }
+  syncTableSwitcherState();
+  applySort();
+  tableWrap?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  tableSwitcherDropdown?.removeAttribute("open");
+}
+
+function renderOwners(rows) {
+  syncOwnersTableView();
   const isEmpty = rows.length === 0;
 
   tableWrap?.classList.toggle("is-empty", isEmpty);
@@ -338,6 +522,372 @@ function renderOwners(rows) {
       }
     )
     .join("");
+}
+
+function getOwnerLocationRows(owner) {
+  const ownerLocationData = window.ownerLocationsData?.[owner.originalIndex];
+  const ownerUnits = Array.isArray(ownerLocationData?.units) ? ownerLocationData.units : [];
+  const ownerFranchises = getOwnerFranchises(owner);
+  const fallbackFranchise = ownerFranchises[0] || "Franchise";
+  const fallbackCategory = owner.category || "Fitness";
+
+  return ownerUnits.map((unit, unitIndex) => {
+    const franchise = unit.franchise || fallbackFranchise;
+    const category = unit.category || fallbackCategory;
+    return {
+      id: unit.id || `${owner.originalIndex}-${unitIndex}`,
+      owner,
+      ownerIndex: owner.originalIndex,
+      unitIndex,
+      sourceView: "locations",
+      isProspectDataset: false,
+      name: unit.name || "",
+      email: unit.email || "",
+      phone: unit.phone || "",
+      location: unit.label || [unit.city, unit.state].filter(Boolean).join(", "),
+      institution: owner.ownerName,
+      address: unit.address || "",
+      city: unit.city || "",
+      state: unit.state || "",
+      category,
+      categories: [category],
+      franchise,
+      franchises: [franchise]
+    };
+  });
+}
+
+function getDatasetValueList(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeDatasetCellValue(value) {
+  return value === null || value === undefined ? "" : String(value).trim();
+}
+
+function getProspectDatasetRows(tableView = currentTableView) {
+  const dataset = window.prospectDatasetsData?.[tableView];
+  const rows = Array.isArray(dataset?.rows) ? dataset.rows : [];
+
+  return rows.map((row, rowIndex) => {
+    const franchise = normalizeDatasetCellValue(row.franchise);
+    const category = normalizeDatasetCellValue(row.category);
+
+    return {
+      id: normalizeDatasetCellValue(row.id) || `${tableView}-${rowIndex}`,
+      sourceView: tableView,
+      isProspectDataset: true,
+      rowIndex,
+      name: normalizeDatasetCellValue(row.name),
+      email: normalizeDatasetCellValue(row.email),
+      phone: normalizeDatasetCellValue(row.phone),
+      location: normalizeDatasetCellValue(row.location),
+      franchise,
+      institution: normalizeDatasetCellValue(row.institution),
+      category,
+      categories: category ? [category] : [],
+      franchises: getDatasetValueList(row.franchise)
+    };
+  });
+}
+
+function getLocationSearchIndex(row) {
+  return [
+    row.location,
+    row.address,
+    row.city,
+    row.state,
+    row.name,
+    row.email,
+    row.phone,
+    row.category,
+    row.franchise,
+    row.institution,
+    row.owner?.ownerName,
+    row.owner?.contactName,
+    row.owner?.email,
+    row.owner?.franchise
+  ]
+    .filter((value) => value !== null && value !== undefined)
+    .map((value) => String(value).trim().toLocaleLowerCase())
+    .filter(Boolean)
+    .join(" ");
+}
+
+function locationRowMatchesSearchQuery(row) {
+  if (!searchQuery) return true;
+  return getLocationSearchIndex(row).includes(searchQuery);
+}
+
+function ownerMatchesLocationTableFilters(owner) {
+  if (!ownerMatchesOwnerFilter(owner)) return false;
+  if (!ownerMatchesUnitsFilter(owner)) return false;
+  if (!ownerMatchesContactsFilter(owner)) return false;
+  return true;
+}
+
+function getAllLocationRows() {
+  if (currentTableView !== "locations") {
+    return getProspectDatasetRows(currentTableView);
+  }
+
+  return owners.flatMap((owner) => getOwnerLocationRows(owner));
+}
+
+function getFilteredLocationRows() {
+  if (currentTableView !== "locations") {
+    return getProspectDatasetRows(currentTableView)
+      .filter((row) => unitRowMatchesFilters(row))
+      .filter((row) => locationRowMatchesSearchQuery(row));
+  }
+
+  return owners
+    .filter(ownerMatchesLocationTableFilters)
+    .flatMap((owner) => getOwnerLocationRows(owner))
+    .filter((row) => unitRowMatchesFilters(row))
+    .filter((row) => locationRowMatchesSearchQuery(row));
+}
+
+function getLocationSortValue(row, key) {
+  if (key === "ownerName") return row.institution || row.owner?.ownerName || "";
+  if (key === "contactName") return row.name;
+  if (key === "email") return row.email;
+  if (key === "franchise") return row.franchise;
+  if (key === "category") return row.category;
+  if (key === "phone") return row.phone;
+  return row.location;
+}
+
+function getLocationRowOrder(row) {
+  if (Number.isFinite(row.ownerIndex) && Number.isFinite(row.unitIndex)) {
+    return row.ownerIndex * 100000 + row.unitIndex;
+  }
+
+  return Number.isFinite(row.rowIndex) ? row.rowIndex : 0;
+}
+
+function sortLocations() {
+  const filteredLocations = getFilteredLocationRows();
+
+  if (!sortState.key) {
+    displayedLocations = filteredLocations.sort((a, b) => (
+      getLocationRowOrder(a) - getLocationRowOrder(b)
+    ));
+    return;
+  }
+
+  const direction = sortState.direction === "ascending" ? 1 : -1;
+  displayedLocations = filteredLocations.sort((a, b) => {
+    const valueA = getLocationSortValue(a, sortState.key);
+    const valueB = getLocationSortValue(b, sortState.key);
+    const comparison = collator.compare(String(valueA), String(valueB));
+
+    if (comparison === 0) {
+      return getLocationRowOrder(a) - getLocationRowOrder(b);
+    }
+
+    return comparison * direction;
+  });
+}
+
+function getLocationVisibleCount(totalRows) {
+  if (!totalRows) {
+    return 0;
+  }
+
+  locationsVisibleCount = Math.min(
+    Math.max(locationsVisibleCount, LOCATION_TABLE_PAGE_SIZE),
+    totalRows
+  );
+
+  return locationsVisibleCount;
+}
+
+function getLocationPaginationMarkup(totalRows) {
+  const visibleCount = getLocationVisibleCount(totalRows);
+  const remaining = totalRows - visibleCount;
+  if (remaining <= 0) return "";
+
+  const nextBatch = Math.min(LOCATION_TABLE_PAGE_SIZE, remaining);
+
+  return `
+    <tr class="location-pagination-row" data-location-load-more tabindex="0" role="button" aria-label="Load ${nextBatch.toLocaleString()} more records">
+      <td class="location-pagination-cell" colspan="${LOCATION_TABLE_HEADERS.length}">
+        <span class="location-pagination">
+          <span class="location-pagination-status">Viewing ${visibleCount.toLocaleString()} of ${totalRows.toLocaleString()} records</span>
+          <span class="location-pagination-separator" aria-hidden="true">&ndash;</span>
+          <span class="location-pagination-action">Load ${nextBatch.toLocaleString()} more</span>
+        </span>
+      </td>
+    </tr>
+  `;
+}
+
+function scrollToLocationRow(rowIndex) {
+  if (!tableWrap) return;
+
+  const row = tableBody?.querySelector(`tr[data-location-row-index="${rowIndex}"]`);
+  if (!(row instanceof HTMLTableRowElement)) return;
+
+  const headerHeight = ownersTable?.querySelector("thead")?.offsetHeight || 0;
+  const scrollTop = Math.max(row.offsetTop - headerHeight, 0);
+  tableWrap.scrollTo({
+    top: scrollTop,
+    behavior: reduceMotionEnabled ? "auto" : "smooth"
+  });
+}
+
+function loadMoreLocationRows() {
+  if (locationsVisibleCount >= displayedLocations.length) return;
+
+  const firstNewRowIndex = locationsVisibleCount;
+  locationsVisibleCount = Math.min(
+    locationsVisibleCount + LOCATION_TABLE_PAGE_SIZE,
+    displayedLocations.length
+  );
+  renderLocations(displayedLocations);
+  syncSortHeaders();
+  updateFilterSummary();
+  requestAnimationFrame(() => scrollToLocationRow(firstNewRowIndex));
+}
+
+function getDatasetCellValueMarkup(value, className = "") {
+  const normalizedValue = normalizeDatasetCellValue(value);
+  const missingClass = normalizedValue ? "" : " dataset-empty-value";
+  const classAttribute = `location-table-value${className ? ` ${className}` : ""}${missingClass}`;
+
+  return `<span class="${classAttribute}">${normalizedValue || "-"}</span>`;
+}
+
+function getLocationRowAttributeMarkup(row, pageRowIndex) {
+  const attributes = [
+    `data-location-row-id="${row.id}"`,
+    `data-location-row-index="${pageRowIndex}"`
+  ];
+
+  if (Number.isFinite(row.ownerIndex) && Number.isFinite(row.unitIndex)) {
+    attributes.push(`data-owner-index="${row.ownerIndex}"`);
+    attributes.push(`data-unit-index="${row.unitIndex}"`);
+  }
+
+  return attributes.join(" ");
+}
+
+function getDatasetNameCellMarkup(row) {
+  if (row.isProspectDataset) {
+    return getDatasetCellValueMarkup(row.name, "location-table-contact-name");
+  }
+
+  return `
+    <button
+      class="ui-control contact-profile-action location-contact-action"
+      type="button"
+      data-owner-index="${row.ownerIndex}"
+      data-unit-index="${row.unitIndex}"
+      aria-label="Open profile for ${row.name}"
+    >
+      <span class="location-table-value location-table-contact-name">${row.name}</span>
+    </button>
+  `;
+}
+
+function getDatasetFranchiseCellMarkup(row) {
+  if (row.isProspectDataset) {
+    if (!row.franchises.length) {
+      return getDatasetCellValueMarkup("");
+    }
+
+    const showNames = row.franchises.length === 1;
+    return `
+      <span class="dataset-franchise-cell">
+        ${getFranchiseLogosColumn(
+          { franchises: row.franchises, franchise: row.franchise },
+          { showNames, containerTag: "span" }
+        )}
+      </span>
+    `;
+  }
+
+  return getLocationCellProfileAction(
+    row,
+    getFranchiseLogosColumn(
+      { ...row.owner, franchises: row.franchises, franchise: row.franchise },
+      { showNames: true, containerTag: "span" }
+    ),
+    `Open profile for ${row.name} from ${row.franchise}`
+  );
+}
+
+function getDatasetInstitutionCellMarkup(row) {
+  if (row.isProspectDataset) {
+    return getDatasetCellValueMarkup(row.institution);
+  }
+
+  return getLocationCellProfileAction(
+    row,
+    getLocationOrganizationColumn(row),
+    `Open profile for ${row.name} at ${row.owner.ownerName}`
+  );
+}
+
+function renderLocations(rows) {
+  syncLocationTableView();
+  const isEmpty = rows.length === 0;
+  const visibleCount = getLocationVisibleCount(rows.length);
+  const pageRows = rows.slice(0, visibleCount);
+
+  tableWrap?.classList.toggle("is-empty", isEmpty);
+  if (tableEmptyState) {
+    tableEmptyState.hidden = !isEmpty;
+  }
+
+  tableBody.innerHTML = pageRows
+    .map((row, pageRowIndex) => {
+      const rowNumber = pageRowIndex + 1;
+      const isSelected = selectedLocationRowIds.has(row.id);
+
+      return `
+        <tr class="${row.isProspectDataset ? "prospect-dataset-row" : ""} ${isSelected ? "is-checked" : ""}" ${getLocationRowAttributeMarkup(row, pageRowIndex)}>
+          <td class="location-number-cell">
+            <label class="location-row-select" aria-label="Select location row ${rowNumber}">
+              <input
+                class="location-row-checkbox"
+                type="checkbox"
+                data-location-row-id="${row.id}"
+                ${isSelected ? "checked" : ""}
+              >
+              <span class="location-row-number" aria-hidden="true">${rowNumber}</span>
+              <span class="location-row-checkbox-visual" aria-hidden="true"></span>
+            </label>
+          </td>
+          <td>
+            ${getDatasetNameCellMarkup(row)}
+          </td>
+          <td>
+            ${getDatasetCellValueMarkup(row.location)}
+          </td>
+          <td>${getDatasetCellValueMarkup(row.email, "location-table-email")}</td>
+          <td>${getDatasetCellValueMarkup(row.phone, "location-table-phone")}</td>
+          <td class="location-inner-hover-cell">
+            ${getDatasetFranchiseCellMarkup(row)}
+          </td>
+          <td class="location-inner-hover-cell">
+            ${getDatasetInstitutionCellMarkup(row)}
+          </td>
+          <td>${getDatasetCellValueMarkup(row.category)}</td>
+        </tr>
+      `;
+    })
+    .join("") + getLocationPaginationMarkup(rows.length);
+
+  syncLocationHeaderCheckboxState(rows);
 }
 
 function getSortValue(owner, key) {
@@ -573,9 +1123,11 @@ function sortOwners() {
 function updateFilterSummary() {
   if (!filterSummary) return;
 
-  const visibleCount = displayedOwners.length;
-  const totalCount = owners.length;
+  const visibleCount = isDatasetTableView()
+    ? getLocationVisibleCount(displayedLocations.length)
+    : displayedOwners.length;
   const visibleRange = visibleCount > 0 ? `1-${visibleCount}` : "0";
+  const totalCount = isDatasetTableView() ? getAllLocationRows().length : owners.length;
   filterSummary.textContent = `Showing ${visibleRange} of ${totalCount} records sorted by relevancy`;
   updateClearFiltersButton();
 }
@@ -630,9 +1182,24 @@ function syncSortHeaders() {
   });
 }
 
+function renderActiveTable() {
+  if (isDatasetTableView()) {
+    renderLocations(displayedLocations);
+  } else {
+    renderOwners(displayedOwners);
+  }
+}
+
 function applySort() {
-  sortOwners();
-  renderOwners(displayedOwners);
+  tableSortStates[currentTableView] = { ...sortState };
+  if (isDatasetTableView()) {
+    sortLocations();
+    renderLocations(displayedLocations);
+  } else {
+    sortOwners();
+    renderOwners(displayedOwners);
+  }
+  syncTableSwitcherState();
   syncSortHeaders();
   updateFilterSummary();
 }

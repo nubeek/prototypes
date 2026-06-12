@@ -33,7 +33,13 @@ const ownerMapHeader = document.getElementById("ownerMapHeader");
 const ownerDetailsPanel = document.getElementById("ownerDetailsPanel");
 const profileModal = document.getElementById("profileModal");
 const profileModalContent = document.getElementById("profileModalContent");
-const toolbarDropdown = document.querySelector(".toolbar-dropdown");
+const toolbarDropdowns = Array.from(document.querySelectorAll(".toolbar-dropdown"));
+const toolbarDropdown = document.getElementById("toolbarMenuDropdown") || toolbarDropdowns[0];
+const tableSwitcherDropdown = document.querySelector(".table-switcher-dropdown");
+const tableSwitcherIcon = document.getElementById("tableSwitcherIcon");
+const tableSwitcherLabel = document.getElementById("tableSwitcherLabel");
+const tableSwitcherOptions = Array.from(document.querySelectorAll(".table-switcher-option[data-table-view]"));
+const tableDatasetsSubmenuTrigger = document.getElementById("tableDatasetsSubmenuTrigger");
 const toolbarSettingsSubmenu = document.querySelector("[data-toolbar-submenu]");
 const toolbarSettingsSubmenuTrigger = document.getElementById("toolbarSettingsSubmenuTrigger");
 const reduceMotionToggleOption = document.getElementById("reduceMotionToggleOption");
@@ -45,13 +51,19 @@ const contactColumnHeader = document.getElementById("contactColumnHeader");
 const franchiseColumnHeader = document.getElementById("franchiseColumnHeader");
 const combinedContactsHeader = document.getElementById("combinedContactsHeader");
 const locationsColumnHeader = document.getElementById("locationsColumnHeader");
+const categoryColumnHeader = document.getElementById("categoryColumnHeader");
+const organizationColumnHeader = document.getElementById("organizationColumnHeader");
+const locationNumberColumnHeader = document.getElementById("locationNumberColumnHeader");
 const ownersTable = tableBody?.closest("table");
 const ownerTableHeaders = [
+  locationNumberColumnHeader,
   ownerColumnHeader,
   contactColumnHeader,
   franchiseColumnHeader,
   combinedContactsHeader,
-  locationsColumnHeader
+  locationsColumnHeader,
+  categoryColumnHeader,
+  organizationColumnHeader
 ].filter(Boolean);
 const defaultHeaderState = ownerTableHeaders.map((header) => ({
   header,
@@ -115,7 +127,12 @@ function getOwnerUnitCount(owner) {
   return Array.isArray(owner.units) ? owner.units.length : 0;
 }
 
+let currentTableView = "owners";
 let displayedOwners = [...owners];
+let displayedLocations = [];
+const selectedLocationRowIds = new Set();
+const LOCATION_TABLE_PAGE_SIZE = 100;
+let locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
 let searchQuery = "";
 const ownerSearchIndexById = new Map();
 let selectedLocationLabels = [];
@@ -169,10 +186,29 @@ const PANEL_LAYOUT_CLASSES = {
   full: "is-panel-full"
 };
 const orgCollapsedNodeIdsByOwner = new Map();
-let sortState = {
-  key: "locations",
-  direction: "descending"
+const tableSortStates = {
+  owners: {
+    key: "locations",
+    direction: "descending"
+  },
+  locations: {
+    key: "contactName",
+    direction: "ascending"
+  },
+  userProfiles: {
+    key: "contactName",
+    direction: "ascending"
+  },
+  searchers: {
+    key: "contactName",
+    direction: "ascending"
+  },
+  athletes: {
+    key: "contactName",
+    direction: "ascending"
+  }
 };
+let sortState = { ...tableSortStates.owners };
 const columnWidths = {
   owner: "31%",
   contact: "31%",
