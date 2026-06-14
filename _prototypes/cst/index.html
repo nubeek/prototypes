@@ -48,11 +48,19 @@
             </select>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
-          <label class="filter-check filter-check-muted">
-            <input type="checkbox" disabled>
+          <label class="filter-check filter-radius-toggle" id="radiusToggleLabel">
+            <input type="checkbox" id="radiusToggle">
             <span class="filter-checkbox" aria-hidden="true"></span>
-            <span>Use radius</span>
+            <span>Enable radius</span>
           </label>
+          <div class="filter-radius-control" id="radiusControl" hidden>
+            <div class="range-track filter-range-slider filter-radius-slider" aria-label="Radius">
+              <span class="range-line"></span>
+              <span class="range-fill" id="radiusRangeFill"></span>
+              <input class="range-input range-input-single" id="radiusRange" type="range" min="25" max="1000" step="25" value="300" aria-label="Radius in miles">
+            </div>
+            <span class="filter-radius-value" id="radiusValueLabel">300 mi</span>
+          </div>
         </section>
 
         <section class="filter-section filter-section-collapsed">
@@ -327,6 +335,10 @@
                 <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Email campaign</span>
               </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="createTargetOption" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/target.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Create target</span>
+              </button>
               <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
               <div class="toolbar-submenu" data-toolbar-submenu>
                 <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
@@ -429,6 +441,44 @@
         <img src="assets/close.svg" alt="" aria-hidden="true">
       </button>
       <div class="profile-modal-content" id="profileModalContent"></div>
+    </section>
+  </div>
+
+  <div class="profile-modal-overlay target-modal-overlay" id="createTargetModal" hidden>
+    <section class="profile-modal target-modal" role="dialog" aria-modal="true" aria-labelledby="createTargetModalTitle">
+      <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close" type="button" aria-label="Close create target">
+        <img src="assets/close.svg" alt="" aria-hidden="true">
+      </button>
+      <form class="target-modal-form" id="createTargetForm">
+        <h2 class="target-modal-title" id="createTargetModalTitle">Create Target</h2>
+
+        <label class="target-modal-field" for="createTargetTitle">
+          <span>Title</span>
+          <input class="target-modal-control target-modal-input" id="createTargetTitle" name="title" type="text" autocomplete="off" required>
+        </label>
+
+        <label class="target-modal-field" for="createTargetDescription">
+          <span>Description</span>
+          <textarea class="target-modal-control target-modal-textarea" id="createTargetDescription" name="description" placeholder="Optional"></textarea>
+        </label>
+
+        <label class="target-modal-field" for="createTargetVisibility">
+          <span>Visibility</span>
+          <span class="target-modal-select-field">
+            <select class="target-modal-control target-modal-select" id="createTargetVisibility" name="visibility">
+              <option value="private">Private</option>
+              <option value="team">Team</option>
+              <option value="public">Public</option>
+            </select>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </span>
+        </label>
+
+        <div class="target-modal-actions">
+          <button class="ui-control ui-button target-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary target-modal-save" type="submit">Save</button>
+        </div>
+      </form>
     </section>
   </div>
 

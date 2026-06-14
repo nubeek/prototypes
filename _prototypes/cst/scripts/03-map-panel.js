@@ -55,8 +55,48 @@ function getLocationDistanceMiles(location, center) {
   return 3958.8 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
+function getSelectedRadiusCenters() {
+  return selectedLocationLabels
+    .map((label) => getMapFilterLocationCenter(label))
+    .filter(Boolean);
+}
+
+function isRadiusFilterActive() {
+  return radiusFilterEnabled && getSelectedRadiusCenters().length > 0;
+}
+
+function locationWithinSelectedRadius(location) {
+  if (typeof location?.lat !== "number" || typeof location?.lng !== "number") return false;
+
+  return getSelectedRadiusCenters().some(
+    (center) => getLocationDistanceMiles(location, center) <= selectedRadiusMiles
+  );
+}
+
+function rowMatchesLocationFilter(row) {
+  if (excludedLocationLabels.includes(row.location)) return false;
+
+  if (isRadiusFilterActive()) {
+    if (typeof row?.lat === "number" && typeof row?.lng === "number") {
+      return locationWithinSelectedRadius(row);
+    }
+    return true;
+  }
+
+  if (selectedLocationLabels.length && !selectedLocationLabels.includes(row.location)) {
+    return false;
+  }
+
+  return true;
+}
+
 function mapLocationMatchesSelectedFilter(location) {
   if (excludedLocationLabels.includes(location.label)) return false;
+
+  if (isRadiusFilterActive()) {
+    return locationWithinSelectedRadius(location);
+  }
+
   if (!selectedLocationLabels.length) return true;
   if (!selectedLocationLabels.includes(location.label)) return false;
 
@@ -116,8 +156,57 @@ function getOwnerMapPointFeatureCollection(ownerIndex) {
   };
 }
 
+function createRadiusCircleFeature(center, radiusMiles, pointCount = 96) {
+  const earthRadiusMiles = 3958.8;
+  const centerLatitude = (center.lat * Math.PI) / 180;
+  const centerLongitude = (center.lng * Math.PI) / 180;
+  const angularDistance = radiusMiles / earthRadiusMiles;
+  const ring = [];
+
+  for (let pointIndex = 0; pointIndex <= pointCount; pointIndex += 1) {
+    const bearing = (pointIndex / pointCount) * 2 * Math.PI;
+    const pointLatitude = Math.asin(
+      Math.sin(centerLatitude) * Math.cos(angularDistance) +
+      Math.cos(centerLatitude) * Math.sin(angularDistance) * Math.cos(bearing)
+    );
+    const pointLongitude = centerLongitude + Math.atan2(
+      Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(centerLatitude),
+      Math.cos(angularDistance) - Math.sin(centerLatitude) * Math.sin(pointLatitude)
+    );
+
+    ring.push([(pointLongitude * 180) / Math.PI, (pointLatitude * 180) / Math.PI]);
+  }
+
+  return {
+    type: "Feature",
+    properties: { label: center.label },
+    geometry: { type: "Polygon", coordinates: [ring] }
+  };
+}
+
+function getRadiusCircleFeatureCollection() {
+  if (!isRadiusFilterActive()) {
+    return { type: "FeatureCollection", features: [] };
+  }
+
+  return {
+    type: "FeatureCollection",
+    features: getSelectedRadiusCenters().map(
+      (center) => createRadiusCircleFeature(center, selectedRadiusMiles)
+    )
+  };
+}
+
 function getVisibleMapCoordinates() {
-  return getMapPointFeatures().map((feature) => feature.geometry.coordinates);
+  const coordinates = getMapPointFeatures().map((feature) => feature.geometry.coordinates);
+
+  if (isRadiusFilterActive()) {
+    getRadiusCircleFeatureCollection().features.forEach((feature) => {
+      coordinates.push(...feature.geometry.coordinates[0]);
+    });
+  }
+
+  return coordinates;
 }
 
 function fitOwnersMapToVisibleLocations() {
@@ -184,6 +273,7 @@ function syncMapLocationFilter() {
 
   if (!ownersMap?.getSource("owner-points")) return;
   ownersMap.getSource("owner-points").setData(getMapPointFeatureCollection());
+  ownersMap.getSource("radius-circles")?.setData(getRadiusCircleFeatureCollection());
   fitOwnersMapToVisibleLocations();
 }
 
@@ -599,6 +689,32 @@ function initializeOwnersMap() {
   ownersMap.addControl(new mapboxgl.NavigationControl({ visualizePitch: false }), "bottom-left");
 
   ownersMap.on("load", () => {
+    ownersMap.addSource("radius-circles", {
+      type: "geojson",
+      data: getRadiusCircleFeatureCollection()
+    });
+
+    ownersMap.addLayer({
+      id: "radius-circles-fill",
+      type: "fill",
+      source: "radius-circles",
+      paint: {
+        "fill-color": "#7a63dd",
+        "fill-opacity": 0.12
+      }
+    });
+
+    ownersMap.addLayer({
+      id: "radius-circles-outline",
+      type: "line",
+      source: "radius-circles",
+      paint: {
+        "line-color": "#7a63dd",
+        "line-width": 1.5,
+        "line-opacity": 0.55
+      }
+    });
+
     ownersMap.addSource("owner-points", {
       type: "geojson",
       data: getMapPointFeatureCollection()

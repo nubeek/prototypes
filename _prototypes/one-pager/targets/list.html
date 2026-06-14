@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Target List</title>
+    <link rel="icon" href="../../../assets/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="../../../assets/x96.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="../../../assets/x192.png" />
+    <link rel="manifest" href="../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../../scripts/gate.js"></script>
+  <link rel="stylesheet" href="../../../styles/gate.css">
+</head>
+<body class="target-detail access-locked one-pager-target-detail-presentation">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="list.html">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input type="text" name="username" autocomplete="username" value="prototype-access" hidden readonly>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <label class="prototype-switcher prototype-switcher-floating">
+    <span class="sr-only">Prototype mode</span>
+    <select id="prototypeMode" aria-label="Prototype mode">
+      <option value="modified">Modified</option>
+      <option value="contacts">Contacts</option>
+      <option value="combined" selected>Combined</option>
+    </select>
+  </label>
+
+  <header class="target-detail-header">
+    <div class="target-detail-header-inner">
+      <div class="target-detail-title-row">
+        <div class="target-detail-copy">
+          <h1 class="target-detail-title">Target List</h1>
+          <p class="target-detail-description">
+            Owners and operators for the selected target list.
+          </p>
+        </div>
+      </div>
+
+      <div class="target-detail-meta-row">
+        <p class="target-detail-meta">
+          Published by <span>Gregory Ugwi</span> · 14 Jun 2026
+        </p>
+
+        <div class="target-detail-actions" aria-label="Target actions">
+          <button class="target-detail-action-btn" type="button">
+            <img class="target-detail-action-icon target-detail-export-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
+            <span>Export</span>
+          </button>
+          <button class="target-detail-action-btn" type="button">
+            <img class="target-detail-action-icon target-detail-filters-icon" src="assets/filters.svg" alt="" aria-hidden="true">
+            <span>Filters</span>
+          </button>
+          <span class="target-detail-action-divider" aria-hidden="true"></span>
+          <details class="toolbar-dropdown" id="targetToolbarMenuDropdown">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
+              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="changesToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
+                <img class="toolbar-dropdown-icon" id="changesToggleIcon" src="assets/hide.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label" id="changesToggleLabel">Hide changes</span>
+              </button>
+            </div>
+          </details>
+          <button class="target-detail-search-btn" type="button" aria-label="Search">
+            <img class="target-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="target-detail-content">
+    <main class="card target-detail-card">
+      <div class="target-detail-table-panel">
+        <div class="header">
+          <div class="title-block">
+            <h1>Owners</h1>
+            <div class="subtitle-count">23 records updated</div>
+          </div>
+
+          <div class="header-actions">
+            <div class="change-nav" aria-label="Updates navigation">
+              <button class="mark-read" id="markRead">Mark all read</button>
+              <div class="pager">
+                <button class="circle-btn" id="prevChange" aria-label="Previous update" title="Previous update">
+                  <img class="nav-chevron nav-chevron-left" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <span class="pager-divider" aria-hidden="true"></span>
+                <!-- <span class="change-position" id="changePosition">1 / 4</span> -->
+                <button class="circle-btn" id="nextChange" aria-label="Next update" title="Next update">
+                  <img class="nav-chevron nav-chevron-right" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 31%"><span class="th-content">Name <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 31%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="modeColumnHeader" data-sort-key="contactCount" aria-sort="none" style="width: 12%"><span class="th-content">Contacts <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="locationsColumnHeader" data-sort-key="unitCount" aria-sort="descending" style="width: 12%"><span class="th-content">Units <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 14%"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              </tr>
+            </thead>
+            <tbody id="ownersTableBody"></tbody>
+          </table>
+        </div>
+        <div class="owner-org-chart-wrap" id="ownerOrgChartWrap" hidden></div>
+      </div>
+      <aside class="contact-detail-panel" id="contactDetailPanel" aria-label="Contact detail" hidden></aside>
+    </main>
+  </section>
+
+  <script src="data/owners.js"></script>
+  <script src="data/targets.js"></script>
+  <script>
+    (() => {
+      const ACTIVE_TARGET_STORAGE_KEY = "wefranch:active-target";
+      const params = new URLSearchParams(window.location.search);
+      const querySlug = params.get("target");
+      let storedSlug = "";
+
+      try {
+        storedSlug = sessionStorage.getItem(ACTIVE_TARGET_STORAGE_KEY) || "";
+      } catch (error) {
+        storedSlug = "";
+      }
+
+      const selectedSlug = querySlug || storedSlug;
+      const activeTarget = (window.targetsData || []).find((target) => target.slug === selectedSlug) || null;
+      const accessForm = document.querySelector("[data-access-form]");
+
+      window.activeTarget = activeTarget;
+
+      if (activeTarget) {
+        try {
+          sessionStorage.setItem(ACTIVE_TARGET_STORAGE_KEY, activeTarget.slug);
+        } catch (error) {
+          // Continue without storing the selected target.
+        }
+      }
+
+      if (accessForm) {
+        accessForm.setAttribute("action", `list.html${window.location.search}`);
+      }
+
+      if (activeTarget?.dataSrc) {
+        document.write(`<script src="${activeTarget.dataSrc}"><\/script>`);
+      }
+    })();
+  </script>
+  <script src="../cst/data/locations.js"></script>
+  <script src="../cst/data/org-chart.js"></script>
+  <script src="target-detail-table.js"></script>
+</body>
+</html>

@@ -372,9 +372,22 @@ if (contactsMaxInput) {
   });
 }
 
+if (radiusToggle) {
+  radiusToggle.addEventListener("change", () => {
+    setRadiusFilterEnabled(radiusToggle.checked, { refresh: true });
+  });
+}
+
+if (radiusRange) {
+  radiusRange.addEventListener("input", () => {
+    setRadiusValue(radiusRange.value, { refresh: true });
+  });
+}
+
 syncStatusFilterStates();
 syncUnitsFilterControls();
 syncContactsFilterControls();
+syncRadiusFilterControls();
 
 if (clearAllFilters) {
   clearAllFilters.addEventListener("click", clearAllFilterSelections);
@@ -668,6 +681,86 @@ if (resetViewOption) {
   });
 }
 
+const CREATE_TARGET_MODAL_CLOSE_DURATION_MS = 320;
+let createTargetModalCloseTimeoutId = null;
+
+function finalizeCreateTargetModalClose() {
+  if (!createTargetModal) return;
+
+  createTargetModal.classList.remove("is-open", "is-closing");
+  createTargetModal.hidden = true;
+  createTargetForm?.reset();
+  createTargetModalCloseTimeoutId = null;
+
+  if (lastCreateTargetTrigger instanceof HTMLElement) {
+    lastCreateTargetTrigger.focus({ preventScroll: true });
+  }
+  lastCreateTargetTrigger = null;
+}
+
+function openCreateTargetModal(trigger = null) {
+  if (!createTargetModal) return;
+
+  if (createTargetModalCloseTimeoutId) {
+    window.clearTimeout(createTargetModalCloseTimeoutId);
+    createTargetModalCloseTimeoutId = null;
+  }
+
+  lastCreateTargetTrigger = trigger;
+  createTargetForm?.reset();
+  createTargetModal.classList.remove("is-closing");
+  createTargetModal.hidden = false;
+  createTargetModal.classList.remove("is-open");
+
+  window.requestAnimationFrame(() => {
+    if (!createTargetModal || createTargetModal.hidden) return;
+    createTargetModal.classList.add("is-open");
+    createTargetTitleInput?.focus({ preventScroll: true });
+  });
+}
+
+function closeCreateTargetModal() {
+  if (!createTargetModal || createTargetModal.hidden) return;
+
+  if (createTargetModalCloseTimeoutId) {
+    window.clearTimeout(createTargetModalCloseTimeoutId);
+  }
+
+  createTargetModal.classList.remove("is-open");
+  createTargetModal.classList.add("is-closing");
+  createTargetModalCloseTimeoutId = window.setTimeout(
+    finalizeCreateTargetModalClose,
+    CREATE_TARGET_MODAL_CLOSE_DURATION_MS
+  );
+}
+
+if (createTargetOption) {
+  createTargetOption.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeToolbarSettingsSubmenu();
+    closeToolbarDropdowns();
+    openCreateTargetModal(createTargetOption);
+  });
+}
+
+if (createTargetModal) {
+  createTargetModal.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const closeControl = event.target.closest(".target-modal-close, .target-modal-cancel");
+    if (closeControl || event.target === createTargetModal) {
+      closeCreateTargetModal();
+    }
+  });
+}
+
+if (createTargetForm) {
+  createTargetForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    closeCreateTargetModal();
+  });
+}
+
 function setToolbarSettingsSubmenuOpen(isOpen) {
   if (!toolbarSettingsSubmenu || !toolbarSettingsSubmenuTrigger) return;
 
@@ -827,6 +920,10 @@ if (profileModal) {
 }
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && createTargetModal && !createTargetModal.hidden) {
+    closeCreateTargetModal();
+    return;
+  }
   if (event.key === "Escape" && profileModal && !profileModal.hidden) {
     closePersonProfile();
     return;

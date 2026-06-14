@@ -130,6 +130,63 @@ function setContactsFilterRange(minValue, maxValue, { changed = "min", refresh =
   }
 }
 
+function syncRadiusFilterControls() {
+  if (radiusToggle) {
+    radiusToggle.checked = radiusFilterEnabled;
+    setFilterCheckboxState(radiusToggle, radiusFilterEnabled);
+  }
+
+  if (radiusControl) {
+    radiusControl.hidden = !radiusFilterEnabled;
+  }
+
+  if (radiusRange) {
+    radiusRange.min = String(RADIUS_FILTER_DEFAULTS.min);
+    radiusRange.max = String(RADIUS_FILTER_DEFAULTS.max);
+    radiusRange.step = String(RADIUS_FILTER_DEFAULTS.step);
+    radiusRange.value = String(selectedRadiusMiles);
+  }
+
+  if (radiusValueLabel) {
+    radiusValueLabel.textContent = `${selectedRadiusMiles} mi`;
+  }
+
+  if (radiusRangeFill) {
+    const rangeSize = RADIUS_FILTER_DEFAULTS.max - RADIUS_FILTER_DEFAULTS.min;
+    const percent = rangeSize
+      ? ((selectedRadiusMiles - RADIUS_FILTER_DEFAULTS.min) / rangeSize) * 100
+      : 0;
+    radiusRangeFill.style.right = `${100 - percent}%`;
+  }
+}
+
+function setRadiusFilterEnabled(enabled, { refresh = false } = {}) {
+  radiusFilterEnabled = Boolean(enabled);
+  syncRadiusFilterControls();
+
+  if (refresh) {
+    refreshRangeFilterResults();
+  }
+}
+
+function setRadiusValue(value, { refresh = false } = {}) {
+  const numericValue = Number(value);
+  const nextValue = Math.min(
+    RADIUS_FILTER_DEFAULTS.max,
+    Math.max(
+      RADIUS_FILTER_DEFAULTS.min,
+      Number.isFinite(numericValue) ? Math.round(numericValue) : RADIUS_FILTER_DEFAULTS.value
+    )
+  );
+  const didChange = nextValue !== selectedRadiusMiles;
+  selectedRadiusMiles = nextValue;
+  syncRadiusFilterControls();
+
+  if (refresh && didChange && radiusFilterEnabled) {
+    refreshRangeFilterResults();
+  }
+}
+
 function clearAllFilterSelections() {
   selectedLocationLabels = [];
   excludedLocationLabels = [];
@@ -144,6 +201,8 @@ function clearAllFilterSelections() {
   selectedUnitsMax = unitsFilterDefaults.max;
   selectedContactsMin = contactsFilterDefaults.min;
   selectedContactsMax = contactsFilterDefaults.max;
+  radiusFilterEnabled = false;
+  selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
   activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
 
@@ -167,6 +226,7 @@ function clearAllFilterSelections() {
   syncStatusFilterStates();
   syncUnitsFilterControls();
   syncContactsFilterControls();
+  syncRadiusFilterControls();
   syncMapLocationFilter();
   refreshFilteredViews();
   refitOpenMapToVisibleLocations();

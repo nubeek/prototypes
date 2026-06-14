@@ -1,0 +1,346 @@
+:root {
+  /* Layout knobs for the embedded CST stage. */
+  --stage-side-padding: 10vw;
+  --stage-top-offset: 35vh;
+  /* The CST UI is rendered slightly zoomed out so it reads as a preview. */
+  --stage-scale: 0.8;
+  --header-side-padding: var(--stage-side-padding);
+  --copy-color: rgb(255, 255, 255);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: linear-gradient(180deg, #7664d6 0%, #ffffff 100%);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 700ms ease;
+}
+
+body.is-request-demo-step-active {
+  background: linear-gradient(180deg, #765bdd 0%, #b4a9f3 100%);
+}
+
+.presentation {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Step copy + navigation ------------------------------------------------- */
+
+.presentation-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--stage-top-offset);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--header-side-padding);
+}
+
+.step-copy {
+  width: 100%;
+  min-width: 0;
+}
+
+.step-title,
+.step-description {
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+
+.step-title.is-switching,
+.step-description.is-switching {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.step-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.step-title {
+  margin: 0;
+  font-size: clamp(28px, 3.2vw, 42px);
+  font-family: "Poppins", sans-serif;
+  color: var(--copy-color);
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.step-description {
+  margin: clamp(14px, 2.4vh, 24px) 0 0;
+  max-width: 36em;
+  font-size: clamp(16px, 1.8vw, 28px);
+  font-family: "Poppins", sans-serif;
+  color: var(--copy-color);
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.step-description strong {
+  font-weight: 600;
+}
+
+.step-description a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.step-description a:hover,
+.step-description a:focus-visible {
+  text-decoration: underline;
+}
+
+.replay-presentation-button {
+  display: none;
+  margin-top: clamp(28px, 4vh, 52px);
+  padding: 20px 34px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--copy-color);
+  font: 600 clamp(17px, 1.4vw, 22px) / 1 "Poppins", sans-serif;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.replay-presentation-button:hover,
+.replay-presentation-button:focus-visible {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgb(255, 255, 255);
+}
+
+.replay-presentation-button:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.replay-presentation-button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 4px;
+}
+
+.presentation.is-request-demo-step .presentation-header {
+  height: 100%;
+  z-index: 3;
+}
+
+.presentation.is-request-demo-step .step-nav {
+  display: none;
+}
+
+.presentation.is-request-demo-step .step-description {
+  max-width: 42em;
+}
+
+.presentation.is-request-demo-step .replay-presentation-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.presentation.is-request-demo-step .stage {
+  pointer-events: none;
+}
+
+.step-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.step-arrow {
+  --button-opacity: 0.25;
+  --step-progress: 0%;
+  width: 52px;
+  height: 52px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.step-arrow::before,
+.step-arrow-next::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.step-arrow::before {
+  border: 2px solid rgb(255, 255, 255);
+  opacity: var(--button-opacity);
+  transition: opacity 180ms ease;
+}
+
+.step-arrow-next::after {
+  background: conic-gradient(
+    from -90deg,
+    rgb(255, 255, 255) var(--step-progress),
+    transparent var(--step-progress)
+  );
+  /* Use a 1px alpha ramp at the inner edge to reduce jagged aliasing. */
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2px),
+    #000 100%
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2px),
+    #000 100%
+  );
+  transform: translateZ(0);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.step-arrow-next.is-timing::after {
+  opacity: 1;
+}
+
+.step-arrow svg {
+  display: block;
+  position: relative;
+  z-index: 1;
+  opacity: 1;
+}
+
+.step-arrow-prev svg {
+  transform: scaleX(-1);
+}
+
+.step-arrow:hover:not(:disabled) {
+  --button-opacity: 1;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.step-arrow:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.step-arrow:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+.step-arrow:disabled {
+  --button-opacity: 0.1;
+  cursor: default;
+}
+
+.step-arrow:disabled svg {
+  opacity: 0.1;
+}
+
+.step-arrow:disabled::after {
+  opacity: 0;
+}
+
+/* Embedded CST stage ------------------------------------------------------ */
+
+.stage {
+  position: absolute;
+  top: var(--stage-top-offset);
+  left: var(--stage-side-padding);
+  right: var(--stage-side-padding);
+  bottom: 0;
+  opacity: 0;
+  transform: translateY(7vh);
+  transition: opacity 700ms ease, transform 700ms cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.stage.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stage-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 24px 24px 0 0;
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgba(38, 24, 102, 0.28);
+  overflow: hidden;
+  transform: translateY(0);
+  transition: transform 700ms cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.stage.is-frame-slid-down .stage-frame {
+  transform: translateY(105%);
+}
+
+/* Render the CST view oversized, then scale it down so the embedded UI
+   appears zoomed out while keeping its own responsive breakpoints sane. */
+.stage-iframe {
+  display: block;
+  width: calc(100% / var(--stage-scale));
+  height: calc(100% / var(--stage-scale));
+  border: 0;
+  opacity: 1;
+  transform: scale(var(--stage-scale));
+  transform-origin: top left;
+  pointer-events: none;
+  transition: opacity 260ms ease;
+}
+
+.stage-iframe.is-ui-hidden {
+  opacity: 0;
+}
+
+@media (max-width: 1100px) {
+  :root {
+    --stage-top-offset: 35vh;
+  }
+}
+
+@media (max-height: 1350px) {
+  :root {
+    --stage-top-offset: 30vh;
+  }
+}
+
+@media (max-height: 900px) {
+  :root {
+    --stage-top-offset: 35vh;
+  }
+
+  .step-title {
+    font-size: clamp(24px, 3vw, 42px);
+  }
+
+  .step-description {
+    margin-top: clamp(10px, 1.5vh, 16px);
+    font-size: clamp(16px, 1.5vw, 24px);
+    line-height: 1.35;
+  }
+}

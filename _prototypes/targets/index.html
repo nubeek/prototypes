@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Owners Changes Mockup</title>
+  <title>Targets</title>
     <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="../../assets/x32.png" />
@@ -17,7 +17,7 @@
   <script src="../../scripts/gate.js"></script>
   <link rel="stylesheet" href="../../styles/gate.css">
 </head>
-<body class="access-locked">
+<body class="targets-index access-locked">
   <div class="access-gate" data-access-gate>
     <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="./">
       <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
@@ -28,57 +28,40 @@
     </form>
   </div>
 
-  <label class="prototype-switcher prototype-switcher-floating">
-    <span class="sr-only">Prototype mode</span>
-    <select id="prototypeMode" aria-label="Prototype mode">
-      <option value="modified">Modified</option>
-      <option value="contacts">Contacts</option>
-      <option value="combined" selected>Combined</option>
-    </select>
-  </label>
-
-  <main class="card">
-    <div class="header">
-      <div class="title-block">
-        <h1>Owners</h1>
-        <div class="subtitle-count">23 records updated</div>
-      </div>
-
-      <div class="header-actions">
-        <div class="change-nav" aria-label="Updates navigation">
-          <button class="mark-read" id="markRead">Mark all read</button>
-          <div class="pager">
-            <button class="circle-btn" id="prevChange" aria-label="Previous update" title="Previous update">
-              <img class="nav-chevron nav-chevron-left" src="assets/chevron.svg" alt="" aria-hidden="true">
-            </button>
-            <span class="pager-divider" aria-hidden="true"></span>
-            <!-- <span class="change-position" id="changePosition">1 / 4</span> -->
-            <button class="circle-btn" id="nextChange" aria-label="Next update" title="Next update">
-              <img class="nav-chevron nav-chevron-right" src="assets/chevron.svg" alt="" aria-hidden="true">
-            </button>
-          </div>
-        </div>
-      </div>
+  <main class="targets-page">
+    <div class="grid-header">
+      <h1 class="targets-title">Targets</h1>
     </div>
 
-    <div class="table-wrap" id="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 28%"><span class="th-content">Name <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-            <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 26%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-            <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 20%"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-            <th class="sortable-header" id="modeColumnHeader" data-sort-key="modified" aria-sort="none" style="width: 15%"><span class="th-content"><span id="modeColumnLabel">Modified</span> <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-            <th class="sortable-header right" id="combinedContactsHeader" data-sort-key="contacts" aria-sort="none" style="width: 11%" hidden><span class="th-content">Contacts <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-            <th class="sortable-header right" id="locationsColumnHeader" data-sort-key="locations" aria-sort="none" style="width: 11%"><span class="th-content">Locations <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-          </tr>
-        </thead>
-        <tbody id="ownersTableBody"></tbody>
-      </table>
+    <div class="grid-toolbar">
+      <nav class="grid-tabs" aria-label="Target scope">
+        <button class="grid-tab is-active" type="button" data-scope="all">All</button>
+        <button class="grid-tab" type="button" data-scope="private">Private</button>
+        <button class="grid-tab" type="button" data-scope="team">Team</button>
+      </nav>
+
+      <label class="target-search-btn" for="targetSearch" role="search">
+        <img class="target-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+        <input
+          class="target-search-input"
+          id="targetSearch"
+          type="search"
+          inputmode="search"
+          autocomplete="off"
+          placeholder="Search targets..."
+          aria-label="Search targets"
+        >
+        <button class="target-search-clear" id="targetSearchClear" type="button" aria-label="Clear search" hidden></button>
+      </label>
+    </div>
+
+    <div class="targets-scroll" id="targetsScroll">
+      <div class="targets-grid" id="targetsGrid"></div>
+      <p class="targets-empty" id="targetsEmpty" hidden>No targets match your search.</p>
     </div>
   </main>
 
-  <script src="data/owners.js"></script>
-  <script src="script.js"></script>
+  <script src="data/targets.js"></script>
+  <script src="grid.js"></script>
 </body>
 </html>

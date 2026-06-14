@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How Wefranch Solved the Problem</title>
+    <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../../assets/x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="../../assets/x96.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="../../assets/x192.png" />
+    <link rel="manifest" href="../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../scripts/gate.js"></script>
+  <link rel="stylesheet" href="../../styles/gate.css">
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input type="text" name="username" autocomplete="username" value="prototype-access" hidden readonly>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <main class="presentation">
+    <header class="presentation-header">
+      <div class="step-copy" id="stepCopy">
+        <div class="step-title-row">
+          <h1 class="step-title" id="stepTitle"></h1>
+          <nav class="step-nav" aria-label="Presentation steps">
+            <button class="step-arrow step-arrow-prev" id="prevStepBtn" type="button" aria-label="Previous step">
+              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="22" viewBox="0 0 25 22" aria-hidden="true">
+                <path fill-rule="evenodd" fill="rgb(255, 255, 255)" d="M12.382,21.470 L12.382,21.470 C11.705,20.786 11.704,19.678 12.380,18.994 L18.252,13.050 L1.827,13.050 C0.867,13.050 0.088,12.264 0.088,11.294 L0.088,11.294 C0.088,10.324 0.867,9.538 1.827,9.538 L18.252,9.538 L12.369,3.612 C11.690,2.928 11.689,1.818 12.367,1.133 L12.382,1.118 C13.059,0.434 14.157,0.434 14.835,1.118 L24.912,11.294 L14.835,21.470 C14.157,22.154 13.059,22.154 12.382,21.470 Z"/>
+              </svg>
+            </button>
+            <button class="step-arrow step-arrow-next" id="nextStepBtn" type="button" aria-label="Next step">
+              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="22" viewBox="0 0 25 22" aria-hidden="true">
+                <path fill-rule="evenodd" fill="rgb(255, 255, 255)" d="M12.382,21.470 L12.382,21.470 C11.705,20.786 11.704,19.678 12.380,18.994 L18.252,13.050 L1.827,13.050 C0.867,13.050 0.088,12.264 0.088,11.294 L0.088,11.294 C0.088,10.324 0.867,9.538 1.827,9.538 L18.252,9.538 L12.369,3.612 C11.690,2.928 11.689,1.818 12.367,1.133 L12.382,1.118 C13.059,0.434 14.157,0.434 14.835,1.118 L24.912,11.294 L14.835,21.470 C14.157,22.154 13.059,22.154 12.382,21.470 Z"/>
+              </svg>
+            </button>
+          </nav>
+        </div>
+        <p class="step-description" id="stepDescription"></p>
+        <button class="replay-presentation-button" id="replayPresentationBtn" type="button">Replay Presentation</button>
+      </div>
+    </header>
+
+    <section class="stage" id="stage" aria-label="CST prototype preview">
+      <div class="stage-frame">
+        <iframe class="stage-iframe" id="cstFrame" title="CST prototype" tabindex="-1"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <script src="presentation.js"></script>
+</body>
+</html>

@@ -24,6 +24,11 @@ const contactsMaxRange = document.getElementById("contactsMaxRange");
 const contactsMinInput = document.getElementById("contactsMinInput");
 const contactsMaxInput = document.getElementById("contactsMaxInput");
 const contactsRangeFill = document.getElementById("contactsRangeFill");
+const radiusToggle = document.getElementById("radiusToggle");
+const radiusControl = document.getElementById("radiusControl");
+const radiusRange = document.getElementById("radiusRange");
+const radiusRangeFill = document.getElementById("radiusRangeFill");
+const radiusValueLabel = document.getElementById("radiusValueLabel");
 const mapToggle = document.getElementById("mapToggle");
 const orgChartToggle = document.getElementById("orgChartToggle");
 const contactsToggle = document.getElementById("contactsToggle");
@@ -33,6 +38,10 @@ const ownerMapHeader = document.getElementById("ownerMapHeader");
 const ownerDetailsPanel = document.getElementById("ownerDetailsPanel");
 const profileModal = document.getElementById("profileModal");
 const profileModalContent = document.getElementById("profileModalContent");
+const createTargetOption = document.getElementById("createTargetOption");
+const createTargetModal = document.getElementById("createTargetModal");
+const createTargetForm = document.getElementById("createTargetForm");
+const createTargetTitleInput = document.getElementById("createTargetTitle");
 const toolbarDropdowns = Array.from(document.querySelectorAll(".toolbar-dropdown"));
 const toolbarDropdown = document.getElementById("toolbarMenuDropdown") || toolbarDropdowns[0];
 const tableSwitcherDropdown = document.querySelector(".table-switcher-dropdown");
@@ -104,6 +113,7 @@ const MAPBOX_STYLE = window.CST_ENV?.MAPBOX_STYLE || "mapbox://styles/nubeek/cka
 const MAP_INITIAL_CENTER = [-98.5795, 39.8283];
 const MAP_FIT_PADDING = 32;
 const MAP_LOCATION_FILTER_RADIUS_MILES = 50;
+const RADIUS_FILTER_DEFAULTS = { min: 25, max: 1000, step: 25, value: 300 };
 const VIEW_SETTINGS_STORAGE_KEY = "cst.viewSettings.v1";
 const PERSISTABLE_PANEL_MODES = new Set(["map", "org", "raw"]);
 
@@ -147,6 +157,8 @@ let selectedUnitsMin = unitsFilterDefaults.min;
 let selectedUnitsMax = unitsFilterDefaults.max;
 let selectedContactsMin = contactsFilterDefaults.min;
 let selectedContactsMax = contactsFilterDefaults.max;
+let radiusFilterEnabled = false;
+let selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
 let reduceMotionEnabled = false;
 let ownersMap;
 let ownersMapInitialized = false;
@@ -163,6 +175,7 @@ let globalRawDataViewOpen = false;
 let lockedToolbarMode = "map";
 let currentPanelLayout = "right";
 let lastProfileModalTrigger = null;
+let lastCreateTargetTrigger = null;
 // Owner-level lead/hide state keyed by owner.originalIndex, representing the
 // owner's main contact. Additional org-chart contacts are tracked per node in
 // the keyed sets below.

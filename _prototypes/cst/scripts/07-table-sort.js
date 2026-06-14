@@ -545,6 +545,8 @@ function getOwnerLocationRows(owner) {
       email: unit.email || "",
       phone: unit.phone || "",
       location: unit.label || [unit.city, unit.state].filter(Boolean).join(", "),
+      lat: unit.lat,
+      lng: unit.lng,
       institution: owner.ownerName,
       address: unit.address || "",
       city: unit.city || "",
@@ -920,6 +922,11 @@ function getInitialSortDirection(sortKey) {
 }
 
 function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
+  if (isRadiusFilterActive()) {
+    const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
+    return ownerLocations.some((location) => locationWithinSelectedRadius(location));
+  }
+
   if (!locationLabels.length) return true;
 
   const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
@@ -1030,8 +1037,7 @@ function ownerMatchesSearchQuery(owner) {
 }
 
 function rawRowMatchesFilters(row) {
-  if (excludedLocationLabels.includes(row.location)) return false;
-  if (selectedLocationLabels.length && !selectedLocationLabels.includes(row.location)) return false;
+  if (!rowMatchesLocationFilter(row)) return false;
   const rowCategories = Array.isArray(row.categories) && row.categories.length
     ? row.categories
     : [row.category || "Fitness"];
