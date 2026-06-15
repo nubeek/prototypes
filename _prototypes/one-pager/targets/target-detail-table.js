@@ -1005,9 +1005,56 @@ function openOwnerOrgChart(ownerIndex) {
   renderActiveDetail();
 }
 
+function getOrgCardElement(ownerIndex, nodeId) {
+  if (!ownerOrgChartWrap || !nodeId) return null;
+
+  const escapedOwnerIndex = String(ownerIndex).replace(/"/g, '\\"');
+  const escapedNodeId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(nodeId) : nodeId;
+  return ownerOrgChartWrap.querySelector(
+    `.org-person-card[data-owner-index="${escapedOwnerIndex}"][data-org-card-id="${escapedNodeId}"]`
+  );
+}
+
+function scrollOrgCardIntoView(cardElement) {
+  if (!cardElement || !ownerOrgChartWrap) return;
+
+  const wrapRect = ownerOrgChartWrap.getBoundingClientRect();
+  const cardRect = cardElement.getBoundingClientRect();
+  const targetScrollTop = ownerOrgChartWrap.scrollTop
+    + (cardRect.top - wrapRect.top)
+    - ((wrapRect.height - cardRect.height) / 2);
+  const maxScrollTop = Math.max(0, ownerOrgChartWrap.scrollHeight - ownerOrgChartWrap.clientHeight);
+  const nextTop = Math.min(Math.max(targetScrollTop, 0), maxScrollTop);
+
+  ownerOrgChartWrap.scrollTo({
+    top: nextTop,
+    behavior: prefersReducedOrgMotion() ? "auto" : "smooth"
+  });
+}
+
+function highlightSelectedOrgCard(cardElement) {
+  if (!(cardElement instanceof HTMLElement)) return;
+
+  ownerOrgChartWrap?.querySelectorAll(".org-person-card.is-selection-highlight").forEach((card) => {
+    card.classList.remove("is-selection-highlight");
+  });
+
+  cardElement.classList.add("is-selection-highlight");
+}
+
+function clearSelectedOrgCardHighlight() {
+  ownerOrgChartWrap?.querySelectorAll(".org-person-card.is-selection-highlight").forEach((card) => {
+    card.classList.remove("is-selection-highlight");
+  });
+}
+
 function openOrgPersonProfile(ownerIndex, nodeId) {
   const profile = getPersonProfileFromOrgNode(ownerIndex, nodeId);
   if (!profile || !contactDetailPanel || !targetDetailCard) return;
+
+  const selectedCard = getOrgCardElement(ownerIndex, nodeId);
+  scrollOrgCardIntoView(selectedCard);
+  highlightSelectedOrgCard(selectedCard);
 
   activeDetailOwnerIndex = ownerIndex;
   activeDetailMode = "contact";
@@ -1023,6 +1070,7 @@ function closeOwnerOrgChart() {
 
   const previousOwnerIndex = activeOrgChartOwnerIndex;
   cancelOrgOpeningAnimation();
+  clearSelectedOrgCardHighlight();
   activeOrgChartOwnerIndex = null;
   ownerOrgChartWrap.hidden = true;
   ownerOrgChartWrap.innerHTML = "";
@@ -1691,7 +1739,8 @@ function runOnePagerTargetDetailIntro() {
 const ONE_PAGER_OWNER_STORY_NAME = "United FP";
 const ONE_PAGER_OWNER_DETAIL_HOLD_MS = 2000;
 const ONE_PAGER_ORG_SETTLE_MS = 600;
-const ONE_PAGER_ORG_CONTACT_NODE_IDS = ["united-res", "united-finance"];
+const ONE_PAGER_ORG_CONTACT_NODE_IDS = ["united-res", "united-ops-1", "united-market-1"];
+const ONE_PAGER_ORG_CONTACT_COUNT = 3;
 const ONE_PAGER_ORG_CONTACT_REVEAL_MS = 2000;
 const onePagerOwnerStoryTimers = new Set();
 
@@ -1726,13 +1775,15 @@ function getOnePagerOrgContactNodeIds(ownerIndex) {
   const nodes = getOwnerOrgChartByIndex(ownerIndex)?.nodes || [];
   const availableIds = new Set(nodes.map((node) => node.id));
   const preferred = ONE_PAGER_ORG_CONTACT_NODE_IDS.filter((nodeId) => availableIds.has(nodeId));
-  if (preferred.length >= 2) return preferred.slice(0, 2);
+  if (preferred.length >= ONE_PAGER_ORG_CONTACT_COUNT) {
+    return preferred.slice(0, ONE_PAGER_ORG_CONTACT_COUNT);
+  }
 
   const fallback = nodes
     .filter((node) => node.reportsTo !== null && !preferred.includes(node.id))
     .map((node) => node.id);
 
-  return [...preferred, ...fallback].slice(0, 2);
+  return [...preferred, ...fallback].slice(0, ONE_PAGER_ORG_CONTACT_COUNT);
 }
 
 function runOnePagerOwnerStory() {
@@ -1770,6 +1821,7 @@ window.addEventListener("pagehide", cancelOnePagerOwnerStory);
 window.addEventListener("pagehide", cancelOnePagerDetailOwnerPreview);
 window.addEventListener("pagehide", () => clearOnePagerPauseableTimeouts(onePagerDetailSettleTimers));
 window.addEventListener("pagehide", () => clearOnePagerPauseableTimeouts(orgOpeningTimers));
+window.addEventListener("pagehide", clearSelectedOrgCardHighlight);
 
 syncTargetHeader();
 applySort();

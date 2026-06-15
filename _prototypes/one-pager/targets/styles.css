@@ -1607,6 +1607,22 @@ body.target-detail {
   transition: opacity 220ms ease, transform 260ms ease, color 220ms ease;
 }
 
+.org-person-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(122, 99, 221, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 260ms ease;
+}
+
+.org-person-card.is-selection-highlight::after {
+  opacity: 1;
+}
+
 .org-person-card.is-inactive-branch {
   opacity: 0.5;
 }
@@ -1664,6 +1680,23 @@ body.target-detail {
   font-size: 18px;
   font-weight: 700;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.org-person-avatar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(122, 99, 221, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms ease;
+}
+
+.org-person-card.is-selection-highlight .org-person-avatar::after {
+  opacity: 1;
 }
 
 .org-person-card h3 {
@@ -2627,6 +2660,11 @@ body.one-pager-target-detail-presentation.is-one-pager-target-detail-settled .ta
   transition: background-color 480ms ease-in-out;
 }
 
+body.one-pager-target-detail-presentation tbody tr.is-selected,
+body.one-pager-target-detail-presentation tbody tr.is-selected:hover {
+  background: rgba(122, 99, 221, 0.1);
+}
+
 body.one-pager-target-detail-presentation.is-one-pager-target-detail-settled .target-detail-card {
   opacity: 1;
   transform: none;
@@ -2648,7 +2686,7 @@ body.one-pager-target-detail-presentation.is-owner-org-chart-open .owner-org-pan
 }
 
 body.one-pager-target-detail-presentation.is-owner-org-chart-open .owner-org-chart {
-  padding-top: 8px;
+  padding-top: 42px;
 }
 
 @media (max-height: 980px), (max-width: 900px) {
@@ -2662,7 +2700,7 @@ body.one-pager-target-detail-presentation.is-owner-org-chart-open .owner-org-cha
   }
 
   body.one-pager-target-detail-presentation.is-owner-org-chart-open .owner-org-chart {
-    padding-top: 4px;
+    padding-top: 42px;
   }
 }
 
@@ -2687,6 +2725,11 @@ body.one-pager-target-detail-presentation .contact-detail-panel .is-one-pager-si
   body.one-pager-target-detail-presentation .contact-detail-panel .is-one-pager-sidebar-row {
     animation-duration: 1ms;
     animation-delay: 0ms;
+  }
+
+  .org-person-card::after,
+  .org-person-avatar::after {
+    transition-duration: 1ms;
   }
 }
 

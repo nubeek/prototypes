@@ -566,7 +566,7 @@ body.is-presentation-loading .presentation {
 }
 
 .stage.is-revealed:not(.is-frame-slid-down) .stage-frame:hover {
-  transform: scale(0.98);
+  transform: scale(1.0);
   transition: transform 260ms ease 50ms, box-shadow 260ms ease 50ms;
 }
 
