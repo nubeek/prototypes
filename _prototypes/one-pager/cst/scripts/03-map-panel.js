@@ -40,7 +40,9 @@ let onePagerMapTourTimeout = null;
 let onePagerMapTourReleaseTimeout = null;
 let onePagerMapTourActive = false;
 let onePagerMapTourRunId = 0;
+let onePagerMapTourState = null;
 let onePagerMarketFilterAnimationFrame = null;
+let onePagerRadiusAnimationState = null;
 let onePagerMarketFilterRunId = 0;
 const onePagerMarketFilterTimeouts = new Set();
 let panelLayoutResizeFrame = null;
@@ -798,6 +800,61 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
   }
 }
 
+function finalizeOnePagerMapTour(tourRunId) {
+  const state = onePagerMapTourState;
+  if (!state || state.paused || state.runId !== tourRunId || tourRunId !== onePagerMapTourRunId) return;
+
+  onePagerMapTourState = null;
+  onePagerMapTourActive = false;
+  window.clearTimeout(onePagerMapTourReleaseTimeout);
+  onePagerMapTourReleaseTimeout = null;
+  fitOwnersMapToVisibleLocations({
+    durationMs: 2400,
+    padding: 10,
+    maxZoom: 8.2
+  });
+}
+
+function startOnePagerMapTourMotion(state) {
+  if (!ownersMap || state.runId !== onePagerMapTourRunId) return;
+
+  const duration = Math.max(0, state.remainingMoveMs);
+  state.phase = "moving";
+  state.startedAt = performance.now();
+  state.remainingMoveMs = duration;
+
+  ownersMap.stop();
+  if (duration <= 0) {
+    finalizeOnePagerMapTour(state.runId);
+    return;
+  }
+
+  ownersMap.easeTo({
+    ...ONE_PAGER_MAP_TOUR_END_CAMERA,
+    duration,
+    easing: (progress) => 0.5 - Math.cos(progress * Math.PI) / 2,
+    essential: true
+  });
+
+  ownersMap.once("moveend", () => finalizeOnePagerMapTour(state.runId));
+  onePagerMapTourReleaseTimeout = window.setTimeout(
+    () => finalizeOnePagerMapTour(state.runId),
+    duration + 240
+  );
+}
+
+function scheduleOnePagerMapTourDelay(state) {
+  if (state.runId !== onePagerMapTourRunId) return;
+
+  state.phase = "waiting";
+  state.startedAt = performance.now();
+  onePagerMapTourTimeout = window.setTimeout(() => {
+    onePagerMapTourTimeout = null;
+    if (state.paused || state.runId !== onePagerMapTourRunId) return;
+    startOnePagerMapTourMotion(state);
+  }, Math.max(0, state.remainingDelayMs));
+}
+
 function runOnePagerMapCoastToCoastTour({ durationMs = 12000, startDelayMs = 520, holdMs = 700 } = {}) {
   if (!isOnePagerPresentation) return;
 
@@ -827,36 +884,21 @@ function runOnePagerMapCoastToCoastTour({ durationMs = 12000, startDelayMs = 520
     ownersMap.stop();
     ownersMap.jumpTo(ONE_PAGER_MAP_TOUR_START_CAMERA);
 
-    onePagerMapTourTimeout = window.setTimeout(() => {
-      if (tourRunId !== onePagerMapTourRunId) return;
+    onePagerMapTourState = {
+      runId: tourRunId,
+      phase: "waiting",
+      paused: false,
+      remainingDelayMs: getMotionDelay(startDelayMs + holdMs),
+      remainingMoveMs: getMotionDelay(durationMs),
+      startedAt: performance.now()
+    };
 
-      const duration = getMotionDelay(durationMs);
+    if (window.isOnePagerPresentationPaused?.()) {
+      onePagerMapTourState.paused = true;
+      return;
+    }
 
-      ownersMap.stop();
-      ownersMap.easeTo({
-        ...ONE_PAGER_MAP_TOUR_END_CAMERA,
-        duration,
-        easing: (progress) => 0.5 - Math.cos(progress * Math.PI) / 2,
-        essential: true
-      });
-
-      let finalized = false;
-      const finalizeTour = () => {
-        if (finalized || tourRunId !== onePagerMapTourRunId) return;
-        finalized = true;
-        if (tourRunId === onePagerMapTourRunId) {
-          onePagerMapTourActive = false;
-          fitOwnersMapToVisibleLocations({
-            durationMs: 2400,
-            padding: 10,
-            maxZoom: 8.2
-          });
-        }
-      };
-
-      ownersMap.once("moveend", finalizeTour);
-      onePagerMapTourReleaseTimeout = window.setTimeout(finalizeTour, duration + 240);
-    }, getMotionDelay(startDelayMs + holdMs));
+    scheduleOnePagerMapTourDelay(onePagerMapTourState);
   };
 
   if (!ownersMap.loaded()) {
@@ -873,25 +915,90 @@ function cancelOnePagerMapTour() {
   onePagerMapTourTimeout = null;
   onePagerMapTourReleaseTimeout = null;
   onePagerMapTourActive = false;
+  onePagerMapTourState = null;
   onePagerMapTourRunId += 1;
   ownersMap?.stop();
+}
+
+function setOnePagerMapTourPaused(isPaused) {
+  const state = onePagerMapTourState;
+  if (!state || state.paused === isPaused) return;
+
+  state.paused = isPaused;
+
+  if (isPaused) {
+    if (state.phase === "waiting" && onePagerMapTourTimeout !== null) {
+      window.clearTimeout(onePagerMapTourTimeout);
+      onePagerMapTourTimeout = null;
+      state.remainingDelayMs = Math.max(0, state.remainingDelayMs - (performance.now() - state.startedAt));
+      return;
+    }
+
+    if (state.phase === "moving") {
+      window.clearTimeout(onePagerMapTourReleaseTimeout);
+      onePagerMapTourReleaseTimeout = null;
+      state.remainingMoveMs = Math.max(0, state.remainingMoveMs - (performance.now() - state.startedAt));
+      ownersMap?.stop();
+    }
+    return;
+  }
+
+  if (state.phase === "waiting") {
+    scheduleOnePagerMapTourDelay(state);
+    return;
+  }
+
+  if (state.phase === "moving") {
+    startOnePagerMapTourMotion(state);
+  }
 }
 
 window.runOnePagerMapCoastToCoastTour = runOnePagerMapCoastToCoastTour;
 
 function queueOnePagerMarketFilterTimeout(callback, delayMs) {
-  const timeoutId = window.setTimeout(() => {
-    onePagerMarketFilterTimeouts.delete(timeoutId);
-    callback();
-  }, getMotionDelay(delayMs));
+  const timer = {
+    callback,
+    remainingMs: getMotionDelay(delayMs),
+    startedAt: null,
+    timeoutId: null
+  };
 
-  onePagerMarketFilterTimeouts.add(timeoutId);
+  onePagerMarketFilterTimeouts.add(timer);
+  if (!window.isOnePagerPresentationPaused?.()) {
+    scheduleOnePagerMarketFilterTimeout(timer);
+  }
+}
+
+function scheduleOnePagerMarketFilterTimeout(timer) {
+  timer.startedAt = performance.now();
+  timer.timeoutId = window.setTimeout(() => {
+    onePagerMarketFilterTimeouts.delete(timer);
+    timer.timeoutId = null;
+    timer.callback();
+  }, Math.max(0, timer.remainingMs));
+}
+
+function setOnePagerMarketFilterTimeoutsPaused(isPaused) {
+  const now = performance.now();
+
+  onePagerMarketFilterTimeouts.forEach((timer) => {
+    if (isPaused) {
+      if (timer.timeoutId === null) return;
+      window.clearTimeout(timer.timeoutId);
+      timer.timeoutId = null;
+      timer.remainingMs = Math.max(0, timer.remainingMs - (now - timer.startedAt));
+      return;
+    }
+
+    if (timer.timeoutId !== null) return;
+    scheduleOnePagerMarketFilterTimeout(timer);
+  });
 }
 
 function cancelOnePagerMarketFilterStory() {
   onePagerMarketFilterRunId += 1;
-  onePagerMarketFilterTimeouts.forEach((timeoutId) => {
-    window.clearTimeout(timeoutId);
+  onePagerMarketFilterTimeouts.forEach((timer) => {
+    window.clearTimeout(timer.timeoutId);
   });
   onePagerMarketFilterTimeouts.clear();
   onePagerRadiusSpotlightLabel = null;
@@ -901,6 +1008,7 @@ function cancelOnePagerMarketFilterStory() {
     window.cancelAnimationFrame(onePagerMarketFilterAnimationFrame);
     onePagerMarketFilterAnimationFrame = null;
   }
+  onePagerRadiusAnimationState = null;
 }
 
 function setOnePagerMapPanelCrossfadeHidden(isHidden) {
@@ -958,6 +1066,36 @@ function addOnePagerExcludedFranchiseFilter(franchise) {
   setOnePagerExcludedFranchiseFilters(nextExcludedValues);
 }
 
+function runOnePagerRadiusAnimationFrame(state) {
+  const step = (now) => {
+    if (state !== onePagerRadiusAnimationState || state.runId !== onePagerMarketFilterRunId) return;
+
+    const progress = state.duration > 0
+      ? Math.min(1, (now - state.startedAt) / state.duration)
+      : 1;
+    const easedProgress = 0.5 - Math.cos(progress * Math.PI) / 2;
+    const shouldRefresh = progress >= 1 || (now - state.lastRefreshAt >= ONE_PAGER_RADIUS_REFRESH_INTERVAL_MS);
+    setRadiusValue(state.startMiles + (state.distance * easedProgress), {
+      refresh: shouldRefresh,
+      preservePrecision: true
+    });
+    if (shouldRefresh) {
+      state.lastRefreshAt = now;
+    }
+
+    if (progress < 1) {
+      onePagerMarketFilterAnimationFrame = window.requestAnimationFrame(step);
+      return;
+    }
+
+    setRadiusValue(state.targetMiles, { refresh: true });
+    onePagerMarketFilterAnimationFrame = null;
+    onePagerRadiusAnimationState = null;
+  };
+
+  onePagerMarketFilterAnimationFrame = window.requestAnimationFrame(step);
+}
+
 function animateOnePagerRadiusTo(targetMiles, durationMs, runId) {
   const startMiles = selectedRadiusMiles;
   const distance = targetMiles - startMiles;
@@ -968,32 +1106,48 @@ function animateOnePagerRadiusTo(targetMiles, durationMs, runId) {
     return;
   }
 
-  const startTime = window.performance.now();
-  let lastRefreshAt = startTime - ONE_PAGER_RADIUS_REFRESH_INTERVAL_MS;
-  const step = (now) => {
-    if (runId !== onePagerMarketFilterRunId) return;
-
-    const progress = Math.min(1, (now - startTime) / duration);
-    const easedProgress = 0.5 - Math.cos(progress * Math.PI) / 2;
-    const shouldRefresh = progress >= 1 || (now - lastRefreshAt >= ONE_PAGER_RADIUS_REFRESH_INTERVAL_MS);
-    setRadiusValue(startMiles + distance * easedProgress, {
-      refresh: shouldRefresh,
-      preservePrecision: true
-    });
-    if (shouldRefresh) {
-      lastRefreshAt = now;
-    }
-
-    if (progress < 1) {
-      onePagerMarketFilterAnimationFrame = window.requestAnimationFrame(step);
-      return;
-    }
-
-    setRadiusValue(targetMiles, { refresh: true });
-    onePagerMarketFilterAnimationFrame = null;
+  onePagerRadiusAnimationState = {
+    runId,
+    targetMiles,
+    startMiles,
+    distance,
+    duration,
+    remainingMs: duration,
+    startedAt: window.performance.now(),
+    lastRefreshAt: window.performance.now() - ONE_PAGER_RADIUS_REFRESH_INTERVAL_MS
   };
 
-  onePagerMarketFilterAnimationFrame = window.requestAnimationFrame(step);
+  if (window.isOnePagerPresentationPaused?.()) return;
+
+  runOnePagerRadiusAnimationFrame(onePagerRadiusAnimationState);
+}
+
+function setOnePagerRadiusAnimationPaused(isPaused) {
+  const state = onePagerRadiusAnimationState;
+  if (!state) return;
+
+  if (isPaused) {
+    if (onePagerMarketFilterAnimationFrame !== null) {
+      window.cancelAnimationFrame(onePagerMarketFilterAnimationFrame);
+      onePagerMarketFilterAnimationFrame = null;
+    }
+    state.remainingMs = Math.max(0, state.duration - (performance.now() - state.startedAt));
+    return;
+  }
+
+  state.startMiles = selectedRadiusMiles;
+  state.distance = state.targetMiles - state.startMiles;
+  state.duration = state.remainingMs;
+  state.startedAt = performance.now();
+  state.lastRefreshAt = state.startedAt - ONE_PAGER_RADIUS_REFRESH_INTERVAL_MS;
+
+  if (state.duration <= 0 || !state.distance) {
+    setRadiusValue(state.targetMiles, { refresh: true });
+    onePagerRadiusAnimationState = null;
+    return;
+  }
+
+  runOnePagerRadiusAnimationFrame(state);
 }
 
 function runOnePagerMarketFilterStory() {
@@ -1096,6 +1250,11 @@ function resetOnePagerMarketFilterStory() {
 window.cancelOnePagerMarketFilterStory = cancelOnePagerMarketFilterStory;
 window.runOnePagerMarketFilterStory = runOnePagerMarketFilterStory;
 window.resetOnePagerMarketFilterStory = resetOnePagerMarketFilterStory;
+window.addOnePagerPresentationPauseHandler?.((isPaused) => {
+  setOnePagerMapTourPaused(isPaused);
+  setOnePagerMarketFilterTimeoutsPaused(isPaused);
+  setOnePagerRadiusAnimationPaused(isPaused);
+});
 
 function getOnePagerMapCameraState() {
   if (!ownersMap) return null;

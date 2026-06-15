@@ -22,9 +22,8 @@ syncColumnWidths();
 syncReduceMotionToggleOption();
 syncReduceMotionStateClass();
 setPanelLayout("right");
-syncToolbarTabState("map");
+setFilterPanelOpen(true);
 applySort();
-openMapPanel("map");
 
 if (tableBody) {
   tableBody.addEventListener("change", (event) => {

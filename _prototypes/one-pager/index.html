@@ -47,13 +47,37 @@
           </nav>
         </div>
         <p class="step-description" id="stepDescription"></p>
-        <button class="replay-presentation-button" id="replayPresentationBtn" type="button">Replay Presentation</button>
+        <div class="step-actions">
+          <a class="contact-button" id="contactBtn" href="https://wefranch.com/franchise#demo" target="_blank" rel="noopener noreferrer">Contact us</a>
+          <button class="replay-presentation-button" id="replayPresentationBtn" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24" aria-hidden="true">
+              <path fill="#ffffff" d="M12 2c5.5228 0 10 4.47715 10 10 0 5.5228 -4.4772 10 -10 10 -2.96166 0 -5.62349 -1.2889 -7.45312 -3.333l1.49023 -1.334C7.50339 18.9712 9.63081 20 12 20c4.4183 0 8 -3.5817 8 -8 0 -4.41828 -3.5817 -8 -8 -8 -2.95978 0 -5.54492 1.6083 -6.92871 4H8.5v2H3c-0.55228 0 -1 -0.44772 -1 -1V3.5h2V6c1.82393 -2.42824 4.72762 -4 8 -4"></path>
+            </svg>
+            Replay
+          </button>
+        </div>
       </div>
     </header>
 
     <section class="stage" id="stage" aria-label="CST prototype preview">
-      <div class="stage-frame">
-        <iframe class="stage-iframe" id="cstFrame" title="CST prototype" tabindex="-1"></iframe>
+      <div class="stage-frame" id="stageFrame">
+        <div class="stage-frame__surface">
+          <iframe class="stage-iframe" id="cstFrame" title="CST prototype" tabindex="-1"></iframe>
+        </div>
+        <button class="pause-btn" id="stagePauseBtn" type="button" aria-label="Pause presentation">
+          <span class="pause-btn__icon" aria-hidden="true">
+            <svg class="pause-btn__glyph pause-btn__glyph-pause" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+              <path fill-rule="evenodd" fill="rgb(255, 255, 255)" d="M10,12 C8.895,12 8,11.105 8,10 L8,2 C8,0.895 8.895,0 10,0 C11.105,0 12,0.895 12,2 L12,10 C12,11.105 11.105,12 10,12 ZM2,12 C0.895,12 0,11.105 0,10 L0,2 C0,0.895 0.895,0 2,0 C3.105,0 4,0.895 4,2 L4,10 C4,11.105 3.105,12 2,12 Z"/>
+            </svg>
+            <svg class="pause-btn__glyph pause-btn__glyph-play" xmlns="http://www.w3.org/2000/svg" width="10" height="11" viewBox="0 0 10 11">
+              <path fill-rule="evenodd" fill="rgb(255, 255, 255)" d="M1.487,0.165 L8.556,4.618 C9.228,4.989 9.228,5.929 8.556,6.299 L1.487,10.877 C0.823,11.243 0,10.778 0,10.037 L0,1.005 C0,0.264 0.823,-0.201 1.487,0.165 Z"/>
+            </svg>
+          </span>
+          <span class="pause-btn__label-wrap">
+            <span class="pause-btn__label-text pause-btn__label-pause" aria-hidden="true">Pause</span>
+            <span class="pause-btn__label-text pause-btn__label-play" aria-hidden="true">Play</span>
+          </span>
+        </button>
       </div>
     </section>
   </main>

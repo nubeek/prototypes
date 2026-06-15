@@ -20,20 +20,32 @@ body {
 }
 
 body {
+  position: relative;
   font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: linear-gradient(180deg, #7664d6 0%, #ffffff 100%);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background 700ms ease;
 }
 
-body.is-request-demo-step-active {
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
   background: linear-gradient(180deg, #765bdd 0%, #b4a9f3 100%);
+  opacity: 0;
+  transition: opacity 700ms ease;
+  pointer-events: none;
+}
+
+body.is-request-demo-step-active::before {
+  opacity: 1;
 }
 
 .presentation {
   position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
 }
@@ -110,22 +122,57 @@ body.is-request-demo-step-active {
   text-decoration: underline;
 }
 
-.replay-presentation-button {
+.step-actions {
   display: none;
   margin-top: clamp(28px, 4vh, 52px);
-  padding: 20px 34px;
-  border: 2px solid rgba(255, 255, 255, 0.85);
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.contact-button,
+.replay-presentation-button {
+  padding: 18px 24px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  color: var(--copy-color);
-  font: 600 clamp(17px, 1.4vw, 22px) / 1 "Poppins", sans-serif;
+  font: 600 clamp(16px, 1.4vw, 18px) / 1 "Poppins", sans-serif;
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
+.contact-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgb(255, 255, 255);
+  background: rgb(255, 255, 255);
+  color: #000000;
+  text-decoration: none;
+}
+
+.contact-button:hover,
+.contact-button:focus-visible {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.92);
+}
+
+.contact-button:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.contact-button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 4px;
+}
+
+.replay-presentation-button {
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--copy-color);
+}
+
 .replay-presentation-button:hover,
 .replay-presentation-button:focus-visible {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.25);
   border-color: rgb(255, 255, 255);
 }
 
@@ -141,20 +188,163 @@ body.is-request-demo-step-active {
 .presentation.is-request-demo-step .presentation-header {
   height: 100%;
   z-index: 3;
+  align-items: stretch;
+}
+
+.presentation.is-request-demo-step .step-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  gap: clamp(32px, 5vh, 56px);
 }
 
 .presentation.is-request-demo-step .step-nav {
   display: none;
 }
 
+.presentation.is-request-demo-step .step-title,
+.presentation.is-request-demo-step .step-description {
+  transition: none;
+}
+
+.presentation.is-request-demo-step .step-title.is-switching,
+.presentation.is-request-demo-step .step-description.is-switching {
+  opacity: 0;
+  transform: none;
+}
+
 .presentation.is-request-demo-step .step-description {
   max-width: 42em;
+  margin-top: 0;
+}
+
+.presentation.is-request-demo-step .step-description a {
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 180ms ease;
+}
+
+.presentation.is-request-demo-step .step-description a:hover,
+.presentation.is-request-demo-step .step-description a:focus-visible {
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.85);
+}
+
+.presentation.is-request-demo-step .step-copy:not(.is-request-demo-entering) .step-title-row,
+.presentation.is-request-demo-step .step-copy:not(.is-request-demo-entering) .step-description,
+.presentation.is-request-demo-step .step-copy:not(.is-request-demo-entering) .contact-button,
+.presentation.is-request-demo-step .step-copy:not(.is-request-demo-entering) .replay-presentation-button {
+  opacity: 0;
+}
+
+.presentation.is-request-demo-step .step-copy.is-request-demo-entering .step-title-row {
+  animation: request-demo-copy-in 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.presentation.is-request-demo-step .step-copy.is-request-demo-entering .step-description {
+  animation: request-demo-copy-in 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.presentation.is-request-demo-step .step-copy.is-request-demo-entering .contact-button,
+.presentation.is-request-demo-step .step-copy.is-request-demo-entering .replay-presentation-button {
+  animation: request-demo-button-pop 640ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+}
+
+.presentation.is-request-demo-step .step-actions {
+  display: flex;
+  margin-top: 0;
+}
+
+.presentation.is-request-demo-step .contact-button,
+.presentation.is-request-demo-step .replay-presentation-button {
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
 .presentation.is-request-demo-step .replay-presentation-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+}
+
+@keyframes request-demo-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(-56px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes request-demo-button-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(56px) scale(1);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    transition: none;
+  }
+
+  .presentation.is-request-demo-step .step-copy:not(.is-request-demo-entering) .step-title-row,
+  .presentation.is-request-demo-step .step-copy:not(.is-request-demo-entering) .step-description,
+  .presentation.is-request-demo-step .step-copy:not(.is-request-demo-entering) .contact-button,
+  .presentation.is-request-demo-step .step-copy:not(.is-request-demo-entering) .replay-presentation-button {
+    opacity: 1;
+  }
+
+  .presentation.is-request-demo-step .step-copy.is-request-demo-entering .step-title-row,
+  .presentation.is-request-demo-step .step-copy.is-request-demo-entering .step-description,
+  .presentation.is-request-demo-step .step-copy.is-request-demo-entering .contact-button,
+  .presentation.is-request-demo-step .step-copy.is-request-demo-entering .replay-presentation-button {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .replay-presentation-button:hover svg,
+  .replay-presentation-button:focus-visible svg {
+    animation: none;
+  }
+}
+
+.replay-presentation-button svg {
+  display: block;
+  flex-shrink: 0;
+  transform-origin: center;
+}
+
+.replay-presentation-button:hover svg,
+.replay-presentation-button:focus-visible svg {
+  animation: replay-icon-spin 560ms ease;
+}
+
+@keyframes replay-icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
 }
 
 .presentation.is-request-demo-step .stage {
@@ -171,8 +361,8 @@ body.is-request-demo-step-active {
 .step-arrow {
   --button-opacity: 0.25;
   --step-progress: 0%;
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -285,18 +475,187 @@ body.is-request-demo-step-active {
 }
 
 .stage-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: translateY(0);
+  transition: transform 600ms cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.stage-frame__surface {
+  position: relative;
   width: 100%;
   height: 100%;
   border-radius: 24px 24px 0 0;
   background: #ffffff;
   box-shadow: 0 24px 64px rgba(38, 24, 102, 0.28);
   overflow: hidden;
-  transform: translateY(0);
-  transition: transform 700ms cubic-bezier(0.22, 0.8, 0.3, 1);
+  isolation: isolate;
+}
+
+.stage-frame__surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(to top, rgb(255, 255, 255, 50%) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease 50ms;
+}
+
+.stage.is-revealed:not(.is-frame-slid-down) .stage-frame:hover .stage-frame__surface::after {
+  opacity: 1;
+  transition: opacity 180ms ease 50ms;
+}
+
+.stage.is-revealed:not(.is-frame-slid-down) .stage-frame {
+  transform-origin: bottom center;
+  transition: transform 260ms ease 50ms, box-shadow 260ms ease 50ms;
+}
+
+.stage.is-revealed:not(.is-frame-slid-down) .stage-frame:hover {
+  transform: scale(0.98);
+  transition: transform 260ms ease 50ms, box-shadow 260ms ease 50ms;
 }
 
 .stage.is-frame-slid-down .stage-frame {
   transform: translateY(105%);
+}
+
+.pause-btn {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 12px 24px 12px 12px;
+  border: 0;
+  border-radius: 999px;
+  background-color: rgb(122, 99, 221);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  cursor: default;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(32px);
+  transition:
+    opacity 160ms ease 50ms,
+    visibility 160ms ease 50ms,
+    transform 280ms cubic-bezier(0.4, 0, 1, 1) 50ms,
+    padding 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    gap 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.stage.is-revealed:not(.is-frame-slid-down) .stage-frame:hover .pause-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  cursor: pointer;
+  transform: translateX(-50%) translateY(0);
+  transition:
+    opacity 180ms ease 50ms,
+    visibility 180ms ease 50ms,
+    transform 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 50ms,
+    padding 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    gap 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stage.is-revealed:not(.is-frame-slid-down) .stage-frame:hover .pause-btn:hover {
+  transform: translateX(-50%) translateY(0) scale(1.04);
+  transition:
+    opacity 180ms ease,
+    visibility 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    gap 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pause-btn__icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  flex-shrink: 0;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.stage.is-revealed:not(.is-frame-slid-down) .stage-frame:hover .pause-btn:hover .pause-btn__icon {
+  border-color: rgb(255, 255, 255);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.pause-btn__icon .pause-btn__glyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  transition:
+    opacity 220ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pause-btn__icon .pause-btn__glyph-play {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.88);
+}
+
+.pause-btn.is-paused .pause-btn__icon .pause-btn__glyph-pause {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.88);
+}
+
+.pause-btn.is-paused .pause-btn__icon .pause-btn__glyph-play {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.pause-btn__label-wrap {
+  position: relative;
+  flex-shrink: 0;
+  font: 600 20px / 1.2 "Poppins", sans-serif;
+  height: 1.2em;
+  overflow-x: clip;
+  overflow-y: visible;
+  transition: width 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pause-btn__label-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  font: 600 20px / 1.2 "Poppins", sans-serif;
+  color: rgb(255, 255, 255);
+  text-align: left;
+  transition:
+    opacity 220ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pause-btn__label-play {
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+.pause-btn.is-paused .pause-btn__label-pause {
+  opacity: 0;
+  transform: translateX(4px);
+}
+
+.pause-btn.is-paused .pause-btn__label-play {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* Render the CST view oversized, then scale it down so the embedded UI
@@ -311,6 +670,11 @@ body.is-request-demo-step-active {
   transform-origin: top left;
   pointer-events: none;
   transition: opacity 260ms ease;
+}
+
+.stage-frame__surface,
+.stage-iframe {
+  border-radius: 24px 24px 0 0;
 }
 
 .stage-iframe.is-ui-hidden {

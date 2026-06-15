@@ -10,6 +10,38 @@ const ONE_PAGER_CARD_STAGGER_MS = 120;
 
 let activeScope = "all";
 let searchTerm = "";
+let onePagerPresentationPaused = false;
+const onePagerPausedAnimations = new Set();
+
+function syncOnePagerDocumentAnimations(isPaused) {
+  if (typeof document.getAnimations !== "function") return;
+
+  if (isPaused) {
+    document.getAnimations({ subtree: true }).forEach((animation) => {
+      if (animation.playState === "running" || animation.playState === "pending") {
+        animation.pause();
+        onePagerPausedAnimations.add(animation);
+      }
+    });
+    return;
+  }
+
+  onePagerPausedAnimations.forEach((animation) => {
+    if (animation.playState === "paused") {
+      animation.play();
+    }
+  });
+  onePagerPausedAnimations.clear();
+}
+
+function setOnePagerPresentationPaused(isPaused) {
+  const nextPaused = Boolean(isPaused);
+  if (nextPaused === onePagerPresentationPaused) return;
+
+  onePagerPresentationPaused = nextPaused;
+  document.body.classList.toggle("is-one-pager-paused", nextPaused);
+  syncOnePagerDocumentAnimations(nextPaused);
+}
 
 function getAddedBadge(added) {
   return added > 0 ? `<span class="target-added">+${added.toLocaleString("en")}</span>` : "";
@@ -151,6 +183,7 @@ render();
 
 window.runOnePagerTargetsListingIntro = runOnePagerTargetsListingIntro;
 window.runOnePagerTargetsOpenAnimation = runOnePagerTargetsOpenAnimation;
+window.setOnePagerPresentationPaused = setOnePagerPresentationPaused;
 
 if (document.body.classList.contains("one-pager-targets-presentation")) {
   runOnePagerTargetsListingIntro();

@@ -1747,7 +1747,11 @@ body.target-detail {
 }
 
 .owner-org-chart.is-opening .org-report-section {
-  transition: opacity 280ms ease, transform 320ms ease;
+  transition: opacity 420ms ease, transform 480ms ease;
+}
+
+.owner-org-chart.is-opening .org-person-card {
+  transition: opacity 420ms ease, transform 480ms ease, color 220ms ease;
 }
 
 .owner-org-chart.is-opening .org-report-section.is-opening-hidden {
@@ -1762,7 +1766,7 @@ body.target-detail {
 }
 
 .owner-org-chart.is-opening .org-person-card.is-opening-card-visible {
-  transition-delay: calc(var(--org-card-index, 0) * 60ms);
+  transition-delay: calc(var(--org-card-index, 0) * 90ms);
 }
 
 .org-report-section.is-collapsed {
@@ -2619,11 +2623,47 @@ body.one-pager-target-detail-presentation.is-one-pager-target-detail-settled tbo
   transition-delay: 0ms;
 }
 
+body.one-pager-target-detail-presentation.is-one-pager-target-detail-settled .target-detail-table-panel tbody tr {
+  transition: background-color 480ms ease-in-out;
+}
+
 body.one-pager-target-detail-presentation.is-one-pager-target-detail-settled .target-detail-card {
   opacity: 1;
   transform: none;
   transition: width var(--transition-medium);
   transition-delay: 0ms;
+}
+
+body.one-pager-target-detail-presentation.is-owner-org-chart-open .target-detail-table-panel .header {
+  display: none;
+}
+
+body.one-pager-target-detail-presentation.is-owner-org-chart-open .target-detail-table-panel .owner-org-chart-wrap {
+  border-top: 0;
+  margin-top: -12px;
+}
+
+body.one-pager-target-detail-presentation.is-owner-org-chart-open .owner-org-panel {
+  padding-top: 10px;
+}
+
+body.one-pager-target-detail-presentation.is-owner-org-chart-open .owner-org-chart {
+  padding-top: 8px;
+}
+
+@media (max-height: 980px), (max-width: 900px) {
+  body.one-pager-target-detail-presentation.is-owner-org-chart-open .target-detail-table-panel .owner-org-chart-wrap {
+    margin: -12px 0 0 -12px;
+  }
+
+  body.one-pager-target-detail-presentation.is-owner-org-chart-open .owner-org-panel {
+    padding-top: 8px;
+    padding-bottom: 20px;
+  }
+
+  body.one-pager-target-detail-presentation.is-owner-org-chart-open .owner-org-chart {
+    padding-top: 4px;
+  }
 }
 
 /* Reveal each owner/contact detail row whenever the sidebar content changes. */

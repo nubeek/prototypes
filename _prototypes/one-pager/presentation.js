@@ -8,11 +8,11 @@
   const STEP_COPY_SWITCH_MS = 240;
   const STAGE_SWAP_FADE_MS = 700;
   const STAGE_UI_SWAP_FADE_MS = 260;
-  const CST_MAP_OPEN_DELAY_MS = 2800;
+  const CST_MAP_OPEN_DELAY_MS = 1200;
   const CST_ROWS_SCROLL_DELAY_MS = 200;
   const CST_ROWS_SCROLL_DURATION_MS = 60000;
-  const CST_MAP_TOUR_DURATION_MS = 15000;
-  const AUTO_STEP_DURATION_MS = 11000;
+  const CST_MAP_TOUR_DURATION_MS = 12000;
+  const AUTO_STEP_DURATION_MS = 15000;
   const TARGET_MODAL_OPEN_DELAY_MS = 400;
   const CST_STEP_FADE_OUT_DELAY_MS = 12400;
   const TARGET_DETAIL_OPEN_DELAY_MS = 2000;
@@ -21,6 +21,7 @@
   const TARGETS_STEP_INDEX = 3;
   const OWNER_STORY_STEP_INDEX = 4;
   const REQUEST_DEMO_STEP_INDEX = 5;
+  const REQUEST_DEMO_ENTRANCE_DELAY_MS = 400;
   const TARGET_TITLE = "CO, TN & AZ Top Fitness MUMBOs";
   const TARGET_DESCRIPTION = "Prospective fitness franchise owners with strong multi-unit potential across Colorado, Tennessee, and Arizona";
   const TARGET_MARKET_CITIES = [
@@ -51,7 +52,7 @@
       }
     },
     {
-      title: "Find largest MUMBOs in any major market",
+      title: "Find MUMBOs in any major market",
       description: "Search for potential franchisees by brand, location, background, and exclude specific brands or categories.",
       apply() {
         clearInitialCstIntroTimers();
@@ -65,8 +66,8 @@
       }
     },
     {
-      title: "Turn the search into a target list",
-      description: "You can save a particular search as a target list, so you or your team can come back later and review each contact.",
+      title: "Turn searches into targets",
+      description: "Save any search as a target so your team can revisit it and work through the right contacts anytime.",
       apply() {
         clearInitialCstIntroTimers();
         ensureCstFrame((cst) => {
@@ -79,22 +80,23 @@
       }
     },
     {
-      title: "Open and review the target list",
-      description: "The saved target becomes a reusable list. From there, you can open <strong>CO, TN &amp; AZ Top Fitness MUMBOs</strong> and review the owners behind it.",
+      title: "Browse public and saved targets",
+      description: "Revisit targets created by you or your team, or explore publicly available targets created by Wefranch or other franchisors.",
       apply() {
         runTargetsPresentationStep();
       }
     },
     {
-      title: "Dive into an owner and its org chart",
-      description: "Open an owner like <strong>United FP</strong> to see its profile, explore the full <strong>org chart</strong>, and drill into individual contacts.",
+      title: "Explore individual MUMBOs",
+      description: "View each owner's org chart to find the right people to contact when the primary decision-maker doesn't respond.",
+
       apply() {
         runOwnerStoryStep();
       }
     },
     {
-      title: "Request demo today",
-      description: "Pricing: $9,000 per year, paid monthly in $750 installments.<br><br>Connect with us at <a href=\"mailto:gregory.ugwi@wefranch.com\"><strong>gregory.ugwi@wefranch.com</strong></a> or <a href=\"mailto:mariyam@wefranch.com\"><strong>mariyam@wefranch.com</strong></a>",
+      title: "Get in touch",
+      description: "Pricing starts at <a href=\"https://wefranch.com/pricing\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>$750/month</strong></a>, billed annually.<br><br>For access, onboarding, or questions, contact us directly at <a href=\"mailto:gregory.ugwi@wefranch.com\"><strong>gregory.ugwi@wefranch.com</strong></a> or <a href=\"mailto:mariyam@wefranch.com\"><strong>mariyam@wefranch.com</strong></a>",
       apply() {
         runRequestDemoStep();
       }
@@ -103,22 +105,33 @@
 
   const presentation = document.querySelector(".presentation");
   const stage = document.getElementById("stage");
+  const stageFrame = document.getElementById("stageFrame");
   const cstFrame = document.getElementById("cstFrame");
   const stepTitle = document.getElementById("stepTitle");
   const stepDescription = document.getElementById("stepDescription");
   const prevStepBtn = document.getElementById("prevStepBtn");
   const nextStepBtn = document.getElementById("nextStepBtn");
   const replayPresentationBtn = document.getElementById("replayPresentationBtn");
+  const stagePauseBtn = document.getElementById("stagePauseBtn");
+  const pauseBtnLabelWrap = stagePauseBtn.querySelector(".pause-btn__label-wrap");
+  const pauseBtnLabelPause = stagePauseBtn.querySelector(".pause-btn__label-pause");
+  const pauseBtnLabelPlay = stagePauseBtn.querySelector(".pause-btn__label-play");
+  const stepCopy = document.getElementById("stepCopy");
 
   let cstWindow = null;
   let activeFrameSource = "";
   let currentStepIndex = 0;
   let copySwitchTimeout = null;
-  let introMapOpenTimeout = null;
-  let introRowsScrollTimeout = null;
+  let requestDemoEntranceTimeout = null;
   let hasRunInitialCstIntro = false;
   let stepTimerFrame = null;
-  const targetStepTimeouts = new Set();
+  let stepTimerStartedAt = null;
+  let pausedStepProgress = 0;
+  let pauseBtnLabelWidths = null;
+  let isPresentationPaused = false;
+  const presentationTimeouts = new Set();
+  const TIMER_GROUP_INITIAL_CST_INTRO = "initial-cst-intro";
+  const TIMER_GROUP_TARGET_STEP = "target-step";
 
   function revealStage() {
     stage.classList.remove("is-frame-slid-down");
@@ -126,11 +139,13 @@
   }
 
   function hideStage() {
+    clearStagePauseState();
     stage.classList.remove("is-frame-slid-down");
     stage.classList.remove("is-revealed");
   }
 
   function slideDownStageFrame() {
+    clearStagePauseState();
     revealStage();
     stage.classList.add("is-frame-slid-down");
   }
@@ -158,10 +173,15 @@
     frameWindow.document.addEventListener("keydown", handleStepKeydown);
   }
 
+  function syncFramePauseState(frameWindow = cstFrame.contentWindow) {
+    frameWindow?.setOnePagerPresentationPaused?.(isPresentationPaused);
+  }
+
   function ensureCstFrame(onReady) {
     const finish = (frameWindow) => {
       cstWindow = frameWindow;
       attachFrameKeydown(frameWindow);
+      syncFramePauseState(frameWindow);
       onReady(frameWindow);
     };
 
@@ -173,6 +193,7 @@
     cstWindow = null;
     loadFrame(source, (frameWindow) => {
       attachFrameKeydown(frameWindow);
+      syncFramePauseState(frameWindow);
       onReady(frameWindow);
     });
   }
@@ -218,20 +239,66 @@
     field.dispatchEvent(new FieldEvent("change", { bubbles: true }));
   }
 
-  function queueTargetStepTimeout(callback, delayMs) {
-    const timeoutId = window.setTimeout(() => {
-      targetStepTimeouts.delete(timeoutId);
-      callback();
-    }, delayMs);
+  function schedulePresentationTimeout(timer) {
+    timer.startedAt = performance.now();
+    timer.timeoutId = window.setTimeout(() => {
+      presentationTimeouts.delete(timer);
+      timer.timeoutId = null;
+      timer.callback();
+    }, Math.max(0, timer.remainingMs));
+  }
 
-    targetStepTimeouts.add(timeoutId);
+  function queuePresentationTimeout(callback, delayMs, group) {
+    const timer = {
+      callback,
+      group,
+      remainingMs: delayMs,
+      startedAt: null,
+      timeoutId: null
+    };
+
+    presentationTimeouts.add(timer);
+    if (!isPresentationPaused) {
+      schedulePresentationTimeout(timer);
+    }
+    return timer;
+  }
+
+  function queueTargetStepTimeout(callback, delayMs) {
+    return queuePresentationTimeout(callback, delayMs, TIMER_GROUP_TARGET_STEP);
+  }
+
+  function queueInitialCstIntroTimeout(callback, delayMs) {
+    return queuePresentationTimeout(callback, delayMs, TIMER_GROUP_INITIAL_CST_INTRO);
+  }
+
+  function clearPresentationTimeouts(group) {
+    Array.from(presentationTimeouts).forEach((timer) => {
+      if (timer.group !== group) return;
+      window.clearTimeout(timer.timeoutId);
+      presentationTimeouts.delete(timer);
+    });
+  }
+
+  function pausePresentationTimeouts() {
+    const now = performance.now();
+    presentationTimeouts.forEach((timer) => {
+      if (timer.timeoutId === null) return;
+      window.clearTimeout(timer.timeoutId);
+      timer.timeoutId = null;
+      timer.remainingMs = Math.max(0, timer.remainingMs - (now - timer.startedAt));
+    });
+  }
+
+  function resumePresentationTimeouts() {
+    presentationTimeouts.forEach((timer) => {
+      if (timer.timeoutId !== null) return;
+      schedulePresentationTimeout(timer);
+    });
   }
 
   function clearTargetStepAnimation() {
-    targetStepTimeouts.forEach((timeoutId) => {
-      window.clearTimeout(timeoutId);
-    });
-    targetStepTimeouts.clear();
+    clearPresentationTimeouts(TIMER_GROUP_TARGET_STEP);
     cstFrame.classList.remove("is-ui-hidden");
     stage.classList.remove("is-frame-slid-down");
   }
@@ -306,10 +373,7 @@
   }
 
   function clearInitialCstIntroTimers() {
-    window.clearTimeout(introMapOpenTimeout);
-    window.clearTimeout(introRowsScrollTimeout);
-    introMapOpenTimeout = null;
-    introRowsScrollTimeout = null;
+    clearPresentationTimeouts(TIMER_GROUP_INITIAL_CST_INTRO);
   }
 
   function runTargetsPresentationStep() {
@@ -457,6 +521,85 @@
     const isRequestDemoStep = currentStepIndex === REQUEST_DEMO_STEP_INDEX;
     presentation.classList.toggle("is-request-demo-step", isRequestDemoStep);
     document.body.classList.toggle("is-request-demo-step-active", isRequestDemoStep);
+    stepCopy.classList.remove("is-request-demo-entering");
+    window.clearTimeout(requestDemoEntranceTimeout);
+
+    if (!isRequestDemoStep) return;
+
+    requestDemoEntranceTimeout = window.setTimeout(() => {
+      if (currentStepIndex !== REQUEST_DEMO_STEP_INDEX) return;
+      stepCopy.classList.remove("is-request-demo-entering");
+      void stepCopy.offsetWidth;
+      stepCopy.classList.add("is-request-demo-entering");
+    }, REQUEST_DEMO_ENTRANCE_DELAY_MS);
+  }
+
+  function canPauseStage() {
+    return stage.classList.contains("is-revealed") &&
+      !stage.classList.contains("is-frame-slid-down") &&
+      currentStepIndex < STEPS.length - 1;
+  }
+
+  function getStepTimerProgress(now = performance.now()) {
+    if (stepTimerStartedAt === null) return pausedStepProgress;
+    return Math.min((now - stepTimerStartedAt) / AUTO_STEP_DURATION_MS, 1);
+  }
+
+  function measurePauseButtonLabelWidths() {
+    pauseBtnLabelWidths = {
+      pause: pauseBtnLabelPause.scrollWidth,
+      play: pauseBtnLabelPlay.scrollWidth,
+    };
+  }
+
+  function syncPauseButtonUI() {
+    const isPaused = stagePauseBtn.classList.contains("is-paused");
+    stagePauseBtn.setAttribute("aria-label", isPaused ? "Play presentation" : "Pause presentation");
+
+    if (!pauseBtnLabelWidths) measurePauseButtonLabelWidths();
+    pauseBtnLabelWrap.style.width = `${isPaused ? pauseBtnLabelWidths.play : pauseBtnLabelWidths.pause}px`;
+  }
+
+  function initPauseButtonSizing() {
+    measurePauseButtonLabelWidths();
+    syncPauseButtonUI();
+  }
+
+  function clearStagePauseState() {
+    stagePauseBtn.classList.remove("is-paused");
+    syncPauseButtonUI();
+    pausedStepProgress = 0;
+  }
+
+  function pausePresentation() {
+    if (!canPauseStage() || stagePauseBtn.classList.contains("is-paused")) return;
+
+    isPresentationPaused = true;
+    pausedStepProgress = getStepTimerProgress();
+    window.cancelAnimationFrame(stepTimerFrame);
+    stepTimerFrame = null;
+    stepTimerStartedAt = null;
+    pausePresentationTimeouts();
+    syncFramePauseState();
+    stagePauseBtn.classList.add("is-paused");
+    syncPauseButtonUI();
+    setNextStepProgress(pausedStepProgress);
+  }
+
+  function resumePresentation() {
+    if (!stagePauseBtn.classList.contains("is-paused")) return;
+
+    isPresentationPaused = false;
+    stagePauseBtn.classList.remove("is-paused");
+    syncPauseButtonUI();
+    syncFramePauseState();
+    resumePresentationTimeouts();
+    startStepTimer({ resumeFromProgress: pausedStepProgress });
+  }
+
+  function toggleStagePause() {
+    if (stagePauseBtn.classList.contains("is-paused")) resumePresentation();
+    else pausePresentation();
   }
 
   function setNextStepProgress(progress) {
@@ -467,20 +610,29 @@
   function stopStepTimer({ resetProgress = true } = {}) {
     window.cancelAnimationFrame(stepTimerFrame);
     stepTimerFrame = null;
+    stepTimerStartedAt = null;
     nextStepBtn.classList.remove("is-timing");
     if (resetProgress) setNextStepProgress(0);
   }
 
-  function startStepTimer() {
-    stopStepTimer();
+  function startStepTimer({ resumeFromProgress = 0 } = {}) {
+    window.cancelAnimationFrame(stepTimerFrame);
+    stepTimerFrame = null;
+    stepTimerStartedAt = null;
+    nextStepBtn.classList.remove("is-timing");
 
-    if (currentStepIndex >= STEPS.length - 1) return;
+    if (currentStepIndex >= STEPS.length - 1) {
+      if (resumeFromProgress === 0) setNextStepProgress(0);
+      return;
+    }
 
-    const startedAt = performance.now();
+    stepTimerStartedAt = performance.now() - resumeFromProgress * AUTO_STEP_DURATION_MS;
+    pausedStepProgress = resumeFromProgress;
     nextStepBtn.classList.add("is-timing");
+    setNextStepProgress(resumeFromProgress);
 
     const tick = (now) => {
-      const progress = (now - startedAt) / AUTO_STEP_DURATION_MS;
+      const progress = getStepTimerProgress(now);
       setNextStepProgress(progress);
 
       if (progress >= 1) {
@@ -502,6 +654,16 @@
     if (nextIndex === currentStepIndex && !isInitialRender) return;
 
     currentStepIndex = nextIndex;
+    if (stagePauseBtn.classList.contains("is-paused")) {
+      stagePauseBtn.classList.remove("is-paused");
+      syncPauseButtonUI();
+    }
+    if (isPresentationPaused) {
+      isPresentationPaused = false;
+      syncFramePauseState();
+      resumePresentationTimeouts();
+    }
+    pausedStepProgress = 0;
     renderStepCopy(step, { animate: animateCopy });
     applyStep(step);
     syncArrowState();
@@ -520,10 +682,10 @@
       revealStage();
       startCstMapTour(cstWindow);
 
-      introMapOpenTimeout = window.setTimeout(() => {
+      queueInitialCstIntroTimeout(() => {
         openCstMap(cstWindow);
       }, CST_MAP_OPEN_DELAY_MS);
-      introRowsScrollTimeout = window.setTimeout(() => {
+      queueInitialCstIntroTimeout(() => {
         scrollCstRowsToBottom(cstWindow);
       }, CST_ROWS_SCROLL_DELAY_MS);
     });
@@ -539,6 +701,9 @@
 
   function replayPresentation() {
     stopStepTimer();
+    stagePauseBtn.classList.remove("is-paused");
+    syncPauseButtonUI();
+    pausedStepProgress = 0;
     clearInitialCstIntroTimers();
     clearTargetStepAnimation();
     setNextStepProgress(0);
@@ -609,6 +774,7 @@
   prevStepBtn.addEventListener("click", stepBackward);
   nextStepBtn.addEventListener("click", stepForward);
   replayPresentationBtn.addEventListener("click", replayPresentation);
+  stagePauseBtn.addEventListener("click", toggleStagePause);
   document.addEventListener("keydown", handleStepKeydown);
 
   // Don't leak presentation-driven view settings into the standalone CST.
@@ -620,5 +786,14 @@
   syncArrowState();
   syncStepLayoutState();
   setNextStepProgress(0);
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(initPauseButtonSizing);
+  } else {
+    initPauseButtonSizing();
+  }
+  window.addEventListener("resize", () => {
+    measurePauseButtonLabelWidths();
+    syncPauseButtonUI();
+  });
   startWhenUnlocked();
 })();

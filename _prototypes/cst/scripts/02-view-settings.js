@@ -208,7 +208,8 @@ function setFilterPanelOpen(isOpen) {
 function restoreSavedPanelSettings(settings) {
   const savedLayout = PANEL_LAYOUT_CLASSES[settings?.panelLayout] ? settings.panelLayout : "right";
   setPanelLayout(savedLayout);
-  setFilterPanelOpen(Boolean(settings?.filters?.open));
+  const filtersOpen = settings?.filters?.open;
+  setFilterPanelOpen(typeof filtersOpen === "boolean" ? filtersOpen : true);
 
   const savedMode = PERSISTABLE_PANEL_MODES.has(settings?.panelMode) ? settings.panelMode : null;
 
@@ -247,7 +248,7 @@ function resetViewSettings() {
       key: "locations",
       direction: "descending"
     };
-    lockedToolbarMode = "map";
+    lockedToolbarMode = null;
     clearSidebarOwnerState();
 
     syncReduceMotionToggleOption();
@@ -255,8 +256,8 @@ function resetViewSettings() {
     clearAllFilterSelections();
     restoreFilterSectionState({});
     setPanelLayout("right");
-    setFilterPanelOpen(false);
-    openMapPanel("map");
+    setFilterPanelOpen(true);
+    closeSidebar();
     syncMapLocationFilter();
     applySort();
     toolbarDropdown?.removeAttribute("open");

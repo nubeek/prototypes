@@ -239,42 +239,154 @@ const defaultFilterSectionStates = filterPanel
 
 document.documentElement.classList.toggle("is-one-pager-presentation", isOnePagerPresentation);
 
+let onePagerPresentationPaused = false;
+const onePagerPresentationPauseHandlers = new Set();
+const onePagerPausedAnimations = new Set();
+
+function syncOnePagerDocumentAnimations(isPaused) {
+  if (typeof document.getAnimations !== "function") return;
+
+  if (isPaused) {
+    document.getAnimations({ subtree: true }).forEach((animation) => {
+      if (animation.playState === "running" || animation.playState === "pending") {
+        animation.pause();
+        onePagerPausedAnimations.add(animation);
+      }
+    });
+    return;
+  }
+
+  onePagerPausedAnimations.forEach((animation) => {
+    if (animation.playState === "paused") {
+      animation.play();
+    }
+  });
+  onePagerPausedAnimations.clear();
+}
+
+function addOnePagerPresentationPauseHandler(handler) {
+  if (typeof handler !== "function") return () => {};
+
+  onePagerPresentationPauseHandlers.add(handler);
+  if (onePagerPresentationPaused) handler(true);
+  return () => onePagerPresentationPauseHandlers.delete(handler);
+}
+
+function setOnePagerPresentationPaused(isPaused) {
+  if (!isOnePagerPresentation) return;
+
+  const nextPaused = Boolean(isPaused);
+  if (nextPaused === onePagerPresentationPaused) return;
+
+  onePagerPresentationPaused = nextPaused;
+  document.documentElement.classList.toggle("is-one-pager-paused", nextPaused);
+  syncOnePagerDocumentAnimations(nextPaused);
+  onePagerPresentationPauseHandlers.forEach((handler) => handler(nextPaused));
+}
+
 function revealOnePagerPresentation() {
   if (!isOnePagerPresentation) return;
   document.documentElement.classList.add("is-one-pager-cst-revealed");
 }
 
 let onePagerRowsScrollFrame = null;
+let onePagerRowsScrollState = null;
 
-function scrollOnePagerRowsToBottom({ durationMs = 6400 } = {}) {
-  if (!isOnePagerPresentation || !tableWrap) return;
+function finishOnePagerRowsScroll() {
+  if (onePagerRowsScrollState) {
+    tableWrap.style.scrollBehavior = onePagerRowsScrollState.previousScrollBehavior;
+  }
+  onePagerRowsScrollState = null;
+  onePagerRowsScrollFrame = null;
+}
 
-  window.cancelAnimationFrame(onePagerRowsScrollFrame);
+function cancelOnePagerRowsScroll() {
+  if (onePagerRowsScrollFrame !== null) {
+    window.cancelAnimationFrame(onePagerRowsScrollFrame);
+  }
+  finishOnePagerRowsScroll();
+}
 
-  const startTop = tableWrap.scrollTop;
-  const endTop = tableWrap.scrollHeight - tableWrap.clientHeight;
-  if (endTop <= startTop) return;
-
-  const startAt = performance.now();
-  const previousScrollBehavior = tableWrap.style.scrollBehavior;
-  tableWrap.style.scrollBehavior = "auto";
+function runOnePagerRowsScrollFrame() {
+  const state = onePagerRowsScrollState;
+  if (!state) return;
 
   const tick = (now) => {
-    const progress = Math.min((now - startAt) / durationMs, 1);
+    if (state !== onePagerRowsScrollState) return;
+
+    const progress = state.durationMs > 0
+      ? Math.min((now - state.startedAt) / state.durationMs, 1)
+      : 1;
     const decelerationStart = 0.82;
     const easedProgress = progress < decelerationStart
       ? progress
       : decelerationStart + ((1 - decelerationStart) * (1 - (((1 - progress) / (1 - decelerationStart)) ** 3)));
-    tableWrap.scrollTop = startTop + ((endTop - startTop) * easedProgress);
+    tableWrap.scrollTop = state.startTop + ((state.endTop - state.startTop) * easedProgress);
 
     if (progress < 1) {
       onePagerRowsScrollFrame = window.requestAnimationFrame(tick);
       return;
     }
 
-    tableWrap.style.scrollBehavior = previousScrollBehavior;
-    onePagerRowsScrollFrame = null;
+    finishOnePagerRowsScroll();
   };
 
   onePagerRowsScrollFrame = window.requestAnimationFrame(tick);
 }
+
+function setOnePagerRowsScrollPaused(isPaused) {
+  const state = onePagerRowsScrollState;
+  if (!state) return;
+
+  if (isPaused) {
+    if (onePagerRowsScrollFrame !== null) {
+      window.cancelAnimationFrame(onePagerRowsScrollFrame);
+      onePagerRowsScrollFrame = null;
+    }
+    state.remainingMs = Math.max(0, state.durationMs - (performance.now() - state.startedAt));
+    return;
+  }
+
+  state.startTop = tableWrap.scrollTop;
+  state.durationMs = state.remainingMs;
+  state.startedAt = performance.now();
+  if (state.durationMs <= 0 || state.endTop <= state.startTop) {
+    finishOnePagerRowsScroll();
+    return;
+  }
+  runOnePagerRowsScrollFrame();
+}
+
+function scrollOnePagerRowsToBottom({ durationMs = 6400 } = {}) {
+  if (!isOnePagerPresentation || !tableWrap) return;
+
+  cancelOnePagerRowsScroll();
+  const startTop = tableWrap.scrollTop;
+  const endTop = tableWrap.scrollHeight - tableWrap.clientHeight;
+  if (endTop <= startTop) return;
+
+  const previousScrollBehavior = tableWrap.style.scrollBehavior;
+  tableWrap.style.scrollBehavior = "auto";
+
+  onePagerRowsScrollState = {
+    startTop,
+    endTop,
+    durationMs,
+    remainingMs: durationMs,
+    startedAt: performance.now(),
+    previousScrollBehavior
+  };
+
+  if (onePagerPresentationPaused) {
+    onePagerRowsScrollState.remainingMs = durationMs;
+    return;
+  }
+
+  runOnePagerRowsScrollFrame();
+}
+
+addOnePagerPresentationPauseHandler(setOnePagerRowsScrollPaused);
+
+window.addOnePagerPresentationPauseHandler = addOnePagerPresentationPauseHandler;
+window.setOnePagerPresentationPaused = setOnePagerPresentationPaused;
+window.isOnePagerPresentationPaused = () => onePagerPresentationPaused;

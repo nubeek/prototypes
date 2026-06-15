@@ -21,13 +21,104 @@ const targetDataOptions = window.targetDataOptions || {};
 const useOwnerImageLogos = targetDataOptions.useImageLogos !== false;
 const useFranchiseImageLogos = targetDataOptions.useFranchiseLogos !== false;
 const logoInitialLength = targetDataOptions.logoInitialLength || 2;
-const ORG_OPENING_INITIAL_DELAY_MS = 520;
-const ORG_OPENING_LEVEL_DELAY_MS = 520;
-const ORG_OPENING_FINISH_DELAY_MS = 760;
-const ORG_OPENING_ROOT_REVEAL_DELAY_MS = 120;
+const ORG_OPENING_INITIAL_DELAY_MS = 780;
+const ORG_OPENING_LEVEL_DELAY_MS = 780;
+const ORG_OPENING_FINISH_DELAY_MS = 1140;
+const ORG_OPENING_ROOT_REVEAL_DELAY_MS = 180;
 const ORG_OPENING_SCROLL_OFFSET_PX = 20;
-const ORG_OPENING_SCROLL_DURATION_MS = 620;
+const ORG_OPENING_SCROLL_DURATION_MS = 920;
+const ORG_OPENING_DEPTH_SCROLL_DELAY_MS = 180;
 const ONE_PAGER_DETAIL_ROW_STAGGER_MS = 44;
+
+let onePagerPresentationPaused = false;
+const onePagerPresentationPauseHandlers = new Set();
+const onePagerPausedAnimations = new Set();
+const orgOpeningTimers = new Set();
+
+function syncOnePagerDocumentAnimations(isPaused) {
+  if (typeof document.getAnimations !== "function") return;
+
+  if (isPaused) {
+    document.getAnimations({ subtree: true }).forEach((animation) => {
+      if (animation.playState === "running" || animation.playState === "pending") {
+        animation.pause();
+        onePagerPausedAnimations.add(animation);
+      }
+    });
+    return;
+  }
+
+  onePagerPausedAnimations.forEach((animation) => {
+    if (animation.playState === "paused") {
+      animation.play();
+    }
+  });
+  onePagerPausedAnimations.clear();
+}
+
+function addOnePagerPresentationPauseHandler(handler) {
+  if (typeof handler !== "function") return () => {};
+
+  onePagerPresentationPauseHandlers.add(handler);
+  if (onePagerPresentationPaused) handler(true);
+  return () => onePagerPresentationPauseHandlers.delete(handler);
+}
+
+function setOnePagerPresentationPaused(isPaused) {
+  const nextPaused = Boolean(isPaused);
+  if (nextPaused === onePagerPresentationPaused) return;
+
+  onePagerPresentationPaused = nextPaused;
+  document.body.classList.toggle("is-one-pager-paused", nextPaused);
+  syncOnePagerDocumentAnimations(nextPaused);
+  onePagerPresentationPauseHandlers.forEach((handler) => handler(nextPaused));
+}
+
+function scheduleOnePagerPauseableTimeout(timerSet, timer) {
+  timer.startedAt = performance.now();
+  timer.timeoutId = window.setTimeout(() => {
+    timerSet.delete(timer);
+    timer.timeoutId = null;
+    timer.callback();
+  }, Math.max(0, timer.remainingMs));
+}
+
+function queueOnePagerPauseableTimeout(timerSet, callback, delayMs) {
+  const timer = {
+    callback,
+    remainingMs: delayMs,
+    startedAt: null,
+    timeoutId: null
+  };
+
+  timerSet.add(timer);
+  if (!onePagerPresentationPaused) {
+    scheduleOnePagerPauseableTimeout(timerSet, timer);
+  }
+  return timer;
+}
+
+function clearOnePagerPauseableTimeouts(timerSet) {
+  timerSet.forEach((timer) => window.clearTimeout(timer.timeoutId));
+  timerSet.clear();
+}
+
+function setOnePagerPauseableTimeoutsPaused(timerSet, isPaused) {
+  const now = performance.now();
+
+  timerSet.forEach((timer) => {
+    if (isPaused) {
+      if (timer.timeoutId === null) return;
+      window.clearTimeout(timer.timeoutId);
+      timer.timeoutId = null;
+      timer.remainingMs = Math.max(0, timer.remainingMs - (now - timer.startedAt));
+      return;
+    }
+
+    if (timer.timeoutId !== null) return;
+    scheduleOnePagerPauseableTimeout(timerSet, timer);
+  });
+}
 
 const franchiseLogoFileOverrides = {
   "Anytime Fitness": "anytime_fitness.svg",
@@ -176,6 +267,7 @@ let activeContactProfile = null;
 let orgOpeningAnimationToken = 0;
 let detailScrollAnimationFrame = null;
 let orgOpeningScrollFrame = null;
+let orgOpeningScrollState = null;
 const orgCollapsedNodeIdsByOwner = new Map();
 
 function getOwnerIcon(type, enabled) {
@@ -633,11 +725,46 @@ function clearOrgOpeningAnimationState(scope = ownerOrgChartWrap) {
 
 function cancelOrgOpeningAnimation() {
   orgOpeningAnimationToken += 1;
+  clearOnePagerPauseableTimeouts(orgOpeningTimers);
   if (orgOpeningScrollFrame !== null) {
     window.cancelAnimationFrame(orgOpeningScrollFrame);
     orgOpeningScrollFrame = null;
   }
+  orgOpeningScrollState = null;
   clearOrgOpeningAnimationState();
+}
+
+function easeInOutCubic(value) {
+  return (
+    value < 0.5
+      ? 4 * value * value * value
+      : 1 - Math.pow(-2 * value + 2, 3) / 2
+  );
+}
+
+function runOrgOpeningScrollFrame(state) {
+  const step = (now) => {
+    if (!ownerOrgChartWrap || state.animationToken !== orgOpeningAnimationToken) {
+      orgOpeningScrollFrame = null;
+      orgOpeningScrollState = null;
+      return;
+    }
+
+    const progress = state.durationMs > 0
+      ? Math.min((now - state.startedAt) / state.durationMs, 1)
+      : 1;
+    ownerOrgChartWrap.scrollTop = state.startTop + (state.distance * easeInOutCubic(progress));
+
+    if (progress < 1) {
+      orgOpeningScrollFrame = window.requestAnimationFrame(step);
+      return;
+    }
+
+    orgOpeningScrollFrame = null;
+    orgOpeningScrollState = null;
+  };
+
+  orgOpeningScrollFrame = window.requestAnimationFrame(step);
 }
 
 function animateOrgOpeningScrollTo(targetScrollTop, animationToken) {
@@ -653,31 +780,46 @@ function animateOrgOpeningScrollTo(targetScrollTop, animationToken) {
     orgOpeningScrollFrame = null;
   }
 
-  const startTime = performance.now();
-  const easeInOutCubic = (value) => (
-    value < 0.5
-      ? 4 * value * value * value
-      : 1 - Math.pow(-2 * value + 2, 3) / 2
-  );
-
-  const step = (now) => {
-    if (!ownerOrgChartWrap || animationToken !== orgOpeningAnimationToken) {
-      orgOpeningScrollFrame = null;
-      return;
-    }
-
-    const progress = Math.min((now - startTime) / ORG_OPENING_SCROLL_DURATION_MS, 1);
-    ownerOrgChartWrap.scrollTop = startTop + (distance * easeInOutCubic(progress));
-
-    if (progress < 1) {
-      orgOpeningScrollFrame = window.requestAnimationFrame(step);
-      return;
-    }
-
-    orgOpeningScrollFrame = null;
+  orgOpeningScrollState = {
+    animationToken,
+    startTop,
+    endTop,
+    distance,
+    durationMs: ORG_OPENING_SCROLL_DURATION_MS,
+    remainingMs: ORG_OPENING_SCROLL_DURATION_MS,
+    startedAt: performance.now()
   };
 
-  orgOpeningScrollFrame = window.requestAnimationFrame(step);
+  if (onePagerPresentationPaused) return;
+
+  runOrgOpeningScrollFrame(orgOpeningScrollState);
+}
+
+function setOrgOpeningScrollPaused(isPaused) {
+  const state = orgOpeningScrollState;
+  if (!state || !ownerOrgChartWrap) return;
+
+  if (isPaused) {
+    if (orgOpeningScrollFrame !== null) {
+      window.cancelAnimationFrame(orgOpeningScrollFrame);
+      orgOpeningScrollFrame = null;
+    }
+    state.remainingMs = Math.max(0, state.durationMs - (performance.now() - state.startedAt));
+    return;
+  }
+
+  state.startTop = ownerOrgChartWrap.scrollTop;
+  state.distance = state.endTop - state.startTop;
+  state.durationMs = state.remainingMs;
+  state.startedAt = performance.now();
+
+  if (state.durationMs <= 0 || Math.abs(state.distance) < 1) {
+    ownerOrgChartWrap.scrollTop = state.endTop;
+    orgOpeningScrollState = null;
+    return;
+  }
+
+  runOrgOpeningScrollFrame(state);
 }
 
 function scrollOrgOpeningToSection(section, animationToken) {
@@ -712,7 +854,7 @@ function animateOwnerOrgChartOpening() {
     card.classList.add("is-opening-card-hidden");
   });
 
-  window.setTimeout(() => {
+  queueOnePagerPauseableTimeout(orgOpeningTimers, () => {
     if (animationToken !== orgOpeningAnimationToken) return;
 
     rootCards.forEach((card) => {
@@ -732,7 +874,7 @@ function animateOwnerOrgChartOpening() {
   });
 
   depths.forEach((depth, depthIndex) => {
-    window.setTimeout(() => {
+    queueOnePagerPauseableTimeout(orgOpeningTimers, () => {
       if (animationToken !== orgOpeningAnimationToken) return;
 
       const depthSections = sections.filter((section) => Number(section.dataset.orgOpenDepth) === depth);
@@ -749,15 +891,15 @@ function animateOwnerOrgChartOpening() {
 
       const firstDepthSection = depthSections[0];
       if (firstDepthSection) {
-        window.setTimeout(() => {
+        queueOnePagerPauseableTimeout(orgOpeningTimers, () => {
           if (animationToken !== orgOpeningAnimationToken) return;
           scrollOrgOpeningToSection(firstDepthSection, animationToken);
-        }, 120);
+        }, ORG_OPENING_DEPTH_SCROLL_DELAY_MS);
       }
     }, ORG_OPENING_INITIAL_DELAY_MS + (depthIndex * ORG_OPENING_LEVEL_DELAY_MS));
   });
 
-  window.setTimeout(() => {
+  queueOnePagerPauseableTimeout(orgOpeningTimers, () => {
     if (animationToken !== orgOpeningAnimationToken) return;
     clearOrgOpeningAnimationState(chart);
   }, ORG_OPENING_INITIAL_DELAY_MS + (depths.length * ORG_OPENING_LEVEL_DELAY_MS) + ORG_OPENING_FINISH_DELAY_MS);
@@ -858,6 +1000,7 @@ function openOwnerOrgChart(ownerIndex) {
   tableWrap.hidden = true;
   renderOwnerOrgChart(ownerIndex);
   ownerOrgChartWrap.hidden = false;
+  document.body.classList.add("is-owner-org-chart-open");
   syncLeftPanelHeader();
   renderActiveDetail();
 }
@@ -884,6 +1027,7 @@ function closeOwnerOrgChart() {
   ownerOrgChartWrap.hidden = true;
   ownerOrgChartWrap.innerHTML = "";
   tableWrap.hidden = false;
+  document.body.classList.remove("is-owner-org-chart-open");
   syncLeftPanelHeader();
 
   if (activeDetailOwnerIndex === previousOwnerIndex && activeDetailMode === "owner") {
@@ -1468,9 +1612,9 @@ document.addEventListener("keydown", (event) => {
 
 const ONE_PAGER_DETAIL_INTRO_SETTLE_MS = 1000;
 const ONE_PAGER_DETAIL_PREVIEW_START_DELAY_MS = 750;
-const ONE_PAGER_DETAIL_PREVIEW_OWNER_HOLD_MS = 800;
-const ONE_PAGER_DETAIL_PREVIEW_OWNER_COUNT = 4;
-let onePagerDetailSettleTimer = null;
+const ONE_PAGER_DETAIL_PREVIEW_OWNER_HOLD_MS = 1400;
+const ONE_PAGER_DETAIL_PREVIEW_OWNER_COUNT = 5;
+const onePagerDetailSettleTimers = new Set();
 const onePagerDetailPreviewTimers = new Set();
 
 function isOnePagerTargetDetailPresentation() {
@@ -1491,17 +1635,11 @@ function revealOnePagerSidebarRows() {
 }
 
 function queueOnePagerDetailPreviewTimeout(callback, delayMs) {
-  const timeoutId = window.setTimeout(() => {
-    onePagerDetailPreviewTimers.delete(timeoutId);
-    callback();
-  }, delayMs);
-
-  onePagerDetailPreviewTimers.add(timeoutId);
+  queueOnePagerPauseableTimeout(onePagerDetailPreviewTimers, callback, delayMs);
 }
 
 function cancelOnePagerDetailOwnerPreview() {
-  onePagerDetailPreviewTimers.forEach((timeoutId) => window.clearTimeout(timeoutId));
-  onePagerDetailPreviewTimers.clear();
+  clearOnePagerPauseableTimeouts(onePagerDetailPreviewTimers);
 }
 
 function getOnePagerDetailPreviewOwnerIndexes() {
@@ -1528,7 +1666,7 @@ function runOnePagerDetailOwnerPreview() {
 function runOnePagerTargetDetailIntro() {
   cancelOnePagerDetailOwnerPreview();
   syncOnePagerDetailIntroRows();
-  window.clearTimeout(onePagerDetailSettleTimer);
+  clearOnePagerPauseableTimeouts(onePagerDetailSettleTimers);
   document.body.classList.remove(
     "is-one-pager-target-detail-ready",
     "is-one-pager-target-detail-settled"
@@ -1541,7 +1679,7 @@ function runOnePagerTargetDetailIntro() {
 
   // Once the entrance reveal has played, drop the transform/opacity overrides so
   // the card's own `width` transition (the sidebar expand) works again.
-  onePagerDetailSettleTimer = window.setTimeout(() => {
+  queueOnePagerPauseableTimeout(onePagerDetailSettleTimers, () => {
     document.body.classList.add("is-one-pager-target-detail-settled");
     queueOnePagerDetailPreviewTimeout(
       runOnePagerDetailOwnerPreview,
@@ -1558,17 +1696,11 @@ const ONE_PAGER_ORG_CONTACT_REVEAL_MS = 2000;
 const onePagerOwnerStoryTimers = new Set();
 
 function queueOnePagerOwnerStoryTimeout(callback, delayMs) {
-  const timeoutId = window.setTimeout(() => {
-    onePagerOwnerStoryTimers.delete(timeoutId);
-    callback();
-  }, delayMs);
-
-  onePagerOwnerStoryTimers.add(timeoutId);
+  queueOnePagerPauseableTimeout(onePagerOwnerStoryTimers, callback, delayMs);
 }
 
 function cancelOnePagerOwnerStory() {
-  onePagerOwnerStoryTimers.forEach((timeoutId) => window.clearTimeout(timeoutId));
-  onePagerOwnerStoryTimers.clear();
+  clearOnePagerPauseableTimeouts(onePagerOwnerStoryTimers);
 }
 
 function findOnePagerOwnerIndexByName(ownerName) {
@@ -1626,14 +1758,25 @@ function runOnePagerOwnerStory() {
   }, ONE_PAGER_OWNER_DETAIL_HOLD_MS);
 }
 
+addOnePagerPresentationPauseHandler((isPaused) => {
+  setOnePagerPauseableTimeoutsPaused(orgOpeningTimers, isPaused);
+  setOnePagerPauseableTimeoutsPaused(onePagerDetailSettleTimers, isPaused);
+  setOnePagerPauseableTimeoutsPaused(onePagerDetailPreviewTimers, isPaused);
+  setOnePagerPauseableTimeoutsPaused(onePagerOwnerStoryTimers, isPaused);
+  setOrgOpeningScrollPaused(isPaused);
+});
+
 window.addEventListener("pagehide", cancelOnePagerOwnerStory);
 window.addEventListener("pagehide", cancelOnePagerDetailOwnerPreview);
+window.addEventListener("pagehide", () => clearOnePagerPauseableTimeouts(onePagerDetailSettleTimers));
+window.addEventListener("pagehide", () => clearOnePagerPauseableTimeouts(orgOpeningTimers));
 
 syncTargetHeader();
 applySort();
 window.runOnePagerTargetDetailIntro = runOnePagerTargetDetailIntro;
 window.runOnePagerOwnerStory = runOnePagerOwnerStory;
 window.cancelOnePagerOwnerStory = cancelOnePagerOwnerStory;
+window.setOnePagerPresentationPaused = setOnePagerPresentationPaused;
 
 if (document.body.classList.contains("one-pager-target-detail-presentation")) {
   runOnePagerTargetDetailIntro();
