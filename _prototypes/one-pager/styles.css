@@ -84,6 +84,15 @@ body.is-presentation-loading .presentation {
   }
 }
 
+.presentation-prefetch {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .presentation {
   position: relative;
   z-index: 1;

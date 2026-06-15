@@ -131,6 +131,8 @@
   let pausedStepProgress = 0;
   let pauseBtnLabelWidths = null;
   let isPresentationPaused = false;
+  let hasCachedInitialSteps = false;
+  let hasPrefetchedLaterSteps = false;
   const presentationTimeouts = new Set();
   const TIMER_GROUP_INITIAL_CST_INTRO = "initial-cst-intro";
   const TIMER_GROUP_TARGET_STEP = "target-step";
@@ -160,17 +162,56 @@
     }, PRESENTATION_LOADING_FADE_MS);
   }
 
+  function isCstFrameWarm() {
+    return activeFrameSource === CST_SOURCE &&
+      cstWindow &&
+      cstFrame.contentWindow?.document?.readyState !== "loading";
+  }
+
   function preloadInitialSteps(cst) {
+    const skipCstWarmup = hasCachedInitialSteps && isCstFrameWarm();
+
     return Promise.all([
-      new Promise((resolve) => {
-        if (typeof cst.prepareOnePagerInitialSteps === "function") {
-          cst.prepareOnePagerInitialSteps(resolve);
-          return;
-        }
-        resolve();
-      }),
-      document.fonts?.ready ?? Promise.resolve()
+      skipCstWarmup
+        ? Promise.resolve()
+        : new Promise((resolve) => {
+          if (typeof cst.prepareOnePagerInitialSteps === "function") {
+            cst.prepareOnePagerInitialSteps(resolve);
+            return;
+          }
+          resolve();
+        }),
+      hasCachedInitialSteps ? Promise.resolve() : (document.fonts?.ready ?? Promise.resolve())
     ]);
+  }
+
+  function prefetchLaterPresentationSteps() {
+    if (hasPrefetchedLaterSteps) return;
+    hasPrefetchedLaterSteps = true;
+
+    const createPrefetchFrame = () => {
+      const frame = document.createElement("iframe");
+      frame.className = "presentation-prefetch";
+      frame.hidden = true;
+      frame.tabIndex = -1;
+      frame.setAttribute("aria-hidden", "true");
+      frame.title = "";
+      document.body.append(frame);
+      return frame;
+    };
+
+    createPrefetchFrame().src = TARGETS_LIST_SOURCE;
+    createPrefetchFrame().src = TARGETS_DETAIL_SOURCE;
+  }
+
+  function beginPresentation(cst, { fromCache = false } = {}) {
+    if (fromCache) {
+      cst.resetOnePagerPresentationForReplay?.();
+    }
+
+    goToStep(0, { animateCopy: false });
+    runInitialCstIntro();
+    prefetchLaterPresentationSteps();
   }
 
   function revealStage() {
@@ -748,13 +789,20 @@
     clearTargetStepAnimation();
     setNextStepProgress(0);
     hasRunInitialCstIntro = false;
-    cstWindow = null;
-    activeFrameSource = "";
-    cstFrame.removeAttribute("src");
+    hideStage();
     currentStepIndex = 0;
     renderStepCopy(STEPS[0], { animate: false });
     syncArrowState();
     syncStepLayoutState();
+
+    if (hasCachedInitialSteps) {
+      loadCstFrame();
+      return;
+    }
+
+    cstWindow = null;
+    activeFrameSource = "";
+    cstFrame.removeAttribute("src");
     loadCstFrame();
   }
 
@@ -779,15 +827,25 @@
   }
 
   function loadCstFrame() {
-    showPresentationLoading();
+    const fromCache = hasCachedInitialSteps;
+
+    if (!fromCache) {
+      showPresentationLoading();
+    }
 
     // Start from the CST's default state instead of whatever view settings a
     // previous standalone session persisted.
     ensureCstFrame((cst) => {
       preloadInitialSteps(cst).then(() => {
+        hasCachedInitialSteps = true;
+
+        if (fromCache) {
+          beginPresentation(cst, { fromCache: true });
+          return;
+        }
+
         hidePresentationLoading(() => {
-          goToStep(0, { animateCopy: false });
-          runInitialCstIntro();
+          beginPresentation(cst);
         });
       });
     });

@@ -956,6 +956,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 const ONE_PAGER_INITIAL_PRELOAD_TIMEOUT_MS = 12000;
+let onePagerInitialStepsPrepared = false;
 
 function preloadOnePagerImage(src) {
   return new Promise((resolve) => {
@@ -972,10 +973,16 @@ function prepareOnePagerInitialSteps(onReady) {
     return;
   }
 
+  if (onePagerInitialStepsPrepared) {
+    onReady?.();
+    return;
+  }
+
   let finished = false;
   const finish = () => {
     if (finished) return;
     finished = true;
+    onePagerInitialStepsPrepared = true;
     window.clearTimeout(preloadTimeoutId);
     onReady?.();
   };
@@ -1017,4 +1024,30 @@ function prepareOnePagerInitialSteps(onReady) {
   waitForOwnersMap();
 }
 
+function resetOnePagerPresentationForReplay() {
+  if (!isOnePagerPresentation) return;
+
+  cancelOnePagerMarketFilterStory?.();
+  cancelOnePagerMapTour?.();
+  cancelOnePagerRowsScroll?.();
+  closeCreateTargetModal?.();
+
+  document.documentElement.classList.remove("is-one-pager-cst-revealed");
+  card?.classList.remove("is-one-pager-map-crossfade-hidden");
+  clearAllFilterSelections?.();
+  setFilterPanelOpen?.(false);
+  setPanelLayout?.("right");
+  lockedToolbarMode = null;
+  closeSidebar?.();
+  syncToolbarTabState?.("map");
+  applySort?.();
+  tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+
+  if (ownersMap) {
+    ownersMap.stop();
+    ownersMap.jumpTo(ONE_PAGER_MAP_TOUR_START_CAMERA);
+  }
+}
+
 window.prepareOnePagerInitialSteps = prepareOnePagerInitialSteps;
+window.resetOnePagerPresentationForReplay = resetOnePagerPresentationForReplay;
