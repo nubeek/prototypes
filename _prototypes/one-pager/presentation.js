@@ -43,8 +43,8 @@
    */
   const STEPS = [
     {
-      title: "How Wefranch solved the problem",
-      description: "All <strong>200,000 Contacts</strong> are structured into a single <strong>Owners table</strong> \u2014 every owner with their contacts, units and franchises in one place.",
+      title: "Wefranch has indexed 200k MUMBOs",
+      description: "We uncovered, indexed, and visualized 200k of previously invisible MUMBOs across the largest franchise brands in the US.",
       apply() {
         clearTargetStepAnimation();
         ensureCstFrame((cst) => {
@@ -58,7 +58,7 @@
     },
     {
       title: "Find MUMBOs in any major market",
-      description: "Search for potential franchisees by brand, location, background, and exclude specific brands or categories.",
+      description: "Search for prospective franchisees by brand, location, background, and exclude specific brands or categories.",
       apply() {
         clearInitialCstIntroTimers();
         clearTargetStepAnimation();
@@ -86,22 +86,22 @@
     },
     {
       title: "Browse public and saved targets",
-      description: "Revisit targets created by you or your team, or explore publicly available targets created by Wefranch or other franchisors.",
+      description: "Revisit targets created by you or your team, or explore publicly available targets created by Wefranch.",
       apply() {
         runTargetsPresentationStep();
       }
     },
     {
-      title: "Explore individual MUMBOs",
-      description: "View each owner's org chart to find the right people to contact when the primary decision-maker doesn't respond.",
+      title: "Dive into MUMBO's org charts",
+      description: "View each MUMBO's org chart to find the right people to contact.",
 
       apply() {
         runOwnerStoryStep();
       }
     },
     {
-      title: "Get in touch",
-      description: "Pricing starts at <a href=\"https://wefranch.com/pricing\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>$750/month</strong></a>, billed annually.<br><br>For access, onboarding, or questions, contact us directly at <a href=\"mailto:gregory.ugwi@wefranch.com\"><strong>gregory.ugwi@wefranch.com</strong></a> or <a href=\"mailto:mariyam@wefranch.com\"><strong>mariyam@wefranch.com</strong></a>",
+      title: "Start targetting MUMBOs with Wefranch",
+      description: "Pricing: <a href=\"https://wefranch.com/pricing\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>$750 per/month</strong></a>, for a one year contract.<br><br>For access, onboarding, or questions, contact us directly at <a href=\"mailto:mariyam@wefranch.com\"><strong>mariyam@wefranch.com</strong></a>",
       apply() {
         runRequestDemoStep();
       }
