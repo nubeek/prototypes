@@ -681,6 +681,15 @@ body.target-detail.changes-hidden .added-count {
   white-space: nowrap;
 }
 
+.contact-linkedin-label {
+  display: block;
+  color: var(--color-brand);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .contact-row-actions {
   align-self: center;
   flex: 0 0 auto;
@@ -1577,17 +1586,19 @@ body.target-detail {
 
 .org-node-row-roots {
   align-items: flex-start;
-  gap: 38px;
+  column-gap: 38px;
+  row-gap: 60px;
   flex-wrap: wrap;
-  padding-bottom: 16px;
+  padding-bottom: 24px;
 }
 
 .org-node-row-children {
   align-items: flex-start;
   justify-content: center;
-  gap: 38px;
+  column-gap: 38px;
+  row-gap: 60px;
   padding-top: 48px;
-  padding-bottom: 16px;
+  padding-bottom: 24px;
   flex-wrap: wrap;
 }
 
@@ -1919,7 +1930,8 @@ body.target-detail {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 8px;
+    column-gap: 8px;
+    row-gap: 36px;
   }
 
   .org-node-row-children {
@@ -2017,7 +2029,8 @@ body.target-detail {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 6px;
+    column-gap: 6px;
+    row-gap: 32px;
   }
 
   .org-node-row-children {
@@ -2110,7 +2123,8 @@ body.target-detail {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 6px;
+    column-gap: 6px;
+    row-gap: 30px;
   }
 
   .org-node-row-children {

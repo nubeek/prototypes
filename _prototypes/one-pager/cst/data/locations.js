@@ -13,6 +13,101 @@ const OWNER_LOCATION_COLORS = [
   "#f5de58"
 ];
 
+const UNITED_STATES_LOCATION_LABEL_SUFFIX = ", United States";
+const US_STATE_NAMES = new Set([
+  "Alabama",
+  "Alaska",
+  "Arizona",
+  "Arkansas",
+  "California",
+  "Colorado",
+  "Connecticut",
+  "Delaware",
+  "District of Columbia",
+  "Florida",
+  "Georgia",
+  "Hawaii",
+  "Idaho",
+  "Illinois",
+  "Indiana",
+  "Iowa",
+  "Kansas",
+  "Kentucky",
+  "Louisiana",
+  "Maine",
+  "Maryland",
+  "Massachusetts",
+  "Michigan",
+  "Minnesota",
+  "Mississippi",
+  "Missouri",
+  "Montana",
+  "Nebraska",
+  "Nevada",
+  "New Hampshire",
+  "New Jersey",
+  "New Mexico",
+  "New York",
+  "North Carolina",
+  "North Dakota",
+  "Ohio",
+  "Oklahoma",
+  "Oregon",
+  "Pennsylvania",
+  "Rhode Island",
+  "South Carolina",
+  "South Dakota",
+  "Tennessee",
+  "Texas",
+  "Utah",
+  "Vermont",
+  "Virginia",
+  "Washington",
+  "West Virginia",
+  "Wisconsin",
+  "Wyoming"
+]);
+
+function getLocationStateName(locationLabel) {
+  const label = String(locationLabel || "").trim();
+  if (!label) return "";
+
+  if (label.endsWith(UNITED_STATES_LOCATION_LABEL_SUFFIX)) {
+    const stateName = label.slice(0, -UNITED_STATES_LOCATION_LABEL_SUFFIX.length).trim();
+    return US_STATE_NAMES.has(stateName) ? stateName : "";
+  }
+
+  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
+  const stateName = parts.length >= 2 ? parts[parts.length - 1] : "";
+  return US_STATE_NAMES.has(stateName) ? stateName : "";
+}
+
+function getStateLocationFilterLabel(stateName) {
+  const normalizedStateName = String(stateName || "").trim();
+  return US_STATE_NAMES.has(normalizedStateName)
+    ? `${normalizedStateName}${UNITED_STATES_LOCATION_LABEL_SUFFIX}`
+    : "";
+}
+
+function getStateLocationFilterLabelFromLocationLabel(locationLabel) {
+  return getStateLocationFilterLabel(getLocationStateName(locationLabel));
+}
+
+function isStateLocationFilterLabel(locationLabel) {
+  return Boolean(getLocationStateName(locationLabel)) &&
+    String(locationLabel || "").trim().endsWith(UNITED_STATES_LOCATION_LABEL_SUFFIX);
+}
+
+function locationLabelMatchesFilterLabel(locationLabel, filterLabel) {
+  if (locationLabel === filterLabel) return true;
+  if (!isStateLocationFilterLabel(filterLabel)) return false;
+  return getLocationStateName(locationLabel) === getLocationStateName(filterLabel);
+}
+
+function locationLabelMatchesAnyFilterLabel(locationLabel, filterLabels = []) {
+  return filterLabels.some((filterLabel) => locationLabelMatchesFilterLabel(locationLabel, filterLabel));
+}
+
 const OWNER_LOCATION_CENTERS = [
   { label: "Charlotte, North Carolina", lat: 35.2271, lng: -80.8431 },
   { label: "Atlanta, Georgia", lat: 33.7490, lng: -84.3880 },
@@ -56,6 +151,13 @@ const OWNER_LOCATION_CENTERS = [
   { label: "Fresno, California", lat: 36.7468, lng: -119.7726 },
   { label: "Salt Lake City, Utah", lat: 40.7608, lng: -111.8910 },
   { label: "El Paso, Texas", lat: 31.7619, lng: -106.4850 },
+  { label: "San Antonio, Texas", lat: 29.4241, lng: -98.4936 },
+  { label: "Houston, Texas", lat: 29.7604, lng: -95.3698 },
+  { label: "Tucson, Arizona", lat: 32.2226, lng: -110.9747 },
+  { label: "New Orleans, Louisiana", lat: 29.9511, lng: -90.0715 },
+  { label: "Jacksonville, Florida", lat: 30.3322, lng: -81.6557 },
+  { label: "Tampa, Florida", lat: 28.1000, lng: -82.3500 },
+  { label: "Raleigh, North Carolina", lat: 35.7796, lng: -78.6382 },
   { label: "Birmingham, Alabama", lat: 33.5207, lng: -86.8025 },
   { label: "Lincoln, Nebraska", lat: 40.8136, lng: -96.7026 },
   { label: "Richmond, Virginia", lat: 37.5407, lng: -77.4360 },
@@ -100,10 +202,145 @@ const OWNER_HEADQUARTERS_CENTERS = [
   { label: "Birmingham, Alabama", lat: 33.5207, lng: -86.8025 },
   { label: "Macon, Georgia", lat: 32.8407, lng: -83.6324 },
   { label: "Asheville, North Carolina", lat: 35.5951, lng: -82.5515 },
+  { label: "Phoenix, Arizona", lat: 33.4484, lng: -112.0740 },
+  { label: "Tucson, Arizona", lat: 32.2226, lng: -110.9747 },
+  { label: "El Paso, Texas", lat: 31.7619, lng: -106.4850 },
+  { label: "Dallas, Texas", lat: 32.7767, lng: -96.7970 },
+  { label: "Austin, Texas", lat: 30.2672, lng: -97.7431 },
+  { label: "San Antonio, Texas", lat: 29.4241, lng: -98.4936 },
+  { label: "Houston, Texas", lat: 29.7604, lng: -95.3698 },
+  { label: "Las Vegas, Nevada", lat: 36.1699, lng: -115.1398 },
+  { label: "Orlando, Florida", lat: 28.5383, lng: -81.3792 },
+  { label: "Tampa, Florida", lat: 28.1000, lng: -82.3500 },
+  { label: "Jacksonville, Florida", lat: 30.3322, lng: -81.6557 },
+  { label: "New Orleans, Louisiana", lat: 29.9511, lng: -90.0715 },
+  { label: "Charlotte, North Carolina", lat: 35.2271, lng: -80.8431 },
+  { label: "Raleigh, North Carolina", lat: 35.7796, lng: -78.6382 },
   { label: "Toronto, Ontario", lat: 43.6532, lng: -79.3832 },
   { label: "Vancouver, British Columbia", lat: 49.2827, lng: -123.1207 },
   { label: "Mexico City, Mexico", lat: 19.4326, lng: -99.1332 },
   { label: "Monterrey, Nuevo Leon", lat: 25.6866, lng: -100.3161 }
+];
+
+const SOUTH_AND_SOUTHWEST_HEADQUARTERS_WEIGHTED_LABELS = [
+  "Phoenix, Arizona",
+  "Phoenix, Arizona",
+  "Tucson, Arizona",
+  "El Paso, Texas",
+  "Dallas, Texas",
+  "Austin, Texas",
+  "San Antonio, Texas",
+  "Houston, Texas",
+  "Las Vegas, Nevada",
+  "Albuquerque, New Mexico",
+  "Orlando, Florida",
+  "Tampa, Florida",
+  "Jacksonville, Florida",
+  "New Orleans, Louisiana",
+  "Birmingham, Alabama",
+  "Memphis, Tennessee",
+  "Atlanta, Georgia",
+  "Macon, Georgia",
+  "Charlotte, North Carolina",
+  "Raleigh, North Carolina",
+  "Little Rock, Arkansas",
+  "Oklahoma City, Oklahoma"
+];
+
+const SUPPLEMENTAL_US_NORTHERN_CENTER_WEIGHTED_LABELS = [
+  "Minneapolis, Minnesota",
+  "Minneapolis, Minnesota",
+  "Madison, Wisconsin",
+  "Peoria, Illinois",
+  "Columbus, Ohio",
+  "Columbus, Ohio",
+  "Harrisburg, Pennsylvania",
+  "Harrisburg, Pennsylvania",
+  "Albany, New York",
+  "Rochester, New York",
+  "Albany, New York",
+  "Hartford, Connecticut",
+  "Hartford, Connecticut",
+  "Richmond, Virginia",
+  "Indianapolis, Indiana",
+  "St. Louis, Missouri",
+  "Omaha, Nebraska",
+  "Lincoln, Nebraska",
+  "Fargo, North Dakota",
+  "Spokane, Washington",
+  "Boise, Idaho",
+  "Sacramento, California",
+  "Salt Lake City, Utah",
+  "Denver, Colorado"
+];
+
+const SUPPLEMENTAL_NORTHWEST_POINTS_PER_OWNER = 20;
+const SUPPLEMENTAL_NORTHEAST_POINTS_PER_OWNER = 40;
+const SUPPLEMENTAL_UPPER_MIDWEST_POINTS_PER_OWNER = 24;
+const SUPPLEMENTAL_MINNESOTA_POINTS_PER_OWNER = 16;
+const SUPPLEMENTAL_WISCONSIN_POINTS_PER_OWNER = 16;
+const SUPPLEMENTAL_TEXAS_POINTS_PER_OWNER = 16;
+const SUPPLEMENTAL_ARIZONA_POINTS_PER_OWNER = 16;
+const ONE_PAGER_RADIUS_SCATTER_MAX_MILES = 185;
+
+const SUPPLEMENTAL_NORTHWEST_CENTER_WEIGHTED_LABELS = [
+  "Spokane, Washington",
+  "Spokane, Washington",
+  "Boise, Idaho",
+  "Boise, Idaho",
+  "Eugene, Oregon",
+  "Sacramento, California",
+  "Reno, Nevada",
+  "Salt Lake City, Utah",
+  "Denver, Colorado",
+  "Denver, Colorado",
+  "Fargo, North Dakota",
+  "Omaha, Nebraska",
+  "Lincoln, Nebraska"
+];
+
+const SUPPLEMENTAL_NORTHEAST_MIDWEST_CENTER_WEIGHTED_LABELS = [
+  "Minneapolis, Minnesota",
+  "Minneapolis, Minnesota",
+  "Minneapolis, Minnesota",
+  "Minneapolis, Minnesota",
+  "Madison, Wisconsin",
+  "Madison, Wisconsin",
+  "Madison, Wisconsin",
+  "Madison, Wisconsin",
+  "Peoria, Illinois",
+  "Peoria, Illinois",
+  "Peoria, Illinois",
+  "Indianapolis, Indiana",
+  "St. Louis, Missouri",
+  "Columbus, Ohio",
+  "Harrisburg, Pennsylvania",
+  "Harrisburg, Pennsylvania",
+  "Albany, New York",
+  "Albany, New York",
+  "Rochester, New York",
+  "Hartford, Connecticut",
+  "Hartford, Connecticut",
+  "Richmond, Virginia",
+  "Fargo, North Dakota",
+  "Omaha, Nebraska",
+  "Lincoln, Nebraska"
+];
+
+const SUPPLEMENTAL_UPPER_MIDWEST_CENTER_WEIGHTED_LABELS = [
+  "Minneapolis, Minnesota",
+  "Minneapolis, Minnesota",
+  "Minneapolis, Minnesota",
+  "Minneapolis, Minnesota",
+  "Madison, Wisconsin",
+  "Madison, Wisconsin",
+  "Madison, Wisconsin",
+  "Madison, Wisconsin",
+  "Peoria, Illinois",
+  "Peoria, Illinois",
+  "Indianapolis, Indiana",
+  "St. Louis, Missouri",
+  "Columbus, Ohio"
 ];
 
 const INTERNATIONAL_HEADQUARTERS_LABELS = [
@@ -373,6 +610,46 @@ function getBoundedOwnerLocation(center, distanceMiles, seed, ownerIndex) {
   return center;
 }
 
+function getScatteredRingMapLocation(center, targetDistanceMiles, seed, ownerIndex) {
+  const placeAtDistance = (distanceMiles, attemptSeed) => {
+    const bearing = ownerLocationRandom(attemptSeed + 31) * Math.PI * 2;
+    const lat = center.lat + (distanceMiles * Math.sin(bearing)) / 69;
+    const lng = center.lng + (distanceMiles * Math.cos(bearing)) /
+      (69 * Math.cos(center.lat * Math.PI / 180));
+
+    return {
+      lat: Number(lat.toFixed(5)),
+      lng: Number(lng.toFixed(5))
+    };
+  };
+
+  for (let attempt = 0; attempt < 140; attempt += 1) {
+    const attemptSeed = seed + attempt * 997;
+    const distanceJitter = 0.9 + ownerLocationRandom(attemptSeed + 43) * 0.18;
+    const location = placeAtDistance(targetDistanceMiles * distanceJitter, attemptSeed);
+
+    if (isOnNorthAmericaLand(location)) {
+      return location;
+    }
+  }
+
+  for (let shrinkStep = 1; shrinkStep <= 10; shrinkStep += 1) {
+    const reducedDistance = targetDistanceMiles * (1 - shrinkStep * 0.07);
+    if (reducedDistance < 24) break;
+
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      const attemptSeed = seed + shrinkStep * 5000 + attempt * 997;
+      const location = placeAtDistance(reducedDistance, attemptSeed);
+
+      if (isOnNorthAmericaLand(location)) {
+        return location;
+      }
+    }
+  }
+
+  return getBoundedOwnerLocation(center, Math.min(42, targetDistanceMiles * 0.35), seed + 7000, ownerIndex);
+}
+
 function getOwnerLocationDistanceMiles(location, center) {
   const latitudeDelta = (location.lat - center.lat) * Math.PI / 180;
   const longitudeDelta = (location.lng - center.lng) * Math.PI / 180;
@@ -488,6 +765,16 @@ function getOwnerHeadquartersCenter(ownerIndex) {
     if (internationalCenter) return internationalCenter;
   }
 
+  const prefersSouthOrSouthwestHeadquarters = ownerLocationRandom(ownerIndex + 271) < 0.72;
+  if (prefersSouthOrSouthwestHeadquarters) {
+    const weightedLabelIndex = Math.floor(
+      ownerLocationRandom(ownerIndex + 283) * SOUTH_AND_SOUTHWEST_HEADQUARTERS_WEIGHTED_LABELS.length
+    );
+    const weightedLabel = SOUTH_AND_SOUTHWEST_HEADQUARTERS_WEIGHTED_LABELS[weightedLabelIndex];
+    const weightedCenter = getOwnerLocationCenterByLabel(weightedLabel);
+    if (weightedCenter) return weightedCenter;
+  }
+
   const centerIndex = (ownerIndex * 7 + Math.floor(ownerLocationRandom(ownerIndex + 1) * 5)) %
     OWNER_HEADQUARTERS_CENTERS.length;
   return OWNER_HEADQUARTERS_CENTERS[centerIndex];
@@ -537,6 +824,205 @@ function getLocationDistanceFromHeadquarters(locationCount, locationIndex, close
   return maxDistance * farRatio;
 }
 
+function getSupplementalOwnerLocationCount(owner, ownerIndex) {
+  const unitCount = getOwnerUnitCount(owner);
+  const baseCount = Math.round(unitCount * 0.18);
+  const ownerVariance = Math.floor(ownerLocationRandom(ownerIndex + 317) * 5);
+  return Math.max(6, Math.min(34, baseCount + ownerVariance));
+}
+
+function getSupplementalNorthernCenter(ownerIndex, locationIndex, seed) {
+  const labelIndex = (
+    Math.floor(ownerLocationRandom(seed + 907) * SUPPLEMENTAL_US_NORTHERN_CENTER_WEIGHTED_LABELS.length) +
+    ownerIndex +
+    (locationIndex * 2)
+  ) % SUPPLEMENTAL_US_NORTHERN_CENTER_WEIGHTED_LABELS.length;
+  const centerLabel = SUPPLEMENTAL_US_NORTHERN_CENTER_WEIGHTED_LABELS[labelIndex];
+  return getOwnerLocationCenterByLabel(centerLabel);
+}
+
+function getSupplementalLocationDistanceMiles(locationIndex, seed) {
+  return getRadiusScatterDistanceMiles(locationIndex, seed, ONE_PAGER_RADIUS_SCATTER_MAX_MILES);
+}
+
+function getRadiusScatterDistanceMiles(locationIndex, seed, maxRadiusMiles = ONE_PAGER_RADIUS_SCATTER_MAX_MILES) {
+  const ringBucket = (locationIndex + Math.floor(ownerLocationRandom(seed + 97) * 17)) % 20;
+  const innerMax = maxRadiusMiles * 0.2;
+  const middleMax = maxRadiusMiles * 0.52;
+  const outerMax = maxRadiusMiles * 0.97;
+
+  if (ringBucket <= 1) {
+    return 10 + ownerLocationRandom(seed + 113) * Math.max(8, innerMax - 10);
+  }
+
+  if (ringBucket <= 5) {
+    return innerMax + ownerLocationRandom(seed + 127) * (middleMax - innerMax);
+  }
+
+  return middleMax + ownerLocationRandom(seed + 139) * Math.max(16, outerMax - middleMax);
+}
+
+function getOwnerSupplementalMapLocations(owner, ownerIndex) {
+  const supplementalCount = getSupplementalOwnerLocationCount(owner, ownerIndex);
+  const franchiseName = getOwnerPrimaryFranchise(owner);
+  const category = getOwnerCategory(owner);
+
+  return Array.from({ length: supplementalCount }, (_, locationIndex) => {
+    const seed = 700000 + ((ownerIndex + 1) * 10000) + locationIndex + 1;
+    const center = getSupplementalNorthernCenter(ownerIndex, locationIndex, seed);
+    if (!center) return null;
+
+    const distanceMiles = getSupplementalLocationDistanceMiles(locationIndex, seed);
+    const location = getScatteredRingMapLocation(center, distanceMiles, seed + 1009, ownerIndex + 500);
+    const unitOwnerName = getOwnerUnitContactName(ownerIndex + 100, locationIndex);
+
+    return {
+      id: `${getOwnerUnitSlug(owner, locationIndex)}.north.${String(locationIndex + 1).padStart(2, "0")}`,
+      name: unitOwnerName,
+      email: getOwnerUnitContactEmail(unitOwnerName, ownerIndex + 100, locationIndex),
+      phone: getOwnerUnitPhone(ownerIndex + 100, locationIndex),
+      franchise: franchiseName,
+      category,
+      ...location,
+      label: getNearestOwnerLocationLabel(location),
+      state: getLocationStateName(getNearestOwnerLocationLabel(location)),
+      isSupplementalMapLocation: true
+    };
+  }).filter(Boolean);
+}
+
+function getSupplementalBoostCenter(weightedLabels, ownerIndex, locationIndex, seed, salt) {
+  const labelIndex = (
+    Math.floor(ownerLocationRandom(seed + salt) * weightedLabels.length) +
+    ownerIndex +
+    (locationIndex * 3)
+  ) % weightedLabels.length;
+  return getOwnerLocationCenterByLabel(weightedLabels[labelIndex]);
+}
+
+function getSupplementalBoostDistanceMiles(locationIndex, seed, maxRadiusMiles = ONE_PAGER_RADIUS_SCATTER_MAX_MILES) {
+  return getRadiusScatterDistanceMiles(locationIndex, seed + 41, maxRadiusMiles);
+}
+
+function getOwnerSupplementalBoostMapLocations(owner, ownerIndex, {
+  regionSuffix,
+  pointsPerOwner,
+  weightedLabels,
+  seedBase,
+  ownerOffset,
+  centerSalt,
+  scatterMaxMiles = ONE_PAGER_RADIUS_SCATTER_MAX_MILES
+}) {
+  const franchiseName = getOwnerPrimaryFranchise(owner);
+  const category = getOwnerCategory(owner);
+
+  return Array.from({ length: pointsPerOwner }, (_, locationIndex) => {
+    const seed = seedBase + ((ownerIndex + 1) * 10000) + locationIndex + 1;
+    const center = getSupplementalBoostCenter(weightedLabels, ownerIndex, locationIndex, seed, centerSalt);
+    if (!center) return null;
+
+    const distanceMiles = getSupplementalBoostDistanceMiles(locationIndex, seed, scatterMaxMiles);
+    const location = getScatteredRingMapLocation(center, distanceMiles, seed + 163, ownerIndex + ownerOffset);
+    const unitOwnerName = getOwnerUnitContactName(ownerIndex + ownerOffset, locationIndex);
+    const label = getNearestOwnerLocationLabel(location);
+
+    return {
+      id: `${getOwnerUnitSlug(owner, locationIndex)}.${regionSuffix}.${String(locationIndex + 1).padStart(2, "0")}`,
+      name: unitOwnerName,
+      email: getOwnerUnitContactEmail(unitOwnerName, ownerIndex + ownerOffset, locationIndex),
+      phone: getOwnerUnitPhone(ownerIndex + ownerOffset, locationIndex),
+      franchise: franchiseName,
+      category,
+      ...location,
+      label,
+      state: getLocationStateName(label),
+      isSupplementalMapLocation: true
+    };
+  }).filter(Boolean);
+}
+
+function getOwnerNorthwestBoostMapLocations(owner, ownerIndex) {
+  return getOwnerSupplementalBoostMapLocations(owner, ownerIndex, {
+    regionSuffix: "nw",
+    pointsPerOwner: SUPPLEMENTAL_NORTHWEST_POINTS_PER_OWNER,
+    weightedLabels: SUPPLEMENTAL_NORTHWEST_CENTER_WEIGHTED_LABELS,
+    seedBase: 810000,
+    ownerOffset: 900,
+    centerSalt: 191
+  });
+}
+
+function getOwnerNortheastMidwestBoostMapLocations(owner, ownerIndex) {
+  return getOwnerSupplementalBoostMapLocations(owner, ownerIndex, {
+    regionSuffix: "ne",
+    pointsPerOwner: SUPPLEMENTAL_NORTHEAST_POINTS_PER_OWNER,
+    weightedLabels: SUPPLEMENTAL_NORTHEAST_MIDWEST_CENTER_WEIGHTED_LABELS,
+    seedBase: 920000,
+    ownerOffset: 1200,
+    centerSalt: 223
+  });
+}
+
+function getOwnerUpperMidwestBoostMapLocations(owner, ownerIndex) {
+  return getOwnerSupplementalBoostMapLocations(owner, ownerIndex, {
+    regionSuffix: "um",
+    pointsPerOwner: SUPPLEMENTAL_UPPER_MIDWEST_POINTS_PER_OWNER,
+    weightedLabels: SUPPLEMENTAL_UPPER_MIDWEST_CENTER_WEIGHTED_LABELS,
+    seedBase: 1030000,
+    ownerOffset: 1500,
+    centerSalt: 257
+  });
+}
+
+function getOwnerMinnesotaBoostMapLocations(owner, ownerIndex) {
+  return getOwnerSupplementalBoostMapLocations(owner, ownerIndex, {
+    regionSuffix: "mn",
+    pointsPerOwner: SUPPLEMENTAL_MINNESOTA_POINTS_PER_OWNER,
+    weightedLabels: ["Minneapolis, Minnesota"],
+    seedBase: 1140000,
+    ownerOffset: 1800,
+    centerSalt: 281
+  });
+}
+
+function getOwnerWisconsinBoostMapLocations(owner, ownerIndex) {
+  return getOwnerSupplementalBoostMapLocations(owner, ownerIndex, {
+    regionSuffix: "wi",
+    pointsPerOwner: SUPPLEMENTAL_WISCONSIN_POINTS_PER_OWNER,
+    weightedLabels: ["Madison, Wisconsin"],
+    seedBase: 1260000,
+    ownerOffset: 2100,
+    centerSalt: 307
+  });
+}
+
+function getOwnerTexasBoostMapLocations(owner, ownerIndex) {
+  return getOwnerSupplementalBoostMapLocations(owner, ownerIndex, {
+    regionSuffix: "tx",
+    pointsPerOwner: SUPPLEMENTAL_TEXAS_POINTS_PER_OWNER,
+    weightedLabels: [
+      "Dallas, Texas",
+      "Houston, Texas",
+      "Austin, Texas",
+      "San Antonio, Texas"
+    ],
+    seedBase: 1380000,
+    ownerOffset: 2400,
+    centerSalt: 331
+  });
+}
+
+function getOwnerArizonaBoostMapLocations(owner, ownerIndex) {
+  return getOwnerSupplementalBoostMapLocations(owner, ownerIndex, {
+    regionSuffix: "az",
+    pointsPerOwner: SUPPLEMENTAL_ARIZONA_POINTS_PER_OWNER,
+    weightedLabels: ["Phoenix, Arizona", "Tucson, Arizona"],
+    seedBase: 1500000,
+    ownerOffset: 2700,
+    centerSalt: 359
+  });
+}
+
 function getOwnerLocations(owner, ownerIndex) {
   const locationCount = getOwnerUnitCount(owner);
   const headquartersCenter = getOwnerHeadquartersCenter(ownerIndex);
@@ -562,6 +1048,7 @@ function getOwnerLocations(owner, ownerIndex) {
     const locationCenter = supplementalCenter || headquartersCenter;
     const location = getBoundedOwnerLocation(locationCenter, distanceFromHeadquarters, seed, ownerIndex);
     const unitOwnerName = getOwnerUnitContactName(ownerIndex, locationIndex);
+    const label = getNearestOwnerLocationLabel(location);
 
     return {
       id: `${getOwnerUnitSlug(owner, locationIndex)}`,
@@ -571,7 +1058,8 @@ function getOwnerLocations(owner, ownerIndex) {
       franchise: franchiseName,
       category,
       ...location,
-      label: getNearestOwnerLocationLabel(location)
+      label,
+      state: getLocationStateName(label)
     };
   });
 }
@@ -588,3 +1076,24 @@ window.ownerLocationsData = (window.ownersData || []).map((owner, ownerIndex) =>
     units
   };
 });
+
+window.ownerSupplementalMapLocationsData = (window.ownersData || []).map((owner, ownerIndex) => ({
+  ownerName: owner.ownerName,
+  color: OWNER_LOCATION_COLORS[ownerIndex % OWNER_LOCATION_COLORS.length],
+  locations: [
+    ...getOwnerSupplementalMapLocations(owner, ownerIndex),
+    ...getOwnerNorthwestBoostMapLocations(owner, ownerIndex),
+    ...getOwnerNortheastMidwestBoostMapLocations(owner, ownerIndex),
+    ...getOwnerUpperMidwestBoostMapLocations(owner, ownerIndex),
+    ...getOwnerMinnesotaBoostMapLocations(owner, ownerIndex),
+    ...getOwnerWisconsinBoostMapLocations(owner, ownerIndex),
+    ...getOwnerTexasBoostMapLocations(owner, ownerIndex),
+    ...getOwnerArizonaBoostMapLocations(owner, ownerIndex)
+  ]
+}));
+
+function getOwnerCombinedMapLocations(ownerIndex) {
+  const baseLocations = window.ownerLocationsData?.[ownerIndex]?.locations || [];
+  const supplementalLocations = window.ownerSupplementalMapLocationsData?.[ownerIndex]?.locations || [];
+  return [...baseLocations, ...supplementalLocations];
+}

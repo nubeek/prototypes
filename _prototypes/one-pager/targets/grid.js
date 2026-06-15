@@ -7,6 +7,72 @@ const searchClear = document.getElementById("targetSearchClear");
 const TARGET_HREF = "list.html";
 const ACTIVE_TARGET_STORAGE_KEY = "wefranch:active-target";
 const ONE_PAGER_CARD_STAGGER_MS = 120;
+const isOnePagerTargetsPresentation = document.body.classList.contains("one-pager-targets-presentation");
+
+// Step 4 presentation labels — applied here so the grid stays correct even if targets.js is cached.
+const ONE_PAGER_PRESENTATION_TARGET_OVERRIDES = {
+  "co-tn-az-top-fitness-mumbos": {
+    name: "Midwest Planet Fitness MUMBOs",
+    location: "Midwest",
+    type: "Multi-unit, multi-brand owners"
+  },
+  "massage-envy": {
+    name: "West Virginia MUMBOS",
+    location: "West Virginia, United States",
+    type: "-",
+    prospects: 74,
+    added: 12
+  },
+  "phenix-salon-suites": {
+    name: "Oklahoma MUMBOS",
+    location: "Oklahoma, United States",
+    type: "-",
+    prospects: 122,
+    added: 23
+  },
+  "brea-ca": {
+    name: "Pennsylvania MUMBOS",
+    location: "Pennsylvania, United States",
+    type: "-",
+    prospects: 781,
+    added: 61
+  },
+  "tropical-smoothie-cafe": {
+    name: "Florida MUMBOS",
+    location: "Florida, United States",
+    type: "Multi-Brand Operator",
+    prospects: 298,
+    added: 80
+  },
+  "crumbl": {
+    name: "Jacksonville",
+    location: "Jacksonville, Florida, United States",
+    type: "-",
+    prospects: 889,
+    added: 207
+  },
+  "tn-texas-non-coffee-qsrs": {
+    name: "Louisiana MUMBOS",
+    location: "Louisiana, United States",
+    type: "-",
+    prospects: 116,
+    added: 29
+  },
+  "planet-fitness-mega-operators": {
+    name: "Arkansas MUMBOS",
+    location: "Arkansas, United States",
+    type: "-",
+    prospects: 88,
+    added: 17
+  },
+  "athlete-franchise-owners": {
+    name: "Virginia MUMBOS",
+    location: "Virginia, United States",
+    type: "-",
+    prospects: 456,
+    added: 113
+  }
+};
 
 let activeScope = "all";
 let searchTerm = "";
@@ -41,6 +107,13 @@ function setOnePagerPresentationPaused(isPaused) {
   onePagerPresentationPaused = nextPaused;
   document.body.classList.toggle("is-one-pager-paused", nextPaused);
   syncOnePagerDocumentAnimations(nextPaused);
+}
+
+function getTargetForDisplay(target) {
+  if (!isOnePagerTargetsPresentation) return target;
+
+  const overrides = ONE_PAGER_PRESENTATION_TARGET_OVERRIDES[target.slug];
+  return overrides ? { ...target, ...overrides } : target;
 }
 
 function getAddedBadge(added) {
@@ -82,7 +155,9 @@ function targetCard(target) {
 function getVisibleTargets() {
   const term = searchTerm.trim().toLowerCase();
 
-  return targets.filter((target) => {
+  return targets
+    .map(getTargetForDisplay)
+    .filter((target) => {
     const matchesScope = activeScope === "all" || target.scope === activeScope;
     const matchesSearch =
       !term ||

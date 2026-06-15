@@ -1,21 +1,23 @@
 (() => {
-  const CST_SOURCE = "cst/index.html?presentation=one-pager&v=target-modal-step";
+  const CST_SOURCE = "cst/index.html?presentation=one-pager&v=state-radius-scatter";
   const TARGET_SLUG = "co-tn-az-top-fitness-mumbos";
-  const TARGETS_LIST_SOURCE = "targets/index.html?presentation=one-pager&v=targets-list-step";
-  const TARGETS_DETAIL_SOURCE = `targets/list.html?target=${TARGET_SLUG}&presentation=one-pager&v=targets-detail-step`;
+  const TARGETS_LIST_SOURCE = "targets/index.html?presentation=one-pager&v=jacksonville-grid-1";
+  const TARGETS_DETAIL_SOURCE = `targets/list.html?target=${TARGET_SLUG}&presentation=one-pager&v=jacksonville-grid-1`;
   const CST_VIEW_SETTINGS_KEY = "cst.viewSettings.v1";
   const ACCESS_STORAGE_KEY = "wefranch:prototype-access";
   const PRESENTATION_LOADING_FADE_MS = 320;
   const STEP_COPY_SWITCH_MS = 240;
   const STAGE_SWAP_FADE_MS = 700;
   const STAGE_UI_SWAP_FADE_MS = 260;
-  const CST_MAP_OPEN_DELAY_MS = 1200;
+  const CST_MAP_OPEN_DELAY_MS = 2000;
   const CST_ROWS_SCROLL_DELAY_MS = 200;
-  const CST_ROWS_SCROLL_DURATION_MS = 60000;
+  const CST_ROWS_SCROLL_DURATION_MS = 30000;
   const CST_MAP_TOUR_DURATION_MS = 11000;
   const AUTO_STEP_DURATION_MS = 15000;
   const TARGET_MODAL_OPEN_DELAY_MS = 400;
-  const CST_STEP_FADE_OUT_DELAY_MS = 12400;
+  const TARGET_TITLE_TO_DESCRIPTION_FOCUS_DELAY_MS = 3000;
+  const TARGET_DESCRIPTION_FOCUS_DELAY_MS = 2000;
+  const CST_STEP_FADE_OUT_DELAY_MS = 14300;
   const TARGET_DETAIL_OPEN_DELAY_MS = 2000;
   const TARGET_OPEN_CARD_ANIMATION_MS = 1300;
   const TARGET_DETAIL_INTRO_SETTLE_MS = 1400;
@@ -23,12 +25,14 @@
   const OWNER_STORY_STEP_INDEX = 4;
   const REQUEST_DEMO_STEP_INDEX = 5;
   const REQUEST_DEMO_ENTRANCE_DELAY_MS = 400;
-  const TARGET_TITLE = "CO, TN & AZ Top Fitness MUMBOs";
-  const TARGET_DESCRIPTION = "Prospective fitness franchise owners with strong multi-unit potential across Colorado, Tennessee, and Arizona";
-  const TARGET_MARKET_CITIES = [
-    "Denver, Colorado",
-    "Nashville, Tennessee",
-    "Phoenix, Arizona"
+  const TARGET_MARKET_RADIUS_MILES = 200;
+  const TARGET_TITLE = "Midwest Planet Fitness MUMBOs";
+  const TARGET_DESCRIPTION = "Arizona, Texas, Minnesota and Wisconsin fitness MUMBOs";
+  const TARGET_MARKET_LOCATIONS = [
+    "Arizona, United States",
+    "Texas, United States",
+    "Minnesota, United States",
+    "Wisconsin, United States"
   ];
 
   /**
@@ -422,8 +426,16 @@
     cst.setFilterPanelOpen?.(true);
     cst.expandLocationFilterSection?.();
     cst.setRadiusFilterEnabled?.(true, { refresh: false });
-    cst.setRadiusValue?.(250, { refresh: true });
-    cst.setOnePagerLocationFilterCities?.(TARGET_MARKET_CITIES);
+    cst.setRadiusValue?.(TARGET_MARKET_RADIUS_MILES, { refresh: true });
+    if (typeof cst.setOnePagerLocationFilterLocations === "function") {
+      cst.setOnePagerLocationFilterLocations(TARGET_MARKET_LOCATIONS);
+    } else {
+      cst.setOnePagerLocationFilterCities?.(TARGET_MARKET_LOCATIONS);
+    }
+    cst.expandCategoryFilterSection?.();
+    cst.setOnePagerIncludedCategoryFilters?.(["Fitness", "Health & Wellness"]);
+    cst.expandFranchiseFilterSection?.();
+    cst.setOnePagerIncludedFranchiseFilters?.(["Planet Fitness"]);
     cst.resizeOwnersMap?.();
     cst.fitOwnersMapToVisibleLocations?.({ durationMs: 0 });
   }
@@ -436,19 +448,29 @@
 
     const titleInput = cst.document.getElementById("createTargetTitle");
     const descriptionInput = cst.document.getElementById("createTargetDescription");
+    const titleTypingStartMs = TARGET_MODAL_OPEN_DELAY_MS + 520;
+    const titleTypingCharDelayMs = 70;
+    const descriptionTypingStartMs = titleTypingStartMs
+      + (TARGET_TITLE.length * titleTypingCharDelayMs)
+      + TARGET_TITLE_TO_DESCRIPTION_FOCUS_DELAY_MS;
+
     typeCstFieldValue(titleInput, TARGET_TITLE, {
-      startDelayMs: TARGET_MODAL_OPEN_DELAY_MS + 520,
-      charDelayMs: 70,
+      startDelayMs: titleTypingStartMs,
+      charDelayMs: titleTypingCharDelayMs,
       onComplete: () => {
-        titleInput?.blur();
-        descriptionInput?.focus();
+        queueTargetStepTimeout(() => {
+          titleInput?.blur();
+          descriptionInput?.focus();
+        }, TARGET_TITLE_TO_DESCRIPTION_FOCUS_DELAY_MS);
       }
     });
     typeCstFieldValue(descriptionInput, TARGET_DESCRIPTION, {
-      startDelayMs: TARGET_MODAL_OPEN_DELAY_MS + 3200,
+      startDelayMs: descriptionTypingStartMs,
       charDelayMs: 48,
       onComplete: () => {
-        descriptionInput?.blur();
+        queueTargetStepTimeout(() => {
+          descriptionInput?.blur();
+        }, TARGET_DESCRIPTION_FOCUS_DELAY_MS);
       }
     });
   }

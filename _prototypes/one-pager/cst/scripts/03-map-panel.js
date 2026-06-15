@@ -10,16 +10,24 @@ const ONE_PAGER_MAP_TOUR_END_CAMERA = {
   bearing: 0,
   pitch: 0
 };
-const ONE_PAGER_MARKET_FILTER_CITIES = [
-  "Denver, Colorado",
-  "Nashville, Tennessee",
-  "Phoenix, Arizona"
+const ONE_PAGER_MARKET_FILTER_LOCATIONS = [
+  "Arizona, United States",
+  "Texas, United States",
+  "Minnesota, United States",
+  "Wisconsin, United States"
 ];
-const ONE_PAGER_MARKET_FILTER_EXCLUDED_FRANCHISES = [
-  "Anytime Fitness",
-  "Crunch Fitness"
+const ONE_PAGER_MARKET_FILTER_INCLUDED_CATEGORIES = [
+  "Fitness",
+  "Health & Wellness"
 ];
-const ONE_PAGER_MARKET_FILTER_FINAL_RADIUS_MILES = 250;
+const ONE_PAGER_CATEGORY_MAP_DOT_HIDE_RATIOS = {
+  Fitness: 0.4,
+  "Health & Wellness": 0.2
+};
+const ONE_PAGER_CATEGORY_MAP_DOT_FADE_MS = 480;
+const ONE_PAGER_MARKET_FILTER_INCLUDED_FRANCHISE = "Planet Fitness";
+const ONE_PAGER_FRANCHISE_MAP_DOT_HIDE_RATIO = 0.5;
+const ONE_PAGER_MARKET_FILTER_TARGET_RADIUS_MILES = 200;
 const ONE_PAGER_MARKET_FILTER_RADIUS_DURATION_MS = 900;
 const ONE_PAGER_MARKET_FILTER_FADE_OUT_MS = 220;
 const ONE_PAGER_MARKET_FILTER_FADE_IN_MS = 260;
@@ -29,7 +37,8 @@ const ONE_PAGER_MARKET_FILTER_ACTION_DELAY_MS =
   ONE_PAGER_MARKET_FILTER_LAYOUT_SWAP_DELAY_MS +
   ONE_PAGER_MARKET_FILTER_FADE_IN_MS +
   500;
-const ONE_PAGER_MARKET_FILTER_CITY_STEP_DELAY_MS = 1500;
+const ONE_PAGER_MARKET_FILTER_LOCATION_STEP_DELAY_MS = 1500;
+const ONE_PAGER_MARKET_FILTER_CATEGORY_STEP_DELAY_MS = 700;
 const ONE_PAGER_MARKET_FILTER_FRANCHISE_STEP_DELAY_MS = 700;
 const ONE_PAGER_RADIUS_REFRESH_INTERVAL_MS = 80;
 const PANEL_LAYOUT_TRANSITION_RESIZE_MS = 540;
@@ -49,6 +58,45 @@ let panelLayoutResizeFrame = null;
 let panelLayoutTransitionCleanup = null;
 let onePagerRadiusSpotlightLabel = null;
 let radiusCirclesVisible = false;
+let onePagerSuppressMapAutoFit = false;
+
+// The map-filter centers are static reference data, so the per-label lookups
+// (and the expensive state-average computation) can be resolved once and then
+// served from a cache. Without this, every visible map point and owner row
+// rebuilds the combined ~150-entry centers array on each filter refresh.
+let mapFilterLocationCenterCache = null;
+// Memoized result of getSelectedRadiusCenters(), keyed on the current
+// selectedLocationLabels array reference (which is reassigned on every change).
+let cachedSelectedRadiusCentersKey = null;
+let cachedSelectedRadiusCenters = [];
+
+function buildMapFilterLocationCenterCache() {
+  const centerByLabel = new Map();
+  const centersByStateName = new Map();
+  const allCenters = [];
+
+  if (typeof OWNER_LOCATION_CENTERS !== "undefined") {
+    allCenters.push(...OWNER_LOCATION_CENTERS);
+  }
+  if (typeof OWNER_HEADQUARTERS_CENTERS !== "undefined") {
+    allCenters.push(...OWNER_HEADQUARTERS_CENTERS);
+  }
+
+  allCenters.forEach((center) => {
+    if (!centerByLabel.has(center.label)) {
+      centerByLabel.set(center.label, center);
+    }
+
+    const stateName = getLocationStateName(center.label);
+    if (!stateName) return;
+    if (!centersByStateName.has(stateName)) {
+      centersByStateName.set(stateName, []);
+    }
+    centersByStateName.get(stateName).push(center);
+  });
+
+  return { centerByLabel, centersByStateName, resolved: new Map() };
+}
 
 function getOnePagerRadiusSpotlightCenter() {
   if (!isOnePagerPresentation || !onePagerRadiusSpotlightLabel) return null;
@@ -87,17 +135,36 @@ function getMotionDelay(delay) {
 function getMapFilterLocationCenter(locationLabel) {
   if (!locationLabel) return null;
 
-  const locationCenters = [];
-
-  if (typeof OWNER_LOCATION_CENTERS !== "undefined") {
-    locationCenters.push(...OWNER_LOCATION_CENTERS);
+  if (!mapFilterLocationCenterCache) {
+    mapFilterLocationCenterCache = buildMapFilterLocationCenterCache();
   }
 
-  if (typeof OWNER_HEADQUARTERS_CENTERS !== "undefined") {
-    locationCenters.push(...OWNER_HEADQUARTERS_CENTERS);
+  const cache = mapFilterLocationCenterCache;
+  if (cache.resolved.has(locationLabel)) {
+    return cache.resolved.get(locationLabel);
   }
 
-  return locationCenters.find((location) => location.label === locationLabel) || null;
+  let center = cache.centerByLabel.get(locationLabel) || null;
+
+  if (!center && isStateLocationFilterLabel(locationLabel)) {
+    const stateName = getLocationStateName(locationLabel);
+    const stateCenters = stateName ? cache.centersByStateName.get(stateName) : null;
+
+    if (stateCenters && stateCenters.length) {
+      const latitudeAverage = stateCenters.reduce((sum, item) => sum + item.lat, 0) / stateCenters.length;
+      const longitudeAverage = stateCenters.reduce((sum, item) => sum + item.lng, 0) / stateCenters.length;
+      const stateFilterLabel = getStateLocationFilterLabel(stateName) || locationLabel;
+
+      center = {
+        label: stateFilterLabel,
+        lat: latitudeAverage,
+        lng: longitudeAverage
+      };
+    }
+  }
+
+  cache.resolved.set(locationLabel, center);
+  return center;
 }
 
 function getLocationDistanceMiles(location, center) {
@@ -113,9 +180,26 @@ function getLocationDistanceMiles(location, center) {
 }
 
 function getSelectedRadiusCenters() {
-  return selectedLocationLabels
-    .map((label) => getMapFilterLocationCenter(label))
-    .filter(Boolean);
+  // selectedLocationLabels is reassigned (never mutated in place) whenever the
+  // location filter changes, so reference identity is a safe cache key. This
+  // keeps the per-point/per-row filter checks from recomputing the centers
+  // thousands of times during the radius animation and filter additions.
+  if (cachedSelectedRadiusCentersKey === selectedLocationLabels) {
+    return cachedSelectedRadiusCenters;
+  }
+
+  const centersByLabel = new Map();
+  selectedLocationLabels.forEach((label) => {
+    const center = getMapFilterLocationCenter(label);
+    if (!center) return;
+    if (!centersByLabel.has(center.label)) {
+      centersByLabel.set(center.label, center);
+    }
+  });
+
+  cachedSelectedRadiusCenters = Array.from(centersByLabel.values());
+  cachedSelectedRadiusCentersKey = selectedLocationLabels;
+  return cachedSelectedRadiusCenters;
 }
 
 function isRadiusFilterActive() {
@@ -131,7 +215,7 @@ function locationWithinSelectedRadius(location) {
 }
 
 function rowMatchesLocationFilter(row) {
-  if (excludedLocationLabels.includes(row.location)) return false;
+  if (locationLabelMatchesAnyFilterLabel(row.location, excludedLocationLabels)) return false;
 
   if (isRadiusFilterActive()) {
     if (typeof row?.lat === "number" && typeof row?.lng === "number") {
@@ -140,7 +224,7 @@ function rowMatchesLocationFilter(row) {
     return true;
   }
 
-  if (selectedLocationLabels.length && !selectedLocationLabels.includes(row.location)) {
+  if (selectedLocationLabels.length && !locationLabelMatchesAnyFilterLabel(row.location, selectedLocationLabels)) {
     return false;
   }
 
@@ -148,7 +232,7 @@ function rowMatchesLocationFilter(row) {
 }
 
 function mapLocationMatchesSelectedFilter(location) {
-  if (excludedLocationLabels.includes(location.label)) return false;
+  if (locationLabelMatchesAnyFilterLabel(location.label, excludedLocationLabels)) return false;
 
   if (isRadiusFilterActive()) {
     if (getOnePagerRadiusSpotlightCenter()) return true;
@@ -156,12 +240,73 @@ function mapLocationMatchesSelectedFilter(location) {
   }
 
   if (!selectedLocationLabels.length) return true;
-  if (!selectedLocationLabels.includes(location.label)) return false;
+  const selectedLocationLabel = selectedLocationLabels.find((locationLabel) => (
+    locationLabelMatchesFilterLabel(location.label, locationLabel)
+  ));
+  if (!selectedLocationLabel) return false;
+  if (isStateLocationFilterLabel(selectedLocationLabel)) return true;
 
-  const selectedMapLocationCenter = getMapFilterLocationCenter(location.label);
+  const selectedMapLocationCenter = getMapFilterLocationCenter(selectedLocationLabel);
   if (!selectedMapLocationCenter) return true;
 
   return getLocationDistanceMiles(location, selectedMapLocationCenter) <= MAP_LOCATION_FILTER_RADIUS_MILES;
+}
+
+function getOnePagerCategoryMapDotHideRatio() {
+  if (!isOnePagerPresentation || !selectedCategoryValues.length) return 0;
+
+  return selectedCategoryValues.reduce(
+    (total, category) => total + (ONE_PAGER_CATEGORY_MAP_DOT_HIDE_RATIOS[category] || 0),
+    0
+  );
+}
+
+function getOnePagerCategoryMapDotOpacity(ownerIndex, location) {
+  const hideRatio = getOnePagerCategoryMapDotHideRatio();
+  if (!hideRatio || !isRadiusFilterActive() || !locationWithinSelectedRadius(location)) return 1;
+
+  const seed = (ownerIndex * 1009)
+    + Math.round(location.lat * 1000)
+    + Math.round(location.lng * 1000)
+    + (location.isSupplementalMapLocation ? 17 : 0);
+  return ownerLocationRandom(seed) < hideRatio ? 0 : 1;
+}
+
+function getOnePagerFranchiseMapDotOpacity(ownerIndex, location) {
+  if (
+    !isOnePagerPresentation ||
+    !selectedFranchiseIndexes.includes(ONE_PAGER_MARKET_FILTER_INCLUDED_FRANCHISE)
+  ) {
+    return 1;
+  }
+  if (!isRadiusFilterActive() || !locationWithinSelectedRadius(location)) return 1;
+
+  const seed = (ownerIndex * 1013)
+    + Math.round(location.lat * 1000)
+    + Math.round(location.lng * 1000)
+    + (location.isSupplementalMapLocation ? 29 : 0)
+    + 503;
+  return ownerLocationRandom(seed) < ONE_PAGER_FRANCHISE_MAP_DOT_HIDE_RATIO ? 0 : 1;
+}
+
+function getOnePagerMapDotOpacity(ownerIndex, location) {
+  return getOnePagerCategoryMapDotOpacity(ownerIndex, location)
+    * getOnePagerFranchiseMapDotOpacity(ownerIndex, location);
+}
+
+function getMapPointFeatureProperties(ownerIndex, owner, location, radiusSpotlightCenter, extraProperties = {}) {
+  return {
+    ownerIndex,
+    ownerName: owner.ownerName,
+    locationLabel: location.label,
+    color: owner.color,
+    mapDotOpacity: getOnePagerMapDotOpacity(ownerIndex, location),
+    isOutsideSpotlightRadius: Boolean(
+      radiusSpotlightCenter &&
+      getLocationDistanceMiles(location, radiusSpotlightCenter) > selectedRadiusMiles
+    ),
+    ...extraProperties
+  };
 }
 
 function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
@@ -184,25 +329,34 @@ function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
       if (ownerIndex === null && selectedMapOwnerIndexes?.size && !selectedMapOwnerIndexes.has(index)) return [];
       if (ownerIndex === null && excludedMapOwnerIndexes?.has(index)) return [];
 
-      return owner.locations
+      const baseFeatures = owner.locations
         .filter((location) => mapLocationMatchesSelectedFilter(location))
         .map((location) => ({
           type: "Feature",
-          properties: {
-            ownerIndex: index,
-            ownerName: owner.ownerName,
-            locationLabel: location.label,
-            color: owner.color,
-            isOutsideSpotlightRadius: Boolean(
-              radiusSpotlightCenter &&
-              getLocationDistanceMiles(location, radiusSpotlightCenter) > selectedRadiusMiles
-            )
-          },
+          properties: getMapPointFeatureProperties(index, owner, location, radiusSpotlightCenter),
           geometry: {
             type: "Point",
             coordinates: [location.lng, location.lat]
           }
         }));
+
+      if (ownerIndex !== null) return baseFeatures;
+
+      const supplementalOwnerLocations = window.ownerSupplementalMapLocationsData?.[index]?.locations || [];
+      const supplementalFeatures = supplementalOwnerLocations
+        .filter((location) => mapLocationMatchesSelectedFilter(location))
+        .map((location) => ({
+          type: "Feature",
+          properties: getMapPointFeatureProperties(index, owner, location, radiusSpotlightCenter, {
+            isSupplementalMapLocation: true
+          }),
+          geometry: {
+            type: "Point",
+            coordinates: [location.lng, location.lat]
+          }
+        }));
+
+      return [...baseFeatures, ...supplementalFeatures];
     });
 }
 
@@ -349,7 +503,9 @@ function syncMapLocationFilter() {
     }
   }
 
-  fitOwnersMapToVisibleLocations();
+  if (!onePagerSuppressMapAutoFit) {
+    fitOwnersMapToVisibleLocations();
+  }
 }
 
 function getActiveSidebarOwnerIndex() {
@@ -1002,7 +1158,9 @@ function cancelOnePagerMarketFilterStory() {
   });
   onePagerMarketFilterTimeouts.clear();
   onePagerRadiusSpotlightLabel = null;
+  onePagerSuppressMapAutoFit = false;
   setOnePagerMapPanelCrossfadeHidden(false);
+  setOnePagerMapContentHidden(false);
 
   if (onePagerMarketFilterAnimationFrame !== null) {
     window.cancelAnimationFrame(onePagerMarketFilterAnimationFrame);
@@ -1012,7 +1170,28 @@ function cancelOnePagerMarketFilterStory() {
 }
 
 function setOnePagerMapPanelCrossfadeHidden(isHidden) {
-  card?.classList.toggle("is-one-pager-map-crossfade-hidden", Boolean(isHidden));
+  if (!card) return;
+
+  if (isHidden) {
+    card.classList.add("is-one-pager-map-crossfade-hidden");
+    return;
+  }
+
+  card.classList.remove("is-one-pager-map-crossfade-hidden");
+  // Ensure the browser applies the opacity transition after the class swap.
+  void card.offsetWidth;
+}
+
+function setOnePagerMapContentHidden(isHidden) {
+  if (!card) return;
+
+  if (isHidden) {
+    card.classList.add("is-one-pager-map-content-hidden");
+    return;
+  }
+
+  card.classList.remove("is-one-pager-map-content-hidden");
+  void card.offsetWidth;
 }
 
 function expandLocationFilterSection() {
@@ -1023,17 +1202,51 @@ function expandLocationFilterSection() {
   locationSection.querySelector(".filter-section-title")?.setAttribute("aria-expanded", "true");
 }
 
-function setOnePagerLocationFilterCities(cities) {
+function setOnePagerLocationFilterLocations(locations) {
   if (!locationFilterSelect) return;
 
-  const availableCities = new Set(
+  const availableLocations = new Set(
     Array.from(locationFilterSelect.options).map((option) => option.value)
   );
   setFilterSelectValues(
     locationFilterSelect,
-    cities.filter((city) => availableCities.has(city))
+    locations.filter((location) => availableLocations.has(location))
   );
   locationFilterSelect.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function setOnePagerLocationFilterCities(cities) {
+  setOnePagerLocationFilterLocations(cities);
+}
+
+function expandCategoryFilterSection() {
+  const categorySection = categoryFilterSelect?.closest(".filter-section");
+  if (!categorySection) return;
+
+  categorySection.classList.remove("filter-section-collapsed");
+  categorySection.querySelector(".filter-section-title")?.setAttribute("aria-expanded", "true");
+}
+
+function setOnePagerIncludedCategoryFilters(categories) {
+  if (!categoryFilterSelect) return;
+
+  const availableCategories = new Set(
+    Array.from(categoryFilterSelect.options).map((option) => option.value)
+  );
+  const nextIncludedValues = categories.filter((category) => availableCategories.has(category));
+
+  selectedCategoryValues = nextIncludedValues;
+  excludedCategoryValues = [];
+  setFilterSelectIncludedExcludedValues(categoryFilterSelect, selectedCategoryValues, excludedCategoryValues);
+  syncFilterComboboxes();
+  categoryFilterSelect.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function addOnePagerIncludedCategoryFilter(category) {
+  const nextIncludedValues = selectedCategoryValues.includes(category)
+    ? selectedCategoryValues
+    : [...selectedCategoryValues, category];
+  setOnePagerIncludedCategoryFilters(nextIncludedValues);
 }
 
 function expandFranchiseFilterSection() {
@@ -1042,6 +1255,28 @@ function expandFranchiseFilterSection() {
 
   franchiseSection.classList.remove("filter-section-collapsed");
   franchiseSection.querySelector(".filter-section-title")?.setAttribute("aria-expanded", "true");
+}
+
+function setOnePagerIncludedFranchiseFilters(franchises) {
+  if (!franchiseFilterSelect) return;
+
+  const availableFranchises = new Set(
+    Array.from(franchiseFilterSelect.options).map((option) => option.value)
+  );
+  const nextIncludedValues = franchises.filter((franchise) => availableFranchises.has(franchise));
+
+  selectedFranchiseIndexes = nextIncludedValues;
+  excludedFranchiseIndexes = [];
+  setFilterSelectIncludedExcludedValues(franchiseFilterSelect, selectedFranchiseIndexes, excludedFranchiseIndexes);
+  syncFilterComboboxes();
+  franchiseFilterSelect.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function addOnePagerIncludedFranchiseFilter(franchise) {
+  const nextIncludedValues = selectedFranchiseIndexes.includes(franchise)
+    ? selectedFranchiseIndexes
+    : [...selectedFranchiseIndexes, franchise];
+  setOnePagerIncludedFranchiseFilters(nextIncludedValues);
 }
 
 function setOnePagerExcludedFranchiseFilters(franchises) {
@@ -1160,14 +1395,16 @@ function runOnePagerMarketFilterStory() {
   lockedToolbarMode = "map";
   openSidebar("map", null);
   setOnePagerMapPanelCrossfadeHidden(true);
+  setOnePagerMapContentHidden(true);
 
   queueOnePagerMarketFilterTimeout(() => {
     if (runId !== onePagerMarketFilterRunId) return;
     setPanelLayout("full");
     setFilterPanelOpen(true);
     expandLocationFilterSection();
-    setOnePagerExcludedFranchiseFilters([]);
-    setOnePagerLocationFilterCities([]);
+    setOnePagerIncludedCategoryFilters([]);
+    setOnePagerIncludedFranchiseFilters([]);
+    setOnePagerLocationFilterLocations([]);
     setRadiusFilterEnabled(false, { refresh: false });
     setRadiusValue(0, { refresh: false });
   }, ONE_PAGER_MARKET_FILTER_FADE_OUT_MS);
@@ -1181,64 +1418,85 @@ function runOnePagerMarketFilterStory() {
 
   queueOnePagerMarketFilterTimeout(() => {
     if (runId !== onePagerMarketFilterRunId) return;
+    setOnePagerMapContentHidden(false);
+  }, ONE_PAGER_MARKET_FILTER_FADE_OUT_MS + ONE_PAGER_MARKET_FILTER_LAYOUT_SWAP_DELAY_MS + ONE_PAGER_MARKET_FILTER_FADE_IN_MS);
+
+  queueOnePagerMarketFilterTimeout(() => {
+    if (runId !== onePagerMarketFilterRunId) return;
     setRadiusFilterEnabled(true, { refresh: false });
     setRadiusValue(0, { refresh: true });
     animateOnePagerRadiusTo(
-      ONE_PAGER_MARKET_FILTER_FINAL_RADIUS_MILES,
+      ONE_PAGER_MARKET_FILTER_TARGET_RADIUS_MILES,
       ONE_PAGER_MARKET_FILTER_RADIUS_DURATION_MS,
       runId
     );
   }, ONE_PAGER_MARKET_FILTER_ACTION_DELAY_MS);
 
-  queueOnePagerMarketFilterTimeout(() => {
-    if (runId !== onePagerMarketFilterRunId) return;
-    onePagerRadiusSpotlightLabel = ONE_PAGER_MARKET_FILTER_CITIES[0];
-    setOnePagerLocationFilterCities([ONE_PAGER_MARKET_FILTER_CITIES[0]]);
-  }, ONE_PAGER_MARKET_FILTER_ACTION_DELAY_MS + ONE_PAGER_MARKET_FILTER_RADIUS_DURATION_MS + 150);
+  onePagerSuppressMapAutoFit = true;
+  ONE_PAGER_MARKET_FILTER_LOCATIONS.forEach((location, index) => {
+    queueOnePagerMarketFilterTimeout(() => {
+      if (runId !== onePagerMarketFilterRunId) return;
+      onePagerRadiusSpotlightLabel = null;
+      // Keep the location chips/radiuses appearing in sequence.
+      setOnePagerLocationFilterLocations(ONE_PAGER_MARKET_FILTER_LOCATIONS.slice(0, index + 1));
+    }, ONE_PAGER_MARKET_FILTER_ACTION_DELAY_MS +
+      ONE_PAGER_MARKET_FILTER_RADIUS_DURATION_MS +
+      150 +
+      (index * ONE_PAGER_MARKET_FILTER_LOCATION_STEP_DELAY_MS));
+  });
 
   queueOnePagerMarketFilterTimeout(() => {
     if (runId !== onePagerMarketFilterRunId) return;
-    onePagerRadiusSpotlightLabel = null;
-    setOnePagerLocationFilterCities([
-      ONE_PAGER_MARKET_FILTER_CITIES[0],
-      ONE_PAGER_MARKET_FILTER_CITIES[1]
-    ]);
-  }, ONE_PAGER_MARKET_FILTER_ACTION_DELAY_MS + ONE_PAGER_MARKET_FILTER_RADIUS_DURATION_MS + 150 + ONE_PAGER_MARKET_FILTER_CITY_STEP_DELAY_MS);
+    // Only zoom after all four radiuses are in place.
+    onePagerSuppressMapAutoFit = false;
+    fitOwnersMapToVisibleLocations({ durationMs: 900, maxZoom: 6.8 });
+  }, ONE_PAGER_MARKET_FILTER_ACTION_DELAY_MS +
+    ONE_PAGER_MARKET_FILTER_RADIUS_DURATION_MS +
+    150 +
+    ((ONE_PAGER_MARKET_FILTER_LOCATIONS.length - 1) * ONE_PAGER_MARKET_FILTER_LOCATION_STEP_DELAY_MS) +
+    320);
 
-  queueOnePagerMarketFilterTimeout(() => {
-    if (runId !== onePagerMarketFilterRunId) return;
-    onePagerRadiusSpotlightLabel = null;
-    setOnePagerLocationFilterCities([
-      ONE_PAGER_MARKET_FILTER_CITIES[0],
-      ONE_PAGER_MARKET_FILTER_CITIES[1],
-      ONE_PAGER_MARKET_FILTER_CITIES[2]
-    ]);
-  }, ONE_PAGER_MARKET_FILTER_ACTION_DELAY_MS + ONE_PAGER_MARKET_FILTER_RADIUS_DURATION_MS + 150 + (ONE_PAGER_MARKET_FILTER_CITY_STEP_DELAY_MS * 2));
-
-  const franchisesStartDelay =
+  const categoriesStartDelay =
     ONE_PAGER_MARKET_FILTER_ACTION_DELAY_MS +
     ONE_PAGER_MARKET_FILTER_RADIUS_DURATION_MS +
     150 +
-    (ONE_PAGER_MARKET_FILTER_CITY_STEP_DELAY_MS * 2) +
+    ((ONE_PAGER_MARKET_FILTER_LOCATIONS.length - 1) * ONE_PAGER_MARKET_FILTER_LOCATION_STEP_DELAY_MS) +
+    320 +
+    ONE_PAGER_MARKET_FILTER_CATEGORY_STEP_DELAY_MS;
+
+  queueOnePagerMarketFilterTimeout(() => {
+    if (runId !== onePagerMarketFilterRunId) return;
+    expandCategoryFilterSection();
+  }, categoriesStartDelay);
+
+  ONE_PAGER_MARKET_FILTER_INCLUDED_CATEGORIES.forEach((category, index) => {
+    queueOnePagerMarketFilterTimeout(() => {
+      if (runId !== onePagerMarketFilterRunId) return;
+      addOnePagerIncludedCategoryFilter(category);
+    }, categoriesStartDelay + ((index + 1) * ONE_PAGER_MARKET_FILTER_LOCATION_STEP_DELAY_MS));
+  });
+
+  const franchiseStartDelay =
+    categoriesStartDelay +
+    (ONE_PAGER_MARKET_FILTER_INCLUDED_CATEGORIES.length * ONE_PAGER_MARKET_FILTER_LOCATION_STEP_DELAY_MS) +
     ONE_PAGER_MARKET_FILTER_FRANCHISE_STEP_DELAY_MS;
 
   queueOnePagerMarketFilterTimeout(() => {
     if (runId !== onePagerMarketFilterRunId) return;
     expandFranchiseFilterSection();
-  }, franchisesStartDelay);
+  }, franchiseStartDelay);
 
-  ONE_PAGER_MARKET_FILTER_EXCLUDED_FRANCHISES.forEach((franchise, index) => {
-    queueOnePagerMarketFilterTimeout(() => {
-      if (runId !== onePagerMarketFilterRunId) return;
-      addOnePagerExcludedFranchiseFilter(franchise);
-    }, franchisesStartDelay + ((index + 1) * ONE_PAGER_MARKET_FILTER_CITY_STEP_DELAY_MS));
-  });
+  queueOnePagerMarketFilterTimeout(() => {
+    if (runId !== onePagerMarketFilterRunId) return;
+    addOnePagerIncludedFranchiseFilter(ONE_PAGER_MARKET_FILTER_INCLUDED_FRANCHISE);
+  }, franchiseStartDelay + ONE_PAGER_MARKET_FILTER_LOCATION_STEP_DELAY_MS);
 }
 
 function resetOnePagerMarketFilterStory() {
   if (!isOnePagerPresentation) return;
 
   cancelOnePagerMarketFilterStory();
+  onePagerSuppressMapAutoFit = false;
   onePagerRadiusSpotlightLabel = null;
   clearAllFilterSelections();
   setPanelLayout("split");
@@ -1250,6 +1508,8 @@ function resetOnePagerMarketFilterStory() {
 window.cancelOnePagerMarketFilterStory = cancelOnePagerMarketFilterStory;
 window.runOnePagerMarketFilterStory = runOnePagerMarketFilterStory;
 window.resetOnePagerMarketFilterStory = resetOnePagerMarketFilterStory;
+window.setOnePagerLocationFilterLocations = setOnePagerLocationFilterLocations;
+window.setOnePagerLocationFilterCities = setOnePagerLocationFilterCities;
 window.addOnePagerPresentationPauseHandler?.((isPaused) => {
   setOnePagerMapTourPaused(isPaused);
   setOnePagerMarketFilterTimeoutsPaused(isPaused);
@@ -1336,18 +1596,27 @@ function initializeOwnersMap() {
         "circle-radius": 4.5,
         "circle-color": ["get", "color"],
         "circle-opacity": [
-          "case",
-          ["boolean", ["get", "isOutsideSpotlightRadius"], false],
-          0.16,
-          0.78
+          "*",
+          [
+            "case",
+            ["boolean", ["get", "isOutsideSpotlightRadius"], false],
+            0.16,
+            0.78
+          ],
+          ["coalesce", ["get", "mapDotOpacity"], 1]
         ],
         "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 1
+        "circle-stroke-width": 1,
+        "circle-stroke-opacity": ["coalesce", ["get", "mapDotOpacity"], 1]
       }
     });
 
     ownersMap.setPaintProperty("owner-points", "circle-opacity-transition", {
-      duration: 260,
+      duration: ONE_PAGER_CATEGORY_MAP_DOT_FADE_MS,
+      delay: 0
+    });
+    ownersMap.setPaintProperty("owner-points", "circle-stroke-opacity-transition", {
+      duration: ONE_PAGER_CATEGORY_MAP_DOT_FADE_MS,
       delay: 0
     });
 

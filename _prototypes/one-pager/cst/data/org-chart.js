@@ -67,12 +67,13 @@ function getOrgTitle(ownerIndex, personIndex) {
   return ORG_TITLES[(ownerIndex + personIndex) % ORG_TITLES.length];
 }
 
-function createOrgNode(id, name, title, reportsTo) {
+function createOrgNode(id, name, title, reportsTo, options = {}) {
   return {
     id,
     name,
     title,
-    reportsTo
+    reportsTo,
+    ...options
   };
 }
 
@@ -92,29 +93,77 @@ function getOwnerOrgContactCount(owner) {
   return Number.isFinite(legacyContactCount) ? legacyContactCount : 1;
 }
 
+const UNITED_FP_SCOTT_REPORTS = [
+  ["united-res", "B. Christopher DiSantis", "Managing Director at Resources Group", {
+    reportCount: 46,
+    email: "cdisantis@american-securities.com",
+    phone: "(212) 476-8094",
+    location: "-"
+  }],
+  ["united-finance", "David Maue", "Managing Director & COO at Firm Operations", {
+    reportCount: 8,
+    email: "dmaue@american-securities.com",
+    phone: "(212) 476-8074",
+    location: "-"
+  }],
+  ["united-investments", "Aaron Maeng", "Senior Associate at Investment Team", {
+    email: "amaeng@american-securities.com",
+    phone: "-",
+    location: "299 Park Ave, New York, New York, 10171, United States"
+  }],
+  ["united-adam-caplan", "Adam Caplan", "Senior Associate - Investments"],
+  ["united-adam-fields", "Adam Fields", "Senior Associate - Investments"],
+  ["united-ben-dickson", "Ben Dickson", "Managing Director - Investments"],
+  ["united-brett-roston", "Brett Roston", "Vice President - Investments"],
+  ["united-brian-olshanski", "Brian Olshanski", "Senior Associate - Investments"],
+  ["united-bruno-camargo", "Bruno Camargo", "Senior Associate - Investments"],
+  ["united-connor-wentzell", "Connor Wentzell", "Principal - Investment Team"],
+  ["united-craig-sturken", "Craig Sturken", "Vice President - Investments"],
+  ["united-darius-vahabzadeh", "Darius Vahabzadeh", "Associate - Investments"],
+  ["united-david-horing", "David Horing", "Managing Director - Investments"],
+  ["united-david-musicant", "David Musicant", "Managing Director - Investments"],
+  ["united-david-portnoy", "David Portnoy", "Principal - Investment Team"],
+  ["united-eric-pawela", "Eric Pawela", "Vice President - Investments"],
+  ["united-garrick-lombardi", "Garrick Lombardi", "Associate - Investments"],
+  ["united-jack-baldwin", "Jack Baldwin", "Associate - Investments"],
+  ["united-jack-reinhart", "Jack Reinhart", "Senior Associate - Investments"],
+  ["united-james-carmichael", "James Carmichael", "Managing Director - Investments"],
+  ["united-katie-jacoby", "Katie Jacoby", "Senior Associate - Investments"],
+  ["united-kevin-gotthall", "Kevin Gotthall", "Vice President - Investments"],
+  ["united-kevin-penn", "Kevin Penn", "Managing Director - Investments"],
+  ["united-kevin-zhou", "Kevin Zhou", "Principal - Investment Team"],
+  ["united-lily-deng", "Lily Deng", "Associate - Investments"],
+  ["united-mark-lovett", "Mark Lovett", "Managing Director - Investments"],
+  ["united-matthew-fishman", "Matthew Fishman", "Managing Director - Investments"],
+  ["united-matthew-tucker", "Matthew Tucker", "Associate - Investments"],
+  ["united-michael-sand", "Michael Sand", "Managing Director - Investments"],
+  ["united-michelle-liu", "Michelle Liu", "Associate - Investments"],
+  ["united-natasha-kingshott", "Natasha Kingshott", "Principal - Investment Team"],
+  ["united-nick-martin", "Nick Martin", "Vice President - Investments"],
+  ["united-nick-schipp", "Nick Schipp", "Associate - Investments"],
+  ["united-nikhil-naik", "Nikhil Naik", "Associate - Investments"],
+  ["united-noah-scherz", "Noah Scherz", "Principal - Investment Team"],
+  ["united-robert-beck", "Robert Beck", "Associate - Investments"],
+  ["united-samuel-jong", "Samuel Jong", "Vice President - Investments"],
+  ["united-sankalp-panigrahi", "Sankalp Panigrahi", "Associate - Investments"],
+  ["united-sidd-bhatt", "Sidd Bhatt", "Vice President - Investments"],
+  ["united-will-chan", "Will Chan", "Vice President - Investments"],
+  ["united-william-messick", "William Messick", "Associate - Investments"],
+  ["united-william-ross", "William Ross", "Associate - Investments"]
+];
+
 function getUnitedFpOrgChart(owner) {
-  const contactCount = Math.max(1, getOwnerOrgContactCount(owner));
   const nodes = [
     createOrgNode("united-ceo", "Michael Fisch", "Founder & CEO", null),
     createOrgNode("united-president", "Scott Wolff", "President & Managing Director", "united-ceo"),
-    createOrgNode("united-res", "B. Christopher Disanto", "Managing Director - Restaurant Operations", "united-president"),
-    createOrgNode("united-finance", "David Maue", "Managing Director & Chief Financial Officer", "united-president"),
-    createOrgNode("united-investments", "Aaron Maeng", "Managing Director - Investments", "united-president"),
-    createOrgNode("united-associate-1", "Adam Caplan", "Senior Associate - Investments", "united-investments"),
-    createOrgNode("united-associate-2", "Adam Fields", "Senior Associate - Investments", "united-investments"),
-    createOrgNode("united-director", "Benjamin Dickson", "Managing Director - Investments", "united-investments"),
-    createOrgNode("united-ops-1", "Amanda Bennett", "Director of Franchise Operations", "united-res"),
-    createOrgNode("united-ops-2", "Brian Carter", "Regional Vice President", "united-res"),
-    createOrgNode("united-controller", "Nicole Reynolds", "Controller", "united-finance"),
-    createOrgNode("united-analyst", "Robert Mitchell", "Financial Planning Lead", "united-finance"),
-    createOrgNode("united-market-1", "Emily Morgan", "Market Operations Lead", "united-ops-1"),
-    createOrgNode("united-market-2", "Jason Hayes", "Field Operations Manager", "united-ops-2"),
-    createOrgNode("united-market-3", "Lauren Cooper", "Area Manager", "united-director")
+    ...UNITED_FP_SCOTT_REPORTS.map(([id, name, title, options]) => (
+      createOrgNode(id, name, title, "united-president", options)
+    ))
   ];
 
   return {
     ownerName: owner.ownerName,
-    nodes: nodes.slice(0, contactCount)
+    nodes
   };
 }
 
@@ -153,7 +202,7 @@ function getGeneratedOrgChart(owner, ownerIndex) {
 }
 
 window.ownerOrgChartData = (window.ownersData || []).map((owner, ownerIndex) => {
-  if (owner.ownerName === "United FP" && ownerIndex === 0) {
+  if (owner.ownerName === "United FP") {
     return getUnitedFpOrgChart(owner);
   }
 

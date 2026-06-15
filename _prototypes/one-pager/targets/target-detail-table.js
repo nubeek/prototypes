@@ -30,6 +30,56 @@ const ORG_OPENING_SCROLL_DURATION_MS = 920;
 const ORG_OPENING_DEPTH_SCROLL_DELAY_MS = 180;
 const ONE_PAGER_DETAIL_ROW_STAGGER_MS = 44;
 
+function normalizeContactEmailValue(email) {
+  return email === null || email === undefined ? "" : String(email).trim();
+}
+
+function shouldShowLinkedInContactLabel(email) {
+  const normalized = normalizeContactEmailValue(email);
+  return !normalized || normalized === "-" || normalized.toLowerCase() === "linkedin";
+}
+
+function getContactEmailMarkup(email, className = "email") {
+  if (shouldShowLinkedInContactLabel(email)) {
+    return `<span class="contact-linkedin-label ${className}">LinkedIn</span>`;
+  }
+
+  return `<span class="ui-link ui-ellipsis ${className}">${normalizeContactEmailValue(email)}</span>`;
+}
+
+function getContactEmailFieldMarkup(email, className = "email") {
+  if (shouldShowLinkedInContactLabel(email)) {
+    return `<span class="contact-linkedin-label ${className}">LinkedIn</span>`;
+  }
+
+  const normalized = normalizeContactEmailValue(email);
+  if (!normalized) {
+    return `<strong>Not available</strong>`;
+  }
+
+  return `<a class="ui-link ui-ellipsis ${className}" href="mailto:${normalized}">${normalized}</a>`;
+}
+
+const ONE_PAGER_PRESENTATION_TARGET_OVERRIDES = {
+  "co-tn-az-top-fitness-mumbos": {
+    name: "Midwest Planet Fitness MUMBOs",
+    description: "Arizona, Texas, United States, Minnesota, Wisconsin, Illinois & Indiana fitness MUMBOs",
+    publishedBy: "Mariyam Shamshidova",
+    publishedAt: "Jun 15, 2026"
+  }
+};
+const ONE_PAGER_PRESENTATION_FILTERED_TARGET_SLUG = "co-tn-az-top-fitness-mumbos";
+const ONE_PAGER_PRESENTATION_EXCLUDED_OWNER_NAMES = new Set(["planet fitness corporate"]);
+const ONE_PAGER_PRESENTATION_MAX_UNIT_COUNT = 98;
+const ONE_PAGER_PRESENTATION_UNIT_STEP = 3;
+
+function getTargetForDisplay(target) {
+  if (!target || !document.body.classList.contains("one-pager-target-detail-presentation")) return target;
+
+  const overrides = ONE_PAGER_PRESENTATION_TARGET_OVERRIDES[target.slug];
+  return overrides ? { ...target, ...overrides } : target;
+}
+
 let onePagerPresentationPaused = false;
 const onePagerPresentationPauseHandlers = new Set();
 const onePagerPausedAnimations = new Set();
@@ -250,8 +300,39 @@ function normalizeOwner(owner, sourceIndex) {
   };
 }
 
-const owners = (window.ownersData || [])
-  .map(normalizeOwner)
+function getOwnerNameKey(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function sortOwnersByUnitCount(ownerRows) {
+  return [...ownerRows].sort((a, b) => {
+    const unitComparison = b.unitCount - a.unitCount;
+    return unitComparison || a.sourceIndex - b.sourceIndex;
+  });
+}
+
+function getOnePagerPresentationOwners(ownerRows) {
+  if (
+    !document.body.classList.contains("one-pager-target-detail-presentation") ||
+    activeTarget?.slug !== ONE_PAGER_PRESENTATION_FILTERED_TARGET_SLUG
+  ) {
+    return ownerRows;
+  }
+
+  return sortOwnersByUnitCount(ownerRows)
+    .filter((owner) => !ONE_PAGER_PRESENTATION_EXCLUDED_OWNER_NAMES.has(getOwnerNameKey(owner.ownerName)))
+    .map((owner, index) => {
+      const unitCount = Math.max(1, ONE_PAGER_PRESENTATION_MAX_UNIT_COUNT - (index * ONE_PAGER_PRESENTATION_UNIT_STEP));
+
+      return {
+        ...owner,
+        unitCount,
+        locations: unitCount
+      };
+    });
+}
+
+const owners = getOnePagerPresentationOwners((window.ownersData || []).map(normalizeOwner))
   .sort((a, b) => {
     const unitComparison = b.unitCount - a.unitCount;
     return unitComparison || a.sourceIndex - b.sourceIndex;
@@ -454,6 +535,14 @@ function getOrgDirectReportCount(nodes, nodeId) {
   return getOrgReports(nodes, nodeId).length;
 }
 
+function getOrgReportBadgeCount(nodes, nodeId) {
+  const node = nodes.find((item) => item.id === nodeId);
+  const reportCount = Number(node?.reportCount);
+  if (Number.isFinite(reportCount)) return reportCount;
+
+  return getOrgDirectReportCount(nodes, nodeId);
+}
+
 function getOrgNodeDisplayTitle(node) {
   const title = typeof node?.title === "string" ? node.title.trim() : "";
   return title || "Prospect";
@@ -581,7 +670,9 @@ function syncOrgCollapsedUi(ownerIndex, nodeId) {
 
 function getOrgCard(node, type = "default", nodes = [], ownerIndex = null, rowIndex = 0) {
   const directReportCount = getOrgDirectReportCount(nodes, node.id);
-  const isCollapsed = ownerIndex !== null && isOrgNodeCollapsed(ownerIndex, node.id);
+  const reportBadgeCount = getOrgReportBadgeCount(nodes, node.id);
+  const hasSummaryReportCount = reportBadgeCount > directReportCount && directReportCount === 0;
+  const isCollapsed = ownerIndex !== null && (hasSummaryReportCount || isOrgNodeCollapsed(ownerIndex, node.id));
   const isInactiveBranch = ownerIndex !== null && isOrgNodeInactiveInSiblingGroup(ownerIndex, node, nodes);
 
   return `
@@ -597,7 +688,15 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null, rowIn
       <div class="org-person-avatar" aria-hidden="true">${getInitials(node.name)}</div>
       <h3>${node.name}</h3>
       <p>${getOrgNodeDisplayTitle(node)}</p>
-      ${directReportCount > 0 ? `
+      ${reportBadgeCount > 0 ? (hasSummaryReportCount ? `
+        <span
+          class="ui-control org-report-count org-report-count-${type} is-collapsed"
+          aria-label="${reportBadgeCount} reports for ${node.name}"
+        >
+          ${reportBadgeCount}
+          <img src="assets/chevron.svg" alt="" aria-hidden="true">
+        </span>
+      ` : `
         <button
           class="ui-control org-report-count org-report-count-${type} ${isCollapsed ? "is-collapsed" : "is-expanded"}"
           type="button"
@@ -606,10 +705,10 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null, rowIn
           aria-expanded="${String(!isCollapsed)}"
           aria-label="${isCollapsed ? "Expand" : "Collapse"} reports for ${node.name}"
         >
-          ${directReportCount}
+          ${reportBadgeCount}
           <img src="assets/chevron.svg" alt="" aria-hidden="true">
         </button>
-      ` : ""}
+      `) : ""}
     </article>
   `;
 }
@@ -931,9 +1030,9 @@ function getPersonProfileFromOrgNode(ownerIndex, nodeId) {
     name: node.name,
     ownerName: owner.ownerName,
     title: getOrgNodeDisplayTitle(node),
-    email: getOrgNodeEmail(node, owner),
-    phone: getRawDataPhone(dataIndex, rowIndex),
-    location: getProfileLocation(owner, dataIndex)
+    email: node.email || getOrgNodeEmail(node, owner),
+    phone: node.phone != null ? node.phone : getRawDataPhone(dataIndex, rowIndex),
+    location: node.location != null ? node.location : getProfileLocation(owner, dataIndex)
   };
 }
 
@@ -1093,9 +1192,7 @@ function toggleOwnerOrgChart(ownerIndex) {
 }
 
 function getProfileEmailMarkup(email) {
-  if (!email) return `<strong>Not available</strong>`;
-
-  return `<a class="ui-link ui-ellipsis" href="mailto:${email}">${email}</a>`;
+  return getContactEmailFieldMarkup(email);
 }
 
 function getLinkFieldMarkup(label, href, text, enabled = true) {
@@ -1328,9 +1425,11 @@ function closeDetailPanel() {
 function getContactColumn(owner) {
   const isLeadSaved = savedLeadOwnerIndexes.has(owner.originalIndex);
   const leadTooltip = isLeadSaved ? "Remove from leads" : "Save as lead";
-  const contactDetail = owner.email
-    ? `<span class="ui-link ui-ellipsis email">${owner.email}</span>`
-    : `<span class="email">${owner.contactDetail || "Public profile"}</span>`;
+  const contactDetail = shouldShowLinkedInContactLabel(owner.email)
+    ? `<span class="contact-linkedin-label email">LinkedIn</span>`
+    : owner.email
+      ? `<span class="ui-link ui-ellipsis email">${owner.email}</span>`
+      : `<span class="email">${owner.contactDetail || "Public profile"}</span>`;
 
   return `
     <div class="contact-cell-action ${isLeadSaved ? "is-lead-saved" : ""}">
@@ -1456,7 +1555,8 @@ function applySort() {
 function syncTargetHeader() {
   if (!activeTarget) return;
 
-  const title = activeTarget.detailTitle || activeTarget.name;
+  const target = getTargetForDisplay(activeTarget);
+  const title = target.detailTitle || target.name;
   const titleElement = document.querySelector(".target-detail-title");
   const descriptionElement = document.querySelector(".target-detail-description");
   const metaElement = document.querySelector(".target-detail-meta");
@@ -1467,13 +1567,13 @@ function syncTargetHeader() {
     titleElement.textContent = title;
   }
 
-  if (descriptionElement && activeTarget.description) {
-    descriptionElement.textContent = activeTarget.description;
+  if (descriptionElement && target.description) {
+    descriptionElement.textContent = target.description;
   }
 
   if (metaElement) {
-    const publisher = activeTarget.publishedBy || "Gregory Ugwi";
-    const publishedAt = activeTarget.publishedAt || "14 Jun 2026";
+    const publisher = target.publishedBy || "Gregory Ugwi";
+    const publishedAt = target.publishedAt || "14 Jun 2026";
     metaElement.innerHTML = `Published by <span>${publisher}</span> · ${publishedAt}`;
   }
 }
@@ -1594,7 +1694,7 @@ function handleOrgCollapseToggle(toggleButton) {
 ownerOrgChartWrap?.addEventListener("click", (event) => {
   if (!(event.target instanceof Element)) return;
 
-  const orgCountToggle = event.target.closest(".org-report-count");
+  const orgCountToggle = event.target.closest(".org-report-count[data-org-node-id]");
   if (orgCountToggle) {
     event.preventDefault();
     handleOrgCollapseToggle(orgCountToggle);
@@ -1739,7 +1839,7 @@ function runOnePagerTargetDetailIntro() {
 const ONE_PAGER_OWNER_STORY_NAME = "United FP";
 const ONE_PAGER_OWNER_DETAIL_HOLD_MS = 2000;
 const ONE_PAGER_ORG_SETTLE_MS = 600;
-const ONE_PAGER_ORG_CONTACT_NODE_IDS = ["united-res", "united-ops-1", "united-market-1"];
+const ONE_PAGER_ORG_CONTACT_NODE_IDS = ["united-res", "united-finance", "united-investments"];
 const ONE_PAGER_ORG_CONTACT_COUNT = 3;
 const ONE_PAGER_ORG_CONTACT_REVEAL_MS = 2000;
 const onePagerOwnerStoryTimers = new Set();

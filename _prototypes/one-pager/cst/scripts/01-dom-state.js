@@ -119,7 +119,41 @@ const RADIUS_FILTER_DEFAULTS = { min: 0, max: 500, step: 1, value: 250 };
 const VIEW_SETTINGS_STORAGE_KEY = "cst.viewSettings.v1";
 const PERSISTABLE_PANEL_MODES = new Set(["map", "org", "raw"]);
 
+function normalizeContactEmailValue(email) {
+  return email === null || email === undefined ? "" : String(email).trim();
+}
+
+function shouldShowLinkedInContactLabel(email) {
+  const normalized = normalizeContactEmailValue(email);
+  return !normalized || normalized === "-" || normalized.toLowerCase() === "linkedin";
+}
+
+function getContactEmailMarkup(email, className = "email") {
+  if (shouldShowLinkedInContactLabel(email)) {
+    return `<span class="contact-linkedin-label ${className}">LinkedIn</span>`;
+  }
+
+  return `<span class="ui-link ui-ellipsis ${className}">${normalizeContactEmailValue(email)}</span>`;
+}
+
+function getContactEmailFieldMarkup(email, className = "email") {
+  if (shouldShowLinkedInContactLabel(email)) {
+    return `<span class="contact-linkedin-label ${className}">LinkedIn</span>`;
+  }
+
+  const normalized = normalizeContactEmailValue(email);
+  if (!normalized) {
+    return `<strong>Not available</strong>`;
+  }
+
+  return `<a class="ui-link ui-ellipsis ${className}" href="mailto:${normalized}">${normalized}</a>`;
+}
+
 function getOwnerContactCount(owner) {
+  if (owner.contactCount === null || owner.contactCount === undefined || owner.contactCount === "") {
+    return null;
+  }
+
   const contactCount = Number(owner.contactCount);
   if (Number.isFinite(contactCount)) return contactCount;
 

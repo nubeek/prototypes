@@ -192,10 +192,13 @@ function handleOwnerHeaderViewButton(button) {
 }
 
 function getOwnerHeader(owner, { className = "", closeLabel = "Close owner panel", linksToDetail = false } = {}) {
+  const ownerLogoImageMarkup = owner.logoSrc
+    ? `<img src="${owner.logoSrc}" alt="" onerror="this.style.display='none'">`
+    : "";
   const logoMarkup = `
     <span class="owner-detail-logo" aria-hidden="true">
       <span>${getInitials(owner.ownerName)}</span>
-      <img src="${owner.logoSrc}" alt="" onerror="this.style.display='none'">
+      ${ownerLogoImageMarkup}
     </span>
   `;
   const titleMarkup = `<span>${owner.ownerName}</span>`;
@@ -222,7 +225,7 @@ function getOwnerHeader(owner, { className = "", closeLabel = "Close owner panel
     : `
       <div class="owner-detail-logo" aria-hidden="true">
         <span>${getInitials(owner.ownerName)}</span>
-        <img src="${owner.logoSrc}" alt="" onerror="this.style.display='none'">
+        ${ownerLogoImageMarkup}
       </div>
       <h2>${owner.ownerName}</h2>
     `;
@@ -328,9 +331,9 @@ function getOwnerRawRows(ownerIndex) {
     title: getProfileTitle(owner, node),
     ownerNames: [owner.ownerName],
     franchises: getOwnerFranchises(owner),
-    location: getProfileLocation(owner, getRawDataLocation(ownerIndex, rowIndex), rowIndex),
-    email: getRawDataEmail(node.name, owner),
-    phone: getRawDataPhone(ownerIndex, rowIndex)
+    location: node.location != null ? node.location : getProfileLocation(owner, getRawDataLocation(ownerIndex, rowIndex), rowIndex),
+    email: node.email || getRawDataEmail(node.name, owner),
+    phone: node.phone != null ? node.phone : getRawDataPhone(ownerIndex, rowIndex)
   }));
 }
 
@@ -491,7 +494,7 @@ function renderPersonProfile(profile) {
       </div>
       <div class="profile-modal-field profile-modal-field-full">
         <span>Email</span>
-        <a class="ui-link ui-ellipsis" href="mailto:${profile.email}">${profile.email}</a>
+        ${getContactEmailFieldMarkup(profile.email)}
       </div>
       <div class="profile-modal-field">
         <span>Phone number</span>

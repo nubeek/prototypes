@@ -259,40 +259,63 @@ function getComboboxOptions(select) {
     }));
 }
 
-function getFilterSelectValues(select) {
+const filterSelectSelectionOrder = new WeakMap();
+
+function setFilterSelectSelectionOrder(select, values) {
+  if (!select) return;
+
+  const normalizedValues = values.map(String).filter(Boolean);
+  if (!normalizedValues.length) {
+    filterSelectSelectionOrder.delete(select);
+    return;
+  }
+
+  filterSelectSelectionOrder.set(select, normalizedValues);
+}
+
+function getOrderedFilterSelectValues(select, predicate = () => true) {
   if (!select) return [];
 
+  const matchingValues = new Set(
+    Array.from(select.options)
+      .filter((option) => option.value && option.selected && predicate(option))
+      .map((option) => option.value)
+  );
+  const storedOrder = filterSelectSelectionOrder.get(select);
+
+  if (storedOrder) {
+    return storedOrder.filter((value) => matchingValues.has(value));
+  }
+
   return Array.from(select.options)
-    .filter((option) => option.value && option.selected)
+    .filter((option) => option.value && option.selected && predicate(option))
     .map((option) => option.value);
+}
+
+function getFilterSelectValues(select) {
+  return getOrderedFilterSelectValues(select);
 }
 
 function getFilterSelectIncludedValues(select) {
-  if (!select) return [];
-
-  return Array.from(select.options)
-    .filter((option) => option.value && option.selected && option.dataset.exclude !== "true")
-    .map((option) => option.value);
+  return getOrderedFilterSelectValues(select, (option) => option.dataset.exclude !== "true");
 }
 
 function getFilterSelectExcludedValues(select) {
-  if (!select) return [];
-
-  return Array.from(select.options)
-    .filter((option) => option.value && option.selected && option.dataset.exclude === "true")
-    .map((option) => option.value);
+  return getOrderedFilterSelectValues(select, (option) => option.dataset.exclude === "true");
 }
 
 function setFilterSelectValues(select, values) {
   if (!select) return;
 
-  const selectedValueSet = new Set(values.map(String));
+  const normalizedValues = values.map(String);
+  const selectedValueSet = new Set(normalizedValues);
   Array.from(select.options).forEach((option) => {
     option.selected = Boolean(option.value) && selectedValueSet.has(option.value);
     if (!option.selected) {
       delete option.dataset.exclude;
     }
   });
+  setFilterSelectSelectionOrder(select, normalizedValues);
 }
 
 function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
@@ -405,8 +428,10 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
   }
 
   function getSelectedOptions() {
-    const selectedValues = new Set(getFilterSelectValues(select));
-    return getComboboxOptions(select).filter((option) => selectedValues.has(option.value));
+    const optionMap = new Map(getComboboxOptions(select).map((option) => [option.value, option]));
+    return getFilterSelectValues(select)
+      .map((value) => optionMap.get(value))
+      .filter(Boolean);
   }
 
   function setActiveOption(index) {

@@ -429,6 +429,18 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   transition: opacity 220ms ease;
 }
 
+html.is-one-pager-presentation .map-panel .panel-map-container {
+  transition: opacity 260ms ease;
+}
+
+html.is-one-pager-presentation .card.is-one-pager-map-content-hidden .map-panel .panel-map-container {
+  opacity: 0;
+}
+
+html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-container {
+  transition: opacity 260ms ease !important;
+}
+
 .card.is-panel-bottom.is-map-open .map-panel {
   position: relative;
   top: auto;
@@ -1666,17 +1678,19 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 
 .org-node-row-roots {
   align-items: flex-start;
-  gap: 38px;
+  column-gap: 38px;
+  row-gap: 60px;
   flex-wrap: wrap;
-  padding-bottom: 16px;
+  padding-bottom: 24px;
 }
 
 .org-node-row-children {
   align-items: flex-start;
   justify-content: center;
-  gap: 38px;
+  column-gap: 38px;
+  row-gap: 60px;
   padding-top: 48px;
-  padding-bottom: 16px;
+  padding-bottom: 24px;
   flex-wrap: wrap;
 }
 
@@ -3701,6 +3715,10 @@ h1 {
   transition: none !important;
 }
 
+html.is-one-pager-presentation .card.is-layout-switching .map-panel {
+  transition: opacity 260ms ease !important;
+}
+
 .card.is-panel-bottom.is-map-open .table-wrap {
   flex: 1 1 50%;
   max-height: none;
@@ -3830,6 +3848,10 @@ td {
 
 #ownersTableBody td:first-child {
   font-weight: 600;
+}
+
+.table-value-placeholder {
+  color: var(--color-text-muted);
 }
 
 tbody tr {
@@ -4114,6 +4136,10 @@ tbody tr.is-selected:hover td:first-child {
   font-weight: 700;
   color: var(--brand-purple);
   background: rgba(122, 99, 221, 0.12);
+}
+
+.owner-logo-fallback.is-visible {
+  display: inline-flex;
 }
 
 .logo img {
@@ -4457,8 +4483,15 @@ tbody tr.is-selected:hover td:first-child {
   display: block;
 }
 
+.contact-linkedin-label {
+  display: block;
+  color: var(--color-brand);
+  font-weight: 500;
+}
+
 .contact-cell-action.is-contact-hidden .contact-name,
-.contact-cell-action.is-contact-hidden .email {
+.contact-cell-action.is-contact-hidden .email,
+.contact-cell-action.is-contact-hidden .contact-linkedin-label {
   color: var(--color-text-disabled);
   font-weight: 400;
   text-decoration: line-through;
@@ -4723,6 +4756,7 @@ tbody tr.is-selected:hover td:first-child {
 .raw-data-row.is-contact-hidden .raw-index-cell,
 .raw-data-row.is-contact-hidden .raw-name,
 .raw-data-row.is-contact-hidden .raw-email,
+.raw-data-row.is-contact-hidden .contact-linkedin-label,
 .raw-data-row.is-contact-hidden .raw-phone,
 .raw-data-row.is-contact-hidden .raw-location,
 .raw-data-row.is-contact-hidden .raw-franchise {
@@ -4731,6 +4765,7 @@ tbody tr.is-selected:hover td:first-child {
 
 .raw-data-row.is-contact-hidden .raw-name,
 .raw-data-row.is-contact-hidden .raw-email,
+.raw-data-row.is-contact-hidden .contact-linkedin-label,
 .raw-data-row.is-contact-hidden .raw-phone,
 .raw-data-row.is-contact-hidden .raw-location,
 .raw-data-row.is-contact-hidden .raw-franchise {
@@ -4926,7 +4961,8 @@ tbody tr.is-selected:hover td:first-child {
 
 @media (max-width: 1280px) {
   .org-node-row-children {
-    gap: 16px;
+    column-gap: 16px;
+    row-gap: 48px;
   }
 
   .org-person-card-root,
@@ -5088,7 +5124,8 @@ tbody tr.is-selected:hover td:first-child {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 8px;
+    column-gap: 8px;
+    row-gap: 36px;
   }
 
   .org-node-row-children {
@@ -5209,7 +5246,8 @@ tbody tr.is-selected:hover td:first-child {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 8px;
+    column-gap: 8px;
+    row-gap: 36px;
   }
 
   .org-node-row-children {
@@ -5307,7 +5345,8 @@ tbody tr.is-selected:hover td:first-child {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 6px;
+    column-gap: 6px;
+    row-gap: 32px;
   }
 
   .org-node-row-children {
@@ -5400,7 +5439,8 @@ tbody tr.is-selected:hover td:first-child {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 6px;
+    column-gap: 6px;
+    row-gap: 32px;
   }
 
   .org-node-row-children {

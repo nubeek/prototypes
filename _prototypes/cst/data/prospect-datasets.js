@@ -146,7 +146,7 @@ const USER_PROFILE_FRANCHISES = [
   { franchise: "OrangeTheory Fitness", category: "Fitness" },
   { franchise: "Crumbl Cookies", category: "Food and Beverage" },
   { franchise: "The Learning Experience", category: "Education & Children" },
-  { franchise: "Drybar", category: "Health and Beauty" },
+  { franchise: "Drybar", category: "Health & Wellness" },
   { franchise: "Ace Handyman Services", category: "Home and Building Services" },
   { franchise: "StretchLab", category: "Fitness" },
   { franchise: "Mathnasium", category: "Children Programs" },
@@ -158,7 +158,7 @@ const USER_PROFILE_FRANCHISES = [
 const SEARCHER_CATEGORIES = [
   "Food and Beverage",
   "Fitness",
-  "Health and Beauty",
+  "Health & Wellness",
   "Home and Building Services",
   "Education & Children",
   "Retail Products and Services",

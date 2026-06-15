@@ -219,14 +219,27 @@ document.addEventListener("mousedown", (event) => {
 
 if (locationFilterSelect) {
   const locationSource = (window.ownerLocationsData || []).flatMap((owner) => owner.locations);
+  const ownerLocationLabels = locationSource.map((location) => location.label).filter(Boolean);
   const prospectLocationLabels = Object.values(window.prospectDatasetsData || {})
     .flatMap((dataset) => dataset.rows || [])
     .map((row) => row.location)
     .map(normalizeDatasetCellValue)
     .filter(Boolean);
+  const configuredLocationLabels = [
+    ...(typeof OWNER_LOCATION_CENTERS !== "undefined" ? OWNER_LOCATION_CENTERS : []),
+    ...(typeof OWNER_HEADQUARTERS_CENTERS !== "undefined" ? OWNER_HEADQUARTERS_CENTERS : [])
+  ].map((location) => location.label).filter(Boolean);
+  const stateLocationLabels = [
+    ...new Set(
+      [...ownerLocationLabels, ...prospectLocationLabels, ...configuredLocationLabels]
+        .map(getStateLocationFilterLabelFromLocationLabel)
+        .filter(Boolean)
+    )
+  ];
   const locationLabels = [
     ...new Set([
-      ...locationSource.map((location) => location.label).filter(Boolean),
+      ...stateLocationLabels,
+      ...ownerLocationLabels,
       ...prospectLocationLabels
     ])
   ].sort((a, b) => collator.compare(a, b));
@@ -289,7 +302,7 @@ if (categoryFilterSelect) {
       "Food and Beverage",
       "Retail Products and Services",
       "Professional Business Services",
-      "Health and Beauty",
+      "Health & Wellness",
       "Fitness",
       ...prospectCategoryNames
     ])
@@ -601,7 +614,7 @@ if (ownerDetailsPanel) {
       return;
     }
 
-    const orgCountToggle = event.target.closest(".org-report-count");
+    const orgCountToggle = event.target.closest(".org-report-count[data-org-node-id]");
     if (orgCountToggle) {
       const ownerIndex = Number(orgCountToggle.dataset.ownerIndex);
       const nodeId = orgCountToggle.dataset.orgNodeId;
@@ -992,8 +1005,7 @@ function prepareOnePagerInitialSteps(onReady) {
   openSidebar("map", null);
 
   const preloadStepAssets = () => {
-    const franchiseImages = ONE_PAGER_MARKET_FILTER_EXCLUDED_FRANCHISES.map((franchise) => getFranchiseLogoSrc(franchise));
-    Promise.all(franchiseImages.map(preloadOnePagerImage)).then(finish);
+    finish();
   };
 
   if (!window.mapboxgl || !HAS_MAPBOX_ACCESS_TOKEN) {
@@ -1034,6 +1046,7 @@ function resetOnePagerPresentationForReplay() {
 
   document.documentElement.classList.remove("is-one-pager-cst-revealed");
   card?.classList.remove("is-one-pager-map-crossfade-hidden");
+  card?.classList.remove("is-one-pager-map-content-hidden");
   clearAllFilterSelections?.();
   setFilterPanelOpen?.(false);
   setPanelLayout?.("right");

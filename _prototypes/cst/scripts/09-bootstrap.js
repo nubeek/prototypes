@@ -286,7 +286,7 @@ if (categoryFilterSelect) {
       "Food and Beverage",
       "Retail Products and Services",
       "Professional Business Services",
-      "Health and Beauty",
+      "Health & Wellness",
       "Fitness",
       ...prospectCategoryNames
     ])

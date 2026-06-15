@@ -34,7 +34,7 @@ function renderOwnerDetails(owner) {
       <section class="owner-detail-section owner-detail-contact">
         <h3 class="ui-section-title">Contact</h3>
         <p class="ui-body-text">${owner.contactName}</p>
-        <span class="ui-link owner-detail-email">${owner.email}</span>
+        ${getContactEmailMarkup(owner.email, "owner-detail-email")}
         <button
           class="ui-control ui-button ui-button-primary owner-detail-contact-lead-action ${hasSavedLead ? "is-saved" : ""}"
           type="button"
@@ -87,6 +87,14 @@ function getOrgReports(nodes, parentId) {
 
 function getOrgDirectReportCount(nodes, nodeId) {
   return getOrgReports(nodes, nodeId).length;
+}
+
+function getOrgReportBadgeCount(nodes, nodeId) {
+  const node = nodes.find((item) => item.id === nodeId);
+  const reportCount = Number(node?.reportCount);
+  if (Number.isFinite(reportCount)) return reportCount;
+
+  return getOrgDirectReportCount(nodes, nodeId);
 }
 
 function getOrgCollapsedSet(ownerIndex) {
@@ -211,7 +219,9 @@ function syncOrgCollapsedUi(ownerIndex, nodeId) {
 
 function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
   const directReportCount = getOrgDirectReportCount(nodes, node.id);
-  const isCollapsed = ownerIndex !== null && isOrgNodeCollapsed(ownerIndex, node.id);
+  const reportBadgeCount = getOrgReportBadgeCount(nodes, node.id);
+  const hasSummaryReportCount = reportBadgeCount > directReportCount && directReportCount === 0;
+  const isCollapsed = ownerIndex !== null && (hasSummaryReportCount || isOrgNodeCollapsed(ownerIndex, node.id));
   const isInactiveBranch = ownerIndex !== null && isOrgNodeInactiveInSiblingGroup(ownerIndex, node, nodes);
 
   return `
@@ -226,7 +236,15 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
       <div class="ui-avatar org-person-avatar" aria-hidden="true">${getInitials(node.name)}</div>
       <h3>${node.name}</h3>
       <p>${getOrgNodeDisplayTitle(node)}</p>
-      ${directReportCount > 0 ? `
+      ${reportBadgeCount > 0 ? (hasSummaryReportCount ? `
+        <span
+          class="ui-control org-report-count org-report-count-${type} is-collapsed"
+          aria-label="${reportBadgeCount} reports for ${node.name}"
+        >
+          ${reportBadgeCount}
+          <img src="assets/chevron.svg" alt="" aria-hidden="true">
+        </span>
+      ` : `
         <button
           class="ui-control org-report-count org-report-count-${type} ${isCollapsed ? "is-collapsed" : "is-expanded"}"
           type="button"
@@ -235,10 +253,10 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
           aria-expanded="${String(!isCollapsed)}"
           aria-label="${isCollapsed ? "Expand" : "Collapse"} reports for ${node.name}"
         >
-          ${directReportCount}
+          ${reportBadgeCount}
           <img src="assets/chevron.svg" alt="" aria-hidden="true">
         </button>
-      ` : ""}
+      `) : ""}
     </article>
   `;
 }

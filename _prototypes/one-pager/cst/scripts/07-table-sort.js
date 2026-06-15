@@ -47,6 +47,12 @@ function getOwnerIcons(owner) {
 }
 
 function getContactsColumn(owner) {
+  const contactCount = getOwnerContactCount(owner);
+
+  if (!Number.isFinite(contactCount)) {
+    return `<span class="table-value-placeholder">-</span>`;
+  }
+
   return `
     <button
       class="ui-control ui-row-action contacts-action ${activeRawOwnerIndex === owner.originalIndex ? "is-active" : ""}"
@@ -55,7 +61,7 @@ function getContactsColumn(owner) {
       aria-pressed="${activeRawOwnerIndex === owner.originalIndex}"
       aria-label="Show ${owner.ownerName} contacts"
     >
-      <span>${getOwnerContactCount(owner)}</span>
+      <span>${contactCount}</span>
       <img class="contact-chevron" src="assets/arrows.svg" alt="" aria-hidden="true">
     </button>
   `;
@@ -96,12 +102,14 @@ function getLocationOrganizationColumn(row) {
   return `
     <span class="location-organization-cell">
       <span class="ui-tile logo location-organization-logo" aria-hidden="true">
-        <span class="owner-logo-fallback">${getInitials(owner.ownerName)}</span>
-        <img
-          src="${owner.logoSrc}"
-          alt=""
-          onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
-        >
+        <span class="owner-logo-fallback ${owner.logoSrc ? "" : "is-visible"}">${getInitials(owner.ownerName)}</span>
+        ${owner.logoSrc ? `
+          <img
+            src="${owner.logoSrc}"
+            alt=""
+            onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+          >
+        ` : ""}
       </span>
       <span class="location-table-value location-table-organization">${owner.ownerName}</span>
     </span>
@@ -455,30 +463,8 @@ function renderOwners(rows) {
       (owner, rowIndex) => {
         const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
         const isContactHidden = hiddenContactOwnerIndexes.has(owner.originalIndex);
-
-        return `
-        <tr
-          class="${activeDetailOwnerIndex === owner.originalIndex || activeOrgOwnerIndex === owner.originalIndex || activeMapOwnerIndex === owner.originalIndex || activeRawOwnerIndex === owner.originalIndex ? "is-selected" : ""}"
-          data-owner-index="${owner.originalIndex}"
-          ${getPresentationRowStyle(rowIndex)}
-        >
-          <td>
-            <div class="name-cell">
-              <div class="ui-tile logo">
-                <span class="owner-logo-fallback">${getInitials(owner.ownerName)}</span>
-                <img
-                  src="${owner.logoSrc}"
-                  alt="${owner.logoAlt}"
-                  onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
-                >
-              </div>
-              <div class="owner-meta">
-                <div class="owner-name">${owner.ownerName}</div>
-                ${getOwnerIcons(owner)}
-              </div>
-            </div>
-          </td>
-          <td class="contact-cell">
+        const contactCellMarkup = owner.hasPrimaryContact
+          ? `
             <div class="contact-cell-action ${hasSavedLead ? "is-lead-saved" : ""} ${isContactHidden ? "is-contact-hidden" : ""}">
               <button
                 class="ui-control contact-profile-action"
@@ -488,7 +474,7 @@ function renderOwners(rows) {
               >
                 <span class="contact-profile-text">
                   <span class="contact-name">${owner.contactName}</span>
-                  <span class="ui-link ui-ellipsis email">${owner.email}</span>
+                  ${getContactEmailMarkup(owner.email)}
                 </span>
               </button>
               <div class="contact-row-actions">
@@ -508,6 +494,35 @@ function renderOwners(rows) {
                 ></button>
               </div>
             </div>
+          `
+          : `<span class="table-value-placeholder">-</span>`;
+
+        return `
+        <tr
+          class="${activeDetailOwnerIndex === owner.originalIndex || activeOrgOwnerIndex === owner.originalIndex || activeMapOwnerIndex === owner.originalIndex || activeRawOwnerIndex === owner.originalIndex ? "is-selected" : ""}"
+          data-owner-index="${owner.originalIndex}"
+          ${getPresentationRowStyle(rowIndex)}
+        >
+          <td>
+            <div class="name-cell">
+              <div class="ui-tile logo">
+                <span class="owner-logo-fallback ${owner.logoSrc ? "" : "is-visible"}">${getInitials(owner.ownerName)}</span>
+                ${owner.logoSrc ? `
+                  <img
+                    src="${owner.logoSrc}"
+                    alt="${owner.logoAlt}"
+                    onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+                  >
+                ` : ""}
+              </div>
+              <div class="owner-meta">
+                <div class="owner-name">${owner.ownerName}</div>
+                ${getOwnerIcons(owner)}
+              </div>
+            </div>
+          </td>
+          <td class="contact-cell">
+            ${contactCellMarkup}
           </td>
           <td class="contacts-mode-cell">${getContactsColumn(owner)}</td>
           <td class="units-mode-cell">
@@ -768,6 +783,12 @@ function loadMoreLocationRows() {
 
 function getDatasetCellValueMarkup(value, className = "") {
   const normalizedValue = normalizeDatasetCellValue(value);
+  const isEmailCell = className.includes("email");
+
+  if (isEmailCell && shouldShowLinkedInContactLabel(normalizedValue)) {
+    return `<span class="contact-linkedin-label location-table-value ${className}">LinkedIn</span>`;
+  }
+
   const missingClass = normalizedValue ? "" : " dataset-empty-value";
   const classAttribute = `location-table-value${className ? ` ${className}` : ""}${missingClass}`;
 
@@ -899,7 +920,10 @@ function renderLocations(rows) {
 }
 
 function getSortValue(owner, key) {
-  if (key === "contacts") return getOwnerContactCount(owner);
+  if (key === "contacts") {
+    const contactCount = getOwnerContactCount(owner);
+    return Number.isFinite(contactCount) ? contactCount : -1;
+  }
   if (key === "locations") return getOwnerUnitCount(owner);
   if (key === "franchise") return getFranchiseCount(owner);
   return owner[key] || "";
@@ -928,22 +952,22 @@ function getInitialSortDirection(sortKey) {
 }
 
 function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
+  const ownerLocations = getOwnerCombinedMapLocations(owner.originalIndex);
+
   if (isRadiusFilterActive()) {
-    const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
     return ownerLocations.some((location) => locationWithinSelectedRadius(location));
   }
 
   if (!locationLabels.length) return true;
 
-  const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
-  return ownerLocations.some((location) => locationLabels.includes(location.label));
+  return ownerLocations.some((location) => locationLabelMatchesAnyFilterLabel(location.label, locationLabels));
 }
 
 function ownerExcludesLocationLabel(owner, locationLabels = excludedLocationLabels) {
   if (!locationLabels.length) return false;
 
   const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
-  return ownerLocations.some((location) => locationLabels.includes(location.label));
+  return ownerLocations.some((location) => locationLabelMatchesAnyFilterLabel(location.label, locationLabels));
 }
 
 function getOwnerCategories(owner) {
@@ -999,6 +1023,7 @@ function contactsFilterIsActive() {
 
 function ownerMatchesContactsFilter(owner) {
   const contacts = getOwnerContactCount(owner);
+  if (!Number.isFinite(contacts)) return !contactsFilterIsActive();
   return Number.isFinite(contacts) && contacts >= selectedContactsMin && contacts <= selectedContactsMax;
 }
 

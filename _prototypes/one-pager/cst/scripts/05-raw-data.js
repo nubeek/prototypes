@@ -185,7 +185,7 @@ function getRawContactRowMarkup(row, rowIndex) {
           </div>
         </div>
       </td>
-      <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
+      <td>${getContactEmailMarkup(row.email, "raw-email")}</td>
       <td><span class="raw-phone">${row.phone}</span></td>
       <td><span class="raw-location">${row.location}</span></td>
       <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
@@ -198,7 +198,7 @@ function getRawUnitRowMarkup(row, rowIndex) {
     <tr class="raw-unit-row" data-owner-index="${row.ownerIndex}" data-unit-row-index="${row.unitIndex}">
       <td class="raw-index-cell">${rowIndex + 1}</td>
       <td><span class="raw-name">${row.name}</span></td>
-      <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
+      <td>${getContactEmailMarkup(row.email, "raw-email")}</td>
       <td><span class="raw-phone">${row.phone}</span></td>
       <td><span class="raw-location">${row.location}</span></td>
       <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
@@ -381,6 +381,12 @@ function refreshFilteredViews() {
 }
 
 function refitOpenMapToVisibleLocations() {
+  // The presentation suppresses auto-fitting while it scripts the radius
+  // animation and sequential location chips, then performs a single explicit
+  // zoom once everything is in place. Honor that here too so filter refreshes
+  // don't trigger a resize + competing fitBounds on every animation frame.
+  if (onePagerSuppressMapAutoFit) return;
+
   const mapModeOpen =
     card?.classList.contains("is-map-open") &&
     !mapPanel?.classList.contains("is-details-mode") &&
