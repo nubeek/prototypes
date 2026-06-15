@@ -954,3 +954,67 @@ document.addEventListener("keydown", (event) => {
     closeToolbarTabDropdowns();
   }
 });
+
+const ONE_PAGER_INITIAL_PRELOAD_TIMEOUT_MS = 12000;
+
+function preloadOnePagerImage(src) {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => resolve();
+    image.onerror = () => resolve();
+    image.src = src;
+  });
+}
+
+function prepareOnePagerInitialSteps(onReady) {
+  if (!isOnePagerPresentation) {
+    onReady?.();
+    return;
+  }
+
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    window.clearTimeout(preloadTimeoutId);
+    onReady?.();
+  };
+  const preloadTimeoutId = window.setTimeout(finish, ONE_PAGER_INITIAL_PRELOAD_TIMEOUT_MS);
+
+  lockedToolbarMode = "map";
+  openSidebar("map", null);
+
+  const preloadStepAssets = () => {
+    const franchiseImages = ONE_PAGER_MARKET_FILTER_EXCLUDED_FRANCHISES.map((franchise) => getFranchiseLogoSrc(franchise));
+    Promise.all(franchiseImages.map(preloadOnePagerImage)).then(finish);
+  };
+
+  if (!window.mapboxgl || !HAS_MAPBOX_ACCESS_TOKEN) {
+    preloadStepAssets();
+    return;
+  }
+
+  let mapWaitAttempts = 0;
+  const waitForOwnersMap = () => {
+    if (!ownersMap) {
+      mapWaitAttempts += 1;
+      if (mapWaitAttempts > 240) {
+        preloadStepAssets();
+        return;
+      }
+      window.requestAnimationFrame(waitForOwnersMap);
+      return;
+    }
+
+    if (ownersMap.loaded()) {
+      preloadStepAssets();
+      return;
+    }
+
+    ownersMap.once("load", preloadStepAssets);
+  };
+
+  waitForOwnersMap();
+}
+
+window.prepareOnePagerInitialSteps = prepareOnePagerInitialSteps;

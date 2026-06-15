@@ -5,6 +5,7 @@
   const TARGETS_DETAIL_SOURCE = `targets/list.html?target=${TARGET_SLUG}&presentation=one-pager&v=targets-detail-step`;
   const CST_VIEW_SETTINGS_KEY = "cst.viewSettings.v1";
   const ACCESS_STORAGE_KEY = "wefranch:prototype-access";
+  const PRESENTATION_LOADING_FADE_MS = 320;
   const STEP_COPY_SWITCH_MS = 240;
   const STAGE_SWAP_FADE_MS = 700;
   const STAGE_UI_SWAP_FADE_MS = 260;
@@ -117,6 +118,7 @@
   const pauseBtnLabelPause = stagePauseBtn.querySelector(".pause-btn__label-pause");
   const pauseBtnLabelPlay = stagePauseBtn.querySelector(".pause-btn__label-play");
   const stepCopy = document.getElementById("stepCopy");
+  const presentationLoading = document.getElementById("presentationLoading");
 
   let cstWindow = null;
   let activeFrameSource = "";
@@ -132,6 +134,44 @@
   const presentationTimeouts = new Set();
   const TIMER_GROUP_INITIAL_CST_INTRO = "initial-cst-intro";
   const TIMER_GROUP_TARGET_STEP = "target-step";
+
+  function showPresentationLoading() {
+    if (!presentationLoading) return;
+    presentationLoading.hidden = false;
+    presentationLoading.classList.remove("is-hiding");
+    presentationLoading.setAttribute("aria-busy", "true");
+    document.body.classList.add("is-presentation-loading");
+  }
+
+  function hidePresentationLoading(onHidden) {
+    if (!presentationLoading) {
+      onHidden?.();
+      return;
+    }
+
+    presentationLoading.classList.add("is-hiding");
+    presentationLoading.setAttribute("aria-busy", "false");
+
+    window.setTimeout(() => {
+      presentationLoading.hidden = true;
+      presentationLoading.classList.remove("is-hiding");
+      document.body.classList.remove("is-presentation-loading");
+      onHidden?.();
+    }, PRESENTATION_LOADING_FADE_MS);
+  }
+
+  function preloadInitialSteps(cst) {
+    return Promise.all([
+      new Promise((resolve) => {
+        if (typeof cst.prepareOnePagerInitialSteps === "function") {
+          cst.prepareOnePagerInitialSteps(resolve);
+          return;
+        }
+        resolve();
+      }),
+      document.fonts?.ready ?? Promise.resolve()
+    ]);
+  }
 
   function revealStage() {
     stage.classList.remove("is-frame-slid-down");
@@ -739,11 +779,17 @@
   }
 
   function loadCstFrame() {
+    showPresentationLoading();
+
     // Start from the CST's default state instead of whatever view settings a
     // previous standalone session persisted.
-    ensureCstFrame(() => {
-      goToStep(0, { animateCopy: false });
-      runInitialCstIntro();
+    ensureCstFrame((cst) => {
+      preloadInitialSteps(cst).then(() => {
+        hidePresentationLoading(() => {
+          goToStep(0, { animateCopy: false });
+          runInitialCstIntro();
+        });
+      });
     });
   }
 
@@ -782,6 +828,7 @@
   window.addEventListener("pagehide", stopStepTimer);
   window.addEventListener("pagehide", clearTargetStepAnimation);
 
+  showPresentationLoading();
   renderStepCopy(STEPS[0], { animate: false });
   syncArrowState();
   syncStepLayoutState();
