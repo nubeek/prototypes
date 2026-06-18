@@ -10,6 +10,7 @@
   --access-radius-md: 10px;
   --access-radius-lg: 12px;
   --access-control-height: 48px;
+  --access-color-checkbox-outline: #d4d4d4;
   --access-transition-fast: 180ms ease;
 }
 
@@ -81,6 +82,58 @@ body:not(.access-locked) .access-gate {
 .access-gate__input:focus {
   background: var(--access-color-surface);
   box-shadow: 0 0 0 2px var(--access-color-brand-primary);
+}
+
+.access-gate .filter-check {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--access-color-text);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.access-gate .filter-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.access-gate .filter-checkbox {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--access-color-surface-control);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.access-gate .filter-checkbox::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: url("../_prototypes/cst/assets/check.svg") center / contain no-repeat;
+  opacity: 0;
+  transition: opacity .12s ease;
+}
+
+.access-gate .filter-check.is-checked .filter-checkbox {
+  background: var(--access-color-surface);
+  box-shadow: 0 0 0 2px var(--access-color-checkbox-outline);
+}
+
+.access-gate .filter-check.is-checked .filter-checkbox::before {
+  opacity: 1;
+}
+
+.access-gate__remember {
+  margin-top: -2px;
 }
 
 .access-gate .ui-control {

@@ -1,6 +1,7 @@
 (() => {
   const PASSWORD = "Showmethemoney$1";
   const STORAGE_KEY = "wefranch:prototype-access";
+  const REMEMBERED_PASSWORD_KEY = "wefranch:prototype-remembered-password";
   const ACCESS_GRANTED_CLASS = "access-granted";
 
   const readStoredAccess = () => {
@@ -8,6 +9,30 @@
       return sessionStorage.getItem(STORAGE_KEY);
     } catch (error) {
       return null;
+    }
+  };
+
+  const readRememberedPassword = () => {
+    try {
+      return localStorage.getItem(REMEMBERED_PASSWORD_KEY);
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const writeRememberedPassword = (password) => {
+    try {
+      localStorage.setItem(REMEMBERED_PASSWORD_KEY, password);
+    } catch (error) {
+      // Ignore storage failures in restrictive browsing contexts.
+    }
+  };
+
+  const clearRememberedPassword = () => {
+    try {
+      localStorage.removeItem(REMEMBERED_PASSWORD_KEY);
+    } catch (error) {
+      // Ignore storage failures in restrictive browsing contexts.
     }
   };
 
@@ -43,8 +68,58 @@
     stripCredentialsFromUrl();
   };
 
+  const ensureRememberPasswordControl = (form) => {
+    const existingControl = form.querySelector("[data-access-remember-label]");
+
+    if (existingControl) {
+      return existingControl;
+    }
+
+    const rememberLabel = document.createElement("label");
+    rememberLabel.className = "filter-check access-gate__remember";
+    rememberLabel.setAttribute("data-access-remember-label", "");
+
+    const rememberInput = document.createElement("input");
+    rememberInput.type = "checkbox";
+    rememberInput.name = "rememberPassword";
+    rememberInput.setAttribute("data-access-remember", "");
+
+    const rememberIcon = document.createElement("span");
+    rememberIcon.className = "filter-checkbox";
+    rememberIcon.setAttribute("aria-hidden", "true");
+
+    const rememberText = document.createElement("span");
+    rememberText.textContent = "Remember password";
+
+    rememberLabel.append(rememberInput, rememberIcon, rememberText);
+
+    const button = form.querySelector(".access-gate__button");
+    const error = form.querySelector("[data-access-error]");
+
+    if (button && error) {
+      form.insertBefore(rememberLabel, error);
+    } else if (button) {
+      button.insertAdjacentElement("afterend", rememberLabel);
+    } else {
+      form.appendChild(rememberLabel);
+    }
+
+    return rememberLabel;
+  };
+
   const initGate = () => {
     const storedAccess = readStoredAccess();
+    const rememberedPassword = readRememberedPassword();
+
+    if (rememberedPassword === PASSWORD) {
+      try {
+        sessionStorage.setItem(STORAGE_KEY, "granted");
+      } catch (storageError) {
+        // Continue and unlock even if session storage is unavailable.
+      }
+      unlock();
+      return;
+    }
 
     if (storedAccess === "granted") {
       unlock();
@@ -65,6 +140,24 @@
     // it without showing the form again.
     form.setAttribute("method", "get");
 
+    const rememberControl = ensureRememberPasswordControl(form);
+    const rememberInput = rememberControl.querySelector("[data-access-remember]");
+
+    if (rememberedPassword) {
+      input.value = rememberedPassword;
+    }
+
+    if (rememberInput && rememberedPassword === PASSWORD) {
+      rememberInput.checked = true;
+      rememberControl.classList.add("is-checked");
+    }
+
+    if (rememberInput) {
+      rememberInput.addEventListener("change", () => {
+        rememberControl.classList.toggle("is-checked", rememberInput.checked);
+      });
+    }
+
     input.focus();
 
     form.addEventListener("submit", (event) => {
@@ -77,6 +170,12 @@
           error.hidden = false;
         }
         return;
+      }
+
+      if (rememberInput && rememberInput.checked) {
+        writeRememberedPassword(input.value);
+      } else {
+        clearRememberedPassword();
       }
 
       // Persist access before navigation so the reloaded page unlocks, then

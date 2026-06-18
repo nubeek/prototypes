@@ -30,6 +30,206 @@
   </div>
 
   <main class="card">
+    <div class="content-shell">
+      <div class="header" aria-label="Owners toolbar">
+        <div class="toolbar-group toolbar-primary">
+          <div class="view" id="toolbarView" aria-label="Table view">
+            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn is-active" type="button" data-table-view="owners" aria-pressed="true">
+              <img class="toolbar-asset-icon view-btn-icon" src="assets/owners.svg" alt="" aria-hidden="true">
+              <span class="view-btn-label">Operators</span>
+            </button>
+            <span class="view-divider" aria-hidden="true"></span>
+            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="userProfiles" aria-pressed="false">
+              <img class="toolbar-asset-icon view-btn-icon" src="assets/prospects.svg" alt="" aria-hidden="true">
+              <span class="view-btn-label">Prospects</span>
+            </button>
+          </div>
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+            <img class="toolbar-asset-icon filter-toggle-icon" src="assets/filters.svg" alt="" aria-hidden="true">
+            <span id="filterToggleLabel">Filters</span>
+          </button>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <div class="toolbar-tabs segmented-control">
+            <div class="toolbar-tab-item">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" aria-controls="mapPanel" aria-expanded="false">
+                <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
+                <span class="toolbar-tab-label">Map</span>
+              </button>
+              <div class="toolbar-tab-dropdown">
+                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Map panel options menu">
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Hide panel</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
+                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
+                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
+                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
+                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
+                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="toolbar-tab-item">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="orgChartToggle" type="button" aria-label="Hierarchy view" aria-controls="mapPanel" aria-pressed="false">
+                <img class="toolbar-asset-icon" src="assets/orgchart.svg" alt="" aria-hidden="true">
+                <span class="toolbar-tab-label">Org. Chart</span>
+              </button>
+              <div class="toolbar-tab-dropdown">
+                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Org chart panel options menu">
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Hide panel</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
+                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
+                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
+                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
+                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
+                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="toolbar-tab-item">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="contactsToggle" type="button" aria-label="Toggle contacts view" aria-pressed="false">
+                <img class="toolbar-asset-icon contacts-toggle-icon" src="assets/contacts.svg" alt="" aria-hidden="true">
+                <span class="toolbar-tab-label">Contacts</span>
+              </button>
+              <div class="toolbar-tab-dropdown">
+                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Contacts panel options menu">
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Hide panel</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
+                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
+                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
+                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
+                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
+                    </button>
+                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
+                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <label class="toolbar-search-btn toolbar-btn" for="toolbarSearchInput" role="search">
+            <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+            <input
+              class="toolbar-search-input"
+              id="toolbarSearchInput"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Search by name, brand or location..."
+              aria-label="Search owners, contacts, locations, and franchises"
+            >
+            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
+          </label>
+        </div>
+
+        <div class="toolbar-group toolbar-actions">
+          <details class="toolbar-dropdown" id="toolbarMenuDropdown">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
+              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Export CSV</span>
+              </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Email campaign</span>
+              </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="createTargetOption" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/target.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Create target</span>
+              </button>
+              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+              <div class="toolbar-submenu" data-toolbar-submenu>
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
+                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
+                  <span class="toolbar-dropdown-label">Settings</span>
+                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <div class="ui-menu toolbar-submenu-menu" id="toolbarSettingsSubmenu" role="menu" aria-label="Settings menu">
+                  <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+                    <span class="toolbar-switch" aria-hidden="true"></span>
+                    <span class="toolbar-dropdown-label">Reduce motion</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Take screenshot</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Reset view</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <div class="toolbar-dataset-selector" id="datasetSelector" data-dataset-active="false">
+            <div class="dataset-selector-field">
+              <img class="dataset-selector-icon" src="assets/dataset.svg?v=2" alt="" aria-hidden="true">
+              <input
+                class="dataset-selector-input"
+                id="datasetSelectorInput"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Select dataset..."
+                role="combobox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="datasetSelectorMenu"
+                aria-label="Select dataset"
+              >
+              <button class="dataset-selector-clear" id="datasetSelectorClear" type="button" hidden aria-label="Clear dataset selection"></button>
+              <img class="toolbar-chevron dataset-selector-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+              <div class="ui-menu dataset-selector-menu" id="datasetSelectorMenu" role="listbox" aria-label="Datasets">
+                <div class="dataset-selector-options" id="datasetSelectorOptions"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="workspace">
     <aside class="filter-panel" id="filterPanel" aria-label="Filters">
       <div class="filter-scroll">
         <div class="filter-header">
@@ -203,211 +403,6 @@
         <button class="ui-control ui-button ui-button-muted clear-filters-btn" id="clearAllFilters" type="button">Clear all (0)</button>
       </div>
     </aside>
-
-    <div class="content-shell">
-      <div class="header" aria-label="Owners toolbar">
-        <div class="toolbar-group toolbar-primary">
-          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
-            <img class="toolbar-asset-icon filter-toggle-icon" src="assets/filters.svg" alt="" aria-hidden="true">
-            <span id="filterToggleLabel">Filters</span>
-          </button>
-          <span class="toolbar-divider" aria-hidden="true"></span>
-          <div class="toolbar-tabs segmented-control">
-            <div class="toolbar-tab-item">
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" aria-controls="mapPanel" aria-expanded="false">
-                <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
-                <span class="toolbar-tab-label">Map</span>
-              </button>
-              <div class="toolbar-tab-dropdown">
-                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Map panel options menu">
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Hide panel</span>
-                  </button>
-                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
-                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
-                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
-                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
-                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
-                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="toolbar-tab-item">
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="orgChartToggle" type="button" aria-label="Hierarchy view" aria-controls="mapPanel" aria-pressed="false">
-                <img class="toolbar-asset-icon" src="assets/orgchart.svg" alt="" aria-hidden="true">
-                <span class="toolbar-tab-label">Org. Chart</span>
-              </button>
-              <div class="toolbar-tab-dropdown">
-                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Org chart panel options menu">
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Hide panel</span>
-                  </button>
-                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
-                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
-                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
-                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
-                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
-                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="toolbar-tab-item">
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="contactsToggle" type="button" aria-label="Toggle contacts view" aria-pressed="false">
-                <img class="toolbar-asset-icon contacts-toggle-icon" src="assets/contacts.svg" alt="" aria-hidden="true">
-                <span class="toolbar-tab-label">Contacts</span>
-              </button>
-              <div class="toolbar-tab-dropdown">
-                <div class="ui-menu toolbar-dropdown-menu toolbar-tab-dropdown-menu" role="menu" aria-label="Contacts panel options menu">
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-tab-hide-panel-option" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon" src="assets/sidebar.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Hide panel</span>
-                  </button>
-                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-                  <div class="toolbar-tab-dropdown-heading ui-muted">Resize & Arrange</div>
-                  <div class="toolbar-tab-layout-options" role="group" aria-label="Panel layout options">
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button" data-layout="right" aria-label="Panel on right">
-                      <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="split" aria-label="50:50 split panel">
-                      <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="bottom" aria-label="Panel on bottom">
-                      <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
-                    </button>
-                    <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button" data-layout="full" aria-label="Full panel">
-                      <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <span class="toolbar-divider" aria-hidden="true"></span>
-          <label class="toolbar-search-btn toolbar-btn" for="toolbarSearchInput" role="search">
-            <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
-            <input
-              class="toolbar-search-input"
-              id="toolbarSearchInput"
-              type="search"
-              inputmode="search"
-              autocomplete="off"
-              placeholder="Search by name, brand or location..."
-              aria-label="Search owners, contacts, locations, and franchises"
-            >
-            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
-          </label>
-        </div>
-
-        <div class="toolbar-group toolbar-actions">
-          <details class="toolbar-dropdown" id="toolbarMenuDropdown">
-            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
-              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
-              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-            </summary>
-            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Export CSV</span>
-              </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Email campaign</span>
-              </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="createTargetOption" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/target.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Create target</span>
-              </button>
-              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-              <div class="toolbar-submenu" data-toolbar-submenu>
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
-                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">Settings</span>
-                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-                </button>
-                <div class="ui-menu toolbar-submenu-menu" id="toolbarSettingsSubmenu" role="menu" aria-label="Settings menu">
-                  <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
-                    <span class="toolbar-switch" aria-hidden="true"></span>
-                    <span class="toolbar-dropdown-label">Reduce motion</span>
-                  </button>
-                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Take screenshot</span>
-                  </button>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Reset view</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </details>
-          <span class="toolbar-divider" aria-hidden="true"></span>
-          <details class="toolbar-dropdown table-switcher-dropdown">
-            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn table-switcher-trigger" aria-label="Switch table view" title="Switch table view">
-              <img class="toolbar-asset-icon table-switcher-icon" id="tableSwitcherIcon" src="assets/owners.svg" alt="" aria-hidden="true">
-              <span id="tableSwitcherLabel">Owners</span>
-              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-            </summary>
-            <div class="ui-menu toolbar-dropdown-menu table-switcher-menu" role="menu" aria-label="Table switcher menu">
-              <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="true" data-table-view="owners">
-                <img class="toolbar-dropdown-icon table-switcher-option-icon" src="assets/owners.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Owners</span>
-                <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
-              </button>
-              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-              <div class="toolbar-submenu table-switcher-submenu">
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger table-switcher-submenu-trigger" id="tableDatasetsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="tableDatasetsSubmenu" data-dataset-connected="false">
-                  <img class="toolbar-dropdown-icon table-switcher-option-icon table-switcher-dataset-icon" src="assets/dataset.svg?v=2" alt="" aria-hidden="true">
-                  <span class="toolbar-dropdown-label">Datasets</span>
-                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-                </button>
-                <div class="ui-menu toolbar-submenu-menu table-switcher-submenu-menu" id="tableDatasetsSubmenu" role="menu" aria-label="Datasets menu">
-                  <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="false" data-table-view="locations">
-                    <span class="toolbar-dropdown-label">Locations</span>
-                    <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
-                  </button>
-                  <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="false" data-table-view="userProfiles">
-                    <span class="toolbar-dropdown-label">User profiles</span>
-                    <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
-                  </button>
-                  <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="false" data-table-view="searchers">
-                    <span class="toolbar-dropdown-label">Searchers</span>
-                    <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
-                  </button>
-                  <button class="ui-menu-item toolbar-dropdown-option table-switcher-option" type="button" role="menuitemradio" aria-checked="false" data-table-view="athletes">
-                    <span class="toolbar-dropdown-label">Athletes</span>
-                    <img class="table-switcher-option-check" src="assets/check.svg" alt="" aria-hidden="true">
-                  </button>
-                </div>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-
       <div class="table-wrap" id="tableWrap">
         <table>
           <thead>
@@ -425,6 +420,7 @@
           <tbody id="ownersTableBody"></tbody>
         </table>
         <p class="table-empty-state" id="tableEmptyState" role="status" hidden>We couldn't find anything matching your query.</p>
+      </div>
       </div>
 
       <aside class="map-panel" id="mapPanel" aria-label="Franchisee details">
@@ -502,6 +498,7 @@
   <script src="scripts/06-owner-details-org.js"></script>
   <script src="scripts/07-table-sort.js"></script>
   <script src="scripts/08-filters-combobox.js"></script>
+  <script src="scripts/10-dataset-selector.js"></script>
   <script src="scripts/09-bootstrap.js"></script>
 </body>
 </html>

@@ -18,6 +18,20 @@ sortHeaders.forEach((header) => {
   });
 });
 
+initDatasetSelector();
+
+if (toolbarView) {
+  toolbarView.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const button = event.target.closest(".toolbar-view-btn[data-table-view]");
+    if (!button) return;
+
+    event.preventDefault();
+    setMainTableView(button.dataset.tableView);
+  });
+}
+
 syncColumnWidths();
 syncReduceMotionToggleOption();
 syncReduceMotionStateClass();
@@ -212,6 +226,10 @@ document.addEventListener("mousedown", (event) => {
       combobox.close();
     }
   });
+
+  if (datasetSelectorField && !datasetSelectorField.contains(event.target)) {
+    datasetSelectorApi?.close();
+  }
 });
 
 if (locationFilterSelect) {
@@ -819,18 +837,6 @@ if (toolbarDropdowns.length) {
   });
 }
 
-if (tableSwitcherDropdown) {
-  tableSwitcherDropdown.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element)) return;
-
-    const option = event.target.closest(".table-switcher-option[data-table-view]");
-    if (!option) return;
-
-    event.preventDefault();
-    setMainTableView(option.dataset.tableView);
-  });
-}
-
 if (toolbarTabItems.length) {
   toolbarTabItems.forEach((item) => {
     item.addEventListener("click", (event) => {
@@ -925,6 +931,11 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key === "Escape" && profileModal && !profileModal.hidden) {
     closePersonProfile();
+    return;
+  }
+  if (event.key === "Escape" && datasetSelectorField?.classList.contains("is-open")) {
+    datasetSelectorApi?.close();
+    datasetSelectorInput?.blur();
     return;
   }
   if (event.key === "Escape" && toolbarDropdowns.some((dropdown) => dropdown.open)) {

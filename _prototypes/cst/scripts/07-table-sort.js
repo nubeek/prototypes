@@ -306,10 +306,15 @@ const TABLE_VIEW_OPTIONS = {
   },
   ...prospectDatasetTableOptions
 };
+const DATASET_SELECTOR_VIEWS = new Set(["locations", "searchers", "athletes"]);
 const DATASET_TABLE_VIEWS = new Set(["locations", ...Object.keys(prospectDatasetTableOptions)]);
 
 function isDatasetTableView(tableView = currentTableView) {
   return DATASET_TABLE_VIEWS.has(tableView);
+}
+
+function isDatasetSelectorView(tableView = currentTableView) {
+  return DATASET_SELECTOR_VIEWS.has(tableView);
 }
 
 const LOCATION_TABLE_HEADERS = [
@@ -399,28 +404,22 @@ function syncOwnersTableView() {
   tableWrap?.classList.remove("is-locations-view");
 }
 
-function syncTableSwitcherState() {
-  const tableView = TABLE_VIEW_OPTIONS[currentTableView] || TABLE_VIEW_OPTIONS.owners;
-  const isDatasetView = isDatasetTableView();
-  if (tableSwitcherIcon) {
-    tableSwitcherIcon.src = tableView.icon;
-  }
-  if (tableSwitcherLabel) {
-    tableSwitcherLabel.textContent = tableView.label;
-  }
-  tableSwitcherOptions.forEach((option) => {
-    option.setAttribute("aria-checked", String(option.dataset.tableView === currentTableView));
+function syncToolbarViewState() {
+  toolbarViewButtons.forEach((button) => {
+    const isActive = button.dataset.tableView === currentTableView;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
   });
-  tableDatasetsSubmenuTrigger?.setAttribute(
-    "data-dataset-connected",
-    String(isDatasetView)
-  );
-  tableSwitcherDropdown?.setAttribute("data-dataset-active", String(isDatasetView));
+}
+
+function syncDatasetSelectorState() {
+  datasetSelector?.setAttribute("data-dataset-active", String(isDatasetSelectorView()));
+  datasetSelectorApi?.sync();
 }
 
 function setMainTableView(nextView) {
   if (!TABLE_VIEW_OPTIONS[nextView] || nextView === currentTableView) {
-    tableSwitcherDropdown?.removeAttribute("open");
+    datasetSelectorApi?.close();
     return;
   }
 
@@ -430,10 +429,11 @@ function setMainTableView(nextView) {
   if (isDatasetTableView()) {
     locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
   }
-  syncTableSwitcherState();
+  syncDatasetSelectorState();
+  syncToolbarViewState();
   applySort();
   tableWrap?.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  tableSwitcherDropdown?.removeAttribute("open");
+  datasetSelectorApi?.close();
 }
 
 function renderOwners(rows) {
@@ -1205,7 +1205,8 @@ function applySort() {
     sortOwners();
     renderOwners(displayedOwners);
   }
-  syncTableSwitcherState();
+  syncDatasetSelectorState();
+  syncToolbarViewState();
   syncSortHeaders();
   updateFilterSummary();
 }
