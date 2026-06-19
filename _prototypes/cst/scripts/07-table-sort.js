@@ -574,6 +574,47 @@ function normalizeDatasetCellValue(value) {
   return value === null || value === undefined ? "" : String(value).trim();
 }
 
+function getProspectRowStateKey(row) {
+  return `${row.sourceView}:${row.id}`;
+}
+
+function parseProspectRowStateKey(key) {
+  const colonIndex = key.indexOf(":");
+  if (colonIndex === -1) return null;
+
+  return {
+    sourceView: key.slice(0, colonIndex),
+    id: key.slice(colonIndex + 1)
+  };
+}
+
+function getProspectRowByStateKey(key) {
+  const parsed = parseProspectRowStateKey(key);
+  if (!parsed) return null;
+
+  return getProspectDatasetRows(parsed.sourceView).find((row) => row.id === parsed.id) || null;
+}
+
+function isProspectRowLeadSaved(row) {
+  return savedLeadProspectRowKeys.has(getProspectRowStateKey(row));
+}
+
+function isProspectRowHidden(row) {
+  return hiddenProspectRowKeys.has(getProspectRowStateKey(row));
+}
+
+function setProspectRowLeadSaved(row, value) {
+  const key = getProspectRowStateKey(row);
+  if (value) savedLeadProspectRowKeys.add(key);
+  else savedLeadProspectRowKeys.delete(key);
+}
+
+function toggleProspectRowHidden(row) {
+  const key = getProspectRowStateKey(row);
+  if (hiddenProspectRowKeys.has(key)) hiddenProspectRowKeys.delete(key);
+  else hiddenProspectRowKeys.add(key);
+}
+
 function getProspectDatasetRows(tableView = currentTableView) {
   const dataset = window.prospectDatasetsData?.[tableView];
   const rows = Array.isArray(dataset?.rows) ? dataset.rows : [];
@@ -784,7 +825,33 @@ function getLocationRowAttributeMarkup(row, pageRowIndex) {
 
 function getDatasetNameCellMarkup(row) {
   if (row.isProspectDataset) {
-    return getDatasetCellValueMarkup(row.name, "location-table-contact-name");
+    const hasSavedLead = isProspectRowLeadSaved(row);
+    const isContactHidden = isProspectRowHidden(row);
+    const prospectRowKey = getProspectRowStateKey(row);
+
+    return `
+      <div class="contact-cell-action location-prospect-name-action ${hasSavedLead ? "is-lead-saved" : ""} ${isContactHidden ? "is-contact-hidden" : ""}">
+        <span class="location-prospect-name">
+          <span class="contact-name location-table-value location-table-contact-name">${row.name}</span>
+        </span>
+        <div class="contact-row-actions">
+          <button
+            class="ui-control contact-hide-results-action prospect-hide-results-action ${isContactHidden ? "is-hidden" : ""}"
+            type="button"
+            data-prospect-row-key="${prospectRowKey}"
+            aria-label="${isContactHidden ? `Show ${row.name} in results` : `Hide ${row.name} from results`}"
+            data-tooltip="${isContactHidden ? "Show in results" : "Hide from results"}"
+          ></button>
+          <button
+            class="ui-control contact-add-lead-action prospect-add-lead-action ${hasSavedLead ? "is-saved" : ""}"
+            type="button"
+            data-prospect-row-key="${prospectRowKey}"
+            aria-label="${hasSavedLead ? `Remove ${row.name} from leads` : `Save ${row.name} as a lead`}"
+            data-tooltip="${hasSavedLead ? "Remove from leads" : "Save as lead"}"
+          ></button>
+        </div>
+      </div>
+    `;
   }
 
   return `
@@ -854,9 +921,10 @@ function renderLocations(rows) {
     .map((row, pageRowIndex) => {
       const rowNumber = pageRowIndex + 1;
       const isSelected = selectedLocationRowIds.has(row.id);
+      const isProspectHidden = row.isProspectDataset && isProspectRowHidden(row);
 
       return `
-        <tr class="${row.isProspectDataset ? "prospect-dataset-row" : ""} ${isSelected ? "is-checked" : ""}" ${getLocationRowAttributeMarkup(row, pageRowIndex)}>
+        <tr class="${row.isProspectDataset ? "prospect-dataset-row" : ""} ${isSelected ? "is-checked" : ""} ${isProspectHidden ? "is-contact-hidden" : ""}" ${getLocationRowAttributeMarkup(row, pageRowIndex)}>
           <td class="location-number-cell">
             <label class="location-row-select" aria-label="Select location row ${rowNumber}">
               <input

@@ -87,18 +87,32 @@ if (tableBody) {
       return;
     }
 
+    const prospectAddLeadButton = event.target.closest(".prospect-add-lead-action");
+    if (prospectAddLeadButton) {
+      event.stopPropagation();
+      const prospectRowKey = prospectAddLeadButton.dataset.prospectRowKey;
+      if (!prospectRowKey) return;
+      handleSaveLeadAction(prospectAddLeadButton, null, null, prospectRowKey);
+      return;
+    }
+
+    const prospectHideButton = event.target.closest(".prospect-hide-results-action");
+    if (prospectHideButton) {
+      event.stopPropagation();
+      const prospectRowKey = prospectHideButton.dataset.prospectRowKey;
+      const row = prospectRowKey ? getProspectRowByStateKey(prospectRowKey) : null;
+      if (!row) return;
+      toggleProspectRowHidden(row);
+      refreshContactStateViews();
+      return;
+    }
+
     const addLeadButton = event.target.closest(".contact-add-lead-action");
     if (addLeadButton) {
       event.stopPropagation();
       const ownerIndex = Number(addLeadButton.dataset.ownerIndex);
-      if (!Number.isFinite(ownerIndex)) return;
-
-      if (addLeadButton.classList.contains("is-saved")) {
-        savedLeadOwnerIndexes.delete(ownerIndex);
-      } else {
-        savedLeadOwnerIndexes.add(ownerIndex);
-      }
-      refreshContactStateViews();
+      const nodeId = addLeadButton.dataset.nodeId ?? null;
+      handleSaveLeadAction(addLeadButton, ownerIndex, nodeId);
       return;
     }
 
@@ -535,10 +549,7 @@ if (ownerDetailsPanel) {
       event.stopPropagation();
       const ownerIndex = Number(rawLeadButton.dataset.ownerIndex);
       const nodeId = rawLeadButton.dataset.nodeId ?? null;
-      if (Number.isFinite(ownerIndex)) {
-        toggleContactLeadSaved(ownerIndex, nodeId);
-        refreshContactStateViews();
-      }
+      handleSaveLeadAction(rawLeadButton, ownerIndex, nodeId);
       return;
     }
 
@@ -591,28 +602,7 @@ if (ownerDetailsPanel) {
     const detailLeadButton = event.target.closest(".owner-detail-contact-lead-action");
     if (detailLeadButton) {
       const ownerIndex = Number(detailLeadButton.dataset.ownerIndex);
-      if (!Number.isFinite(ownerIndex)) return;
-
-      if (savedLeadOwnerIndexes.has(ownerIndex)) {
-        savedLeadOwnerIndexes.delete(ownerIndex);
-      } else {
-        savedLeadOwnerIndexes.add(ownerIndex);
-      }
-
-      const owner = owners.find((item) => item.originalIndex === ownerIndex);
-      const hasSavedLead = savedLeadOwnerIndexes.has(ownerIndex);
-      detailLeadButton.classList.toggle("is-saved", hasSavedLead);
-      detailLeadButton.textContent = hasSavedLead ? "Remove from leads" : "Save as lead";
-      if (owner) {
-        detailLeadButton.setAttribute(
-          "aria-label",
-          hasSavedLead
-            ? `Remove ${owner.contactName} from leads`
-            : `Save ${owner.contactName} as a lead`
-        );
-      }
-
-      refreshContactStateViews();
+      handleSaveLeadAction(detailLeadButton, ownerIndex);
       return;
     }
 
@@ -901,6 +891,29 @@ if (tableWrap) {
   syncStickyNameColumnDivider();
 }
 
+if (saveLeadModal) {
+  saveLeadModal.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const noteToggle = event.target.closest(".save-lead-note-toggle");
+    if (noteToggle) {
+      toggleSaveLeadNoteField();
+      return;
+    }
+
+    const closeControl = event.target.closest(".save-lead-modal-close, .save-lead-modal-cancel");
+    if (closeControl || event.target === saveLeadModal) {
+      saveLeadListSelectorApi?.close();
+      closeSaveLeadModal();
+    }
+  });
+
+  saveLeadModalForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    confirmSaveLeadFromModal();
+  });
+}
+
 if (profileModal) {
   profileModal.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
@@ -910,9 +923,16 @@ if (profileModal) {
       const ownerIndex = Number(profileModal.dataset.ownerIndex);
       if (Number.isFinite(ownerIndex)) {
         const nodeId = profileModal.dataset.nodeId ?? null;
-        toggleContactLeadSaved(ownerIndex, nodeId);
-        closePersonProfile();
-        refreshContactStateViews();
+        if (saveLeadButton.classList.contains("is-saved")) {
+          setContactLeadSaved(ownerIndex, nodeId, false);
+          closePersonProfile();
+          refreshContactStateViews();
+          syncOwnerDetailLeadButton(ownerIndex);
+        } else {
+          const trigger = lastProfileModalTrigger;
+          closePersonProfile();
+          openSaveLeadModal(ownerIndex, nodeId, trigger);
+        }
       }
       return;
     }
@@ -925,6 +945,14 @@ if (profileModal) {
 }
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && saveLeadModal && !saveLeadModal.hidden) {
+    if (saveLeadListSelectorField?.classList.contains("is-open")) {
+      saveLeadListSelectorApi?.close();
+      return;
+    }
+    closeSaveLeadModal();
+    return;
+  }
   if (event.key === "Escape" && createTargetModal && !createTargetModal.hidden) {
     closeCreateTargetModal();
     return;

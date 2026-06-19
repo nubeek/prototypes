@@ -1116,6 +1116,209 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   font-weight: 600;
 }
 
+.save-lead-modal-overlay {
+  z-index: 1500;
+}
+
+.save-lead-modal {
+  width: min(520px, calc(100vw - 48px));
+  border-radius: 20px;
+  padding: 34px 40px 38px;
+}
+
+.save-lead-modal-title {
+  margin-bottom: 22px;
+}
+
+.save-lead-contact {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.save-lead-contact-details {
+  min-width: 0;
+}
+
+.save-lead-contact-name,
+.save-lead-contact-email {
+  margin: 0;
+  overflow: hidden;
+  color: #050505;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save-lead-contact-name {
+  font-weight: 600;
+}
+
+.save-lead-contact-email {
+  margin-top: 2px;
+}
+
+.save-lead-edit-details {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-brand);
+  cursor: default;
+}
+
+.save-lead-edit-details:hover {
+  text-decoration: underline;
+}
+
+.save-lead-divider {
+  height: 1px;
+  margin: 0 0 22px;
+  background: var(--color-border);
+}
+
+.save-lead-list-field {
+  margin-bottom: 22px;
+}
+
+.save-lead-list-label {
+  display: block;
+  margin-bottom: 0;
+  color: #050505;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.save-lead-list-selector {
+  position: relative;
+  width: 100%;
+}
+
+.save-lead-list-selector .dataset-selector-field {
+  width: 100%;
+  min-width: 0;
+  height: var(--control-height);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  padding: 0 34px 0 16px;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.save-lead-list-selector .filter-combobox-clear {
+  right: 16px;
+  z-index: 3;
+}
+
+.save-lead-list-selector .dataset-selector-input {
+  position: relative;
+  z-index: 1;
+  font-weight: 400;
+}
+
+.save-lead-list-selector .dataset-selector-field:hover {
+  background: var(--color-surface-control);
+  border-color: transparent;
+}
+
+.save-lead-list-selector .dataset-selector-field.is-open,
+.save-lead-list-selector .dataset-selector-field.is-open:hover {
+  background: var(--color-surface);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 1px var(--color-brand);
+}
+
+.save-lead-list-selector .dataset-selector-menu {
+  z-index: 30;
+}
+
+.save-lead-note {
+  position: relative;
+  height: 24px;
+  flex-shrink: 0;
+  transition: height 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.reduce-motion .save-lead-note {
+  transition: none;
+}
+
+.save-lead-note-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-brand);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.save-lead-note-toggle[hidden],
+.save-lead-note-field[hidden] {
+  display: none;
+}
+
+.save-lead-note-toggle:hover {
+  text-decoration: underline;
+}
+
+.save-lead-note-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask: url("assets/notes.svg") center / contain no-repeat;
+  mask: url("assets/notes.svg") center / contain no-repeat;
+}
+
+.save-lead-note-field {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  min-height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  resize: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.save-lead-note-field::placeholder {
+  color: var(--color-text-muted);
+}
+
+.save-lead-note-field:focus {
+  outline: none;
+}
+
+.save-lead-modal-actions {
+  margin-top: 24px;
+}
+
 .owner-detail-header-actions,
 .owner-detail-header-actions.segmented-control {
   display: flex;
@@ -2235,6 +2438,12 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+}
+
+.contact-action-floating-tooltip {
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .filter-combobox-chip-toggle::after {
@@ -4299,6 +4508,50 @@ tbody tr.is-selected:hover td:first-child {
   min-height: 42px;
   display: flex;
   align-items: center;
+}
+
+.prospect-dataset-row .contact-cell-action {
+  width: calc(100% + 20px);
+  min-height: 42px;
+  align-items: center;
+}
+
+.prospect-dataset-row .contact-cell-action:hover,
+.prospect-dataset-row .contact-cell-action:focus-within {
+  background: transparent;
+}
+
+.prospect-dataset-row .contact-hide-results-action::after,
+.prospect-dataset-row .contact-add-lead-action::after {
+  content: none;
+}
+
+.prospect-dataset-row .location-prospect-name {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.prospect-dataset-row .contact-cell-action.is-contact-hidden .location-table-contact-name {
+  color: var(--color-text-disabled);
+  font-weight: 400;
+  text-decoration: line-through;
+}
+
+.prospect-dataset-row.is-contact-hidden .location-row-number {
+  color: var(--color-text-disabled);
+}
+
+.prospect-dataset-row.is-contact-hidden .location-table-value,
+.prospect-dataset-row.is-contact-hidden .location-table-email,
+.prospect-dataset-row.is-contact-hidden .location-table-phone,
+.prospect-dataset-row.is-contact-hidden .franchise-name {
+  color: var(--color-text-disabled);
+  font-weight: 400;
+  text-decoration: line-through;
+}
+
+.prospect-dataset-row.is-contact-hidden .franchise-logo {
+  opacity: 0.5;
 }
 
 .dataset-franchise-cell {

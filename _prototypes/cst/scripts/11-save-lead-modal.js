@@ -1,0 +1,509 @@
+const SAVE_LEAD_MODAL_CLOSE_DURATION_MS = 320;
+const SAVE_LEAD_LIST_PLACEHOLDER = "Select...";
+const SAVE_LEAD_NOTE_LINE_HEIGHT = 24;
+const CRM_LEAD_LISTS = [
+  "Denver territory prospects",
+  "High priority outreach",
+  "Multi-unit operators",
+  "Q2 pipeline",
+  "West coast expansion"
+];
+
+let saveLeadModalCloseTimeoutId = null;
+let lastSaveLeadModalTrigger = null;
+let pendingSaveLeadOwnerIndex = null;
+let pendingSaveLeadNodeId = null;
+let pendingSaveLeadProspectRowKey = null;
+
+function getSaveLeadListOptions() {
+  return CRM_LEAD_LISTS.map((label) => ({ label, value: label }));
+}
+
+function initSaveLeadListSelector() {
+  if (!saveLeadListSelector || !saveLeadListSelectorField || !saveLeadListInput || !saveLeadListClear || !saveLeadListOptions) {
+    return null;
+  }
+
+  const menu = document.getElementById("saveLeadListMenu");
+  const allOptions = getSaveLeadListOptions();
+  let isOpen = false;
+  let searchQuery = "";
+  let activeOptionIndex = -1;
+  let renderedOptions = [];
+  let selectedListValue = "";
+
+  function setSelectedListValue(value) {
+    selectedListValue = value;
+    saveLeadListInput.dataset.value = value;
+  }
+
+  function setActiveOption(index) {
+    const optionButtons = Array.from(saveLeadListOptions.querySelectorAll(".dataset-selector-option"));
+    if (!optionButtons.length) {
+      activeOptionIndex = -1;
+      saveLeadListInput.removeAttribute("aria-activedescendant");
+      return;
+    }
+
+    activeOptionIndex = (index + optionButtons.length) % optionButtons.length;
+    optionButtons.forEach((optionButton, optionIndex) => {
+      const isActive = optionIndex === activeOptionIndex;
+      optionButton.classList.toggle("is-active", isActive);
+      if (isActive) {
+        saveLeadListInput.setAttribute("aria-activedescendant", optionButton.id);
+        optionButton.scrollIntoView({ block: "nearest" });
+      }
+    });
+  }
+
+  function syncInputDisplay() {
+    const hasSelection = Boolean(selectedListValue);
+
+    saveLeadListSelector.setAttribute("data-list-active", String(hasSelection));
+    saveLeadListSelectorField.classList.toggle("has-selection", hasSelection);
+    saveLeadListClear.hidden = !hasSelection;
+
+    if (!isOpen) {
+      if (hasSelection) {
+        saveLeadListInput.value = selectedListValue;
+        saveLeadListInput.placeholder = "";
+      } else {
+        saveLeadListInput.value = "";
+        saveLeadListInput.placeholder = SAVE_LEAD_LIST_PLACEHOLDER;
+      }
+    }
+
+    saveLeadListOptions.querySelectorAll(".dataset-selector-option").forEach((option) => {
+      const isSelected = option.dataset.listValue === selectedListValue;
+      option.classList.toggle("is-selected", isSelected);
+      option.setAttribute("aria-selected", String(isSelected));
+    });
+  }
+
+  function renderOptions() {
+    const normalizedQuery = normalizeComboboxText(searchQuery);
+    renderedOptions = allOptions.filter((option) => (
+      normalizeComboboxText(option.label).includes(normalizedQuery)
+    ));
+
+    saveLeadListOptions.innerHTML = "";
+
+    if (!renderedOptions.length) {
+      const emptyState = document.createElement("div");
+      emptyState.className = "dataset-selector-empty";
+      emptyState.textContent = "No results found";
+      saveLeadListOptions.append(emptyState);
+      activeOptionIndex = -1;
+      saveLeadListInput.removeAttribute("aria-activedescendant");
+      return;
+    }
+
+    renderedOptions.forEach((option, index) => {
+      const optionButton = document.createElement("button");
+      const optionLabel = document.createElement("span");
+      const optionCheck = document.createElement("img");
+      const isSelected = option.value === selectedListValue;
+
+      optionButton.type = "button";
+      optionButton.className = "ui-menu-item toolbar-dropdown-option dataset-selector-option";
+      optionButton.id = `saveLeadListOption-${index}`;
+      optionButton.dataset.listValue = option.value;
+      optionButton.setAttribute("role", "option");
+      optionButton.classList.toggle("is-selected", isSelected);
+      optionButton.setAttribute("aria-selected", String(isSelected));
+
+      optionLabel.className = "toolbar-dropdown-label";
+      optionLabel.textContent = option.label;
+
+      optionCheck.className = "dataset-selector-option-check";
+      optionCheck.src = "assets/check.svg";
+      optionCheck.alt = "";
+      optionCheck.setAttribute("aria-hidden", "true");
+
+      optionButton.append(optionLabel, optionCheck);
+
+      optionButton.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+      });
+
+      optionButton.addEventListener("click", () => {
+        setSelectedListValue(option.value);
+        close({ restoreDisplay: true });
+        saveLeadListInput.blur();
+      });
+
+      saveLeadListOptions.append(optionButton);
+    });
+
+    if (activeOptionIndex >= renderedOptions.length) {
+      activeOptionIndex = -1;
+    }
+
+    if (activeOptionIndex >= 0) {
+      setActiveOption(activeOptionIndex);
+    } else {
+      saveLeadListInput.removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function open({ selectInputText = false } = {}) {
+    isOpen = true;
+    searchQuery = "";
+    saveLeadListInput.value = "";
+    saveLeadListSelectorField.classList.add("is-open");
+    saveLeadListInput.setAttribute("aria-expanded", "true");
+    renderOptions();
+
+    if (selectInputText) {
+      saveLeadListInput.focus({ preventScroll: true });
+    }
+  }
+
+  function close({ restoreDisplay = true } = {}) {
+    if (!isOpen) return;
+
+    isOpen = false;
+    searchQuery = "";
+    activeOptionIndex = -1;
+    saveLeadListSelectorField.classList.remove("is-open");
+    saveLeadListInput.setAttribute("aria-expanded", "false");
+    saveLeadListInput.removeAttribute("aria-activedescendant");
+
+    if (restoreDisplay) {
+      syncInputDisplay();
+    }
+  }
+
+  function reset() {
+    close({ restoreDisplay: false });
+    setSelectedListValue("");
+    syncInputDisplay();
+  }
+
+  saveLeadListInput.addEventListener("focus", () => {
+    open({ selectInputText: true });
+  });
+
+  saveLeadListInput.addEventListener("input", () => {
+    searchQuery = saveLeadListInput.value;
+
+    if (!isOpen) {
+      isOpen = true;
+      saveLeadListSelectorField.classList.add("is-open");
+      saveLeadListInput.setAttribute("aria-expanded", "true");
+    }
+
+    renderOptions();
+  });
+
+  saveLeadListInput.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!isOpen) {
+        open();
+        if (renderedOptions.length) {
+          setActiveOption(event.key === "ArrowDown" ? 0 : renderedOptions.length - 1);
+        }
+        return;
+      }
+      setActiveOption(activeOptionIndex + (event.key === "ArrowDown" ? 1 : -1));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      if (!isOpen || activeOptionIndex < 0) return;
+      event.preventDefault();
+      setSelectedListValue(renderedOptions[activeOptionIndex].value);
+      close({ restoreDisplay: true });
+      saveLeadListInput.blur();
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      close({ restoreDisplay: true });
+      saveLeadListInput.blur();
+    }
+  });
+
+  saveLeadListInput.addEventListener("blur", () => {
+    window.setTimeout(() => close({ restoreDisplay: true }), 100);
+  });
+
+  saveLeadListClear.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+
+  saveLeadListClear.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedListValue("");
+    syncInputDisplay();
+    close({ restoreDisplay: true });
+  });
+
+  saveLeadListSelectorField.addEventListener("mousedown", (event) => {
+    if (
+      event.target === saveLeadListInput ||
+      menu?.contains(event.target) ||
+      saveLeadListClear.contains(event.target)
+    ) {
+      return;
+    }
+
+    const wasOpen = isOpen;
+    event.preventDefault();
+    saveLeadListInput.focus({ preventScroll: true });
+
+    if (wasOpen) {
+      close({ restoreDisplay: true });
+    } else {
+      open({ selectInputText: true });
+    }
+  });
+
+  syncInputDisplay();
+
+  return { close, reset, getValue: () => selectedListValue };
+}
+
+saveLeadListSelectorApi = initSaveLeadListSelector();
+
+function getSaveLeadContact(ownerIndex, nodeId, prospectRowKey = null) {
+  if (prospectRowKey) {
+    const row = getProspectRowByStateKey(prospectRowKey);
+    if (!row) return null;
+    return { name: row.name, email: row.email };
+  }
+
+  const owner = owners.find((item) => item.originalIndex === ownerIndex);
+  if (!owner) return null;
+
+  if (nodeId) {
+    const row = getOwnerRawRows(ownerIndex).find((item) => item.nodeId === nodeId);
+    if (row) {
+      return { name: row.name, email: row.email };
+    }
+  }
+
+  const profile = getPersonProfileFromOwnerContact(ownerIndex);
+  if (profile) {
+    return { name: profile.name, email: profile.email };
+  }
+
+  return {
+    name: owner.contactName || owner.ownerName,
+    email: owner.email || ""
+  };
+}
+
+function resetSaveLeadNoteHeight() {
+  if (saveLeadNote) {
+    saveLeadNote.style.height = `${SAVE_LEAD_NOTE_LINE_HEIGHT}px`;
+  }
+  if (saveLeadNoteField) {
+    saveLeadNoteField.style.height = `${SAVE_LEAD_NOTE_LINE_HEIGHT}px`;
+  }
+}
+
+function syncSaveLeadNoteHeight() {
+  if (!saveLeadNoteField || !saveLeadNote || saveLeadNoteField.hidden) return;
+
+  saveLeadNoteField.style.height = "auto";
+  const nextHeight = Math.max(SAVE_LEAD_NOTE_LINE_HEIGHT, saveLeadNoteField.scrollHeight);
+  saveLeadNote.style.height = `${nextHeight}px`;
+  saveLeadNoteField.style.height = `${nextHeight}px`;
+}
+
+function resetSaveLeadModalForm() {
+  if (!saveLeadModalForm) return;
+
+  saveLeadModalForm.reset();
+  saveLeadListSelectorApi?.reset();
+  saveLeadNoteField?.setAttribute("hidden", "");
+  saveLeadNoteToggle?.removeAttribute("hidden");
+  if (saveLeadNoteField) saveLeadNoteField.value = "";
+  resetSaveLeadNoteHeight();
+}
+
+function renderSaveLeadContact(contact) {
+  if (!saveLeadContactName || !saveLeadContactEmail) return;
+
+  saveLeadContactName.textContent = contact?.name || "";
+  saveLeadContactEmail.textContent = contact?.email || "";
+}
+
+function finalizeSaveLeadModalClose() {
+  if (!saveLeadModal) return;
+
+  saveLeadListSelectorApi?.close();
+  saveLeadModal.classList.remove("is-open", "is-closing");
+  saveLeadModal.hidden = true;
+  resetSaveLeadModalForm();
+  saveLeadModalCloseTimeoutId = null;
+  pendingSaveLeadOwnerIndex = null;
+  pendingSaveLeadNodeId = null;
+  pendingSaveLeadProspectRowKey = null;
+
+  if (lastSaveLeadModalTrigger instanceof HTMLElement) {
+    lastSaveLeadModalTrigger.focus({ preventScroll: true });
+  }
+  lastSaveLeadModalTrigger = null;
+}
+
+function closeSaveLeadModal() {
+  if (!saveLeadModal || saveLeadModal.hidden) return;
+
+  if (saveLeadModalCloseTimeoutId) {
+    window.clearTimeout(saveLeadModalCloseTimeoutId);
+  }
+
+  saveLeadModal.classList.remove("is-open");
+  saveLeadModal.classList.add("is-closing");
+  saveLeadModalCloseTimeoutId = window.setTimeout(
+    finalizeSaveLeadModalClose,
+    SAVE_LEAD_MODAL_CLOSE_DURATION_MS
+  );
+}
+
+function openSaveLeadModal(ownerIndex, nodeId = null, trigger = null, prospectRowKey = null) {
+  if (!saveLeadModal) return;
+
+  if (prospectRowKey) {
+    const row = getProspectRowByStateKey(prospectRowKey);
+    if (!row || isProspectRowLeadSaved(row)) return;
+
+    const contact = getSaveLeadContact(null, null, prospectRowKey);
+    if (!contact) return;
+
+    if (saveLeadModalCloseTimeoutId) {
+      window.clearTimeout(saveLeadModalCloseTimeoutId);
+      saveLeadModalCloseTimeoutId = null;
+    }
+
+    pendingSaveLeadOwnerIndex = null;
+    pendingSaveLeadNodeId = null;
+    pendingSaveLeadProspectRowKey = prospectRowKey;
+    lastSaveLeadModalTrigger = trigger;
+    resetSaveLeadModalForm();
+    renderSaveLeadContact(contact);
+
+    saveLeadModal.classList.remove("is-closing");
+    saveLeadModal.hidden = false;
+    saveLeadModal.classList.remove("is-open");
+
+    window.requestAnimationFrame(() => {
+      if (!saveLeadModal || saveLeadModal.hidden) return;
+      saveLeadModal.classList.add("is-open");
+      saveLeadModal.querySelector(".save-lead-modal-close")?.focus({ preventScroll: true });
+    });
+    return;
+  }
+
+  if (!Number.isFinite(ownerIndex)) return;
+  if (isContactLeadSaved(ownerIndex, nodeId)) return;
+
+  const contact = getSaveLeadContact(ownerIndex, nodeId);
+  if (!contact) return;
+
+  if (saveLeadModalCloseTimeoutId) {
+    window.clearTimeout(saveLeadModalCloseTimeoutId);
+    saveLeadModalCloseTimeoutId = null;
+  }
+
+  pendingSaveLeadOwnerIndex = ownerIndex;
+  pendingSaveLeadNodeId = nodeId;
+  pendingSaveLeadProspectRowKey = null;
+  lastSaveLeadModalTrigger = trigger;
+  resetSaveLeadModalForm();
+  renderSaveLeadContact(contact);
+
+  saveLeadModal.classList.remove("is-closing");
+  saveLeadModal.hidden = false;
+  saveLeadModal.classList.remove("is-open");
+
+  window.requestAnimationFrame(() => {
+    if (!saveLeadModal || saveLeadModal.hidden) return;
+    saveLeadModal.classList.add("is-open");
+    saveLeadModal.querySelector(".save-lead-modal-close")?.focus({ preventScroll: true });
+  });
+}
+
+function syncOwnerDetailLeadButton(ownerIndex) {
+  const button = ownerDetailsPanel?.querySelector(".owner-detail-contact-lead-action");
+  if (!button || Number(button.dataset.ownerIndex) !== ownerIndex) return;
+
+  const owner = owners.find((item) => item.originalIndex === ownerIndex);
+  const hasSavedLead = isContactLeadSaved(ownerIndex, null);
+  button.classList.toggle("is-saved", hasSavedLead);
+  button.textContent = hasSavedLead ? "Remove from leads" : "Save as lead";
+  if (owner) {
+    button.setAttribute(
+      "aria-label",
+      hasSavedLead
+        ? `Remove ${owner.contactName} from leads`
+        : `Save ${owner.contactName} as a lead`
+    );
+  }
+}
+
+function handleSaveLeadAction(trigger, ownerIndex, nodeId = null, prospectRowKey = null) {
+  if (prospectRowKey) {
+    const row = getProspectRowByStateKey(prospectRowKey);
+    if (!row) return;
+
+    if (trigger?.classList.contains("is-saved") || isProspectRowLeadSaved(row)) {
+      setProspectRowLeadSaved(row, false);
+      refreshContactStateViews();
+      return;
+    }
+
+    openSaveLeadModal(null, null, trigger, prospectRowKey);
+    return;
+  }
+
+  if (!Number.isFinite(ownerIndex)) return;
+
+  if (trigger?.classList.contains("is-saved") || isContactLeadSaved(ownerIndex, nodeId)) {
+    setContactLeadSaved(ownerIndex, nodeId, false);
+    refreshContactStateViews();
+    syncOwnerDetailLeadButton(ownerIndex);
+    return;
+  }
+
+  openSaveLeadModal(ownerIndex, nodeId, trigger);
+}
+
+function confirmSaveLeadFromModal() {
+  if (pendingSaveLeadProspectRowKey) {
+    const row = getProspectRowByStateKey(pendingSaveLeadProspectRowKey);
+    if (!row) return;
+
+    setProspectRowLeadSaved(row, true);
+    refreshContactStateViews();
+    closeSaveLeadModal();
+    return;
+  }
+
+  if (!Number.isFinite(pendingSaveLeadOwnerIndex)) return;
+
+  setContactLeadSaved(pendingSaveLeadOwnerIndex, pendingSaveLeadNodeId, true);
+  refreshContactStateViews();
+  syncOwnerDetailLeadButton(pendingSaveLeadOwnerIndex);
+  closeSaveLeadModal();
+}
+
+function toggleSaveLeadNoteField() {
+  if (!saveLeadNoteField || !saveLeadNoteToggle || !saveLeadNoteField.hidden) return;
+
+  saveLeadNoteToggle.setAttribute("hidden", "");
+  saveLeadNoteField.removeAttribute("hidden");
+  resetSaveLeadNoteHeight();
+  saveLeadNoteField.focus({ preventScroll: true });
+}
+
+if (saveLeadNoteField) {
+  saveLeadNoteField.addEventListener("input", syncSaveLeadNoteHeight);
+}
