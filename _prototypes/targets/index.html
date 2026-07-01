@@ -33,6 +33,7 @@
       <h1 class="targets-title">Targets</h1>
     </div>
 
+    <div class="grid-toolbar-sentinel" aria-hidden="true"></div>
     <div class="grid-toolbar">
       <nav class="grid-tabs" aria-label="Target scope">
         <button class="grid-tab is-active" type="button" data-scope="all">All</button>
@@ -40,19 +41,38 @@
         <button class="grid-tab" type="button" data-scope="team">Team</button>
       </nav>
 
-      <label class="target-search-btn" for="targetSearch" role="search">
-        <img class="target-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
-        <input
-          class="target-search-input"
-          id="targetSearch"
-          type="search"
-          inputmode="search"
-          autocomplete="off"
-          placeholder="Search targets..."
-          aria-label="Search targets"
-        >
-        <button class="target-search-clear" id="targetSearchClear" type="button" aria-label="Clear search" hidden></button>
-      </label>
+      <div class="grid-toolbar-actions">
+        <details class="toolbar-dropdown" id="targetGridMenuDropdown">
+          <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+            <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
+            <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+          </summary>
+          <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+            <button class="ui-menu-item toolbar-dropdown-option card-view-option" id="cardViewLocationOption" type="button" role="menuitemcheckbox" aria-checked="true" data-card-view="location">
+              <span class="toolbar-dropdown-label">Locations</span>
+              <img class="card-view-option-check" src="assets/check.svg" alt="" aria-hidden="true">
+            </button>
+            <button class="ui-menu-item toolbar-dropdown-option card-view-option" id="cardViewFranchisesOption" type="button" role="menuitemcheckbox" aria-checked="true" data-card-view="franchises">
+              <span class="toolbar-dropdown-label">Franchises</span>
+              <img class="card-view-option-check" src="assets/check.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </details>
+        <span class="grid-toolbar-divider" aria-hidden="true"></span>
+        <label class="target-search-btn" for="targetSearch" role="search">
+          <img class="target-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+          <input
+            class="target-search-input"
+            id="targetSearch"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            placeholder="Search targets..."
+            aria-label="Search targets"
+          >
+          <button class="target-search-clear" id="targetSearchClear" type="button" aria-label="Clear search" hidden></button>
+        </label>
+      </div>
     </div>
 
     <div class="targets-scroll" id="targetsScroll">
@@ -61,7 +81,12 @@
     </div>
   </main>
 
+  <script src="../../.env.local"></script>
   <script src="data/targets.js"></script>
+  <script src="data/state-bounds.js"></script>
+  <script src="data/water-exclusion.js"></script>
+  <script src="franchises.js"></script>
+  <script src="map-snapshot.js"></script>
   <script src="grid.js"></script>
 </body>
 </html>

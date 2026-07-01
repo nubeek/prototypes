@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CST Design System</title>
+  <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../assets/x192.png" />
+  <link rel="manifest" href="../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../cst/styles.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../scripts/gate.js"></script>
+  <link rel="stylesheet" href="../../styles/gate.css">
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input type="text" name="username" autocomplete="username" value="prototype-access" hidden readonly>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <main class="ds-page">
+    <header class="ds-header">
+      <h1>CST Design System</h1>
+      <p class="ui-body-text ds-intro">Internal UI kit documenting reusable patterns from the CST prototype. All specimens use existing CST class names and styles — no new visual language.</p>
+      <nav class="ds-nav" aria-label="Section navigation">
+        <a href="#typography">Typography</a>
+        <a href="#colors">Colors</a>
+        <a href="#buttons">Buttons</a>
+        <a href="#forms">Forms</a>
+        <a href="#selection-controls">Selection</a>
+        <a href="#cards">Cards</a>
+        <a href="#badges">Badges</a>
+        <a href="#alerts">Alerts</a>
+        <a href="#navigation">Navigation</a>
+        <a href="#modals">Modals</a>
+        <a href="#tables">Tables</a>
+        <a href="#empty-states">Empty states</a>
+        <a href="#spacing">Spacing</a>
+        <a href="#notes">Notes</a>
+      </nav>
+    </header>
+
+    <!-- Typography -->
+    <section class="ds-section" id="typography">
+      <h2>Typography</h2>
+      <p class="ds-section-desc">Poppins is the primary typeface. Sizes and weights vary by context; utility classes cover common body patterns.</p>
+      <div class="ds-row">
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">h1 — 24px / 700</span>
+          <h1>Page heading</h1>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.filter-header h2 — 22px / 600</span>
+          <div class="filter-header" style="position:static;padding:0 0 12px;background:transparent;border:0;">
+            <h2>Filter</h2>
+          </div>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.target-modal-title — 24px / 700</span>
+          <h2 class="target-modal-title">Create Target</h2>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.owner-detail-header h2 — 18px / 700</span>
+          <div class="owner-detail-header"><h2>Owner detail title</h2></div>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.ui-section-title — 17px / 600</span>
+          <h3 class="ui-section-title">Section title</h3>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.ui-body-text — 16px</span>
+          <p class="ui-body-text">Body text used in detail panels and descriptive copy. Line height 1.35.</p>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.filter-header p — caption / summary</span>
+          <div class="filter-header" style="position:static;padding:0;background:transparent;border:0;">
+            <p>Showing 42 of 120 records sorted by relevancy</p>
+          </div>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.ui-muted</span>
+          <p class="ui-muted">Muted helper text for secondary information.</p>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">th / td — table text</span>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr><th>Name</th><th>Units</th></tr></thead>
+            <tbody><tr><td>Sample row</td><td>12</td></tr></tbody>
+          </table>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.table-empty-state — 18px</span>
+          <p class="table-empty-state" style="position:static;transform:none;">No results match your filters.</p>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.screenshot-toast — 13px / 500</span>
+          <span class="screenshot-toast ds-toast-demo" style="position:relative;opacity:1;transform:none;">Toast message</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Colors -->
+    <section class="ds-section" id="colors">
+      <h2>Colors</h2>
+      <p class="ds-section-desc">CSS custom properties defined in <code>:root</code> of CST styles.css.</p>
+      <div class="ds-swatch-grid">
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#fff;"></div><div class="ds-swatch-info"><strong>Surface</strong>--color-surface<br>#fff</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#f4f4f4;"></div><div class="ds-swatch-info"><strong>Surface muted</strong>--color-surface-muted<br>#f4f4f4</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#f8f7fd;"></div><div class="ds-swatch-info"><strong>Surface subtle</strong>--color-surface-subtle<br>#f8f7fd</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#e9e9e9;"></div><div class="ds-swatch-info"><strong>Control</strong>--color-surface-control<br>#e9e9e9</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#dedede;"></div><div class="ds-swatch-info"><strong>Control hover</strong>--color-surface-control-hover<br>#dedede</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#f3f3f4;"></div><div class="ds-swatch-info"><strong>Toolbar hover</strong>--color-surface-toolbar-hover<br>#f3f3f4</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#ececec;"></div><div class="ds-swatch-info"><strong>Table active</strong>--color-surface-table-active<br>#ececec</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#e7e7e7;"></div><div class="ds-swatch-info"><strong>Border</strong>--color-border<br>#e7e7e7</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#e1e1e1;"></div><div class="ds-swatch-info"><strong>Border strong</strong>--color-border-strong<br>#e1e1e1</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#ececf0;"></div><div class="ds-swatch-info"><strong>Border toolbar</strong>--color-border-toolbar<br>#ececf0</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#111;"></div><div class="ds-swatch-info"><strong>Text</strong>--color-text<br>#111</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#222;"></div><div class="ds-swatch-info"><strong>Text soft</strong>--color-text-soft<br>#222</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#aaa;"></div><div class="ds-swatch-info"><strong>Text muted</strong>--color-text-muted<br>#aaa</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#cdcdcd;"></div><div class="ds-swatch-info"><strong>Text disabled</strong>--color-text-disabled<br>#cdcdcd</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#7a63dd;"></div><div class="ds-swatch-info"><strong>Brand</strong>--color-brand<br>#7a63dd</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#8065f2;"></div><div class="ds-swatch-info"><strong>Brand strong</strong>--color-brand-strong<br>#8065f2</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#8065e8;"></div><div class="ds-swatch-info"><strong>Brand primary</strong>--color-brand-primary<br>#8065e8</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#765bdd;"></div><div class="ds-swatch-info"><strong>Brand primary hover</strong>--color-brand-primary-hover<br>#765bdd</div></div>
+        <div class="ds-swatch"><div class="ds-swatch-color" style="background:#e9ddff;"></div><div class="ds-swatch-info"><strong>Brand soft</strong>--color-brand-soft<br>#e9ddff</div></div>
+      </div>
+    </section>
+
+    <!-- Buttons -->
+    <section class="ds-section" id="buttons">
+      <h2>Buttons</h2>
+      <p class="ds-section-desc">Base pattern: <code>ui-control ui-button</code> plus a variant class. Feature-specific buttons add context classes.</p>
+      <div class="ds-row">
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-button-primary</span>
+          <button class="ui-control ui-button ui-button-primary" type="button">Save</button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-button-secondary</span>
+          <button class="ui-control ui-button ui-button-secondary" type="button">Cancel</button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-button-muted</span>
+          <button class="ui-control ui-button ui-button-muted" type="button">Clear filters</button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-button-ghost</span>
+          <button class="ui-control ui-button ui-button-ghost" type="button">Ghost</button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-button-ghost.is-active</span>
+          <button class="ui-control ui-button ui-button-ghost is-active" type="button">Active</button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-text-button</span>
+          <button class="ui-control ui-text-button" type="button">Text action</button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-link</span>
+          <a class="ui-link" href="#">Link action</a>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-icon-button</span>
+          <button class="ui-control ui-button ui-button-ghost ui-icon-button" type="button" aria-label="Icon">
+            <img src="../cst/assets/map.svg" alt="" width="18" height="18">
+          </button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-close-button</span>
+          <button class="ui-control ui-close-button" type="button" aria-label="Close">
+            <img src="../cst/assets/close.svg" alt="" width="12" height="12">
+          </button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-row-action</span>
+          <button class="ui-control ui-row-action" type="button">View profile</button>
+        </div>
+      </div>
+      <div class="ds-row">
+        <div class="ds-specimen">
+          <span class="ds-label">.segmented-control-btn.is-active</span>
+          <div class="view">
+            <button class="ui-control ui-button ui-button-ghost segmented-control-btn toolbar-view-btn is-active" type="button">
+              <img class="toolbar-asset-icon view-btn-icon" src="../cst/assets/owners.svg" alt="" aria-hidden="true">
+              <span class="view-btn-label">Operators</span>
+            </button>
+            <span class="view-divider" aria-hidden="true"></span>
+            <button class="ui-control ui-button ui-button-ghost segmented-control-btn toolbar-view-btn" type="button">
+              <img class="toolbar-asset-icon view-btn-icon" src="../cst/assets/prospects.svg" alt="" aria-hidden="true">
+              <span class="view-btn-label">Prospects</span>
+            </button>
+          </div>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.target-modal-cancel / .target-modal-save</span>
+          <div style="display:flex;gap:10px;">
+            <button class="ui-control ui-button target-modal-cancel" type="button">Cancel</button>
+            <button class="ui-control ui-button ui-button-primary target-modal-save" type="button">Save</button>
+          </div>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.profile-modal-primary / .profile-modal-secondary</span>
+          <div style="display:flex;gap:10px;">
+            <button class="ui-control ui-button profile-modal-secondary" type="button">Secondary</button>
+            <button class="ui-control ui-button profile-modal-primary" type="button">Primary</button>
+          </div>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.toolbar-btn:disabled</span>
+          <button class="ui-control ui-button ui-button-ghost toolbar-btn" type="button" disabled>Disabled</button>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.profile-modal-primary.is-saved</span>
+          <button class="ui-control ui-button profile-modal-primary is-saved" type="button">Saved</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Forms -->
+    <section class="ds-section" id="forms">
+      <h2>Forms</h2>
+      <p class="ds-section-desc">Input styles are context-specific; modal and filter patterns are the primary references.</p>
+      <div class="ds-row">
+        <div class="ds-specimen ds-specimen-wide" style="max-width:360px;">
+          <span class="ds-label">.target-modal-input</span>
+          <label class="target-modal-field">
+            <span>Title</span>
+            <input class="target-modal-control target-modal-input" type="text" value="Sample target">
+          </label>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:360px;">
+          <span class="ds-label">.target-modal-textarea</span>
+          <label class="target-modal-field">
+            <span>Description</span>
+            <textarea class="target-modal-control target-modal-textarea" placeholder="Optional">Sample description text.</textarea>
+          </label>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:360px;">
+          <span class="ds-label">.target-modal-select</span>
+          <label class="target-modal-field">
+            <span>Visibility</span>
+            <span class="target-modal-select-field">
+              <select class="target-modal-control target-modal-select">
+                <option>Private</option>
+                <option>Team</option>
+                <option>Public</option>
+              </select>
+              <img src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
+            </span>
+          </label>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:320px;">
+          <span class="ds-label">.ui-select.filter-field-select</span>
+          <div class="filter-select-field">
+            <select class="ui-select filter-field-select">
+              <option>Select location...</option>
+              <option>Chicago, IL</option>
+            </select>
+            <img src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
+          </div>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:320px;">
+          <span class="ds-label">.ui-select (standalone)</span>
+          <select class="ui-select" style="max-width:320px;">
+            <option>Option one</option>
+            <option>Option two</option>
+          </select>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.toolbar-search-btn.is-active-search</span>
+          <button class="ui-control ui-button ui-button-ghost toolbar-search-btn is-active-search" type="button" style="width:220px;">
+            <img class="toolbar-asset-icon toolbar-search-icon" src="../cst/assets/search.svg" alt="" aria-hidden="true">
+            <input class="toolbar-search-input" type="search" placeholder="Search..." value="Planet Fitness">
+          </button>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:280px;">
+          <span class="ds-label">.owner-search-input</span>
+          <input class="owner-search-input" type="search" placeholder="Search owners..." value="">
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:280px;">
+          <span class="ds-label">.access-gate__input</span>
+          <input class="access-gate__input" type="password" placeholder="Password">
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:360px;">
+          <span class="ds-label">.save-lead-note-field</span>
+          <textarea class="save-lead-note-field" placeholder="Add a quick note..." rows="2" style="display:block;">Inline note field.</textarea>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:320px;">
+          <span class="ds-label">.filter-value.filter-number-input</span>
+          <div class="filter-input-row">
+            <input class="filter-value filter-number-input" type="number" value="0">
+            <span class="filter-range-separator">-</span>
+            <input class="filter-value filter-number-input" type="number" value="100">
+          </div>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.access-gate__error</span>
+          <p class="access-gate__error" role="alert">Incorrect password.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Selection Controls -->
+    <section class="ds-section" id="selection-controls">
+      <h2>Selection Controls</h2>
+      <p class="ds-section-desc">Checkboxes, toggles, range sliders, and combobox patterns. Radio buttons are not used in the current CST UI.</p>
+      <div class="ds-row">
+        <div class="ds-specimen ds-filter-context">
+          <span class="ds-label">.filter-check (unchecked)</span>
+          <label class="filter-check">
+            <input type="checkbox">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Verified</span>
+          </label>
+          <span class="ds-label" style="margin-top:12px;">.filter-check.is-checked</span>
+          <label class="filter-check is-checked">
+            <input type="checkbox" checked>
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Public figure</span>
+          </label>
+          <span class="ds-label" style="margin-top:12px;">.filter-check-muted (disabled)</span>
+          <label class="filter-check filter-check-muted">
+            <input type="checkbox" disabled>
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Disabled option</span>
+          </label>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.location-row-checkbox</span>
+          <label class="location-row-select">
+            <input class="location-row-checkbox" type="checkbox" checked>
+            <span class="location-row-checkbox-visual" aria-hidden="true"></span>
+            <span class="location-row-number">1</span>
+          </label>
+          <span class="ds-label" style="margin-top:12px;">.location-select-all.is-indeterminate</span>
+          <label class="location-select-all is-indeterminate">
+            <input class="location-row-checkbox" type="checkbox">
+            <span class="location-row-checkbox-visual" aria-hidden="true"></span>
+          </label>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.toolbar-switch (off / on)</span>
+          <div class="ui-menu" style="box-shadow:none;border:1px solid var(--color-border);width:240px;">
+            <button class="ui-menu-item toolbar-dropdown-option" type="button" aria-checked="false">
+              <span class="toolbar-switch" aria-hidden="true"></span>
+              <span class="toolbar-dropdown-label">Reduce motion</span>
+            </button>
+            <button class="ui-menu-item toolbar-dropdown-option" type="button" aria-checked="true">
+              <span class="toolbar-switch" aria-hidden="true"></span>
+              <span class="toolbar-dropdown-label">Reduce motion (on)</span>
+            </button>
+          </div>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:320px;">
+          <span class="ds-label">.filter-range-slider (single)</span>
+          <div class="range-track filter-range-slider filter-radius-slider">
+            <span class="range-line"></span>
+            <span class="range-fill" style="right:40%;"></span>
+            <input class="range-input range-input-single" type="range" min="25" max="1000" value="300">
+          </div>
+          <span class="filter-radius-value">300 mi</span>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:320px;">
+          <span class="ds-label">.filter-range-slider (dual)</span>
+          <div class="range-track filter-range-slider">
+            <span class="range-line"></span>
+            <span class="range-fill" style="left:20%;right:30%;"></span>
+            <input class="range-input range-input-min" type="range" min="0" max="100" value="20">
+            <input class="range-input range-input-max" type="range" min="0" max="100" value="70">
+          </div>
+        </div>
+        <div class="ds-specimen ds-specimen-wide ds-combobox-demo" style="max-width:320px;">
+          <span class="ds-label">.filter-combobox-control (with chips, open)</span>
+          <div class="filter-select-field is-open has-selection">
+            <div class="filter-combobox-control" tabindex="0">
+              <div class="filter-combobox-chips">
+                <span class="filter-combobox-chip">
+                  <button class="filter-combobox-chip-toggle" type="button" aria-label="Toggle include"></button>
+                  <span class="filter-combobox-chip-label">Fitness</span>
+                  <button class="filter-combobox-chip-remove" type="button" aria-label="Remove"></button>
+                </span>
+                <span class="filter-combobox-chip is-excluded">
+                  <button class="filter-combobox-chip-toggle" type="button" aria-label="Toggle exclude"></button>
+                  <span class="filter-combobox-chip-label">Food</span>
+                  <button class="filter-combobox-chip-remove" type="button" aria-label="Remove"></button>
+                </span>
+              </div>
+              <input class="filter-combobox-input" type="text" placeholder="Search...">
+            </div>
+            <div class="filter-combobox-menu">
+              <div class="filter-combobox-options">
+                <button class="filter-combobox-option" type="button">
+                  <span class="filter-combobox-option-label">Anytime Fitness</span>
+                </button>
+                <button class="filter-combobox-option" type="button">
+                  <span class="filter-combobox-option-label">Planet Fitness</span>
+                </button>
+                <p class="filter-combobox-empty">No matching options</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="ui-muted" style="margin-top:8px;">Radio buttons: not used in current CST UI.</p>
+    </section>
+
+    <!-- Cards -->
+    <section class="ds-section" id="cards">
+      <h2>Cards / Surfaces</h2>
+      <p class="ds-section-desc">Tiles, detail panels, and org chart cards.</p>
+      <div class="ds-row">
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-tile</span>
+          <div class="ui-tile" style="width:80px;height:80px;border-radius:var(--radius-md);"></div>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-avatar / .profile-avatar</span>
+          <span class="ui-avatar profile-avatar" style="width:64px;height:64px;border-radius:16px;">JD</span>
+        </div>
+        <div class="ds-specimen ds-specimen-wide" style="max-width:360px;">
+          <span class="ds-label">.owner-detail-card</span>
+          <article class="owner-detail-card" style="height:auto;">
+            <div class="owner-detail-header">
+              <h2>Acme Holdings</h2>
+            </div>
+            <p class="ui-body-text">Sample owner detail panel content with muted background surface.</p>
+          </article>
+        </div>
+        <div class="ds-specimen ds-org-card-demo">
+          <span class="ds-label">.org-person-card</span>
+          <article class="org-person-card org-person-card-root">
+            <span class="org-person-avatar">JD</span>
+            <h3>Jane Doe</h3>
+            <p>CEO</p>
+            <button class="org-report-count is-collapsed" type="button">3</button>
+          </article>
+          <article class="org-person-card is-inactive-branch">
+            <span class="org-person-avatar">AB</span>
+            <h3>Inactive branch</h3>
+            <p>VP Operations</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Badges -->
+    <section class="ds-section" id="badges">
+      <h2>Badges / Tags</h2>
+      <p class="ds-section-desc">No dedicated badge component — filter chips and org report counts serve similar roles.</p>
+      <div class="ds-row">
+        <div class="ds-specimen">
+          <span class="ds-label">.filter-combobox-chip</span>
+          <span class="filter-combobox-chip">
+            <button class="filter-combobox-chip-toggle" type="button" aria-label="Toggle"></button>
+            <span class="filter-combobox-chip-label">Included tag</span>
+            <button class="filter-combobox-chip-remove" type="button" aria-label="Remove"></button>
+          </span>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.filter-combobox-chip.is-excluded</span>
+          <span class="filter-combobox-chip is-excluded">
+            <button class="filter-combobox-chip-toggle" type="button" aria-label="Toggle"></button>
+            <span class="filter-combobox-chip-label">Excluded tag</span>
+            <button class="filter-combobox-chip-remove" type="button" aria-label="Remove"></button>
+          </span>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.org-report-count.is-expanded / .is-collapsed</span>
+          <div style="display:flex;gap:12px;padding-top:8px;">
+            <button class="org-report-count is-expanded" type="button" style="position:static;transform:none;">5</button>
+            <button class="org-report-count is-collapsed" type="button" style="position:static;transform:none;">5</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Alerts -->
+    <section class="ds-section" id="alerts">
+      <h2>Alerts / Messages</h2>
+      <p class="ds-section-desc">Gate errors and screenshot toasts. No inline banner component exists.</p>
+      <div class="ds-row ds-toast-demo">
+        <div class="ds-specimen">
+          <span class="ds-label">.access-gate__error</span>
+          <p class="access-gate__error" role="alert">Incorrect password.</p>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.screenshot-toast</span>
+          <span class="screenshot-toast">Default toast</span>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.screenshot-toast.is-visible</span>
+          <span class="screenshot-toast is-visible">Screenshot saved.</span>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.screenshot-toast.is-error</span>
+          <span class="screenshot-toast is-visible is-error">Something went wrong.</span>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">Live toggle</span>
+          <button class="ui-control ui-button ui-button-muted" type="button" id="dsToastToggle">Toggle toast</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation -->
+    <section class="ds-section" id="navigation">
+      <h2>Navigation / Tabs</h2>
+      <p class="ds-section-desc">Segmented controls, dropdown menus, and toolbar tab patterns.</p>
+      <div class="ds-row">
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.view segmented control</span>
+          <div class="view">
+            <button class="ui-control ui-button ui-button-ghost segmented-control-btn toolbar-view-btn is-active" type="button">
+              <img class="toolbar-asset-icon view-btn-icon" src="../cst/assets/owners.svg" alt="" aria-hidden="true">
+              <span class="view-btn-label">Operators</span>
+            </button>
+            <span class="view-divider" aria-hidden="true"></span>
+            <button class="ui-control ui-button ui-button-ghost segmented-control-btn toolbar-view-btn" type="button">
+              <img class="toolbar-asset-icon view-btn-icon" src="../cst/assets/prospects.svg" alt="" aria-hidden="true">
+              <span class="view-btn-label">Prospects</span>
+            </button>
+          </div>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.ui-menu / .ui-menu-item</span>
+          <div class="ui-menu" style="width:240px;">
+            <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button">
+              <img class="toolbar-dropdown-icon" src="../cst/assets/mail.svg" alt="" aria-hidden="true">
+              <span class="toolbar-dropdown-label">Email campaign</span>
+            </button>
+            <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button">
+              <img class="toolbar-dropdown-icon" src="../cst/assets/target.svg" alt="" aria-hidden="true">
+              <span class="toolbar-dropdown-label">Create target</span>
+            </button>
+            <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+            <div class="toolbar-tab-dropdown-heading ui-muted">Section heading</div>
+          </div>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.toolbar-tab-layout-options</span>
+          <div class="toolbar-tab-layout-options">
+            <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option is-active" type="button">
+              <span class="toolbar-tab-layout-preview is-right" aria-hidden="true"></span>
+            </button>
+            <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button">
+              <span class="toolbar-tab-layout-preview is-split" aria-hidden="true"></span>
+            </button>
+            <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button">
+              <span class="toolbar-tab-layout-preview is-bottom" aria-hidden="true"></span>
+            </button>
+            <button class="ui-control ui-button ui-button-ghost toolbar-tab-layout-option" type="button">
+              <span class="toolbar-tab-layout-preview is-full" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.filter-toggle-btn.is-active</span>
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn is-active" type="button">
+            <img class="toolbar-asset-icon filter-toggle-icon" src="../cst/assets/filters.svg" alt="" aria-hidden="true">
+            <span>Filters</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modals -->
+    <section class="ds-section" id="modals">
+      <h2>Modals / Dialogs</h2>
+      <p class="ds-section-desc">Profile modal (20px radius) and target modal (10px radius) variants.</p>
+      <div class="ds-modal-triggers" style="margin-bottom:24px;">
+        <button class="ui-control ui-button ui-button-primary" type="button" data-open-modal="dsProfileModal">Open profile modal</button>
+        <button class="ui-control ui-button ui-button-primary" type="button" data-open-modal="dsTargetModal">Open target modal</button>
+      </div>
+      <div class="ds-row">
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">Profile modal interior (.profile-modal)</span>
+          <div class="ds-preview-frame-modal">
+            <div class="profile-modal-hero">
+              <span class="profile-avatar">JD</span>
+              <h2 id="profileModalName">Jane Doe</h2>
+              <p>Chief Executive Officer</p>
+            </div>
+            <div class="profile-modal-fields">
+              <div class="profile-modal-field">
+                <span>Email</span>
+                <a class="ui-link" href="#">jane@example.com</a>
+              </div>
+              <div class="profile-modal-field">
+                <span>Phone</span>
+                <strong>(555) 123-4567</strong>
+              </div>
+              <div class="profile-modal-field profile-modal-field-full">
+                <span>LinkedIn</span>
+                <a class="ui-link" href="#">linkedin.com/in/janedoe</a>
+              </div>
+            </div>
+            <div class="profile-modal-actions">
+              <button class="ui-control ui-button profile-modal-secondary" type="button">Cancel</button>
+              <button class="ui-control ui-button profile-modal-primary" type="button">Save as lead</button>
+            </div>
+          </div>
+        </div>
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">Target modal interior (.target-modal)</span>
+          <div class="ds-preview-frame-modal" style="border-radius:10px;">
+            <form class="target-modal-form">
+              <h2 class="target-modal-title">Create Target</h2>
+              <label class="target-modal-field">
+                <span>Title</span>
+                <input class="target-modal-control target-modal-input" type="text" value="Q4 expansion">
+              </label>
+              <label class="target-modal-field">
+                <span>Description</span>
+                <textarea class="target-modal-control target-modal-textarea" placeholder="Optional"></textarea>
+              </label>
+              <div class="target-modal-actions">
+                <button class="ui-control ui-button target-modal-cancel" type="button">Cancel</button>
+                <button class="ui-control ui-button ui-button-primary target-modal-save" type="button">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tables -->
+    <section class="ds-section" id="tables">
+      <h2>Tables / Lists</h2>
+      <p class="ds-section-desc">Main data table with sortable headers and row interaction states.</p>
+      <div class="ds-table-demo">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable-header" aria-sort="ascending">
+                  <span class="th-content">Name <img class="th-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true"></span>
+                </th>
+                <th>Units</th>
+                <th class="right">Contacts</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="is-selected">
+                <td class="name-cell"><span class="owner-name">Selected row</span></td>
+                <td>24</td>
+                <td class="contact-cell"><a class="ui-link" href="#">View</a></td>
+              </tr>
+              <tr class="is-checked">
+                <td class="name-cell"><span class="owner-name">Checked row</span></td>
+                <td>12</td>
+                <td><button class="ui-control ui-row-action" type="button">Action</button></td>
+              </tr>
+              <tr>
+                <td class="name-cell"><span class="owner-name">Default row</span></td>
+                <td>8</td>
+                <td class="dataset-empty-value">-</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Empty States -->
+    <section class="ds-section" id="empty-states">
+      <h2>Empty States</h2>
+      <p class="ds-section-desc">Context-specific empty messages used across tables, filters, and panels.</p>
+      <div class="ds-row">
+        <div class="ds-specimen ds-specimen-wide">
+          <span class="ds-label">.table-empty-state</span>
+          <p class="table-empty-state" style="position:static;transform:none;padding:24px 0;">No owners match your current filters.</p>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.filter-combobox-empty</span>
+          <p class="filter-combobox-empty">No matching options</p>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.owner-search-empty</span>
+          <p class="owner-search-empty">No owners found</p>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.owner-org-empty-message</span>
+          <p class="owner-org-empty-message">No org chart data available.</p>
+        </div>
+        <div class="ds-specimen">
+          <span class="ds-label">.dataset-empty-value</span>
+          <span class="dataset-empty-value">-</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spacing -->
+    <section class="ds-section" id="spacing">
+      <h2>Spacing / Radius / Shadows</h2>
+      <p class="ds-section-desc">CST uses CSS variables for radii, shadows, and control heights. Spacing elsewhere is mostly ad-hoc pixel values.</p>
+      <h3 class="ui-section-title">Control heights</h3>
+      <div class="ds-spacing-row" style="margin-bottom:28px;">
+        <div class="ds-spacing-block">
+          <span style="width:var(--control-height);height:var(--control-height);"></span>
+          --control-height (48px)
+        </div>
+        <div class="ds-spacing-block">
+          <span style="width:var(--control-height-sm);height:var(--control-height-sm);"></span>
+          --control-height-sm (28px)
+        </div>
+      </div>
+      <h3 class="ui-section-title">Border radius</h3>
+      <div class="ds-radius-row" style="margin-bottom:28px;">
+        <div class="ds-radius-box" style="border-radius:var(--radius-xs);">--radius-xs<br>6px</div>
+        <div class="ds-radius-box" style="border-radius:var(--radius-sm);">--radius-sm<br>8px</div>
+        <div class="ds-radius-box" style="border-radius:var(--radius-md);">--radius-md<br>10px</div>
+        <div class="ds-radius-box" style="border-radius:var(--radius-lg);">--radius-lg<br>12px</div>
+        <div class="ds-radius-box" style="border-radius:var(--radius-pill);width:120px;">--radius-pill</div>
+      </div>
+      <h3 class="ui-section-title">Shadows</h3>
+      <div class="ds-shadow-row" style="margin-bottom:28px;">
+        <div class="ds-shadow-box" style="box-shadow:var(--shadow-tile);">--shadow-tile</div>
+        <div class="ds-shadow-box" style="box-shadow:var(--shadow-menu);">--shadow-menu</div>
+        <div class="ds-shadow-box" style="box-shadow:var(--shadow-modal);">--shadow-modal</div>
+        <div class="ds-shadow-box" style="box-shadow:var(--shadow-avatar);">--shadow-avatar</div>
+      </div>
+      <h3 class="ui-section-title">Common spacing values</h3>
+      <p class="ui-body-text ui-muted">14px panel gap (--side-panel-gap), 16px menu item padding, 18px card padding (--card-padding-x), 20px modal field spacing.</p>
+    </section>
+
+    <!-- Notes -->
+    <section class="ds-section" id="notes">
+      <h2>Notes / Inconsistencies</h2>
+      <p class="ds-section-desc">Documented for future cleanup — not addressed in this page.</p>
+      <ul class="ds-notes">
+        <li>Styles are duplicated across prototypes (one-pager/cst copy); no shared component CSS package.</li>
+        <li>No formal spacing scale; layout uses ad-hoc pixel values alongside a few CSS variables.</li>
+        <li>Button variants mix generic <code>ui-button-*</code> classes with feature-prefixed classes (toolbar, modal, org).</li>
+        <li>No radio buttons, dedicated badge component, loading spinners, or global <code>.ui-button:disabled</code> style.</li>
+        <li>Modal styling split between <code>.profile-modal-*</code> (20px radius) and <code>.target-modal-*</code> (10px radius).</li>
+        <li>Checkbox patterns differ: <code>.filter-check</code> vs <code>.location-row-checkbox</code>.</li>
+        <li>Error/success states exist only on gate errors and screenshot toasts — not on form fields.</li>
+        <li>Global <code>h1</code> is defined but unused in CST app HTML.</li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Live modal demos -->
+  <div class="profile-modal-overlay" id="dsProfileModal" hidden>
+    <section class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="dsProfileModalName">
+      <button class="ui-control ui-close-button owner-detail-close profile-modal-close" type="button" aria-label="Close profile">
+        <img src="../cst/assets/close.svg" alt="" aria-hidden="true">
+      </button>
+      <div class="profile-modal-content">
+        <div class="profile-modal-hero">
+          <span class="profile-avatar">JD</span>
+          <h2 id="dsProfileModalName">Jane Doe</h2>
+          <p>Chief Executive Officer</p>
+        </div>
+        <div class="profile-modal-fields">
+          <div class="profile-modal-field">
+            <span>Email</span>
+            <a class="ui-link" href="#">jane@example.com</a>
+          </div>
+          <div class="profile-modal-field">
+            <span>Phone</span>
+            <strong>(555) 123-4567</strong>
+          </div>
+        </div>
+        <div class="profile-modal-actions">
+          <button class="ui-control ui-button profile-modal-secondary" type="button">Cancel</button>
+          <button class="ui-control ui-button profile-modal-primary" type="button">Save as lead</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="profile-modal-overlay target-modal-overlay" id="dsTargetModal" hidden>
+    <section class="profile-modal target-modal" role="dialog" aria-modal="true" aria-labelledby="dsTargetModalTitle">
+      <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close" type="button" aria-label="Close">
+        <img src="../cst/assets/close.svg" alt="" aria-hidden="true">
+      </button>
+      <form class="target-modal-form">
+        <h2 class="target-modal-title" id="dsTargetModalTitle">Create Target</h2>
+        <label class="target-modal-field">
+          <span>Title</span>
+          <input class="target-modal-control target-modal-input" type="text" value="Q4 expansion">
+        </label>
+        <label class="target-modal-field">
+          <span>Description</span>
+          <textarea class="target-modal-control target-modal-textarea" placeholder="Optional"></textarea>
+        </label>
+        <div class="target-modal-actions">
+          <button class="ui-control ui-button target-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary target-modal-save" type="button">Save</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="screenshot-toast" id="dsLiveToast" aria-live="polite">Screenshot saved.</div>
+
+  <script src="scripts/demo.js"></script>
+</body>
+</html>

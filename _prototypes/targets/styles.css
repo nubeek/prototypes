@@ -1005,7 +1005,7 @@ body.target-detail {
 }
 
 .target-detail-header-inner {
-  width: min(1004px, 100%);
+  width: min(1050px, 100%);
   margin: 0 auto;
   padding: 56px 30px 28px;
 }
@@ -1205,6 +1205,21 @@ body.target-detail {
   font-weight: 400;
 }
 
+.card-view-option .toolbar-dropdown-label {
+  flex: 1 1 auto;
+}
+
+.card-view-option-check {
+  width: 10px;
+  height: 10px;
+  margin-left: auto;
+  opacity: 0;
+}
+
+.card-view-option[aria-checked="true"] .card-view-option-check {
+  opacity: 1;
+}
+
 .toolbar-dropdown-icon {
   width: 18px;
   height: 18px;
@@ -1214,6 +1229,7 @@ body.target-detail {
 
 .toolbar-chevron {
   display: block;
+  transition: transform var(--transition-fast);
 }
 
 .target-detail-content {
@@ -2167,7 +2183,7 @@ body.targets-index {
 }
 
 .targets-page {
-  width: min(1004px, 100%);
+  width: min(1040px, 100%);
   margin: 0 auto;
   padding: 56px 30px 0;
   background: #fff;
@@ -2183,12 +2199,31 @@ body.targets-index {
   line-height: 1;
 }
 
+.grid-toolbar-sentinel {
+  height: 1px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .grid-toolbar {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  padding-top: 10px;
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  transition: background-color .2s ease, -webkit-backdrop-filter .2s ease, backdrop-filter .2s ease;
+}
+
+.grid-toolbar.is-stuck {
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 
 .grid-toolbar::after {
@@ -2204,22 +2239,49 @@ body.targets-index {
 }
 
 .grid-tabs,
-.target-search-btn {
+.grid-toolbar-actions {
   position: relative;
   z-index: 1;
+}
+
+.grid-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.grid-toolbar-actions .target-search-btn {
+  margin-bottom: 0;
+}
+
+.grid-toolbar-actions .toolbar-menu {
+  height: var(--control-height);
+  border-radius: var(--radius-lg);
+}
+
+.grid-toolbar-actions .toolbar-btn {
+  border-color: #ececf0;
+}
+
+.grid-toolbar-divider {
+  width: 1px;
+  height: 30px;
+  margin: 0 2px;
+  background: #e6e6ea;
 }
 
 .grid-tabs {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 36px;
 }
 
 .grid-tab {
   position: relative;
   border: 0;
   background: transparent;
-  padding: 0 0 14px;
+  padding: 0 0 23px;
   font: inherit;
   font-size: 16px;
   font-weight: 500;
@@ -2234,7 +2296,7 @@ body.targets-index {
 
 .grid-tab.is-active {
   color: #111;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .grid-tab.is-active::after {
@@ -2379,17 +2441,17 @@ body.targets-index {
 .targets-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
+  gap: 24px;
 }
 
 .target-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   min-height: 320px;
   border: 2px solid transparent;
-  padding: 22px;
-  border-radius: 16px;
+  padding: 28px;
+  border-radius: 18px;
   background: #f3f3f5;
   color: inherit;
   text-decoration: none;
@@ -2397,20 +2459,11 @@ body.targets-index {
   transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
-.target-card.has-updates {
-  background: #f3f1fc;
-}
-
 .target-card:hover,
 .target-card:focus-visible {
   background: #f3f3f5;
   border-color: #b8a6f4;
   box-shadow: 0 12px 26px rgba(122, 99, 221, 0.12);
-}
-
-.target-card.has-updates:hover,
-.target-card.has-updates:focus-visible {
-  background: #ede9fb;
 }
 
 .target-card:active {
@@ -2423,17 +2476,18 @@ body.targets-index {
   line-height: 1.3;
   letter-spacing: -0.01em;
   color: #1d1d22;
+  min-height: 2lh;
 }
 
 .target-field {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6px;
 }
 
 .target-label {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
   color: #a0a0a8;
   line-height: 1.2;
 }
@@ -2443,6 +2497,93 @@ body.targets-index {
   font-weight: 600;
   color: #2a2a30;
   line-height: 1.3;
+}
+
+.target-franchise-logos {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 32px;
+}
+
+.target-franchise-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #fff;
+}
+
+.target-franchise-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.target-franchise-logo-fallback {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #b000ff, #4c23ff);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.target-franchises-empty {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2a2a30;
+  line-height: 1.3;
+}
+
+.target-map {
+  position: relative;
+  flex: 0 0 134px;
+  height: 134px;
+  margin: 0 -8px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #e8e8ec;
+}
+
+.target-map-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.target-map-franchises {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.target-map-franchises .target-franchise-logos {
+  min-height: 0;
+  gap: 6px;
+}
+
+.target-map-franchises .target-franchise-logo {
+  width: 28px;
+  height: 28px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
 }
 
 .target-prospects {
@@ -2456,7 +2597,7 @@ body.targets-index {
 }
 
 .target-number {
-  font-size: 56px;
+  font-size: 42px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -2464,7 +2605,7 @@ body.targets-index {
 }
 
 .target-added {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #7967f2;
   padding-bottom: 4px;
@@ -2474,7 +2615,7 @@ body.targets-index {
   display: block;
   flex: 0 0 auto;
   margin-left: auto;
-  padding-bottom: 32px;
+  align-self: center;
   transform: rotate(-90deg);
   filter: brightness(0) saturate(100%) invert(80%) sepia(2%) saturate(0%) hue-rotate(153deg) brightness(95%) contrast(88%);
   transition: filter .18s ease;
