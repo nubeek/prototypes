@@ -8,10 +8,10 @@ const REPO_ROOT = path.resolve(SCRIPT_DIR, "..");
 const SOURCE_DIR = path.join(REPO_ROOT, "_prototypes");
 const DEFAULT_OUTPUT_DIR = path.join(REPO_ROOT, "_out");
 const PUBLIC_PATH_REWRITES = new Map([
+  ["../../../scripts/", "../../scripts/"],
   ["../../scripts/", "../scripts/"],
   ["../../styles/", "../styles/"],
   ["../../assets/", "../assets/"],
-  ["../../.env.local", "../.env.local"],
 ]);
 const LOCAL_REDIRECT_SCRIPT_PATTERN = /\n?  <script data-local-prototypes-redirect>[\s\S]*?<\/script>\n?/;
 
@@ -70,6 +70,8 @@ const walkFiles = async (directory) => {
 
 const rewritePublicPaths = async (directory) => {
   const files = await walkFiles(directory);
+  const sortedRewrites = [...PUBLIC_PATH_REWRITES.entries()]
+    .sort((a, b) => b[0].length - a[0].length);
 
   for (const file of files) {
     if (path.extname(file) !== ".html") {
@@ -78,9 +80,20 @@ const rewritePublicPaths = async (directory) => {
 
     let html = await readFile(file, "utf8");
     const originalHtml = html;
+    const placeholders = new Map();
 
-    for (const [sourcePath, publicPath] of PUBLIC_PATH_REWRITES) {
-      html = html.split(sourcePath).join(publicPath);
+    for (const [sourcePath] of sortedRewrites) {
+      const placeholder = `__PUBLIC_PATH_${placeholders.size}__`;
+      placeholders.set(placeholder, sourcePath);
+      html = html.split(sourcePath).join(placeholder);
+    }
+
+    for (const [sourcePath, publicPath] of sortedRewrites) {
+      for (const [placeholder, originalPath] of placeholders) {
+        if (originalPath === sourcePath) {
+          html = html.split(placeholder).join(publicPath);
+        }
+      }
     }
 
     if (html !== originalHtml) {
