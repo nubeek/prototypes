@@ -177,6 +177,80 @@ function getCircleOverlapCenterDistance(radius, overlapRatio) {
   return radius * ((minimumDistanceRatio + maximumDistanceRatio) / 2);
 }
 
+function buildMapPointClusterFeature(features, pointIndexes, clusterCoordinates, clusterRootKey) {
+  if (pointIndexes.length === 1) {
+    const feature = features[pointIndexes[0]];
+    return {
+      ...feature,
+      properties: {
+        ...feature.properties,
+        isCluster: false
+      }
+    };
+  }
+
+  const colorCounts = pointIndexes.reduce((counts, pointIndex) => {
+    const color = features[pointIndex].properties.color;
+    counts.set(color, (counts.get(color) || 0) + 1);
+    return counts;
+  }, new Map());
+  const clusterColor = Array.from(colorCounts.entries()).reduce(
+    (dominant, entry) => entry[1] > dominant[1] ? entry : dominant
+  )[0];
+  const clusterMemberCoordinates = pointIndexes.map(
+    (pointIndex) => features[pointIndex].geometry.coordinates
+  );
+  const clusterMemberFeatureIds = pointIndexes.map(
+    (pointIndex) => features[pointIndex].properties.featureId
+  );
+
+  return {
+    type: "Feature",
+    properties: {
+      featureId: `cluster-${clusterRootKey}-${pointIndexes.length}`,
+      isCluster: true,
+      clusterCount: pointIndexes.length,
+      color: clusterColor,
+      clusterMemberCoordinates: JSON.stringify(clusterMemberCoordinates),
+      clusterMemberFeatureIds: JSON.stringify(clusterMemberFeatureIds)
+    },
+    geometry: {
+      type: "Point",
+      coordinates: clusterCoordinates
+    }
+  };
+}
+
+function getCoincidentCoordinateKey(coordinates) {
+  return `${coordinates[0]}:${coordinates[1]}`;
+}
+
+function getCoincidentMapPointFeatureCollection() {
+  const features = getMapPointFeatures();
+  const pointIndexesByCoordinate = new Map();
+
+  features.forEach((feature, pointIndex) => {
+    const coordinateKey = getCoincidentCoordinateKey(feature.geometry.coordinates);
+    const pointIndexes = pointIndexesByCoordinate.get(coordinateKey) || [];
+    pointIndexes.push(pointIndex);
+    pointIndexesByCoordinate.set(coordinateKey, pointIndexes);
+  });
+
+  const clusteredFeatures = Array.from(pointIndexesByCoordinate.entries()).map(
+    ([coordinateKey, pointIndexes]) => buildMapPointClusterFeature(
+      features,
+      pointIndexes,
+      features[pointIndexes[0]].geometry.coordinates,
+      `coincident-${coordinateKey}`
+    )
+  );
+
+  return {
+    type: "FeatureCollection",
+    features: clusteredFeatures
+  };
+}
+
 function getClusteredMapPointFeatureCollection(mapInstance = ownersMap) {
   const features = getMapPointFeatures();
   if (!mapInstance || features.length < 2) {
@@ -253,17 +327,6 @@ function getClusteredMapPointFeatureCollection(mapInstance = ownersMap) {
   });
 
   const clusteredFeatures = Array.from(pointIndexesByRoot.entries()).map(([root, pointIndexes]) => {
-    if (pointIndexes.length === 1) {
-      const feature = features[pointIndexes[0]];
-      return {
-        ...feature,
-        properties: {
-          ...feature.properties,
-          isCluster: false
-        }
-      };
-    }
-
     const center = pointIndexes.reduce(
       (total, pointIndex) => ({
         x: total.x + projectedPoints[pointIndex].x,
@@ -275,36 +338,13 @@ function getClusteredMapPointFeatureCollection(mapInstance = ownersMap) {
       center.x / pointIndexes.length,
       center.y / pointIndexes.length
     ]);
-    const colorCounts = pointIndexes.reduce((counts, pointIndex) => {
-      const color = features[pointIndex].properties.color;
-      counts.set(color, (counts.get(color) || 0) + 1);
-      return counts;
-    }, new Map());
-    const clusterColor = Array.from(colorCounts.entries()).reduce(
-      (dominant, entry) => entry[1] > dominant[1] ? entry : dominant
-    )[0];
-    const clusterMemberCoordinates = pointIndexes.map(
-      (pointIndex) => features[pointIndex].geometry.coordinates
-    );
-    const clusterMemberFeatureIds = pointIndexes.map(
-      (pointIndex) => features[pointIndex].properties.featureId
-    );
 
-    return {
-      type: "Feature",
-      properties: {
-        featureId: `cluster-${root}-${pointIndexes.length}`,
-        isCluster: true,
-        clusterCount: pointIndexes.length,
-        color: clusterColor,
-        clusterMemberCoordinates: JSON.stringify(clusterMemberCoordinates),
-        clusterMemberFeatureIds: JSON.stringify(clusterMemberFeatureIds)
-      },
-      geometry: {
-        type: "Point",
-        coordinates: [clusterCenter.lng, clusterCenter.lat]
-      }
-    };
+    return buildMapPointClusterFeature(
+      features,
+      pointIndexes,
+      [clusterCenter.lng, clusterCenter.lat],
+      root
+    );
   });
 
   return {
@@ -313,22 +353,9 @@ function getClusteredMapPointFeatureCollection(mapInstance = ownersMap) {
   };
 }
 
-function getUnclusteredMapPointFeatureCollection() {
-  return {
-    type: "FeatureCollection",
-    features: getMapPointFeatures().map((feature) => ({
-      ...feature,
-      properties: {
-        ...feature.properties,
-        isCluster: false
-      }
-    }))
-  };
-}
-
 function getOwnersMapPointFeatureCollection(mapInstance = ownersMap) {
   if (!mapClusteringEnabled) {
-    return getUnclusteredMapPointFeatureCollection();
+    return getCoincidentMapPointFeatureCollection();
   }
 
   return getClusteredMapPointFeatureCollection(mapInstance);
@@ -868,7 +895,7 @@ function animateOwnersMapClusterExpansion(expansion) {
 
   stopOwnersMapPointExpansion();
 
-  const targetCollection = getClusteredMapPointFeatureCollection();
+  const targetCollection = getOwnersMapPointFeatureCollection();
   const originPoint = ownersMap.project(expansion.originCoordinates);
   const animatedTargets = new Map();
 
@@ -905,7 +932,10 @@ function animateOwnersMapClusterExpansion(expansion) {
 
   if (
     unresolvedCluster &&
-    ownersMap.getZoom() >= MAP_CLUSTER_MAX_ZOOM - 0.01
+    (
+      !mapClusteringEnabled ||
+      ownersMap.getZoom() >= MAP_CLUSTER_MAX_ZOOM - 0.01
+    )
   ) {
     animateOwnersMapClusterSpiderfy(expansion, targetCollection);
     return;
@@ -1279,7 +1309,7 @@ function createMapPointTooltipController(mapInstance) {
 
       const action = document.createElement("div");
       action.className = "map-point-tooltip-detail";
-      action.textContent = "Click to zoom in";
+      action.textContent = mapClusteringEnabled ? "Click to zoom in" : "Click to expand";
       tooltip.append(action);
       return;
     }
@@ -1511,7 +1541,6 @@ function syncMapLocationFilter() {
 
 function scheduleOwnersMapPointClusterSync() {
   if (!ownersMap?.getSource("owner-points") || ownersMapPointClusterFrame !== null) return;
-  if (!mapClusteringEnabled) return;
 
   ownersMapPointClusterFrame = requestAnimationFrame(() => {
     ownersMapPointClusterFrame = null;
@@ -1523,6 +1552,8 @@ function scheduleOwnersMapPointClusterSync() {
       animateOwnersMapClusterExpansion(pendingExpansion);
       return;
     }
+
+    if (!mapClusteringEnabled) return;
 
     stopOwnersMapPointExpansion();
     ownersMapSpiderExpansionActive = false;

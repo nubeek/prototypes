@@ -579,7 +579,13 @@ function getOwnerLocations(owner, ownerIndex) {
 // Manual overrides used to stack extra units on top of an existing one, so we can
 // verify map marker clustering behaves correctly at a known, shared coordinate.
 const CLUSTER_TEST_EXTRA_UNITS = {
-  "Argonne Capital": { count: 8, lat: 35.06089, lng: -120.18006, label: "Fresno, California" }
+  "Argonne Capital": { count: 8, lat: 35.06089, lng: -120.18006, label: "Fresno, California" },
+  "United FP": { count: 6, lat: 33.7512, lng: -84.3925, label: "Atlanta, Georgia" },
+  "Flynn Fitness": { count: 5, lat: 32.7791, lng: -96.8012, label: "Dallas, Texas" },
+  "Trilantic Capital Management": { count: 7, lat: 42.6561, lng: -73.7518, label: "Albany, New York" },
+  "Epic Fitness": { count: 4, lat: 39.7428, lng: -104.9871, label: "Denver, Colorado" },
+  "Olympus Partners": { count: 9, lat: 44.9812, lng: -93.2698, label: "Minneapolis, Minnesota" },
+  "Black Duck Partners": { count: 6, lat: 28.5412, lng: -81.3845, label: "Orlando, Florida" }
 };
 
 function getClusterTestExtraUnits(owner, ownerIndex, existingUnitCount) {
