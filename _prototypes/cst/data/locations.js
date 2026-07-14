@@ -576,8 +576,41 @@ function getOwnerLocations(owner, ownerIndex) {
   });
 }
 
+// Manual overrides used to stack extra units on top of an existing one, so we can
+// verify map marker clustering behaves correctly at a known, shared coordinate.
+const CLUSTER_TEST_EXTRA_UNITS = {
+  "Argonne Capital": { count: 8, lat: 35.06089, lng: -120.18006, label: "Fresno, California" }
+};
+
+function getClusterTestExtraUnits(owner, ownerIndex, existingUnitCount) {
+  const config = CLUSTER_TEST_EXTRA_UNITS[owner.ownerName];
+  if (!config) return [];
+
+  const franchiseName = getOwnerPrimaryFranchise(owner);
+  const category = getOwnerCategory(owner);
+
+  return Array.from({ length: config.count }, (_, extraIndex) => {
+    const locationIndex = existingUnitCount + extraIndex;
+    const unitOwnerName = getOwnerUnitContactName(ownerIndex, locationIndex);
+
+    return {
+      id: `${getOwnerUnitSlug(owner, locationIndex)}`,
+      name: unitOwnerName,
+      email: getOwnerUnitContactEmail(unitOwnerName, ownerIndex, locationIndex),
+      phone: getOwnerUnitPhone(ownerIndex, locationIndex),
+      franchise: franchiseName,
+      category,
+      lat: config.lat,
+      lng: config.lng,
+      label: config.label
+    };
+  });
+}
+
 window.ownerLocationsData = (window.ownersData || []).map((owner, ownerIndex) => {
   const units = getOwnerLocations(owner, ownerIndex);
+
+  units.push(...getClusterTestExtraUnits(owner, ownerIndex, units.length));
 
   owner.units = units;
 

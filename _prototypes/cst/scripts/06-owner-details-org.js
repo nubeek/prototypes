@@ -566,7 +566,7 @@ function initializeOwnerDetailsMap(ownerIndex) {
       type: "circle",
       source: "owner-detail-points",
       paint: {
-        "circle-radius": 4.5,
+        "circle-radius": MAP_POINT_RADIUS,
         "circle-color": ["get", "color"],
         "circle-opacity": 0.88,
         "circle-stroke-color": "#ffffff",

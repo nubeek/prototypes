@@ -35,6 +35,7 @@ if (toolbarView) {
 syncColumnWidths();
 syncReduceMotionToggleOption();
 syncReduceMotionStateClass();
+syncMapClusteringOptions();
 setPanelLayout("right");
 setFilterPanelOpen(true);
 applySort();
@@ -674,16 +675,37 @@ if (reduceMotionToggleOption) {
   });
 }
 
+if (mapClusteringToggleOption) {
+  mapClusteringToggleOption.addEventListener("click", () => {
+    mapClusteringEnabled = !mapClusteringEnabled;
+    syncMapClusteringOptions();
+    refreshOwnersMapPointData();
+    persistViewSettings();
+  });
+}
+
+mapClusteringLevelOptions.forEach((option) => {
+  option.addEventListener("click", () => {
+    const level = option.dataset.clusteringLevel;
+    if (!MAP_CLUSTERING_LEVEL_KEYS.includes(level) || level === mapClusteringLevel) return;
+
+    mapClusteringLevel = level;
+    syncMapClusteringLevelOptions();
+    refreshOwnersMapPointData();
+    persistViewSettings();
+  });
+});
+
 if (takeScreenshotOption) {
   takeScreenshotOption.addEventListener("click", () => {
-    closeToolbarSettingsSubmenu();
+    closeToolbarSubmenus();
     takeViewportScreenshot();
   });
 }
 
 if (resetViewOption) {
   resetViewOption.addEventListener("click", () => {
-    closeToolbarSettingsSubmenu();
+    closeToolbarSubmenus();
     resetViewSettings();
   });
 }
@@ -744,7 +766,7 @@ function closeCreateTargetModal() {
 if (createTargetOption) {
   createTargetOption.addEventListener("click", (event) => {
     event.preventDefault();
-    closeToolbarSettingsSubmenu();
+    closeToolbarSubmenus();
     closeToolbarDropdowns();
     openCreateTargetModal(createTargetOption);
   });
@@ -768,15 +790,20 @@ if (createTargetForm) {
   });
 }
 
-function setToolbarSettingsSubmenuOpen(isOpen) {
-  if (!toolbarSettingsSubmenu || !toolbarSettingsSubmenuTrigger) return;
+function setToolbarSubmenuOpen(submenu, trigger, isOpen) {
+  if (!submenu || !trigger) return;
 
-  toolbarSettingsSubmenu.classList.toggle("is-open", isOpen);
-  toolbarSettingsSubmenuTrigger.setAttribute("aria-expanded", String(isOpen));
+  submenu.classList.toggle("is-open", isOpen);
+  trigger.setAttribute("aria-expanded", String(isOpen));
 }
 
-function closeToolbarSettingsSubmenu() {
-  setToolbarSettingsSubmenuOpen(false);
+function closeToolbarSubmenu(submenu, trigger) {
+  setToolbarSubmenuOpen(submenu, trigger, false);
+}
+
+function closeToolbarSubmenus() {
+  closeToolbarSubmenu(toolbarClusteringSubmenu, toolbarClusteringSubmenuTrigger);
+  closeToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
 }
 
 function closeToolbarDropdowns(exceptDropdown = null) {
@@ -786,28 +813,35 @@ function closeToolbarDropdowns(exceptDropdown = null) {
   });
 }
 
-if (toolbarSettingsSubmenu && toolbarSettingsSubmenuTrigger) {
-  toolbarSettingsSubmenuTrigger.addEventListener("click", (event) => {
+function bindToolbarSubmenu(submenu, trigger) {
+  if (!submenu || !trigger) return;
+
+  trigger.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    setToolbarSettingsSubmenuOpen(true);
+    setToolbarSubmenuOpen(submenu, trigger, true);
   });
 
-  toolbarSettingsSubmenu.addEventListener("mouseenter", () => {
-    setToolbarSettingsSubmenuOpen(true);
+  submenu.addEventListener("mouseenter", () => {
+    setToolbarSubmenuOpen(submenu, trigger, true);
   });
 
-  toolbarSettingsSubmenu.addEventListener("mouseleave", closeToolbarSettingsSubmenu);
-
-  toolbarSettingsSubmenu.addEventListener("focusin", () => {
-    setToolbarSettingsSubmenuOpen(true);
+  submenu.addEventListener("mouseleave", () => {
+    closeToolbarSubmenu(submenu, trigger);
   });
 
-  toolbarSettingsSubmenu.addEventListener("focusout", (event) => {
-    if (event.relatedTarget instanceof Node && toolbarSettingsSubmenu.contains(event.relatedTarget)) return;
-    closeToolbarSettingsSubmenu();
+  submenu.addEventListener("focusin", () => {
+    setToolbarSubmenuOpen(submenu, trigger, true);
+  });
+
+  submenu.addEventListener("focusout", (event) => {
+    if (event.relatedTarget instanceof Node && submenu.contains(event.relatedTarget)) return;
+    closeToolbarSubmenu(submenu, trigger);
   });
 }
+
+bindToolbarSubmenu(toolbarClusteringSubmenu, toolbarClusteringSubmenuTrigger);
+bindToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
 
 if (toolbarDropdowns.length) {
   document.addEventListener("click", (event) => {
@@ -816,13 +850,17 @@ if (toolbarDropdowns.length) {
 
     if (openDropdown.contains(event.target)) {
       closeToolbarDropdowns(openDropdown);
-      if (openDropdown === toolbarDropdown && !toolbarSettingsSubmenu?.contains(event.target)) {
-        closeToolbarSettingsSubmenu();
+      if (
+        openDropdown === toolbarDropdown &&
+        !toolbarClusteringSubmenu?.contains(event.target) &&
+        !toolbarSettingsSubmenu?.contains(event.target)
+      ) {
+        closeToolbarSubmenus();
       }
       return;
     }
 
-    closeToolbarSettingsSubmenu();
+    closeToolbarSubmenus();
     closeToolbarDropdowns();
   });
 }
@@ -967,7 +1005,7 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   if (event.key === "Escape" && toolbarDropdowns.some((dropdown) => dropdown.open)) {
-    closeToolbarSettingsSubmenu();
+    closeToolbarSubmenus();
     closeToolbarDropdowns();
   }
   if (event.key === "Escape") {

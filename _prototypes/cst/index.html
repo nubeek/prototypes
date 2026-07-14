@@ -177,7 +177,43 @@
                 <span class="toolbar-dropdown-label">Create target</span>
               </button>
               <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-              <div class="toolbar-submenu" data-toolbar-submenu>
+              <div class="toolbar-submenu" data-toolbar-submenu="clustering">
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarClusteringSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarClusteringSubmenu">
+                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
+                  <span class="toolbar-dropdown-label">Clustering</span>
+                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <div class="ui-menu toolbar-submenu-menu" id="toolbarClusteringSubmenu" role="menu" aria-label="Clustering menu">
+                  <button class="ui-menu-item toolbar-dropdown-option" id="mapClusteringToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
+                    <span class="toolbar-switch" aria-hidden="true"></span>
+                    <span class="toolbar-dropdown-label">Disable clustering</span>
+                  </button>
+                  <div id="toolbarClusteringLevels" role="group" aria-label="Clustering levels">
+                    <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                    <button class="ui-menu-item toolbar-dropdown-option toolbar-clustering-level-option" type="button" role="menuitemradio" data-clustering-level="max" aria-checked="false">
+                      <span class="toolbar-dropdown-label">Max</span>
+                      <img class="toolbar-clustering-level-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    </button>
+                    <button class="ui-menu-item toolbar-dropdown-option toolbar-clustering-level-option" type="button" role="menuitemradio" data-clustering-level="high" aria-checked="false">
+                      <span class="toolbar-dropdown-label">High</span>
+                      <img class="toolbar-clustering-level-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    </button>
+                    <button class="ui-menu-item toolbar-dropdown-option toolbar-clustering-level-option" type="button" role="menuitemradio" data-clustering-level="medium" aria-checked="false">
+                      <span class="toolbar-dropdown-label">Medium</span>
+                      <img class="toolbar-clustering-level-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    </button>
+                    <button class="ui-menu-item toolbar-dropdown-option toolbar-clustering-level-option" type="button" role="menuitemradio" data-clustering-level="minimal" aria-checked="false">
+                      <span class="toolbar-dropdown-label">Minimal</span>
+                      <img class="toolbar-clustering-level-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    </button>
+                    <button class="ui-menu-item toolbar-dropdown-option toolbar-clustering-level-option is-selected" type="button" role="menuitemradio" data-clustering-level="low" aria-checked="true">
+                      <span class="toolbar-dropdown-label">Low</span>
+                      <img class="toolbar-clustering-level-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="toolbar-submenu" data-toolbar-submenu="settings">
                 <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
                   <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
                   <span class="toolbar-dropdown-label">Settings</span>
@@ -403,7 +439,8 @@
         <button class="ui-control ui-button ui-button-muted clear-filters-btn" id="clearAllFilters" type="button">Clear all (0)</button>
       </div>
     </aside>
-      <div class="table-wrap" id="tableWrap">
+      <div class="workspace-main">
+        <div class="table-wrap" id="tableWrap">
         <table>
           <thead>
             <tr>
@@ -420,14 +457,15 @@
           <tbody id="ownersTableBody"></tbody>
         </table>
         <p class="table-empty-state" id="tableEmptyState" role="status" hidden>We couldn't find anything matching your query.</p>
-      </div>
-      </div>
+        </div>
 
-      <aside class="map-panel" id="mapPanel" aria-label="Franchisee details">
-        <div class="owner-map-header" id="ownerMapHeader" hidden></div>
-        <div class="map-container panel-map-container" id="ownersMap"></div>
-        <div class="owner-detail-panel" id="ownerDetailsPanel" hidden></div>
-      </aside>
+        <aside class="map-panel" id="mapPanel" aria-label="Franchisee details">
+          <div class="owner-map-header" id="ownerMapHeader" hidden></div>
+          <div class="map-container panel-map-container" id="ownersMap"></div>
+          <div class="owner-detail-panel" id="ownerDetailsPanel" hidden></div>
+        </aside>
+      </div>
+      </div>
     </div>
   </main>
 
