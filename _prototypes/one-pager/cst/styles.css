@@ -2009,7 +2009,7 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
 }
 
 .filter-section {
-  padding: 16px 10px;
+  padding: 18px 10px;
   border-bottom: 1px solid #e1e1e1;
 }
 
@@ -2613,9 +2613,19 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
   color: var(--color-text-muted);
 }
 
+.filter-check-group {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-check-group .filter-check {
+  margin-top: 0;
+}
+
 .filter-check {
-  margin-top: 14px;
-  min-height: 28px;
+  min-height: 26px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -2632,8 +2642,8 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
 }
 
 .filter-checkbox {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: var(--radius-sm);
   background: var(--color-surface-control);
   display: inline-flex;
@@ -2810,27 +2820,33 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
 }
 
 .filter-value {
-  height: 50px;
+  height: var(--control-height);
+  border: 2px solid transparent;
   border-radius: 10px;
   background: #fff;
   display: flex;
   align-items: center;
   padding: 0 12px;
   font-size: 16px;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.filter-value:focus {
+  border-color: var(--color-brand);
 }
 
 .filter-number-input {
   width: 100%;
   min-width: 0;
-  border: 0;
   color: var(--color-text);
   font: inherit;
   appearance: textfield;
 }
 
-.filter-number-input:focus {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 2px;
+.filter-value.filter-number-input:focus {
+  border-color: var(--color-brand);
+  outline: none;
 }
 
 .filter-number-input::-webkit-outer-spin-button,
@@ -4282,8 +4298,8 @@ tbody tr.is-selected:hover td:first-child {
 
 .location-row-select {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   margin: 0 auto;
   border-radius: var(--radius-sm);
   display: inline-flex;

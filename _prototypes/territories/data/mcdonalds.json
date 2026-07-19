@@ -1,0 +1,19 @@
+{
+  "id": "mcdonalds",
+  "brand": "McDonald's",
+  "category": "Food & Beverage",
+  "color": "#FFC72C",
+  "logo": "assets/logos/mcdonalds.jpg",
+  "country": "US",
+  "level": "state",
+  "initialInvestment": 2250000,
+  "franchiseeRating": 4.1,
+  "territories": [
+    { "state": "IL", "name": "Illinois", "status": "available", "initialInvestment": 2100000 },
+    { "state": "OH", "name": "Ohio", "status": "available", "initialInvestment": 1950000 },
+    { "state": "PA", "name": "Pennsylvania", "status": "reserved", "initialInvestment": 2300000 },
+    { "state": "TN", "name": "Tennessee", "status": "available", "initialInvestment": 1875000 },
+    { "state": "WA", "name": "Washington", "status": "available", "initialInvestment": 2450000 },
+    { "state": "MN", "name": "Minnesota", "status": "sold", "initialInvestment": 2050000 }
+  ]
+}

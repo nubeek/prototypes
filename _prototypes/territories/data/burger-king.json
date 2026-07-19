@@ -1,0 +1,18 @@
+{
+  "id": "burger-king",
+  "brand": "Burger King",
+  "category": "Food & Beverage",
+  "color": "#EC1C24",
+  "logo": "assets/logos/burgerking.jpg",
+  "country": "US",
+  "level": "state",
+  "initialInvestment": 1750000,
+  "franchiseeRating": 3.9,
+  "territories": [
+    { "state": "FL", "name": "Florida", "status": "available", "initialInvestment": 1925000 },
+    { "state": "TX", "name": "Texas", "status": "available", "initialInvestment": 1650000 },
+    { "state": "GA", "name": "Georgia", "status": "reserved", "initialInvestment": 1575000 },
+    { "state": "IL", "name": "Illinois", "status": "available", "initialInvestment": 1800000 },
+    { "state": "LA", "name": "Louisiana", "status": "sold", "initialInvestment": 1425000 }
+  ]
+}

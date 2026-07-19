@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Territories — Wefranch Prototype</title>
+  <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../assets/x192.png" />
+  <link rel="manifest" href="../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
+  <link rel="stylesheet" href="../cst/styles.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../scripts/gate.js"></script>
+  <link rel="stylesheet" href="../../styles/gate.css">
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input type="text" name="username" autocomplete="username" value="prototype-access" hidden readonly>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <main class="territory-shell is-filter-open">
+    <div class="territory-toolbar header" aria-label="Territories toolbar">
+      <div class="toolbar-group toolbar-primary">
+        <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn is-active" id="territoryFilterToggle" type="button" aria-label="Toggle filters" aria-controls="territoryFilterPanel" aria-expanded="true">
+          <img class="toolbar-asset-icon filter-toggle-icon" src="../cst/assets/filters.svg" alt="" aria-hidden="true">
+          <span>Filters</span>
+        </button>
+      </div>
+
+      <div class="toolbar-group toolbar-actions">
+        <details class="toolbar-dropdown" id="territoryMenuDropdown">
+          <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+            <img class="toolbar-asset-icon" src="../cst/assets/menu.svg" alt="" aria-hidden="true">
+            <img class="toolbar-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
+          </summary>
+          <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+            <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryBrandLogosToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
+              <span class="toolbar-dropdown-label">Brand logos</span>
+              <span class="toolbar-switch" aria-hidden="true"></span>
+            </button>
+            <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryBordersToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
+              <span class="toolbar-dropdown-label">Territory borders</span>
+              <span class="toolbar-switch" aria-hidden="true"></span>
+            </button>
+            <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryBlendToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+              <span class="toolbar-dropdown-label">Blended territories</span>
+              <span class="toolbar-switch" aria-hidden="true"></span>
+            </button>
+          </div>
+        </details>
+        <span class="toolbar-divider" aria-hidden="true"></span>
+        <label class="toolbar-search-btn toolbar-btn" for="territorySearchInput" role="search">
+          <img class="toolbar-asset-icon toolbar-search-icon" src="../cst/assets/search.svg" alt="" aria-hidden="true">
+          <input
+            class="toolbar-search-input"
+            id="territorySearchInput"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            placeholder="Search by name, brand or location..."
+            aria-label="Search territories by name, brand or location"
+          >
+          <button class="toolbar-search-clear" id="territorySearchClear" type="button" aria-label="Clear search" hidden></button>
+        </label>
+      </div>
+    </div>
+
+    <div class="territory-workspace">
+      <aside class="filter-panel territory-filter-panel" id="territoryFilterPanel" aria-label="Territory filters">
+      <div class="filter-scroll">
+        <div class="filter-header">
+          <h2>Filter</h2>
+          <p id="territoryFilterSummary">Showing 0-0 of 0 records sorted by relevancy</p>
+        </div>
+
+        <section class="filter-section filter-section-collapsed">
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+            <span>Category</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-select-field">
+            <select class="ui-select filter-field-select" id="categoryFilterSelect" aria-label="Select category" required>
+              <option value="">Select category</option>
+            </select>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </div>
+          <div class="filter-check-group">
+          <label class="filter-check">
+            <input class="territory-filter-checkbox" type="checkbox" data-filter-placeholder="category-exclude">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Exclude from results</span>
+          </label>
+          </div>
+        </section>
+
+        <section class="filter-section filter-section-collapsed">
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+            <span>Franchise</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-select-field">
+            <select class="ui-select filter-field-select" id="franchiseFilterSelect" aria-label="Select franchise" required>
+              <option value="">Select franchise</option>
+            </select>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </div>
+          <div class="filter-check-group">
+          <label class="filter-check">
+            <input class="territory-filter-checkbox" type="checkbox" data-filter-placeholder="franchise-exclude">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Exclude from results</span>
+          </label>
+          </div>
+        </section>
+
+        <section class="filter-section filter-section-collapsed">
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+            <span>Territory status</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-check-group">
+          <label class="filter-check">
+            <input class="territory-filter-checkbox" type="checkbox" value="available">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Available</span>
+          </label>
+          <label class="filter-check">
+            <input class="territory-filter-checkbox" type="checkbox" value="reserved">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Reserved</span>
+          </label>
+          <label class="filter-check">
+            <input class="territory-filter-checkbox" type="checkbox" value="sold">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Sold</span>
+          </label>
+          </div>
+        </section>
+
+        <section class="filter-section filter-section-collapsed filter-section--investment">
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+            <span>Initial investment</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-investment-range">
+            <div class="filter-range-histogram" aria-hidden="true">
+              <div class="filter-range-histogram-bars"></div>
+            </div>
+            <div class="range-track filter-range-slider filter-range-slider--histogram" aria-label="Initial investment range">
+              <span class="range-line"></span>
+              <span class="range-fill"></span>
+              <input class="range-input range-input-min" type="range" min="0" max="5500000" step="25000" value="0" aria-label="Minimum initial investment">
+              <input class="range-input range-input-max" type="range" min="0" max="5500000" step="25000" value="5500000" aria-label="Maximum initial investment">
+            </div>
+          </div>
+          <div class="filter-range-labels">
+            <span>Minimum</span>
+            <span>Maximum</span>
+          </div>
+          <div class="filter-input-row">
+            <label class="filter-value filter-value--currency">
+              <span class="filter-value-prefix" aria-hidden="true">$</span>
+              <input class="filter-number-input filter-number-input--currency" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="0" aria-label="Minimum initial investment value">
+            </label>
+            <span class="filter-range-separator">-</span>
+            <label class="filter-value filter-value--currency">
+              <span class="filter-value-prefix" aria-hidden="true">$</span>
+              <input class="filter-number-input filter-number-input--currency" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="5500000" aria-label="Maximum initial investment value">
+            </label>
+          </div>
+        </section>
+
+        <section class="filter-section filter-section-collapsed">
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+            <span>Franchisee rating</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="range-track filter-range-slider" aria-label="Franchisee rating range">
+            <span class="range-line"></span>
+            <span class="range-fill"></span>
+            <input class="range-input range-input-min" type="range" min="0" max="5" step="0.5" value="0" aria-label="Minimum franchisee rating">
+            <input class="range-input range-input-max" type="range" min="0" max="5" step="0.5" value="5" aria-label="Maximum franchisee rating">
+          </div>
+          <div class="filter-range-labels">
+            <span>Minimum</span>
+            <span>Maximum</span>
+          </div>
+          <div class="filter-input-row">
+            <input class="filter-value filter-number-input" type="number" inputmode="decimal" min="0" max="5" step="0.5" value="0" aria-label="Minimum franchisee rating value">
+            <span class="filter-range-separator">-</span>
+            <input class="filter-value filter-number-input" type="number" inputmode="decimal" min="0" max="5" step="0.5" value="5" aria-label="Maximum franchisee rating value">
+          </div>
+        </section>
+      </div>
+      <div class="filter-actions">
+        <button class="ui-control ui-button ui-button-muted clear-filters-btn" id="clearAllFilters" type="button">Clear all</button>
+      </div>
+      </aside>
+
+      <div class="map-container territory-map" id="territoryMap" aria-label="Territories map">
+        <div class="territory-map-loading" id="territoryMapLoading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading territories">
+          <div class="territory-map-pill territory-map-loading__pill">
+            <div class="territory-map-loading__spinner" aria-hidden="true"></div>
+            <span class="territory-map-loading__text">Loading territories<span class="territory-map-loading__dots" aria-hidden="true"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="territory-map-pill territory-map-reset" id="territoryMapReset" type="button" hidden>Reset map view</button>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
+  <script src="../../scripts/cst-env.js"></script>
+  <script src="scripts/filters.js"></script>
+  <script src="scripts/map.js"></script>
+</body>
+</html>

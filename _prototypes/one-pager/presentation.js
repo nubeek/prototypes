@@ -1,7 +1,7 @@
 (() => {
-  const CST_SOURCE = "cst/index.html?presentation=one-pager&v=state-radius-scatter";
+  const CST_SOURCE = "cst/?presentation=one-pager&v=state-radius-scatter";
   const TARGET_SLUG = "co-tn-az-top-fitness-mumbos";
-  const TARGETS_LIST_SOURCE = "targets/index.html?presentation=one-pager&v=jacksonville-grid-1";
+  const TARGETS_LIST_SOURCE = "targets/?presentation=one-pager&v=jacksonville-grid-1";
   const TARGETS_DETAIL_SOURCE = `targets/list.html?target=${TARGET_SLUG}&presentation=one-pager&v=jacksonville-grid-1`;
   const CST_VIEW_SETTINGS_KEY = "cst.viewSettings.v1";
   const ACCESS_STORAGE_KEY = "wefranch:prototype-access";

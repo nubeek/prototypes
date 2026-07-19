@@ -85,7 +85,7 @@ body:not(.access-locked) .access-gate {
 }
 
 .access-gate .filter-check {
-  min-height: 28px;
+  min-height: 26px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -104,8 +104,8 @@ body:not(.access-locked) .access-gate {
 }
 
 .access-gate .filter-checkbox {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 8px;
   background: var(--access-color-surface-control);
   display: inline-flex;

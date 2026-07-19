@@ -1,0 +1,21 @@
+{
+  "id": "dominos",
+  "brand": "Domino's",
+  "category": "Food & Beverage",
+  "color": "#006491",
+  "logo": "assets/logos/dominos.jpg",
+  "country": "US",
+  "level": "state",
+  "initialInvestment": 375000,
+  "franchiseeRating": 4.2,
+  "territories": [
+    { "state": "NE", "name": "Nebraska", "status": "available", "initialInvestment": 325000 },
+    { "state": "WI", "name": "Wisconsin", "status": "available", "initialInvestment": 350000 },
+    { "state": "ND", "name": "North Dakota", "status": "reserved", "initialInvestment": 290000 },
+    { "state": "SD", "name": "South Dakota", "status": "available", "initialInvestment": 295000 },
+    { "state": "SC", "name": "South Carolina", "status": "sold", "initialInvestment": 385000 },
+    { "state": "VA", "name": "Virginia", "status": "available", "initialInvestment": 410000 },
+    { "state": "MD", "name": "Maryland", "status": "available", "initialInvestment": 425000 },
+    { "state": "OR", "name": "Oregon", "status": "reserved", "initialInvestment": 395000 }
+  ]
+}

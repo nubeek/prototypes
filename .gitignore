@@ -2,5 +2,10 @@
 .env.local
 /_out/
 /cst/
-/decimal/
 /targets/
+
+# Cursor IDE debug logs
+.cursor/debug*.log
+
+# Playwright CLI test artifacts
+.playwright-cli/

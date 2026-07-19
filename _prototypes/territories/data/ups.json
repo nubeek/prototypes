@@ -1,0 +1,16 @@
+{
+  "id": "ups",
+  "brand": "UPS",
+  "category": "Logistics",
+  "color": "#351C15",
+  "logo": "assets/logos/ups.jpg",
+  "country": "US",
+  "level": "state",
+  "initialInvestment": 275000,
+  "franchiseeRating": 4.0,
+  "territories": [
+    { "state": "AK", "name": "Alaska", "status": "available", "initialInvestment": 310000 },
+    { "state": "MT", "name": "Montana", "status": "reserved", "initialInvestment": 245000 },
+    { "state": "WY", "name": "Wyoming", "status": "available", "initialInvestment": 235000 }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "subway",
+  "brand": "Subway",
+  "category": "Food & Beverage",
+  "color": "#e1b523",
+  "logo": "assets/logos/subway.jpg",
+  "country": "US",
+  "level": "state",
+  "initialInvestment": 390000,
+  "franchiseeRating": 4.2,
+  "territories": [
+    { "state": "AZ", "name": "Arizona", "status": "available", "initialInvestment": 310000 },
+    { "state": "CO", "name": "Colorado", "status": "available", "initialInvestment": 332500 },
+    { "state": "CA", "name": "California", "status": "reserved", "initialInvestment": 430000 },
+    { "state": "TX", "name": "Texas", "status": "available", "initialInvestment": 332500 },
+    { "state": "FL", "name": "Florida", "status": "sold", "initialInvestment": 347500 }
+  ]
+}
