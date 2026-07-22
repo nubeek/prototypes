@@ -2027,4 +2027,18 @@ window.territoryMapFilters = {
   getTerritoryRegistry: () => territoryRegistry
 };
 
-initializeTerritoryMap();
+// The map is heavy to spin up, so we hold off until the user picks a starting
+// point from the crossroad screen (a fresh search or a saved preset). The
+// crossroad calls window.startTerritoryMap() once a choice is made. When the
+// crossroad markup is absent we fall back to auto-initializing immediately.
+function startTerritoryMap() {
+  if (window.__territoryMapStarted) return;
+  window.__territoryMapStarted = true;
+  initializeTerritoryMap();
+}
+
+window.startTerritoryMap = startTerritoryMap;
+
+if (!document.querySelector("[data-territory-crossroad]")) {
+  startTerritoryMap();
+}

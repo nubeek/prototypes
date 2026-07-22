@@ -30,7 +30,7 @@
     </form>
   </div>
 
-  <main class="territory-shell is-filter-open">
+  <main class="territory-shell is-filter-open is-crossroad-open">
     <div class="territory-toolbar header" aria-label="Territories toolbar">
       <div class="toolbar-group toolbar-primary">
         <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn is-active" id="territoryFilterToggle" type="button" aria-label="Toggle filters" aria-controls="territoryFilterPanel" aria-expanded="true">
@@ -210,7 +210,15 @@
       </aside>
 
       <div class="map-container territory-map" id="territoryMap" aria-label="Territories map">
-        <div class="territory-map-loading" id="territoryMapLoading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading territories">
+        <div class="territory-crossroad" id="territoryCrossroad" data-territory-crossroad role="group" aria-label="Choose how to start">
+          <div class="territory-crossroad__inner">
+            <p class="territory-crossroad__heading">Start a new search or browse most popular territory searches</p>
+            <div class="territory-crossroad__grid" id="territoryCrossroadGrid" data-crossroad-grid>
+              <button class="target-card territory-crossroad__tile territory-crossroad__tile--new" type="button" data-crossroad-new aria-label="Start a new territory search"></button>
+            </div>
+          </div>
+        </div>
+        <div class="territory-map-loading" id="territoryMapLoading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading territories" hidden>
           <div class="territory-map-pill territory-map-loading__pill">
             <div class="territory-map-loading__spinner" aria-hidden="true"></div>
             <span class="territory-map-loading__text">Loading territories<span class="territory-map-loading__dots" aria-hidden="true"></span></span>
@@ -226,5 +234,6 @@
   <script src="../../scripts/cst-env.js"></script>
   <script src="scripts/filters.js"></script>
   <script src="scripts/map.js"></script>
+  <script src="scripts/crossroad.js"></script>
 </body>
 </html>

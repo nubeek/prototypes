@@ -287,6 +287,27 @@ function restoreSavedFilterSelections(settings) {
   syncFilterComboboxes();
 }
 
+function restoreSelectFiltersFromSaved(settings) {
+  if (!settings) return;
+
+  const filters = settings.filters || {};
+  const categoryFilterSelect = document.getElementById("categoryFilterSelect");
+  const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
+
+  setFilterSelectIncludedExcludedValues(
+    categoryFilterSelect,
+    getValidSavedSelectValues(categoryFilterSelect, filters.categories?.included),
+    getValidSavedSelectValues(categoryFilterSelect, filters.categories?.excluded)
+  );
+  setFilterSelectIncludedExcludedValues(
+    franchiseFilterSelect,
+    getValidSavedSelectValues(franchiseFilterSelect, filters.franchises?.included),
+    getValidSavedSelectValues(franchiseFilterSelect, filters.franchises?.excluded)
+  );
+
+  syncFilterComboboxes();
+}
+
 function applySavedMapSettings(settings = savedTerritorySettings) {
   const mapSettings = settings?.settings;
   if (!mapSettings) return;
@@ -1110,10 +1131,6 @@ function initTerritoryFilters() {
 
   document.querySelectorAll(".territory-filter-checkbox").forEach((checkbox) => {
     setFilterCheckboxState(checkbox, checkbox.checked);
-    checkbox.addEventListener("change", () => {
-      setFilterCheckboxState(checkbox, checkbox.checked);
-      persistTerritorySettings();
-    });
   });
 
   document.querySelectorAll(".filter-range-slider").forEach(bindRangeTrack);
@@ -1147,6 +1164,18 @@ function initTerritoryFilters() {
 
   initTerritorySearch();
   initTerritoryToolbarMenu();
+
+  if (savedTerritorySettings) {
+    isRestoringTerritorySettings = true;
+    try {
+      restoreSavedFilterSelections(savedTerritorySettings);
+    } finally {
+      isRestoringTerritorySettings = false;
+    }
+  }
+
+  bindTerritoryFilterControls();
+  updateClearFiltersButton();
 }
 
 function initTerritoryToolbarMenu() {
@@ -1460,7 +1489,16 @@ function getFilteredTerritoryRecords(registry = window.territoryMapFilters?.getT
   return registry.filter((record) => territoryMatchesFilters(record, filters));
 }
 
+function maybeStartTerritoryMapFromFilters() {
+  if (window.__territoryMapStarted || isRestoringTerritorySettings) return;
+  if (getAppliedTerritoryFilterCount() <= 0) return;
+
+  window.startTerritoryMapFromFilters?.();
+}
+
 function refreshTerritoryFilters() {
+  maybeStartTerritoryMapFromFilters();
+
   const registry = window.territoryMapFilters?.getTerritoryRegistry?.() || [];
   const matchingRecords = getFilteredTerritoryRecords(registry);
   window.territoryMapFilters?.applyTerritoryFilters?.(matchingRecords);
@@ -1521,7 +1559,10 @@ function bindTerritoryFilterControls() {
   franchiseFilterSelect?.addEventListener("change", refreshTerritoryFilters);
 
   statusCheckboxes.forEach((checkbox) => {
-    checkbox.addEventListener("change", refreshTerritoryFilters);
+    checkbox.addEventListener("change", () => {
+      setFilterCheckboxState(checkbox, checkbox.checked);
+      refreshTerritoryFilters();
+    });
   });
 
   rangeSections.forEach((section) => {
@@ -1543,13 +1584,51 @@ function bindTerritoryFilterControls() {
   });
 }
 
+function applyCrossroadPresetSelections(preset = {}) {
+  const categoryFilterSelect = document.getElementById("categoryFilterSelect");
+  const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
+  const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
+    .filter((checkbox) => checkbox.value);
+  const statusSet = new Set(getSavedStringArray(preset.statuses));
+
+  setFilterSelectIncludedExcludedValues(
+    categoryFilterSelect,
+    getValidSavedSelectValues(categoryFilterSelect, preset.categories),
+    getValidSavedSelectValues(categoryFilterSelect, preset.categoriesExcluded)
+  );
+  setFilterSelectIncludedExcludedValues(
+    franchiseFilterSelect,
+    getValidSavedSelectValues(franchiseFilterSelect, preset.franchises),
+    getValidSavedSelectValues(franchiseFilterSelect, preset.franchisesExcluded)
+  );
+
+  statusCheckboxes.forEach((checkbox) => {
+    checkbox.checked = statusSet.has(checkbox.value);
+    setFilterCheckboxState(checkbox, checkbox.checked);
+  });
+
+  syncFilterComboboxes();
+}
+
 function initTerritoryFilterData(brands, registry) {
   populateTerritoryFilterOptions(brands);
   renderInvestmentHistogram(registry);
 
+  const crossroadChoice = window.territoryCrossroadChoice;
+
   isRestoringTerritorySettings = true;
   try {
-    if (savedTerritorySettings) {
+    // A crossroad selection takes priority over any persisted filter state:
+    // a preset applies its saved filters, while a fresh "new search" starts
+    // clean. Filter-driven starts keep sidebar selections and only hydrate
+    // category/franchise options once brand data is available.
+    if (crossroadChoice?.type === "preset") {
+      applyCrossroadPresetSelections(crossroadChoice.filters || {});
+    } else if (crossroadChoice?.type === "new") {
+      applyCrossroadPresetSelections({});
+    } else if (crossroadChoice?.type === "filters") {
+      restoreSelectFiltersFromSaved(savedTerritorySettings);
+    } else if (savedTerritorySettings) {
       restoreSavedFilterSelections(savedTerritorySettings);
     }
   } finally {
@@ -1567,6 +1646,7 @@ window.territoryFilters = {
   getFilterSelectIncludedValues,
   getFilterSelectExcludedValues,
   syncFilterComboboxes,
+  getAppliedFilterCount: getAppliedTerritoryFilterCount,
   onDataReady: initTerritoryFilterData,
   updateSummary: updateTerritoryFilterSummary,
   refresh: refreshTerritoryFilters
