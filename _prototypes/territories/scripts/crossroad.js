@@ -46,6 +46,32 @@ const CROSSROAD_PRESETS = [
     id: "fitness",
     title: "Fitness Franchises",
     filters: { categories: ["Health & Fitness"], statuses: ["available"] }
+  },
+  {
+    id: "low-investment",
+    title: "Low Initial Investment",
+    filters: {
+      locationsExcluded: ["AK"],
+      investment: { min: 0, max: 500000 }
+    }
+  },
+  {
+    id: "chick-fil-a-southeast",
+    title: "Chick-fil-A South-East",
+    filters: {
+      locations: ["GA", "IN", "KY", "NY", "NC", "VA"],
+      franchises: ["chick-fil-a"],
+      statuses: ["available"]
+    }
+  },
+  {
+    id: "burgers-and-fries",
+    title: "Burgers & Fries",
+    filters: {
+      categories: ["Food & Beverage"],
+      franchises: ["mcdonalds", "burger-king"],
+      statuses: ["available", "sold"]
+    }
   }
 ];
 
@@ -240,16 +266,47 @@ function buildBordersDataUrl(statesByCode, matchedColorsByState) {
 
 /* Presets & matching --------------------------------------------------- */
 
+function normalizeCrossroadInvestmentValue(value) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    const normalized = Number(value.max ?? value.min);
+    if (Number.isFinite(normalized)) {
+      return normalized;
+    }
+  }
+
+  return 0;
+}
+
 function presetMatchesRecord(record, filters = {}) {
   const categories = filters.categories || [];
   const statuses = filters.statuses || [];
   const franchises = filters.franchises || [];
+  const locations = filters.locations || [];
+  const locationsExcluded = filters.locationsExcluded || [];
+  const investment = filters.investment;
 
   if (categories.length && !categories.includes(record.category)) return false;
   if (statuses.length && !statuses.includes(record.status)) return false;
   if (franchises.length && !franchises.includes(record.brandId)) return false;
+  if (locations.length && !locations.includes(record.state)) return false;
+  if (locationsExcluded.length && locationsExcluded.includes(record.state)) return false;
+
+  if (investment) {
+    const value = normalizeCrossroadInvestmentValue(record.initialInvestment);
+    const min = investment.min ?? 0;
+    const max = investment.max ?? Infinity;
+    if (value < min || value > max) return false;
+  }
 
   return true;
+}
+
+function getCrossroadTerritoryInvestment(brand, territory) {
+  return territory.initialInvestment || brand.initialInvestment || 0;
 }
 
 function buildCrossroadRecords(brands) {
@@ -258,7 +315,8 @@ function buildCrossroadRecords(brands) {
     color: brand.color,
     category: brand.category || "",
     state: territory.state,
-    status: territory.status
+    status: territory.status,
+    initialInvestment: getCrossroadTerritoryInvestment(brand, territory)
   })));
 }
 

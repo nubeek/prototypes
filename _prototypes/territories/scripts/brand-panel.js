@@ -135,6 +135,7 @@ function createTerritoryBrandItem(brand, territories) {
   const isExpanded = !collapsedTerritoryBrandIds.has(brand.id);
 
   item.className = "territory-brand-item";
+  item.dataset.brandId = brand.id;
 
   toggle.className = "ui-control ui-button-ghost territory-brand-item__toggle";
   toggle.type = "button";
@@ -222,9 +223,72 @@ function createTerritoryBrandItem(brand, territories) {
     } else {
       collapsedTerritoryBrandIds.add(brand.id);
     }
+
+    syncTerritoryBrandPanelExpandToggle();
   });
 
   return item;
+}
+
+function getTerritoryBrandListItems() {
+  return Array.from(document.querySelectorAll(".territory-brand-item"));
+}
+
+function areAllTerritoryBrandRowsCollapsed() {
+  const items = getTerritoryBrandListItems();
+  if (!items.length) return true;
+
+  return items.every((item) => {
+    const toggle = item.querySelector(".territory-brand-item__toggle");
+    return toggle?.getAttribute("aria-expanded") !== "true";
+  });
+}
+
+function syncTerritoryBrandPanelExpandToggle() {
+  const button = document.getElementById("territoryBrandExpandToggle");
+  if (!button) return;
+
+  const icon = button.querySelector("img");
+  const items = getTerritoryBrandListItems();
+  const allCollapsed = areAllTerritoryBrandRowsCollapsed();
+  const label = allCollapsed ? "Expand all rows" : "Collapse all rows";
+
+  button.hidden = items.length === 0;
+  button.setAttribute("aria-label", label);
+  button.title = label;
+
+  if (icon) {
+    icon.src = allCollapsed ? "assets/expand.svg" : "assets/collapse.svg";
+  }
+}
+
+function setAllTerritoryBrandRowsExpanded(expanded) {
+  getTerritoryBrandListItems().forEach((item) => {
+    const brandId = item.dataset.brandId;
+    const toggle = item.querySelector(".territory-brand-item__toggle");
+    const territoryList = item.querySelector(".territory-brand-territories");
+    if (!toggle || !territoryList) return;
+
+    toggle.setAttribute("aria-expanded", String(expanded));
+    territoryList.hidden = !expanded;
+
+    if (brandId) {
+      if (expanded) {
+        collapsedTerritoryBrandIds.delete(brandId);
+      } else {
+        collapsedTerritoryBrandIds.add(brandId);
+      }
+    }
+  });
+
+  syncTerritoryBrandPanelExpandToggle();
+}
+
+function initTerritoryBrandPanel() {
+  const expandToggle = document.getElementById("territoryBrandExpandToggle");
+  expandToggle?.addEventListener("click", () => {
+    setAllTerritoryBrandRowsExpanded(areAllTerritoryBrandRowsCollapsed());
+  });
 }
 
 function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
@@ -256,6 +320,7 @@ function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
       createTerritoryBrandItem(brand, territoriesByBrand.get(brand.id) || [])
     ))
   );
+  syncTerritoryBrandPanelExpandToggle();
 
   const wasOpen = shell.classList.contains("is-brand-panel-open");
   shell.classList.add("is-brand-panel-open");
@@ -294,3 +359,5 @@ window.territoryBrandPanel = {
   close: closeTerritoryBrandPanel,
   whenLayoutSettled: whenTerritoryBrandPanelLayoutSettled
 };
+
+initTerritoryBrandPanel();

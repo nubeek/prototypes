@@ -14,6 +14,7 @@ const TERRITORY_FOCUS_MAX_ZOOM = 5.00;
 const TERRITORY_FOCUS_DURATION = 1000;
 const TERRITORY_FOCUS_FLY_CURVE = 1.62;
 const TERRITORY_STATES_URL = "data/us-states.geojson";
+const TERRITORY_MACRODATA_URL = "data/state-macrodata.json";
 const TERRITORY_BRAND_FILES = [
   "planet-fitness.json",
   "subway.json",
@@ -89,10 +90,13 @@ let territoryRegistry = [];
 let territoryStateOccupancy = new Map();
 let territorySharedStates = [];
 let territoryStatesByCode = new Map();
+let territoryStateMacrodata = new Map();
 let territoryLastMatchingRecords = null;
 let territoryRenderedRecords = null;
 let selectedTerritoryKey = null;
 let selectedTerritoryFeatureState = null;
+let territoryInfoDismissedKey = null;
+let territoryInfoHideTimer = null;
 let territoryBlendRenderTimer = null;
 let territoryBlendBeforeLayerId = null;
 let territoryGeolocateControl = null;
@@ -486,6 +490,130 @@ function createTerritoryTooltipController(mapInstance) {
   return { bind, show, hide };
 }
 
+const territoryCompactNumberFormatter = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1
+});
+const territoryCurrencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0
+});
+const territoryCompactCurrencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1
+});
+
+function getTerritoryInfoCardElement() {
+  return document.getElementById("territoryInfoCard");
+}
+
+function hideTerritoryInfoCard({ immediate = false } = {}) {
+  const card = getTerritoryInfoCardElement();
+  if (!card) return;
+
+  if (territoryInfoHideTimer) {
+    window.clearTimeout(territoryInfoHideTimer);
+    territoryInfoHideTimer = null;
+  }
+
+  card.classList.remove("is-visible");
+
+  if (immediate) {
+    card.hidden = true;
+    return;
+  }
+
+  territoryInfoHideTimer = window.setTimeout(() => {
+    if (!card.classList.contains("is-visible")) {
+      card.hidden = true;
+    }
+    territoryInfoHideTimer = null;
+  }, 180);
+}
+
+function formatTerritoryInfoValue(value, formatter, prefix = "") {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "—";
+  return `${prefix}${formatter.format(numericValue)}`;
+}
+
+function showTerritoryInfoCard(record) {
+  const card = getTerritoryInfoCardElement();
+  if (!card || !record) {
+    hideTerritoryInfoCard();
+    return;
+  }
+
+  const recordKey = territoryRecordKey(record);
+  if (territoryInfoDismissedKey === recordKey) {
+    hideTerritoryInfoCard();
+    return;
+  }
+
+  const brand = territoryBrandsById.get(record.brandId);
+  const macrodata = territoryStateMacrodata.get(record.state);
+  const logo = document.getElementById("territoryInfoLogo");
+  const brandName = brand?.brand || record.brand || "";
+  const stateName = record.name || macrodata?.name || record.state;
+
+  if (territoryInfoHideTimer) {
+    window.clearTimeout(territoryInfoHideTimer);
+    territoryInfoHideTimer = null;
+  }
+
+  if (logo) {
+    logo.src = brand?.logo || "";
+    logo.alt = brandName ? `${brandName} logo` : "";
+  }
+
+  document.getElementById("territoryInfoBrand").textContent = brandName;
+  document.getElementById("territoryInfoState").textContent = stateName;
+  document.getElementById("territoryInfoInvestment").textContent = formatTerritoryInfoValue(
+    record.initialInvestment,
+    territoryCurrencyFormatter
+  );
+  document.getElementById("territoryInfoPopulation").textContent = formatTerritoryInfoValue(
+    macrodata?.population,
+    territoryCompactNumberFormatter,
+    "~"
+  );
+  document.getElementById("territoryInfoUrbanPopulation").textContent = Number.isFinite(
+    Number(macrodata?.urbanPopulationPercent)
+  )
+    ? `~${Number(macrodata.urbanPopulationPercent).toFixed(1)}%`
+    : "—";
+  document.getElementById("territoryInfoMedianIncome").textContent = formatTerritoryInfoValue(
+    macrodata?.medianHouseholdIncome,
+    territoryCurrencyFormatter,
+    "~"
+  );
+  document.getElementById("territoryInfoGdp").textContent = formatTerritoryInfoValue(
+    Number(macrodata?.gdpMillions) * 1000000,
+    territoryCompactCurrencyFormatter,
+    "~"
+  );
+
+  card.hidden = false;
+  window.requestAnimationFrame(() => {
+    card.classList.add("is-visible");
+  });
+}
+
+function bindTerritoryInfoCard() {
+  const card = getTerritoryInfoCardElement();
+  const closeButton = document.getElementById("territoryInfoClose");
+  if (!card || !closeButton || closeButton.dataset.bound === "true") return;
+
+  closeButton.dataset.bound = "true";
+  closeButton.addEventListener("click", () => {
+    territoryInfoDismissedKey = selectedTerritoryKey;
+    hideTerritoryInfoCard();
+  });
+}
+
 function getStateCodeFromMapFeature(feature) {
   const stateFromProperties = feature.properties?.state;
   if (stateFromProperties) return stateFromProperties;
@@ -518,7 +646,7 @@ function isSharedTerritoryState(stateCode) {
   return Boolean(stateCode) && getVisibleSharedOccupantCount(stateCode) >= 2;
 }
 
-function flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut = true } = {}) {
+function flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut = true, offset = null } = {}) {
   if (!territoryMap || !camera) return;
 
   let targetZoom = Math.min(camera.zoom, TERRITORY_FOCUS_MAX_ZOOM);
@@ -535,6 +663,7 @@ function flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut = true } =
     zoom: targetZoom,
     duration: TERRITORY_FOCUS_DURATION,
     curve: TERRITORY_FOCUS_FLY_CURVE,
+    ...(offset ? { offset } : {}),
     essential: true
   });
 }
@@ -614,7 +743,21 @@ function scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords) {
   });
 }
 
-function focusTerritoryMapOnState(territoryMap, stateCode) {
+function getTerritorySelectionFocusPadding(territoryMap) {
+  const container = territoryMap.getContainer();
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  const horizontalPadding = Math.max(40, Math.min(TERRITORY_FOCUS_PADDING, width * 0.12));
+
+  return {
+    top: Math.max(32, Math.min(56, height * 0.07)),
+    right: horizontalPadding,
+    bottom: Math.max(TERRITORY_FOCUS_PADDING, (height * 0.5) + 24),
+    left: horizontalPadding
+  };
+}
+
+function focusTerritoryMapOnState(territoryMap, stateCode, { reserveInfoCardSpace = false } = {}) {
   if (!territoryMap || !stateCode || !window.mapboxgl) return;
 
   const stateFeature = territoryStatesByCode.get(stateCode);
@@ -626,11 +769,18 @@ function focusTerritoryMapOnState(territoryMap, stateCode) {
   const { west, east, south, north } = geometryBounds;
   const bounds = new mapboxgl.LngLatBounds([west, south], [east, north]);
   const camera = territoryMap.cameraForBounds(bounds, {
-    padding: TERRITORY_FOCUS_PADDING,
+    padding: reserveInfoCardSpace
+      ? getTerritorySelectionFocusPadding(territoryMap)
+      : TERRITORY_FOCUS_PADDING,
     maxZoom: TERRITORY_FOCUS_MAX_ZOOM
   });
 
-  flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut: false });
+  flyTerritoryMapToCamera(territoryMap, camera, {
+    allowZoomOut: false,
+    offset: reserveInfoCardSpace
+      ? [0, -(territoryMap.getContainer().clientHeight * 0.24)]
+      : null
+  });
 }
 
 function clearSharedTerritoryBlendHover(territoryMap) {
@@ -738,13 +888,21 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
 
   territoryMap.on("click", (event) => {
     const features = territoryMap.queryRenderedFeatures(event.point, { layers: clickLayerIds });
-    const feature = features[0];
-    if (!feature) return;
+    if (!features.length) return;
 
+    const featureWithBrand = features.find((candidate) => candidate.properties?.brandId);
+    const feature = featureWithBrand || features[0];
     const stateCode = getStateCodeFromMapFeature(feature);
-    if (stateCode) {
-      focusTerritoryMapOnState(territoryMap, stateCode);
+    if (!stateCode) return;
+
+    let brandId = feature.properties?.brandId;
+    if (!brandId) {
+      const visibleOccupants = getVisibleOccupantsForState(stateCode);
+      brandId = visibleOccupants[0];
     }
+    if (!brandId) return;
+
+    window.territoryMapSelection?.toggle?.(brandId, stateCode);
   });
 }
 
@@ -1041,12 +1199,14 @@ function applyTerritoryFilters(matchingRecords) {
 
   if (selectedTerritoryKey && !selectedRecord) {
     selectedTerritoryKey = null;
+    territoryInfoDismissedKey = null;
     clearSelectedTerritoryFeatureState();
   }
 
   renderTerritoryRecords(selectedRecord ? [selectedRecord] : matchingRecords);
   window.territoryFilters?.updateSummary?.(matchingRecords.length, territoryRegistry.length);
   window.territoryBrandPanel?.update?.(territoryBrands, matchingRecords);
+  showTerritoryInfoCard(selectedRecord);
 
   if (!selectedTerritoryKey) {
     scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords);
@@ -1946,8 +2106,9 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
 
 async function loadTerritoryData(territoryMap) {
   try {
-    const [statesGeojson, ...brands] = await Promise.all([
+    const [statesGeojson, macrodata, ...brands] = await Promise.all([
       fetchTerritoryJson(TERRITORY_STATES_URL),
+      fetchTerritoryJson(TERRITORY_MACRODATA_URL),
       ...TERRITORY_BRAND_FILES.map((file) => fetchTerritoryJson(`data/${file}`))
     ]);
 
@@ -2033,6 +2194,7 @@ async function loadTerritoryData(territoryMap) {
     territoryStateOccupancy = stateOccupancy;
     territorySharedStates = sharedStates;
     territoryStatesByCode = statesByCode;
+    territoryStateMacrodata = new Map(Object.entries(macrodata.states || {}));
     territoryBlendBeforeLayerId = brands.length ? `territories-${brands[0].id}-fill` : null;
     window.territoryBrands = brands;
 
@@ -2093,6 +2255,7 @@ function installTerritoryMockGeolocation() {
 
 function initializeTerritoryMap() {
   installTerritoryMockGeolocation();
+  bindTerritoryInfoCard();
   territoryMapHasLoaded = false;
 
   if (!window.mapboxgl) {
@@ -2323,6 +2486,7 @@ function syncSelectedTerritoryMap() {
   renderTerritoryRecords(selectedRecord ? [selectedRecord] : matchingRecords);
   setSelectedTerritoryFeatureState(selectedRecord);
   window.territoryBrandPanel?.setSelectedTerritory?.(selectedTerritoryKey);
+  showTerritoryInfoCard(selectedRecord);
 
   if (!selectedTerritoryKey) {
     scheduleTerritoryMapViewForFilters(window.territoryMap, matchingRecords);
@@ -2333,17 +2497,22 @@ function syncSelectedTerritoryMap() {
 
 function toggleSelectedTerritory(brandId, stateCode) {
   const nextKey = `${brandId}:${stateCode}`;
-  selectedTerritoryKey = selectedTerritoryKey === nextKey ? null : nextKey;
+  const isDeselecting = selectedTerritoryKey === nextKey;
+  selectedTerritoryKey = isDeselecting ? null : nextKey;
+  territoryInfoDismissedKey = null;
 
   const selectedRecord = syncSelectedTerritoryMap();
   if (selectedRecord) {
-    focusTerritoryMapOnState(window.territoryMap, selectedRecord.state);
+    focusTerritoryMapOnState(window.territoryMap, selectedRecord.state, {
+      reserveInfoCardSpace: true
+    });
   }
 }
 
 function clearSelectedTerritory() {
   if (!selectedTerritoryKey) return;
   selectedTerritoryKey = null;
+  territoryInfoDismissedKey = null;
   syncSelectedTerritoryMap();
 }
 

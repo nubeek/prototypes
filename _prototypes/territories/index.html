@@ -277,12 +277,66 @@
             <span class="territory-map-loading__text">Loading territories<span class="territory-map-loading__dots" aria-hidden="true"></span></span>
           </div>
         </div>
+        <article class="territory-info-card" id="territoryInfoCard" aria-labelledby="territoryInfoBrand" hidden>
+          <header class="territory-info-card__header">
+            <img class="territory-info-card__logo" id="territoryInfoLogo" src="" alt="">
+            <div class="territory-info-card__identity">
+              <h3 class="territory-info-card__brand" id="territoryInfoBrand"></h3>
+              <p class="territory-info-card__state" id="territoryInfoState"></p>
+            </div>
+            <button class="ui-control territory-info-card__close" id="territoryInfoClose" type="button" aria-label="Close territory details"></button>
+          </header>
+
+          <section class="territory-info-card__section" aria-labelledby="territoryInfoFinance">
+            <h4 class="territory-info-card__section-title" id="territoryInfoFinance">Finance</h4>
+            <dl class="territory-info-card__rows">
+              <div class="territory-info-card__row">
+                <dt>Initial investment</dt>
+                <dd id="territoryInfoInvestment"></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="territory-info-card__section" aria-labelledby="territoryInfoDemographics">
+            <h4 class="territory-info-card__section-title" id="territoryInfoDemographics">Demographics</h4>
+            <dl class="territory-info-card__rows">
+              <div class="territory-info-card__row">
+                <dt>Population</dt>
+                <dd id="territoryInfoPopulation"></dd>
+              </div>
+              <div class="territory-info-card__row">
+                <dt>Urban population</dt>
+                <dd id="territoryInfoUrbanPopulation"></dd>
+              </div>
+              <div class="territory-info-card__row">
+                <dt>Median income</dt>
+                <dd id="territoryInfoMedianIncome"></dd>
+              </div>
+              <div class="territory-info-card__row">
+                <dt>GDP</dt>
+                <dd id="territoryInfoGdp"></dd>
+              </div>
+            </dl>
+          </section>
+        </article>
       </div>
 
       <aside class="filter-panel territory-brand-panel" id="territoryBrandPanel" aria-label="Territories" aria-hidden="true">
         <div class="filter-scroll territory-brand-panel__scroll">
           <div class="filter-header">
-            <h2>Territories</h2>
+            <div class="territory-brand-panel__heading">
+              <h2>Territories</h2>
+              <button
+                class="ui-control ui-button-ghost territory-brand-panel__expand-toggle"
+                id="territoryBrandExpandToggle"
+                type="button"
+                aria-label="Collapse all rows"
+                title="Collapse all rows"
+                hidden
+              >
+                <img src="assets/collapse.svg" alt="" aria-hidden="true">
+              </button>
+            </div>
             <p id="territoryBrandSummary" aria-live="polite">0 franchise brands sorted by relevancy</p>
           </div>
           <ul class="territory-brand-list" id="territoryBrandList"></ul>
