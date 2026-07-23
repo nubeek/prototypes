@@ -10,7 +10,7 @@
   "franchiseeRating": 4.0,
   "territories": [
     { "state": "AK", "name": "Alaska", "status": "available", "initialInvestment": 310000 },
-    { "state": "MT", "name": "Montana", "status": "reserved", "initialInvestment": 245000 },
+    { "state": "MT", "name": "Montana", "status": "available", "initialInvestment": 245000 },
     { "state": "WY", "name": "Wyoming", "status": "available", "initialInvestment": 235000 }
   ]
 }

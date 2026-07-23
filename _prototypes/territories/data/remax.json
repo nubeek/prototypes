@@ -11,7 +11,7 @@
   "territories": [
     { "state": "CA", "name": "California", "status": "available", "initialInvestment": 875000 },
     { "state": "CO", "name": "Colorado", "status": "available", "initialInvestment": 575000 },
-    { "state": "AZ", "name": "Arizona", "status": "reserved", "initialInvestment": 525000 },
+    { "state": "AZ", "name": "Arizona", "status": "available", "initialInvestment": 525000 },
     { "state": "TX", "name": "Texas", "status": "available", "initialInvestment": 625000 },
     { "state": "HI", "name": "Hawaii", "status": "sold", "initialInvestment": 950000 }
   ]

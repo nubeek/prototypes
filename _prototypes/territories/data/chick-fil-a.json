@@ -11,11 +11,11 @@
   "territories": [
     { "state": "GA", "name": "Georgia", "status": "available", "initialInvestment": 1050000 },
     { "state": "NC", "name": "North Carolina", "status": "available", "initialInvestment": 1010000 },
-    { "state": "SC", "name": "South Carolina", "status": "reserved", "initialInvestment": 935000 },
+    { "state": "SC", "name": "South Carolina", "status": "available", "initialInvestment": 935000 },
     { "state": "VA", "name": "Virginia", "status": "available", "initialInvestment": 1185000 },
     { "state": "KY", "name": "Kentucky", "status": "available", "initialInvestment": 875000 },
     { "state": "IN", "name": "Indiana", "status": "sold", "initialInvestment": 965000 },
     { "state": "MI", "name": "Michigan", "status": "available", "initialInvestment": 1100000 },
-    { "state": "NY", "name": "New York", "status": "reserved", "initialInvestment": 1495000 }
+    { "state": "NY", "name": "New York", "status": "available", "initialInvestment": 1495000 }
   ]
 }

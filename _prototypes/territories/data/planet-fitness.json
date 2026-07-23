@@ -9,7 +9,7 @@
   "initialInvestment": 3370000,
   "franchiseeRating": 4.5,
   "territories": [
-    { "state": "AL", "name": "Alabama", "status": "reserved", "initialInvestment": 2310000 },
+    { "state": "AL", "name": "Alabama", "status": "available", "initialInvestment": 2310000 },
     { "state": "AR", "name": "Arkansas", "status": "available", "initialInvestment": 2250000 },
     { "state": "AZ", "name": "Arizona", "status": "available", "initialInvestment": 3025000 },
     { "state": "CO", "name": "Colorado", "status": "available", "initialInvestment": 3150000 },
@@ -24,7 +24,7 @@
     { "state": "MT", "name": "Montana", "status": "available", "initialInvestment": 2160000 },
     { "state": "NJ", "name": "New Jersey", "status": "available", "initialInvestment": 3650000 },
     { "state": "NM", "name": "New Mexico", "status": "available", "initialInvestment": 2400000 },
-    { "state": "NV", "name": "Nevada", "status": "reserved", "initialInvestment": 3225000 },
+    { "state": "NV", "name": "Nevada", "status": "available", "initialInvestment": 3225000 },
     { "state": "OH", "name": "Ohio", "status": "available", "initialInvestment": 2900000 },
     { "state": "OK", "name": "Oklahoma", "status": "available", "initialInvestment": 2475000 },
     { "state": "OR", "name": "Oregon", "status": "available", "initialInvestment": 2975000 },

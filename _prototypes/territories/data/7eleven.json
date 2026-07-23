@@ -11,7 +11,7 @@
   "territories": [
     { "state": "NV", "name": "Nevada", "status": "available", "initialInvestment": 425000 },
     { "state": "UT", "name": "Utah", "status": "available", "initialInvestment": 350000 },
-    { "state": "WA", "name": "Washington", "status": "reserved", "initialInvestment": 475000 },
+    { "state": "WA", "name": "Washington", "status": "available", "initialInvestment": 475000 },
     { "state": "NJ", "name": "New Jersey", "status": "available", "initialInvestment": 525000 },
     { "state": "DE", "name": "Delaware", "status": "sold", "initialInvestment": 310000 }
   ]

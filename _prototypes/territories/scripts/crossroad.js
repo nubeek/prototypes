@@ -6,6 +6,7 @@ const CROSSROAD_BRAND_FILES = [
   "dunkin.json",
   "mcdonalds.json",
   "burger-king.json",
+  "popeyes.json",
   "7eleven.json",
   "remax.json",
   "dominos.json",
@@ -327,12 +328,35 @@ function dismissTerritoryCrossroad() {
   const crossroad = document.getElementById("territoryCrossroad");
 
   shell?.classList.remove("is-crossroad-open");
+  window.territoryMapControls?.updateResetVisibility?.();
 
-  if (crossroad) {
-    crossroad.classList.add("is-leaving");
-    window.setTimeout(() => crossroad.remove(), 320);
-  }
+  if (!crossroad || crossroad.hidden) return;
+
+  crossroad.classList.add("is-leaving");
+
+  window.setTimeout(() => {
+    if (crossroad.classList.contains("is-leaving")) {
+      crossroad.hidden = true;
+    }
+  }, 300);
 }
+
+function showTerritoryCrossroad() {
+  const shell = document.querySelector(".territory-shell");
+  const crossroad = document.getElementById("territoryCrossroad");
+
+  if (!crossroad) return;
+
+  window.territoryMapControls?.clearHover?.();
+  crossroad.hidden = false;
+  crossroad.classList.remove("is-leaving");
+  shell?.classList.add("is-crossroad-open");
+  window.territoryCrossroadChoice = null;
+  window.territoryMapControls?.updateResetVisibility?.();
+}
+
+window.showTerritoryCrossroad = showTerritoryCrossroad;
+window.dismissTerritoryCrossroad = dismissTerritoryCrossroad;
 
 function beginTerritoryMapLoad() {
   const loadingEl = document.getElementById("territoryMapLoading");
@@ -344,7 +368,19 @@ function beginTerritoryMapLoad() {
 }
 
 function chooseCrossroadOption(choice) {
-  if (window.__territoryMapStarted) return;
+  if (window.__territoryMapStarted) {
+    window.territoryCrossroadChoice = choice;
+    dismissTerritoryCrossroad();
+
+    if (choice.type === "preset") {
+      window.territoryFilters?.applyCrossroadPreset?.(choice.filters || {});
+    } else {
+      window.territoryFilters?.resetFilterSelections?.();
+    }
+
+    window.territoryFilters?.refresh?.();
+    return;
+  }
 
   window.territoryCrossroadChoice = choice;
   dismissTerritoryCrossroad();
@@ -418,6 +454,8 @@ async function initTerritoryCrossroad() {
     );
     const records = buildCrossroadRecords(brands);
     const baseMapUrl = buildBaseMapUrl();
+
+    window.territoryFilters?.hydrateOptions?.(brands);
 
     CROSSROAD_PRESETS.forEach((preset) => {
       const tile = tilesByPreset.get(preset.id);

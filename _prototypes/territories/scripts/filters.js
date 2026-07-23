@@ -52,6 +52,7 @@ function getFilterSectionSettings() {
 
 function getCurrentTerritorySettings() {
   const shell = document.querySelector(".territory-shell");
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
@@ -69,6 +70,7 @@ function getCurrentTerritorySettings() {
     filters: {
       open: Boolean(shell?.classList.contains("is-filter-open")),
       sections: getFilterSectionSettings(),
+      locations: getFilterSelectValues(locationFilterSelect),
       categories: {
         included: getFilterSelectIncludedValues(categoryFilterSelect),
         excluded: getFilterSelectExcludedValues(categoryFilterSelect)
@@ -225,6 +227,7 @@ function setFilterPanelOpen(isOpen) {
 
 function restoreSavedFilterSelections(settings) {
   const filters = settings?.filters || {};
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
@@ -236,6 +239,10 @@ function restoreSavedFilterSelections(settings) {
   const searchInput = document.getElementById("territorySearchInput");
   const savedStatuses = new Set(getSavedStringArray(filters.statuses));
 
+  setFilterSelectValues(
+    locationFilterSelect,
+    getValidSavedSelectValues(locationFilterSelect, filters.locations)
+  );
   setFilterSelectIncludedExcludedValues(
     categoryFilterSelect,
     getValidSavedSelectValues(categoryFilterSelect, filters.categories?.included),
@@ -291,9 +298,14 @@ function restoreSelectFiltersFromSaved(settings) {
   if (!settings) return;
 
   const filters = settings.filters || {};
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
 
+  setFilterSelectValues(
+    locationFilterSelect,
+    getValidSavedSelectValues(locationFilterSelect, filters.locations)
+  );
   setFilterSelectIncludedExcludedValues(
     categoryFilterSelect,
     getValidSavedSelectValues(categoryFilterSelect, filters.categories?.included),
@@ -1162,6 +1174,16 @@ function initTerritoryFilters() {
   const clearAllFilters = document.getElementById("clearAllFilters");
   clearAllFilters?.addEventListener("click", clearAllFilterSelections);
 
+  const searchWithinLocation = document.getElementById("searchWithinLocation");
+  searchWithinLocation?.addEventListener("click", () => {
+    if (!window.__territoryMapStarted) {
+      window.startTerritoryMapFromFilters?.();
+    } else {
+      window.dismissTerritoryCrossroad?.();
+    }
+    window.territoryMapControls?.triggerTerritoryGeolocation?.();
+  });
+
   initTerritorySearch();
   initTerritoryToolbarMenu();
 
@@ -1320,6 +1342,7 @@ function territoryRangeFilterIsActive(section) {
 }
 
 function getAppliedTerritoryFilterCount() {
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
@@ -1331,6 +1354,7 @@ function getAppliedTerritoryFilterCount() {
   const searchInput = document.getElementById("territorySearchInput");
 
   const selectedFilterCount =
+    getFilterSelectValues(locationFilterSelect).length +
     getFilterSelectIncludedValues(categoryFilterSelect).length +
     getFilterSelectExcludedValues(categoryFilterSelect).length +
     getFilterSelectIncludedValues(franchiseFilterSelect).length +
@@ -1361,7 +1385,8 @@ function updateClearFiltersButton() {
   );
 }
 
-function clearAllFilterSelections() {
+function resetFilterSelections() {
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
@@ -1374,6 +1399,7 @@ function clearAllFilterSelections() {
   const searchClear = document.getElementById("territorySearchClear");
   const searchField = searchInput?.closest(".toolbar-search-btn");
 
+  setFilterSelectValues(locationFilterSelect, []);
   setFilterSelectValues(categoryFilterSelect, []);
   setFilterSelectValues(franchiseFilterSelect, []);
   syncFilterComboboxes();
@@ -1414,7 +1440,15 @@ function clearAllFilterSelections() {
   refreshTerritoryFilters();
 }
 
+function clearAllFilterSelections() {
+  resetFilterSelections();
+  window.territoryMapSelection?.clear?.();
+  window.territoryBrandPanel?.close?.();
+  window.showTerritoryCrossroad?.();
+}
+
 function getTerritoryFilterState() {
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
@@ -1428,6 +1462,7 @@ function getTerritoryFilterState() {
   const ratingRange = getTerritoryFilterRangeValues(ratingSection);
 
   return {
+    locations: getFilterSelectValues(locationFilterSelect),
     categories: {
       included: getFilterSelectIncludedValues(categoryFilterSelect),
       excluded: getFilterSelectExcludedValues(categoryFilterSelect)
@@ -1446,6 +1481,10 @@ function getTerritoryFilterState() {
 }
 
 function territoryMatchesFilters(record, filters) {
+  if (filters.locations.length && !filters.locations.includes(record.state)) {
+    return false;
+  }
+
   if (filters.categories.included.length && !filters.categories.included.includes(record.category)) {
     return false;
   }
@@ -1490,10 +1529,15 @@ function getFilteredTerritoryRecords(registry = window.territoryMapFilters?.getT
 }
 
 function maybeStartTerritoryMapFromFilters() {
-  if (window.__territoryMapStarted || isRestoringTerritorySettings) return;
+  if (isRestoringTerritorySettings) return;
   if (getAppliedTerritoryFilterCount() <= 0) return;
 
-  window.startTerritoryMapFromFilters?.();
+  if (!window.__territoryMapStarted) {
+    window.startTerritoryMapFromFilters?.();
+    return;
+  }
+
+  window.dismissTerritoryCrossroad?.();
 }
 
 function refreshTerritoryFilters() {
@@ -1519,8 +1563,13 @@ function populateTerritoryFilterOptions(brands) {
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
 
   if (categoryFilterSelect) {
+    const existingCategories = new Set(
+      Array.from(categoryFilterSelect.options).map((option) => option.value)
+    );
     const categories = [...new Set(brands.map((brand) => brand.category).filter(Boolean))].sort();
     categories.forEach((category) => {
+      if (existingCategories.has(category)) return;
+
       const option = document.createElement("option");
       option.value = category;
       option.textContent = category;
@@ -1530,7 +1579,12 @@ function populateTerritoryFilterOptions(brands) {
   }
 
   if (franchiseFilterSelect) {
+    const existingFranchises = new Set(
+      Array.from(franchiseFilterSelect.options).map((option) => option.value)
+    );
     brands.forEach((brand) => {
+      if (existingFranchises.has(brand.id)) return;
+
       const option = document.createElement("option");
       option.value = brand.id;
       option.textContent = brand.brand;
@@ -1542,11 +1596,20 @@ function populateTerritoryFilterOptions(brands) {
   syncFilterComboboxes();
 }
 
+function hydrateTerritoryFilterOptions(brands) {
+  populateTerritoryFilterOptions(brands);
+
+  if (savedTerritorySettings && !window.__territoryMapStarted) {
+    restoreSelectFiltersFromSaved(savedTerritorySettings);
+  }
+}
+
 let territoryFilterControlsBound = false;
 
 function bindTerritoryFilterControls() {
   if (territoryFilterControlsBound) return;
   territoryFilterControlsBound = true;
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
@@ -1555,6 +1618,7 @@ function bindTerritoryFilterControls() {
     .map((track) => track.closest(".filter-section"))
     .filter(Boolean);
 
+  locationFilterSelect?.addEventListener("change", refreshTerritoryFilters);
   categoryFilterSelect?.addEventListener("change", refreshTerritoryFilters);
   franchiseFilterSelect?.addEventListener("change", refreshTerritoryFilters);
 
@@ -1585,12 +1649,17 @@ function bindTerritoryFilterControls() {
 }
 
 function applyCrossroadPresetSelections(preset = {}) {
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
     .filter((checkbox) => checkbox.value);
   const statusSet = new Set(getSavedStringArray(preset.statuses));
 
+  setFilterSelectValues(
+    locationFilterSelect,
+    getValidSavedSelectValues(locationFilterSelect, preset.locations)
+  );
   setFilterSelectIncludedExcludedValues(
     categoryFilterSelect,
     getValidSavedSelectValues(categoryFilterSelect, preset.categories),
@@ -1610,6 +1679,17 @@ function applyCrossroadPresetSelections(preset = {}) {
   syncFilterComboboxes();
 }
 
+function setTerritoryLocationFilter(stateCode) {
+  const locationFilterSelect = document.getElementById("locationFilterSelect");
+  const validStateCodes = getValidSavedSelectValues(locationFilterSelect, [stateCode]);
+  if (!validStateCodes.length) return false;
+
+  setFilterSelectValues(locationFilterSelect, validStateCodes);
+  syncFilterComboboxes();
+  refreshTerritoryFilters();
+  return true;
+}
+
 function initTerritoryFilterData(brands, registry) {
   populateTerritoryFilterOptions(brands);
   renderInvestmentHistogram(registry);
@@ -1627,7 +1707,7 @@ function initTerritoryFilterData(brands, registry) {
     } else if (crossroadChoice?.type === "new") {
       applyCrossroadPresetSelections({});
     } else if (crossroadChoice?.type === "filters") {
-      restoreSelectFiltersFromSaved(savedTerritorySettings);
+      // Sidebar selections were made before the map existed; keep them as-is.
     } else if (savedTerritorySettings) {
       restoreSavedFilterSelections(savedTerritorySettings);
     }
@@ -1646,7 +1726,11 @@ window.territoryFilters = {
   getFilterSelectIncludedValues,
   getFilterSelectExcludedValues,
   syncFilterComboboxes,
+  hydrateOptions: hydrateTerritoryFilterOptions,
   getAppliedFilterCount: getAppliedTerritoryFilterCount,
+  resetFilterSelections,
+  applyCrossroadPreset: applyCrossroadPresetSelections,
+  setLocation: setTerritoryLocationFilter,
   onDataReady: initTerritoryFilterData,
   updateSummary: updateTerritoryFilterSummary,
   refresh: refreshTerritoryFilters

@@ -11,7 +11,7 @@
   "territories": [
     { "state": "FL", "name": "Florida", "status": "available", "initialInvestment": 1925000 },
     { "state": "TX", "name": "Texas", "status": "available", "initialInvestment": 1650000 },
-    { "state": "GA", "name": "Georgia", "status": "reserved", "initialInvestment": 1575000 },
+    { "state": "GA", "name": "Georgia", "status": "available", "initialInvestment": 1575000 },
     { "state": "IL", "name": "Illinois", "status": "available", "initialInvestment": 1800000 },
     { "state": "LA", "name": "Louisiana", "status": "sold", "initialInvestment": 1425000 }
   ]

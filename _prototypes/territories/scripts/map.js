@@ -21,6 +21,7 @@ const TERRITORY_BRAND_FILES = [
   "dunkin.json",
   "mcdonalds.json",
   "burger-king.json",
+  "popeyes.json",
   "7eleven.json",
   "remax.json",
   "dominos.json",
@@ -56,13 +57,21 @@ const TERRITORY_BLEND_RENDER_DELAY = 120;
 const TERRITORY_BLEND_CLIP_TO_LAND = true;
 const TERRITORY_FILL_OPACITY_EXPRESSION = [
   "case",
-  ["boolean", ["feature-state", "hover"], false],
+  [
+    "any",
+    ["boolean", ["feature-state", "hover"], false],
+    ["boolean", ["feature-state", "selected"], false]
+  ],
   TERRITORY_FILL_HOVER_OPACITY,
   TERRITORY_FILL_OPACITY
 ];
 const TERRITORY_BLEND_FILL_OPACITY_EXPRESSION = [
   "case",
-  ["boolean", ["feature-state", "hover"], false],
+  [
+    "any",
+    ["boolean", ["feature-state", "hover"], false],
+    ["boolean", ["feature-state", "selected"], false]
+  ],
   TERRITORY_BLEND_HOVER_OPACITY,
   0
 ];
@@ -81,8 +90,17 @@ let territoryStateOccupancy = new Map();
 let territorySharedStates = [];
 let territoryStatesByCode = new Map();
 let territoryLastMatchingRecords = null;
+let territoryRenderedRecords = null;
+let selectedTerritoryKey = null;
+let selectedTerritoryFeatureState = null;
 let territoryBlendRenderTimer = null;
 let territoryBlendBeforeLayerId = null;
+let territoryGeolocateControl = null;
+let territoryMapHasLoaded = false;
+let territoryGeolocationPending = false;
+let territoryPendingFocusStateCode = null;
+let territoryPendingGeolocationCoordinates = null;
+let territoryFilterFitRevision = 0;
 // While true, freshly added territory layers are filtered to render nothing so
 // the map can show as an empty (but zoomed) base while data streams in. The
 // real filters applied on data-ready reveal every territory at once.
@@ -90,10 +108,10 @@ let territoryHoldInitialRender = true;
 const TERRITORY_HOLD_FILTER = ["==", ["get", "state"], "__territory_hold__"];
 let clearTerritoryMapHover = null;
 let hoveredSharedBlendStateCode = null;
+let sidebarHoveredTerritoryState = null;
 
 const TERRITORY_STATUS_LABELS = {
   available: "Available",
-  reserved: "Reserved",
   sold: "Sold"
 };
 
@@ -110,7 +128,7 @@ let territoryMapResetHideTimer = null;
 let territoryMapResetPositionObserver = null;
 
 function getTerritoryMapContainerElement() {
-  return document.getElementById("territoryMap");
+  return document.querySelector(".territory-map-frame") || document.getElementById("territoryMap");
 }
 
 function syncTerritoryMapResetPosition() {
@@ -149,6 +167,10 @@ function isTerritoryMapLoadingVisible() {
   return Boolean(loadingEl && !loadingEl.hidden && !loadingEl.classList.contains("is-hiding"));
 }
 
+function isTerritoryCrossroadOpen() {
+  return document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open") ?? false;
+}
+
 function isTerritoryMapAtDefaultView(territoryMap) {
   if (!territoryMap) return true;
 
@@ -180,9 +202,23 @@ function showTerritoryMapReset() {
   resetEl.classList.add("is-visible");
 }
 
-function hideTerritoryMapReset() {
+function hideTerritoryMapReset({ immediate = false } = {}) {
   const resetEl = getTerritoryMapResetElement();
-  if (!resetEl || resetEl.hidden || !resetEl.classList.contains("is-visible")) {
+  if (!resetEl) {
+    return;
+  }
+
+  if (immediate) {
+    if (territoryMapResetHideTimer) {
+      window.clearTimeout(territoryMapResetHideTimer);
+      territoryMapResetHideTimer = null;
+    }
+    resetEl.hidden = true;
+    resetEl.classList.remove("is-visible", "is-hiding");
+    return;
+  }
+
+  if (resetEl.hidden || !resetEl.classList.contains("is-visible")) {
     return;
   }
 
@@ -198,22 +234,26 @@ function hideTerritoryMapReset() {
 
 function updateTerritoryMapResetVisibility() {
   const territoryMap = window.territoryMap;
-  if (!territoryMap) return;
+  if (!territoryMap || typeof territoryMap.isStyleLoaded !== "function") return;
 
-  const shouldShow = !isTerritoryMapLoadingVisible()
+  const crossroadOpen = isTerritoryCrossroadOpen();
+  const shouldShow = !crossroadOpen
+    && !isTerritoryMapLoadingVisible()
     && territoryMap.isStyleLoaded()
     && !isTerritoryMapAtDefaultView(territoryMap);
 
   if (shouldShow) {
     showTerritoryMapReset();
   } else {
-    hideTerritoryMapReset();
+    hideTerritoryMapReset({ immediate: crossroadOpen });
   }
 }
 
 function resetTerritoryMapView() {
   const territoryMap = window.territoryMap;
   if (!territoryMap) return;
+
+  clearSelectedTerritory();
 
   territoryMap.flyTo({
     center: TERRITORY_MAP_CENTER,
@@ -456,12 +496,12 @@ function getStateCodeFromMapFeature(feature) {
 }
 
 function getTerritoryRecordsForState(stateCode) {
-  const matchingRecords = territoryLastMatchingRecords || territoryRegistry;
+  const matchingRecords = territoryRenderedRecords || territoryLastMatchingRecords || territoryRegistry;
   return matchingRecords.filter((record) => record.state === stateCode);
 }
 
 function getVisibleOccupantsForState(stateCode) {
-  const matchingRecords = territoryLastMatchingRecords || territoryRegistry;
+  const matchingRecords = territoryRenderedRecords || territoryLastMatchingRecords || territoryRegistry;
   const matchingKeys = new Set(matchingRecords.map(territoryRecordKey));
   const occupants = territoryStateOccupancy.get(stateCode) || [];
 
@@ -478,6 +518,102 @@ function isSharedTerritoryState(stateCode) {
   return Boolean(stateCode) && getVisibleSharedOccupantCount(stateCode) >= 2;
 }
 
+function flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut = true } = {}) {
+  if (!territoryMap || !camera) return;
+
+  let targetZoom = Math.min(camera.zoom, TERRITORY_FOCUS_MAX_ZOOM);
+
+  if (!allowZoomOut) {
+    const currentZoom = territoryMap.getZoom();
+    if (currentZoom <= TERRITORY_FOCUS_MAX_ZOOM) {
+      targetZoom = Math.max(targetZoom, currentZoom);
+    }
+  }
+
+  territoryMap.flyTo({
+    center: camera.center,
+    zoom: targetZoom,
+    duration: TERRITORY_FOCUS_DURATION,
+    curve: TERRITORY_FOCUS_FLY_CURVE,
+    essential: true
+  });
+}
+
+function getMatchingRecordsBounds(matchingRecords) {
+  let west = Infinity;
+  let east = -Infinity;
+  let south = Infinity;
+  let north = -Infinity;
+  let hasBounds = false;
+
+  matchingRecords.forEach((record) => {
+    const geometry = record.geometry || territoryStatesByCode.get(record.state)?.geometry;
+    if (!geometry) return;
+
+    const geometryBounds = getGeometryBounds(geometry);
+    if (!geometryBounds) return;
+
+    hasBounds = true;
+    if (geometryBounds.west < west) west = geometryBounds.west;
+    if (geometryBounds.east > east) east = geometryBounds.east;
+    if (geometryBounds.south < south) south = geometryBounds.south;
+    if (geometryBounds.north > north) north = geometryBounds.north;
+  });
+
+  if (!hasBounds) return null;
+
+  return { west, east, south, north };
+}
+
+function focusTerritoryMapOnRecords(territoryMap, matchingRecords) {
+  if (!territoryMap || !matchingRecords.length || !window.mapboxgl) return;
+
+  const recordBounds = getMatchingRecordsBounds(matchingRecords);
+  if (!recordBounds) return;
+
+  const { west, east, south, north } = recordBounds;
+  const bounds = new mapboxgl.LngLatBounds([west, south], [east, north]);
+  const camera = territoryMap.cameraForBounds(bounds, {
+    padding: TERRITORY_FOCUS_PADDING,
+    maxZoom: TERRITORY_FOCUS_MAX_ZOOM
+  });
+
+  flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut: true });
+}
+
+function scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords) {
+  if (!territoryMap || territoryHoldInitialRender) return;
+
+  territoryFilterFitRevision += 1;
+  const fitRevision = territoryFilterFitRevision;
+
+  Promise.resolve(window.territoryBrandPanel?.whenLayoutSettled?.()).then(() => {
+    window.requestAnimationFrame(() => {
+      if (fitRevision !== territoryFilterFitRevision) return;
+
+      territoryMap.resize();
+      if (!territoryMap.isStyleLoaded()) return;
+
+      const appliedFilterCount = window.territoryFilters?.getAppliedFilterCount?.() ?? 0;
+
+      if (appliedFilterCount > 0 && matchingRecords.length > 0) {
+        focusTerritoryMapOnRecords(territoryMap, matchingRecords);
+        return;
+      }
+
+      if (appliedFilterCount === 0 && !isTerritoryMapAtDefaultView(territoryMap)) {
+        territoryMap.flyTo({
+          center: TERRITORY_MAP_CENTER,
+          zoom: TERRITORY_MAP_ZOOM,
+          duration: TERRITORY_FOCUS_DURATION,
+          curve: TERRITORY_FOCUS_FLY_CURVE,
+          essential: true
+        });
+      }
+    });
+  });
+}
+
 function focusTerritoryMapOnState(territoryMap, stateCode) {
   if (!territoryMap || !stateCode || !window.mapboxgl) return;
 
@@ -489,27 +625,12 @@ function focusTerritoryMapOnState(territoryMap, stateCode) {
 
   const { west, east, south, north } = geometryBounds;
   const bounds = new mapboxgl.LngLatBounds([west, south], [east, north]);
-  const currentZoom = territoryMap.getZoom();
   const camera = territoryMap.cameraForBounds(bounds, {
     padding: TERRITORY_FOCUS_PADDING,
     maxZoom: TERRITORY_FOCUS_MAX_ZOOM
   });
 
-  if (!camera) return;
-
-  let targetZoom = Math.min(camera.zoom, TERRITORY_FOCUS_MAX_ZOOM);
-
-  if (currentZoom <= TERRITORY_FOCUS_MAX_ZOOM) {
-    targetZoom = Math.max(targetZoom, currentZoom);
-  }
-
-  territoryMap.flyTo({
-    center: camera.center,
-    zoom: targetZoom,
-    duration: TERRITORY_FOCUS_DURATION,
-    curve: TERRITORY_FOCUS_FLY_CURVE,
-    essential: true
-  });
+  flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut: false });
 }
 
 function clearSharedTerritoryBlendHover(territoryMap) {
@@ -609,6 +730,9 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
   });
 
   territoryMap.on("mouseleave", clearHover);
+
+  const crossroad = document.getElementById("territoryCrossroad");
+  crossroad?.addEventListener("pointerenter", clearHover);
 
   if (!clickLayerIds.length) return;
 
@@ -714,7 +838,7 @@ function getTerritoryProperties(brand, territory) {
   };
 }
 
-function buildTerritoryRegistry(brands) {
+function buildTerritoryRegistry(brands, statesByCode) {
   return brands.flatMap((brand) => brand.territories.map((territory) => ({
     brandId: brand.id,
     brand: brand.brand,
@@ -723,7 +847,8 @@ function buildTerritoryRegistry(brands) {
     state: territory.state,
     name: territory.name,
     status: territory.status,
-    initialInvestment: getTerritoryInvestment(brand, territory)
+    initialInvestment: getTerritoryInvestment(brand, territory),
+    geometry: statesByCode.get(territory.state)?.geometry || null
   })));
 }
 
@@ -773,7 +898,7 @@ function getVisibleLogoStatesForBrand(matchingKeys, brandId) {
 }
 
 function getVisibleSharedOccupantCount(stateCode) {
-  const matchingRecords = territoryLastMatchingRecords || territoryRegistry;
+  const matchingRecords = territoryRenderedRecords || territoryLastMatchingRecords || territoryRegistry;
   const matchingKeys = new Set(matchingRecords.map(territoryRecordKey));
   const occupants = territoryStateOccupancy.get(stateCode) || [];
 
@@ -839,11 +964,12 @@ function updateSharedTerritoryGradient(territoryMap, stateCode, visibleOccupants
   layerIds.currentKey = nextKey;
 }
 
-function applyTerritoryFilters(matchingRecords) {
+function renderTerritoryRecords(matchingRecords) {
   const territoryMap = window.territoryMap;
   if (!territoryMap || !territoryBrands.length) return;
 
-  territoryLastMatchingRecords = matchingRecords;
+  clearSidebarTerritoryHover();
+  territoryRenderedRecords = matchingRecords;
 
   const matchingKeys = new Set(matchingRecords.map(territoryRecordKey));
   const visibleOccupantsByState = buildVisibleOccupantsByState(matchingKeys);
@@ -897,10 +1023,33 @@ function applyTerritoryFilters(matchingRecords) {
     }
   });
 
-  window.territoryFilters?.updateSummary?.(matchingRecords.length, territoryRegistry.length);
-
   if (territoryBlendEnabled) {
     scheduleTerritoryBlendRender();
+  }
+}
+
+function applyTerritoryFilters(matchingRecords) {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || !territoryBrands.length) return;
+
+  clearTerritoryMapHover?.();
+  territoryLastMatchingRecords = matchingRecords;
+
+  const selectedRecord = selectedTerritoryKey
+    ? matchingRecords.find((record) => territoryRecordKey(record) === selectedTerritoryKey)
+    : null;
+
+  if (selectedTerritoryKey && !selectedRecord) {
+    selectedTerritoryKey = null;
+    clearSelectedTerritoryFeatureState();
+  }
+
+  renderTerritoryRecords(selectedRecord ? [selectedRecord] : matchingRecords);
+  window.territoryFilters?.updateSummary?.(matchingRecords.length, territoryRegistry.length);
+  window.territoryBrandPanel?.update?.(territoryBrands, matchingRecords);
+
+  if (!selectedTerritoryKey) {
+    scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords);
   }
 }
 
@@ -1106,6 +1255,62 @@ function getGeometryBounds(geometry) {
   if (!(east > west) || !(north > south)) return null;
 
   return { west, east, south, north, polygons };
+}
+
+function pointIsInsideGeometryRing([longitude, latitude], ring) {
+  let isInside = false;
+
+  for (let currentIndex = 0, previousIndex = ring.length - 1; currentIndex < ring.length; previousIndex = currentIndex++) {
+    const [currentLongitude, currentLatitude] = ring[currentIndex];
+    const [previousLongitude, previousLatitude] = ring[previousIndex];
+    const crossesLatitude = (currentLatitude > latitude) !== (previousLatitude > latitude);
+    const crossingLongitude = (
+      ((previousLongitude - currentLongitude) * (latitude - currentLatitude)) /
+      (previousLatitude - currentLatitude)
+    ) + currentLongitude;
+
+    if (crossesLatitude && longitude < crossingLongitude) {
+      isInside = !isInside;
+    }
+  }
+
+  return isInside;
+}
+
+function pointIsInsideGeometryPolygon(point, rings) {
+  if (!rings.length || !pointIsInsideGeometryRing(point, rings[0])) return false;
+  return !rings.slice(1).some((hole) => pointIsInsideGeometryRing(point, hole));
+}
+
+function getStateCodeForCoordinates(longitude, latitude) {
+  const point = [longitude, latitude];
+
+  for (const [stateCode, stateFeature] of territoryStatesByCode) {
+    const polygons = collectGeometryPolygons(stateFeature.geometry);
+    if (polygons.some((rings) => pointIsInsideGeometryPolygon(point, rings))) {
+      return stateCode;
+    }
+  }
+
+  return null;
+}
+
+function applyTerritoryGeolocationCoordinates(coords) {
+  const longitude = Number(coords?.longitude);
+  const latitude = Number(coords?.latitude);
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return false;
+
+  if (!territoryStatesByCode.size) {
+    territoryPendingGeolocationCoordinates = { longitude, latitude };
+    return false;
+  }
+
+  territoryPendingGeolocationCoordinates = null;
+  const stateCode = getStateCodeForCoordinates(longitude, latitude);
+  if (!stateCode) return false;
+
+  territoryPendingFocusStateCode = null;
+  return window.territoryFilters?.setLocation?.(stateCode) ?? false;
 }
 
 function parseHexColor(hex) {
@@ -1477,7 +1682,7 @@ function renderTerritoryBlendImage() {
   const territoryMap = window.territoryMap;
   if (!territoryMap || !territoryBrands.length || !territoryBlendEnabled) return;
 
-  const matchingRecords = territoryLastMatchingRecords || territoryRegistry;
+  const matchingRecords = territoryRenderedRecords || territoryLastMatchingRecords || territoryRegistry;
   const entries = collectBlendStateEntries(matchingRecords);
   const existingLayer = territoryMap.getLayer(TERRITORY_BLEND_LAYER_ID);
 
@@ -1824,7 +2029,7 @@ async function loadTerritoryData(territoryMap) {
 
     territoryBrands = brands;
     territoryBrandsById = brandsById;
-    territoryRegistry = buildTerritoryRegistry(brands);
+    territoryRegistry = buildTerritoryRegistry(brands, statesByCode);
     territoryStateOccupancy = stateOccupancy;
     territorySharedStates = sharedStates;
     territoryStatesByCode = statesByCode;
@@ -1836,6 +2041,17 @@ async function loadTerritoryData(territoryMap) {
     // single frame instead of streaming them in brand by brand.
     territoryHoldInitialRender = false;
     window.territoryFilters?.onDataReady?.(brands, territoryRegistry);
+
+    if (territoryPendingGeolocationCoordinates) {
+      applyTerritoryGeolocationCoordinates(territoryPendingGeolocationCoordinates);
+    }
+
+    if (territoryPendingFocusStateCode) {
+      const stateCode = territoryPendingFocusStateCode;
+      territoryPendingFocusStateCode = null;
+      focusTerritoryMapOnState(territoryMap, stateCode);
+    }
+
     hideTerritoryMapLoading();
   } catch (error) {
     console.error(error);
@@ -1877,6 +2093,7 @@ function installTerritoryMockGeolocation() {
 
 function initializeTerritoryMap() {
   installTerritoryMockGeolocation();
+  territoryMapHasLoaded = false;
 
   if (!window.mapboxgl) {
     renderTerritoryMapError("Mapbox GL could not be loaded.");
@@ -1902,7 +2119,7 @@ function initializeTerritoryMap() {
     preserveDrawingBuffer: true
   });
 
-  territoryMap.addControl(new mapboxgl.GeolocateControl({
+  territoryGeolocateControl = new mapboxgl.GeolocateControl({
     positionOptions: {
       enableHighAccuracy: true
     },
@@ -1912,16 +2129,26 @@ function initializeTerritoryMap() {
     },
     trackUserLocation: false,
     showUserHeading: false
-  }), "bottom-right");
+  });
+  territoryGeolocateControl.on("geolocate", (event) => {
+    applyTerritoryGeolocationCoordinates(event.coords);
+  });
+  territoryMap.addControl(territoryGeolocateControl, "bottom-right");
 
   territoryMap.addControl(new mapboxgl.NavigationControl({
     visualizePitch: false
   }), "bottom-right");
 
   territoryMap.on("load", () => {
+    territoryMapHasLoaded = true;
     revealTerritoryMapBase();
     bindTerritoryMapResetControl(territoryMap);
     loadTerritoryData(territoryMap);
+
+    if (territoryGeolocationPending) {
+      territoryGeolocationPending = false;
+      territoryGeolocateControl?.trigger?.();
+    }
   });
 
   window.territoryMap = territoryMap;
@@ -2013,18 +2240,163 @@ function getTerritoryBrandLogosVisible() {
   return territoryBrandLogosEnabled;
 }
 
+function clearSidebarTerritoryHover() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || !sidebarHoveredTerritoryState) return;
+
+  const {
+    featureState,
+    fillLayerId,
+    originalFilter
+  } = sidebarHoveredTerritoryState;
+
+  territoryMap.setFeatureState(featureState, { hover: false });
+  if (territoryMap.getLayer(fillLayerId)) {
+    territoryMap.setFilter(fillLayerId, originalFilter);
+  }
+
+  sidebarHoveredTerritoryState = null;
+}
+
+function setSidebarTerritoryHover(brandId, stateCode) {
+  const territoryMap = window.territoryMap;
+  const layerIds = territoryBrandLayerIds.get(brandId);
+  if (!territoryMap || !layerIds?.fillLayerId || !territoryMap.getLayer(layerIds.fillLayerId)) return;
+
+  const hoverKey = `${brandId}:${stateCode}`;
+  if (sidebarHoveredTerritoryState?.key === hoverKey) return;
+
+  clearTerritoryMapHover?.();
+  clearSidebarTerritoryHover();
+
+  const featureState = {
+    source: `territories-${brandId}`,
+    id: stateCode
+  };
+  const originalFilter = territoryMap.getFilter(layerIds.fillLayerId);
+  const stateFilter = ["==", ["get", "state"], stateCode];
+  const hoverFilter = originalFilter
+    ? ["any", originalFilter, stateFilter]
+    : stateFilter;
+
+  territoryMap.setFilter(layerIds.fillLayerId, hoverFilter);
+  territoryMap.setFeatureState(featureState, { hover: true });
+  sidebarHoveredTerritoryState = {
+    key: hoverKey,
+    featureState,
+    fillLayerId: layerIds.fillLayerId,
+    originalFilter
+  };
+}
+
+function clearSelectedTerritoryFeatureState() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || !selectedTerritoryFeatureState) return;
+
+  territoryMap.setFeatureState(selectedTerritoryFeatureState, { selected: false });
+  selectedTerritoryFeatureState = null;
+}
+
+function setSelectedTerritoryFeatureState(record) {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || !record) return;
+
+  selectedTerritoryFeatureState = {
+    source: `territories-${record.brandId}`,
+    id: record.state
+  };
+  territoryMap.setFeatureState(selectedTerritoryFeatureState, { selected: true });
+}
+
+function syncSelectedTerritoryMap() {
+  const matchingRecords = territoryLastMatchingRecords || territoryRegistry;
+  const selectedRecord = selectedTerritoryKey
+    ? matchingRecords.find((record) => territoryRecordKey(record) === selectedTerritoryKey)
+    : null;
+
+  if (selectedTerritoryKey && !selectedRecord) {
+    selectedTerritoryKey = null;
+  }
+
+  clearTerritoryMapHover?.();
+  clearSelectedTerritoryFeatureState();
+  renderTerritoryRecords(selectedRecord ? [selectedRecord] : matchingRecords);
+  setSelectedTerritoryFeatureState(selectedRecord);
+  window.territoryBrandPanel?.setSelectedTerritory?.(selectedTerritoryKey);
+
+  if (!selectedTerritoryKey) {
+    scheduleTerritoryMapViewForFilters(window.territoryMap, matchingRecords);
+  }
+
+  return selectedRecord;
+}
+
+function toggleSelectedTerritory(brandId, stateCode) {
+  const nextKey = `${brandId}:${stateCode}`;
+  selectedTerritoryKey = selectedTerritoryKey === nextKey ? null : nextKey;
+
+  const selectedRecord = syncSelectedTerritoryMap();
+  if (selectedRecord) {
+    focusTerritoryMapOnState(window.territoryMap, selectedRecord.state);
+  }
+}
+
+function clearSelectedTerritory() {
+  if (!selectedTerritoryKey) return;
+  selectedTerritoryKey = null;
+  syncSelectedTerritoryMap();
+}
+
+function triggerTerritoryGeolocation() {
+  if (!territoryMapHasLoaded) {
+    territoryGeolocationPending = true;
+    return true;
+  }
+
+  return territoryGeolocateControl?.trigger?.() ?? false;
+}
+
+function focusTerritoryState(stateCode) {
+  if (!stateCode) return false;
+
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || !territoryStatesByCode.has(stateCode)) {
+    territoryPendingFocusStateCode = stateCode;
+    return true;
+  }
+
+  territoryPendingFocusStateCode = null;
+  focusTerritoryMapOnState(territoryMap, stateCode);
+  return true;
+}
+
 window.territoryMapControls = {
   setTerritoryBordersVisible,
   getTerritoryBordersVisible,
   setTerritoryBlendEnabled,
   getTerritoryBlendEnabled,
   setTerritoryBrandLogosVisible,
-  getTerritoryBrandLogosVisible
+  getTerritoryBrandLogosVisible,
+  triggerTerritoryGeolocation,
+  focusTerritoryState,
+  updateResetVisibility: updateTerritoryMapResetVisibility,
+  clearHover: () => clearTerritoryMapHover?.()
 };
 
 window.territoryMapFilters = {
   applyTerritoryFilters,
   getTerritoryRegistry: () => territoryRegistry
+};
+
+window.territoryMapSelection = {
+  toggle: toggleSelectedTerritory,
+  clear: clearSelectedTerritory,
+  getSelectedKey: () => selectedTerritoryKey
+};
+
+window.territoryMapHover = {
+  set: setSidebarTerritoryHover,
+  clear: clearSidebarTerritoryHover
 };
 
 // The map is heavy to spin up, so we hold off until the user picks a starting

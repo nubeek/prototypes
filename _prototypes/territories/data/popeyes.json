@@ -1,0 +1,19 @@
+{
+  "id": "popeyes",
+  "brand": "Popeyes",
+  "category": "Food & Beverage",
+  "color": "#FF7900",
+  "logo": "assets/logos/popeyes.jpg",
+  "country": "US",
+  "level": "state",
+  "initialInvestment": 1250000,
+  "franchiseeRating": 4.0,
+  "territories": [
+    { "state": "NY", "name": "New York", "status": "available", "initialInvestment": 1425000 },
+    { "state": "LA", "name": "Louisiana", "status": "available", "initialInvestment": 1187500 },
+    { "state": "TX", "name": "Texas", "status": "available", "initialInvestment": 1312500 },
+    { "state": "FL", "name": "Florida", "status": "available", "initialInvestment": 1350000 },
+    { "state": "GA", "name": "Georgia", "status": "available", "initialInvestment": 1125000 },
+    { "state": "MD", "name": "Maryland", "status": "sold", "initialInvestment": 1275000 }
+  ]
+}

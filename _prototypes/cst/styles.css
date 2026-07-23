@@ -2215,7 +2215,7 @@ body.reduce-motion .save-lead-note {
 }
 
 .filter-header h2 {
-  margin: 0 0 10px;
+  margin: 6px 0 10px 0;
   font-size: 22px;
   font-weight: 600;
   line-height: 1;
@@ -2225,7 +2225,7 @@ body.reduce-motion .save-lead-note {
   margin: 0;
   color: #ababab;
   font-size: 16px;
-  line-height: 1.55;
+  line-height: 1.35;
 }
 
 .filter-section {
