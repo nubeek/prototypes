@@ -8,11 +8,15 @@
   "level": "state",
   "initialInvestment": 375000,
   "franchiseeRating": 4.0,
+  "profileUrl": "https://wefranch.com/franchise/9230/7-eleven",
   "territories": [
-    { "state": "NV", "name": "Nevada", "status": "available", "initialInvestment": 425000 },
-    { "state": "UT", "name": "Utah", "status": "available", "initialInvestment": 350000 },
-    { "state": "WA", "name": "Washington", "status": "available", "initialInvestment": 475000 },
-    { "state": "NJ", "name": "New Jersey", "status": "available", "initialInvestment": 525000 },
-    { "state": "DE", "name": "Delaware", "status": "sold", "initialInvestment": 310000 }
+    {"state": "NV", "name": "Nevada", "status": "available", "initialInvestment": 435000},
+    {"state": "UT", "name": "Utah", "status": "available", "initialInvestment": 350000},
+    {"state": "WA", "name": "Washington", "status": "available", "initialInvestment": 485000},
+    {"state": "NJ", "name": "New Jersey", "status": "available", "initialInvestment": 535000},
+    {"state": "DE", "name": "Delaware", "status": "sold", "initialInvestment": 310000},
+    {"state": "CA", "name": "California", "status": "available", "initialInvestment": 545000},
+    {"state": "OR", "name": "Oregon", "status": "available", "initialInvestment": 460000},
+    {"state": "ID", "name": "Idaho", "status": "available", "initialInvestment": 340000}
   ]
 }

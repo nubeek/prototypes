@@ -23,7 +23,9 @@ function projectTerritoryShapeLatitude(latitude) {
   return Math.log(Math.tan((Math.PI / 4) + (radians / 2)));
 }
 
-function createTerritoryShape(geometry, color) {
+let territoryShapeHatchId = 0;
+
+function createTerritoryShape(geometry, color, { status } = {}) {
   const polygons = getTerritoryShapePolygons(geometry);
   if (!polygons.length) return null;
 
@@ -69,6 +71,7 @@ function createTerritoryShape(geometry, color) {
 
   const svg = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "svg");
   const path = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "path");
+  const isEstablished = status === "established";
 
   svg.classList.add("territory-brand-territory__shape");
   svg.setAttribute("viewBox", `0 0 ${TERRITORY_SHAPE_WIDTH} ${TERRITORY_SHAPE_HEIGHT}`);
@@ -76,13 +79,36 @@ function createTerritoryShape(geometry, color) {
   svg.setAttribute("focusable", "false");
 
   path.setAttribute("d", pathData);
-  path.setAttribute("fill", color);
-  path.setAttribute("fill-opacity", "0.25");
   path.setAttribute("stroke", color);
   path.setAttribute("stroke-width", "1.5");
   path.setAttribute("stroke-linejoin", "round");
   path.setAttribute("vector-effect", "non-scaling-stroke");
   path.setAttribute("fill-rule", "evenodd");
+
+  if (isEstablished) {
+    territoryShapeHatchId += 1;
+    const patternId = `territory-shape-hatch-${territoryShapeHatchId}`;
+    const defs = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "defs");
+    const pattern = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "pattern");
+    const stripe = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "rect");
+
+    pattern.setAttribute("id", patternId);
+    pattern.setAttribute("patternUnits", "userSpaceOnUse");
+    pattern.setAttribute("width", "4");
+    pattern.setAttribute("height", "4");
+    pattern.setAttribute("patternTransform", "rotate(45)");
+    stripe.setAttribute("width", "2");
+    stripe.setAttribute("height", "4");
+    stripe.setAttribute("fill", color);
+    pattern.append(stripe);
+    defs.append(pattern);
+    svg.append(defs);
+    path.setAttribute("fill", `url(#${patternId})`);
+    path.setAttribute("fill-opacity", "0.55");
+  } else {
+    path.setAttribute("fill", color);
+    path.setAttribute("fill-opacity", "0.25");
+  }
 
   svg.append(path);
   return svg;
@@ -90,6 +116,7 @@ function createTerritoryShape(geometry, color) {
 
 const collapsedTerritoryBrandIds = new Set();
 let selectedBrandPanelTerritoryKey = null;
+let selectedBrandPanelCompareKey = null;
 let territoryBrandPanelLayoutPending = false;
 let territoryBrandPanelLayoutPromise = Promise.resolve();
 
@@ -169,16 +196,20 @@ function createTerritoryBrandItem(brand, territories) {
     const territoryButton = document.createElement("button");
     const territoryLabel = document.createElement("span");
     const territoryStatus = document.createElement("span");
-    const territoryShape = createTerritoryShape(territory.geometry, brand.color);
+    const territoryShape = createTerritoryShape(territory.geometry, brand.color, {
+      status: territory.status
+    });
     const territoryKey = `${territory.brandId}:${territory.state}`;
     const isSelected = territoryKey === selectedBrandPanelTerritoryKey;
+    const isCompare = territoryKey === selectedBrandPanelCompareKey;
 
     territoryItem.className = "territory-brand-territory";
     territoryButton.className = "ui-control territory-brand-territory__button";
     territoryButton.classList.toggle("is-selected", isSelected);
+    territoryButton.classList.toggle("is-compare", isCompare);
     territoryButton.type = "button";
     territoryButton.dataset.territoryKey = territoryKey;
-    territoryButton.setAttribute("aria-pressed", String(isSelected));
+    territoryButton.setAttribute("aria-pressed", String(isSelected || isCompare));
     territoryLabel.className = "territory-brand-territory__label";
     territoryLabel.textContent = territory.name || territory.state;
     territoryStatus.className = "territory-brand-territory__status";
@@ -189,8 +220,10 @@ function createTerritoryBrandItem(brand, territories) {
     }
     territoryButton.append(territoryLabel, territoryStatus);
 
-    territoryButton.addEventListener("click", () => {
-      window.territoryMapSelection?.toggle?.(territory.brandId, territory.state);
+    territoryButton.addEventListener("click", (event) => {
+      window.territoryMapSelection?.toggle?.(territory.brandId, territory.state, {
+        compare: Boolean(event.metaKey || event.ctrlKey)
+      });
     });
     territoryButton.addEventListener("mouseenter", () => {
       window.territoryMapHover?.set?.(territory.brandId, territory.state);
@@ -299,6 +332,7 @@ function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
   if (!shell || !panel || !summary || !list) return;
 
   selectedBrandPanelTerritoryKey = window.territoryMapSelection?.getSelectedKey?.() || null;
+  selectedBrandPanelCompareKey = window.territoryMapSelection?.getCompareKey?.() || null;
 
   const territoryCountsByBrand = matchingRecords.reduce((counts, record) => {
     counts.set(record.brandId, (counts.get(record.brandId) || 0) + 1);
@@ -333,13 +367,17 @@ function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
   }
 }
 
-function setSelectedTerritory(territoryKey) {
+function setSelectedTerritory(territoryKey, compareKey = null) {
   selectedBrandPanelTerritoryKey = territoryKey || null;
+  selectedBrandPanelCompareKey = compareKey || null;
 
   document.querySelectorAll(".territory-brand-territory__button").forEach((button) => {
-    const isSelected = button.dataset.territoryKey === selectedBrandPanelTerritoryKey;
+    const key = button.dataset.territoryKey;
+    const isSelected = key === selectedBrandPanelTerritoryKey;
+    const isCompare = key === selectedBrandPanelCompareKey;
     button.classList.toggle("is-selected", isSelected);
-    button.setAttribute("aria-pressed", String(isSelected));
+    button.classList.toggle("is-compare", isCompare);
+    button.setAttribute("aria-pressed", String(isSelected || isCompare));
   });
 }
 

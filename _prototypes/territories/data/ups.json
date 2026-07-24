@@ -8,9 +8,15 @@
   "level": "state",
   "initialInvestment": 275000,
   "franchiseeRating": 4.0,
+  "profileUrl": "https://wefranch.com/franchise/e7xj/the-ups-store-traditional",
   "territories": [
-    { "state": "AK", "name": "Alaska", "status": "available", "initialInvestment": 310000 },
-    { "state": "MT", "name": "Montana", "status": "available", "initialInvestment": 245000 },
-    { "state": "WY", "name": "Wyoming", "status": "available", "initialInvestment": 235000 }
+    {"state": "NE", "name": "Nebraska", "status": "available", "initialInvestment": 268000},
+    {"state": "MT", "name": "Montana", "status": "available", "initialInvestment": 245000},
+    {"state": "WY", "name": "Wyoming", "status": "available", "initialInvestment": 235000},
+    {"state": "ND", "name": "North Dakota", "status": "available", "initialInvestment": 228000},
+    {"state": "SD", "name": "South Dakota", "status": "available", "initialInvestment": 232000},
+    {"state": "VT", "name": "Vermont", "status": "available", "initialInvestment": 268000},
+    {"state": "ME", "name": "Maine", "status": "available", "initialInvestment": 285000},
+    {"state": "ID", "name": "Idaho", "status": "available", "initialInvestment": 252000}
   ]
 }

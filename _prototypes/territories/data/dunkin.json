@@ -8,12 +8,15 @@
   "level": "state",
   "initialInvestment": 1150000,
   "franchiseeRating": 4.3,
+  "profileUrl": "https://wefranch.com/franchise/gr3q/dunkin",
   "territories": [
-    { "state": "MA", "name": "Massachusetts", "status": "available", "initialInvestment": 1275000 },
-    { "state": "NY", "name": "New York", "status": "available", "initialInvestment": 1215000 },
-    { "state": "CT", "name": "Connecticut", "status": "available", "initialInvestment": 1150000 },
-    { "state": "RI", "name": "Rhode Island", "status": "available", "initialInvestment": 1000000 },
-    { "state": "NH", "name": "New Hampshire", "status": "sold", "initialInvestment": 955000 },
-    { "state": "ME", "name": "Maine", "status": "available", "initialInvestment": 865000 }
+    {"state": "MA", "name": "Massachusetts", "status": "established", "initialInvestment": 1290000},
+    {"state": "NY", "name": "New York", "status": "available", "initialInvestment": 1215000},
+    {"state": "CT", "name": "Connecticut", "status": "available", "initialInvestment": 1165000},
+    {"state": "RI", "name": "Rhode Island", "status": "available", "initialInvestment": 1000000},
+    {"state": "NH", "name": "New Hampshire", "status": "sold", "initialInvestment": 955000},
+    {"state": "ME", "name": "Maine", "status": "available", "initialInvestment": 865000},
+    {"state": "NJ", "name": "New Jersey", "status": "available", "initialInvestment": 1325000},
+    {"state": "PA", "name": "Pennsylvania", "status": "available", "initialInvestment": 1185000}
   ]
 }

@@ -85,8 +85,8 @@
           <p id="territoryFilterSummary">Showing 0-0 of 0 records<span class="filter-summary-sort">sorted by relevancy</span></p>
         </div>
 
-        <section class="filter-section filter-section-collapsed">
-          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+        <section class="filter-section">
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="true">
             <span>Location</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
@@ -188,10 +188,15 @@
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-check-group">
-          <label class="filter-check">
-            <input class="territory-filter-checkbox" type="checkbox" value="available">
+          <label class="filter-check is-checked">
+            <input class="territory-filter-checkbox" type="checkbox" value="available" checked>
             <span class="filter-checkbox" aria-hidden="true"></span>
             <span>Available</span>
+          </label>
+          <label class="filter-check">
+            <input class="territory-filter-checkbox" type="checkbox" value="established">
+            <span class="filter-checkbox" aria-hidden="true"></span>
+            <span>Established</span>
           </label>
           <label class="filter-check">
             <input class="territory-filter-checkbox" type="checkbox" value="sold">
@@ -265,7 +270,7 @@
         <div class="territory-map" id="territoryMap"></div>
         <div class="territory-crossroad is-preparing-enter" id="territoryCrossroad" data-territory-crossroad role="group" aria-label="Choose how to start">
           <div class="territory-crossroad__inner">
-            <p class="territory-crossroad__heading">Start a new search or browse most popular territory searches</p>
+            <p class="territory-crossroad__heading">Start a new search<br>or browse most popular territory searches</p>
             <div class="territory-crossroad__grid" id="territoryCrossroadGrid" data-crossroad-grid>
               <button class="target-card territory-crossroad__tile territory-crossroad__tile--new" type="button" data-crossroad-new aria-label="Start a new territory search"></button>
             </div>
@@ -277,6 +282,7 @@
             <span class="territory-map-loading__text">Loading territories<span class="territory-map-loading__dots" aria-hidden="true"></span></span>
           </div>
         </div>
+        <div class="territory-info-stack" id="territoryInfoStack" hidden>
         <article class="territory-info-card" id="territoryInfoCard" aria-labelledby="territoryInfoBrand" hidden>
           <header class="territory-info-card__header">
             <img class="territory-info-card__logo" id="territoryInfoLogo" src="" alt="">
@@ -287,38 +293,88 @@
             <button class="ui-control territory-info-card__close" id="territoryInfoClose" type="button" aria-label="Close territory details"></button>
           </header>
 
-          <section class="territory-info-card__section" aria-labelledby="territoryInfoFinance">
-            <h4 class="territory-info-card__section-title" id="territoryInfoFinance">Finance</h4>
-            <dl class="territory-info-card__rows">
-              <div class="territory-info-card__row">
-                <dt>Initial investment</dt>
-                <dd id="territoryInfoInvestment"></dd>
-              </div>
-            </dl>
-          </section>
+          <div class="territory-info-card__scroll">
+            <section class="territory-info-card__section" aria-labelledby="territoryInfoFinance">
+              <h4 class="territory-info-card__section-title" id="territoryInfoFinance">Finance</h4>
+              <dl class="territory-info-card__rows">
+                <div class="territory-info-card__row">
+                  <dt>Initial investment</dt>
+                  <dd id="territoryInfoInvestment"></dd>
+                </div>
+              </dl>
+            </section>
 
-          <section class="territory-info-card__section" aria-labelledby="territoryInfoDemographics">
-            <h4 class="territory-info-card__section-title" id="territoryInfoDemographics">Demographics</h4>
-            <dl class="territory-info-card__rows">
-              <div class="territory-info-card__row">
-                <dt>Population</dt>
-                <dd id="territoryInfoPopulation"></dd>
-              </div>
-              <div class="territory-info-card__row">
-                <dt>Urban population</dt>
-                <dd id="territoryInfoUrbanPopulation"></dd>
-              </div>
-              <div class="territory-info-card__row">
-                <dt>Median income</dt>
-                <dd id="territoryInfoMedianIncome"></dd>
-              </div>
-              <div class="territory-info-card__row">
-                <dt>GDP</dt>
-                <dd id="territoryInfoGdp"></dd>
-              </div>
-            </dl>
-          </section>
+            <section class="territory-info-card__section" aria-labelledby="territoryInfoMarket">
+              <h4 class="territory-info-card__section-title" id="territoryInfoMarket">Market</h4>
+              <dl class="territory-info-card__rows">
+                <div class="territory-info-card__row">
+                  <dt>Population</dt>
+                  <dd id="territoryInfoPopulation"></dd>
+                </div>
+                <div class="territory-info-card__row">
+                  <dt>Median income</dt>
+                  <dd id="territoryInfoMedianIncome"></dd>
+                </div>
+                <div class="territory-info-card__row">
+                  <dt>Market growth</dt>
+                  <dd id="territoryInfoMarketGrowth"></dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+
+          <div class="territory-info-card__actions">
+            <a class="ui-control ui-button ui-button-secondary territory-info-card__action" id="territoryInfoProfile" href="#" target="_blank" rel="noopener noreferrer">Franchise Profile</a>
+            <button class="ui-control ui-button ui-button-primary territory-info-card__action" type="button">Request Information</button>
+          </div>
         </article>
+
+        <article class="territory-info-card" id="territoryInfoCardCompare" aria-labelledby="territoryInfoBrandCompare" hidden>
+          <header class="territory-info-card__header">
+            <img class="territory-info-card__logo" id="territoryInfoLogoCompare" src="" alt="">
+            <div class="territory-info-card__identity">
+              <h3 class="territory-info-card__brand" id="territoryInfoBrandCompare"></h3>
+              <p class="territory-info-card__state" id="territoryInfoStateCompare"></p>
+            </div>
+            <button class="ui-control territory-info-card__close" id="territoryInfoCloseCompare" type="button" aria-label="Remove from comparison"></button>
+          </header>
+
+          <div class="territory-info-card__scroll">
+            <section class="territory-info-card__section" aria-labelledby="territoryInfoFinanceCompare">
+              <h4 class="territory-info-card__section-title" id="territoryInfoFinanceCompare">Finance</h4>
+              <dl class="territory-info-card__rows">
+                <div class="territory-info-card__row">
+                  <dt>Initial investment</dt>
+                  <dd id="territoryInfoInvestmentCompare"></dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="territory-info-card__section" aria-labelledby="territoryInfoMarketCompare">
+              <h4 class="territory-info-card__section-title" id="territoryInfoMarketCompare">Market</h4>
+              <dl class="territory-info-card__rows">
+                <div class="territory-info-card__row">
+                  <dt>Population</dt>
+                  <dd id="territoryInfoPopulationCompare"></dd>
+                </div>
+                <div class="territory-info-card__row">
+                  <dt>Median income</dt>
+                  <dd id="territoryInfoMedianIncomeCompare"></dd>
+                </div>
+                <div class="territory-info-card__row">
+                  <dt>Market growth</dt>
+                  <dd id="territoryInfoMarketGrowthCompare"></dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+
+          <div class="territory-info-card__actions">
+            <a class="ui-control ui-button ui-button-secondary territory-info-card__action" id="territoryInfoProfileCompare" href="#" target="_blank" rel="noopener noreferrer">Franchise Profile</a>
+            <button class="ui-control ui-button ui-button-primary territory-info-card__action" type="button">Request Information</button>
+          </div>
+        </article>
+        </div>
       </div>
 
       <aside class="filter-panel territory-brand-panel" id="territoryBrandPanel" aria-label="Territories" aria-hidden="true">
@@ -341,11 +397,77 @@
           </div>
           <ul class="territory-brand-list" id="territoryBrandList"></ul>
         </div>
+        <div class="filter-actions">
+          <button class="ui-control ui-button ui-button-muted clear-filters-btn territory-save-search-btn" id="territorySaveSearch" type="button">
+            <img src="assets/add-alert.svg" alt="" aria-hidden="true">
+            Save search
+          </button>
+        </div>
       </aside>
     </div>
   </main>
 
   <button class="territory-map-pill territory-map-reset" id="territoryMapReset" type="button" hidden>Reset map view</button>
+
+  <div class="profile-modal-overlay target-modal-overlay save-search-modal-overlay" id="saveSearchModal" hidden>
+    <section class="profile-modal target-modal save-search-modal" role="dialog" aria-modal="true" aria-labelledby="saveSearchModalTitle">
+      <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close save-search-modal-close" type="button" aria-label="Close save search">
+        <img src="assets/close.svg" alt="" aria-hidden="true">
+      </button>
+
+      <form class="target-modal-form save-search-modal-form" id="saveSearchModalForm">
+        <div class="save-search-view save-search-view--form" id="saveSearchFormView">
+          <h2 class="target-modal-title save-search-modal-title" id="saveSearchModalTitle">
+            <img class="save-search-modal-title__icon" src="assets/add-alert.svg" alt="" aria-hidden="true" width="24" height="24">
+            Save search
+          </h2>
+          <p class="save-search-description">We'll notify you when territories matching your current filters change.</p>
+
+          <fieldset class="save-search-notify">
+            <legend class="save-search-notify__legend">Notify me when:</legend>
+            <div class="filter-check-group save-search-notify__options">
+              <label class="filter-check is-checked">
+                <input class="save-search-notify-checkbox" type="checkbox" name="notifyAvailable" value="available" checked>
+                <span class="filter-checkbox" aria-hidden="true"></span>
+                <span>New territories become available</span>
+              </label>
+              <label class="filter-check is-checked">
+                <input class="save-search-notify-checkbox" type="checkbox" name="notifyStatus" value="status" checked>
+                <span class="filter-checkbox" aria-hidden="true"></span>
+                <span>Territory status changes</span>
+              </label>
+              <label class="filter-check is-checked">
+                <input class="save-search-notify-checkbox" type="checkbox" name="notifyBrands" value="brands" checked>
+                <span class="filter-checkbox" aria-hidden="true"></span>
+                <span>New brands match this search</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="target-modal-field save-search-name-field" for="saveSearchAlertName">
+            <span>Alert name</span>
+            <input class="target-modal-control target-modal-input" id="saveSearchAlertName" name="alertName" type="text" autocomplete="off" required>
+          </label>
+
+          <div class="target-modal-actions save-search-modal-actions">
+            <button class="ui-control ui-button target-modal-cancel save-search-modal-cancel" type="button">Cancel</button>
+            <button class="ui-control ui-button ui-button-primary target-modal-save save-search-modal-save" type="submit">Save</button>
+          </div>
+        </div>
+
+        <div class="save-search-view save-search-view--success" id="saveSearchSuccessView" hidden>
+          <div class="save-search-success">
+            <span class="save-search-success__icon" aria-hidden="true">
+              <img src="assets/check.svg" alt="">
+            </span>
+            <h2 class="target-modal-title save-search-success__title" id="saveSearchSuccessTitle">Alert saved</h2>
+            <p class="save-search-success__copy">You'll be notified when matching territories change.</p>
+            <button class="ui-control ui-button ui-button-primary save-search-success__done" type="button">Done</button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="../../scripts/cst-env.js"></script>
@@ -353,5 +475,6 @@
   <script src="scripts/brand-panel.js"></script>
   <script src="scripts/map.js"></script>
   <script src="scripts/crossroad.js"></script>
+  <script src="scripts/save-search-modal.js"></script>
 </body>
 </html>

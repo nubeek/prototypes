@@ -8,11 +8,15 @@
   "level": "state",
   "initialInvestment": 650000,
   "franchiseeRating": 4.4,
+  "profileUrl": "https://wefranch.com/franchise/ep0j/remax",
   "territories": [
-    { "state": "CA", "name": "California", "status": "available", "initialInvestment": 875000 },
-    { "state": "CO", "name": "Colorado", "status": "available", "initialInvestment": 575000 },
-    { "state": "AZ", "name": "Arizona", "status": "available", "initialInvestment": 525000 },
-    { "state": "TX", "name": "Texas", "status": "available", "initialInvestment": 625000 },
-    { "state": "HI", "name": "Hawaii", "status": "sold", "initialInvestment": 950000 }
+    {"state": "CA", "name": "California", "status": "available", "initialInvestment": 895000},
+    {"state": "CO", "name": "Colorado", "status": "established", "initialInvestment": 575000},
+    {"state": "AZ", "name": "Arizona", "status": "available", "initialInvestment": 540000},
+    {"state": "TX", "name": "Texas", "status": "available", "initialInvestment": 625000},
+    {"state": "HI", "name": "Hawaii", "status": "sold", "initialInvestment": 950000},
+    {"state": "FL", "name": "Florida", "status": "available", "initialInvestment": 725000},
+    {"state": "GA", "name": "Georgia", "status": "available", "initialInvestment": 595000},
+    {"state": "WA", "name": "Washington", "status": "available", "initialInvestment": 695000}
   ]
 }

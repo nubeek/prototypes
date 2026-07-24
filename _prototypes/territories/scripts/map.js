@@ -26,11 +26,17 @@ const TERRITORY_BRAND_FILES = [
   "7eleven.json",
   "remax.json",
   "dominos.json",
-  "ups.json"
+  "ups.json",
+  "wendys.json"
 ];
 let territoryDataCachePromise = null;
 const TERRITORY_FILL_OPACITY = 0.15;
 const TERRITORY_FILL_HOVER_OPACITY = 0.3;
+const TERRITORY_HATCH_FILL_OPACITY = 0.4;
+const TERRITORY_HATCH_FILL_HOVER_OPACITY = 0.65;
+const TERRITORY_HATCH_LINE_PX = 2;
+const TERRITORY_HATCH_GAP_PX = 2;
+const TERRITORY_HATCH_PIXEL_RATIO = 2;
 const TERRITORY_LINE_OPACITY = 0.5;
 const TERRITORY_LINE_WIDTH = 2;
 const TERRITORY_SHARED_FILL_OPACITY = 0.28;
@@ -40,6 +46,11 @@ const TERRITORY_SHARED_IMAGE_MAX_DIM = 1600;
 const TERRITORY_LOGO_MIN_SIZE = 24;
 const TERRITORY_LOGO_MAX_SIZE = 42;
 const TERRITORY_LOGO_SHARED_GAP = 4;
+const TERRITORY_LOGO_MAX_VISIBLE = 4;
+// Keep map logo textures small and uniform. Large source images inflate
+// icon-offset values (offset × imageWidth), which Mapbox can distort into
+// stretched blobs when several brands share one territory.
+const TERRITORY_LOGO_TEXTURE_SIZE = 64;
 const TERRITORY_LOGO_CORNER_RADIUS_RATIO = 10 / 42;
 const TERRITORY_LOGO_BORDER_COLOR = "#e7e7e7";
 const TERRITORY_LOGO_ZOOM_MIN = 3;
@@ -77,6 +88,18 @@ const TERRITORY_BLEND_FILL_OPACITY_EXPRESSION = [
   TERRITORY_BLEND_HOVER_OPACITY,
   0
 ];
+const TERRITORY_HATCH_FILL_OPACITY_EXPRESSION = [
+  "case",
+  [
+    "any",
+    ["boolean", ["feature-state", "hover"], false],
+    ["boolean", ["feature-state", "selected"], false]
+  ],
+  TERRITORY_HATCH_FILL_HOVER_OPACITY,
+  TERRITORY_HATCH_FILL_OPACITY
+];
+const TERRITORY_STATUS_ESTABLISHED_FILTER = ["==", ["get", "status"], "established"];
+const TERRITORY_STATUS_NON_ESTABLISHED_FILTER = ["!=", ["get", "status"], "established"];
 const brandLogoMetaById = new Map();
 const territoryLineLayerIds = [];
 const territoryBrandLayerIds = new Map();
@@ -95,7 +118,8 @@ let territoryStateMacrodata = new Map();
 let territoryLastMatchingRecords = null;
 let territoryRenderedRecords = null;
 let selectedTerritoryKey = null;
-let selectedTerritoryFeatureState = null;
+let compareTerritoryKey = null;
+let selectedTerritoryFeatureStates = [];
 let territoryInfoDismissedKey = null;
 let territoryInfoHideTimer = null;
 let territoryBlendRenderTimer = null;
@@ -118,6 +142,7 @@ let sidebarHoveredTerritoryState = null;
 
 const TERRITORY_STATUS_LABELS = {
   available: "Available",
+  established: "Established",
   sold: "Sold"
 };
 
@@ -132,6 +157,10 @@ const TERRITORY_MAP_VIEW_RESET_CENTER_TOLERANCE = 0.05;
 const TERRITORY_MAP_RESET_TOP_OFFSET = 32;
 let territoryMapResetHideTimer = null;
 let territoryMapResetPositionObserver = null;
+let territoryFilterDefaultView = {
+  center: [...TERRITORY_MAP_CENTER],
+  zoom: TERRITORY_MAP_ZOOM
+};
 
 function getTerritoryMapContainerElement() {
   return document.querySelector(".territory-map-frame") || document.getElementById("territoryMap");
@@ -177,15 +206,63 @@ function isTerritoryCrossroadOpen() {
   return document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open") ?? false;
 }
 
+function normalizeTerritoryMapCenter(center) {
+  if (Array.isArray(center)) return [center[0], center[1]];
+  return [center.lng, center.lat];
+}
+
+function setTerritoryFilterDefaultView(center, zoom) {
+  territoryFilterDefaultView = {
+    center: normalizeTerritoryMapCenter(center),
+    zoom
+  };
+}
+
+function captureTerritoryFilterDefaultViewFromMap(territoryMap) {
+  if (!territoryMap) return;
+
+  const center = territoryMap.getCenter();
+  setTerritoryFilterDefaultView(center, territoryMap.getZoom());
+}
+
+function shouldAutoFitMapToMatchingRecords(matchingRecords) {
+  if (!matchingRecords.length) return false;
+
+  const appliedFilterCount = window.territoryFilters?.getAppliedFilterCount?.() ?? 0;
+  if (appliedFilterCount > 0) return true;
+
+  return territoryRegistry.length > 0 && matchingRecords.length < territoryRegistry.length;
+}
+
+function getTerritoryRecordsFilterCamera(territoryMap, matchingRecords) {
+  if (!territoryMap || !matchingRecords.length || !window.mapboxgl) return null;
+
+  const recordBounds = getMatchingRecordsBounds(matchingRecords);
+  if (!recordBounds) return null;
+
+  const { west, east, south, north } = recordBounds;
+  const bounds = new mapboxgl.LngLatBounds([west, south], [east, north]);
+  const camera = territoryMap.cameraForBounds(bounds, {
+    padding: TERRITORY_FOCUS_PADDING,
+    maxZoom: TERRITORY_FOCUS_MAX_ZOOM
+  });
+
+  return {
+    center: camera.center,
+    zoom: Math.min(camera.zoom, TERRITORY_FOCUS_MAX_ZOOM)
+  };
+}
+
 function isTerritoryMapAtDefaultView(territoryMap) {
   if (!territoryMap) return true;
 
   const center = territoryMap.getCenter();
   const zoom = territoryMap.getZoom();
+  const [defaultLng, defaultLat] = territoryFilterDefaultView.center;
 
-  return Math.abs(zoom - TERRITORY_MAP_ZOOM) < TERRITORY_MAP_VIEW_RESET_ZOOM_TOLERANCE
-    && Math.abs(center.lng - TERRITORY_MAP_CENTER[0]) < TERRITORY_MAP_VIEW_RESET_CENTER_TOLERANCE
-    && Math.abs(center.lat - TERRITORY_MAP_CENTER[1]) < TERRITORY_MAP_VIEW_RESET_CENTER_TOLERANCE;
+  return Math.abs(zoom - territoryFilterDefaultView.zoom) < TERRITORY_MAP_VIEW_RESET_ZOOM_TOLERANCE
+    && Math.abs(center.lng - defaultLng) < TERRITORY_MAP_VIEW_RESET_CENTER_TOLERANCE
+    && Math.abs(center.lat - defaultLat) < TERRITORY_MAP_VIEW_RESET_CENTER_TOLERANCE;
 }
 
 function showTerritoryMapReset() {
@@ -259,11 +336,12 @@ function resetTerritoryMapView() {
   const territoryMap = window.territoryMap;
   if (!territoryMap) return;
 
-  clearSelectedTerritory();
+  clearSelectedTerritory({ refreshMapView: false });
 
+  const { center, zoom } = territoryFilterDefaultView;
   territoryMap.flyTo({
-    center: TERRITORY_MAP_CENTER,
-    zoom: TERRITORY_MAP_ZOOM,
+    center,
+    zoom,
     duration: TERRITORY_FOCUS_DURATION,
     curve: TERRITORY_FOCUS_FLY_CURVE,
     essential: true
@@ -321,6 +399,7 @@ function hideTerritoryRecords() {
   clearTerritoryMapHover?.();
   territoryLastMatchingRecords = [];
   territoryRenderedRecords = [];
+  setTerritoryFilterDefaultView(TERRITORY_MAP_CENTER, TERRITORY_MAP_ZOOM);
   renderTerritoryRecords([]);
   window.territoryFilters?.updateSummary?.(0, territoryRegistry.length);
   window.territoryBrandPanel?.update?.(territoryBrands, []);
@@ -435,18 +514,7 @@ function createTerritoryTooltipController(mapInstance) {
     return true;
   };
 
-  const renderTooltipContent = (feature) => {
-    const tooltip = getTooltip();
-    const properties = feature.properties || {};
-    const stateCode = getStateCodeFromMapFeature(feature);
-
-    tooltip.replaceChildren();
-
-    if (stateCode && isSharedTerritoryState(stateCode)) {
-      renderSharedTerritoryTooltipContent(tooltip, stateCode, properties);
-      return;
-    }
-
+  const renderSingleBrandTooltipContent = (tooltip, properties) => {
     const brand = properties.brand || "";
     const territoryName = properties.stateName || properties.state || "";
     const status = formatTerritoryStatus(properties.status || "");
@@ -487,6 +555,23 @@ function createTerritoryTooltipController(mapInstance) {
       statusLine.textContent = status;
       tooltip.append(statusLine);
     }
+  };
+
+  const renderTooltipContent = (feature) => {
+    const tooltip = getTooltip();
+    const properties = feature.properties || {};
+    const stateCode = getStateCodeFromMapFeature(feature);
+
+    tooltip.replaceChildren();
+
+    // Logo hits always show that brand alone. Shared-state fill/hit hits keep
+    // the multi-brand summary tooltip.
+    if (stateCode && isSharedTerritoryState(stateCode) && !isTerritoryLogoFeature(feature)) {
+      renderSharedTerritoryTooltipContent(tooltip, stateCode, properties);
+      return;
+    }
+
+    renderSingleBrandTooltipContent(tooltip, properties);
   };
 
   const positionTooltip = () => {
@@ -546,36 +631,48 @@ const territoryCurrencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
   maximumFractionDigits: 0
 });
-const territoryCompactCurrencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1
-});
 
-function getTerritoryInfoCardElement() {
-  return document.getElementById("territoryInfoCard");
+function getTerritoryInfoStackElement() {
+  return document.getElementById("territoryInfoStack");
+}
+
+function getTerritoryInfoCardElement({ compare = false } = {}) {
+  return document.getElementById(compare ? "territoryInfoCardCompare" : "territoryInfoCard");
+}
+
+function getTerritoryInfoFieldId(baseId, { compare = false } = {}) {
+  return compare ? `${baseId}Compare` : baseId;
 }
 
 function hideTerritoryInfoCard({ immediate = false } = {}) {
-  const card = getTerritoryInfoCardElement();
-  if (!card) return;
+  const stack = getTerritoryInfoStackElement();
+  const primaryCard = getTerritoryInfoCardElement();
+  const compareCard = getTerritoryInfoCardElement({ compare: true });
+  if (!stack || !primaryCard) return;
 
   if (territoryInfoHideTimer) {
     window.clearTimeout(territoryInfoHideTimer);
     territoryInfoHideTimer = null;
   }
 
-  card.classList.remove("is-visible");
+  stack.classList.remove("is-visible", "is-compare");
+  primaryCard.classList.remove("is-visible");
+  compareCard?.classList.remove("is-visible");
+
+  const finishHide = () => {
+    stack.hidden = true;
+    primaryCard.hidden = true;
+    if (compareCard) compareCard.hidden = true;
+  };
 
   if (immediate) {
-    card.hidden = true;
+    finishHide();
     return;
   }
 
   territoryInfoHideTimer = window.setTimeout(() => {
-    if (!card.classList.contains("is-visible")) {
-      card.hidden = true;
+    if (!stack.classList.contains("is-visible")) {
+      finishHide();
     }
     territoryInfoHideTimer = null;
   }, 180);
@@ -587,77 +684,182 @@ function formatTerritoryInfoValue(value, formatter, prefix = "") {
   return `${prefix}${formatter.format(numericValue)}`;
 }
 
-function showTerritoryInfoCard(record) {
-  const card = getTerritoryInfoCardElement();
-  if (!card || !record) {
+function formatTerritoryMarketGrowth(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "—";
+  const absolute = Math.abs(numericValue).toFixed(1);
+  if (numericValue > 0) return `+${absolute}%`;
+  if (numericValue < 0) return `-${absolute}%`;
+  return `${absolute}%`;
+}
+
+function updateTerritoryInfoCardScrollOverflow(card) {
+  if (!card) return;
+
+  const scrollRegion = card.querySelector(".territory-info-card__scroll");
+  if (!scrollRegion) {
+    card.classList.remove("has-scroll-overflow");
+    return;
+  }
+
+  const canScroll = scrollRegion.scrollHeight > scrollRegion.clientHeight + 1;
+  card.classList.toggle("has-scroll-overflow", canScroll);
+}
+
+function syncTerritoryInfoCardScrollOverflow(card) {
+  if (!card) return;
+
+  updateTerritoryInfoCardScrollOverflow(card);
+  window.requestAnimationFrame(() => {
+    updateTerritoryInfoCardScrollOverflow(card);
+  });
+}
+
+function populateTerritoryInfoCard(record, { compare = false } = {}) {
+  if (!record) return;
+
+  const brand = territoryBrandsById.get(record.brandId);
+  const macrodata = territoryStateMacrodata.get(record.state);
+  const brandName = brand?.brand || record.brand || "";
+  const stateName = record.name || macrodata?.name || record.state;
+  const card = getTerritoryInfoCardElement({ compare });
+
+  const logo = document.getElementById(getTerritoryInfoFieldId("territoryInfoLogo", { compare }));
+  if (logo) {
+    logo.src = brand?.logo || "";
+    logo.alt = brandName ? `${brandName} logo` : "";
+  }
+
+  document.getElementById(getTerritoryInfoFieldId("territoryInfoBrand", { compare })).textContent = brandName;
+  document.getElementById(getTerritoryInfoFieldId("territoryInfoState", { compare })).textContent = stateName;
+  document.getElementById(getTerritoryInfoFieldId("territoryInfoInvestment", { compare })).textContent =
+    formatTerritoryInfoValue(record.initialInvestment, territoryCurrencyFormatter);
+  document.getElementById(getTerritoryInfoFieldId("territoryInfoPopulation", { compare })).textContent =
+    formatTerritoryInfoValue(macrodata?.population, territoryCompactNumberFormatter);
+  document.getElementById(getTerritoryInfoFieldId("territoryInfoMedianIncome", { compare })).textContent =
+    formatTerritoryInfoValue(macrodata?.medianHouseholdIncome, territoryCurrencyFormatter);
+  document.getElementById(getTerritoryInfoFieldId("territoryInfoMarketGrowth", { compare })).textContent =
+    formatTerritoryMarketGrowth(macrodata?.marketGrowthPercent);
+
+  const profileLink = document.getElementById(getTerritoryInfoFieldId("territoryInfoProfile", { compare }));
+  const profileUrl = typeof brand?.profileUrl === "string" ? brand.profileUrl.trim() : "";
+  if (profileLink) {
+    if (profileUrl) {
+      profileLink.href = profileUrl;
+      profileLink.removeAttribute("aria-disabled");
+      profileLink.classList.remove("is-disabled");
+      profileLink.tabIndex = 0;
+    } else {
+      profileLink.href = "#";
+      profileLink.setAttribute("aria-disabled", "true");
+      profileLink.classList.add("is-disabled");
+      profileLink.tabIndex = -1;
+    }
+  }
+
+  syncTerritoryInfoCardScrollOverflow(card);
+}
+
+function showTerritoryInfoCards(primaryRecord, compareRecord = null) {
+  const stack = getTerritoryInfoStackElement();
+  const primaryCard = getTerritoryInfoCardElement();
+  const compareCard = getTerritoryInfoCardElement({ compare: true });
+
+  if (!stack || !primaryCard || !primaryRecord) {
     hideTerritoryInfoCard();
     return;
   }
 
-  const recordKey = territoryRecordKey(record);
+  const recordKey = territoryRecordKey(primaryRecord);
   if (territoryInfoDismissedKey === recordKey) {
     hideTerritoryInfoCard();
     return;
   }
-
-  const brand = territoryBrandsById.get(record.brandId);
-  const macrodata = territoryStateMacrodata.get(record.state);
-  const logo = document.getElementById("territoryInfoLogo");
-  const brandName = brand?.brand || record.brand || "";
-  const stateName = record.name || macrodata?.name || record.state;
 
   if (territoryInfoHideTimer) {
     window.clearTimeout(territoryInfoHideTimer);
     territoryInfoHideTimer = null;
   }
 
-  if (logo) {
-    logo.src = brand?.logo || "";
-    logo.alt = brandName ? `${brandName} logo` : "";
+  populateTerritoryInfoCard(primaryRecord);
+  primaryCard.hidden = false;
+
+  const isCompare = Boolean(compareRecord);
+  stack.classList.toggle("is-compare", isCompare);
+
+  if (isCompare && compareCard) {
+    populateTerritoryInfoCard(compareRecord, { compare: true });
+    compareCard.hidden = false;
+  } else if (compareCard) {
+    compareCard.hidden = true;
+    compareCard.classList.remove("is-visible");
   }
 
-  document.getElementById("territoryInfoBrand").textContent = brandName;
-  document.getElementById("territoryInfoState").textContent = stateName;
-  document.getElementById("territoryInfoInvestment").textContent = formatTerritoryInfoValue(
-    record.initialInvestment,
-    territoryCurrencyFormatter
-  );
-  document.getElementById("territoryInfoPopulation").textContent = formatTerritoryInfoValue(
-    macrodata?.population,
-    territoryCompactNumberFormatter,
-    "~"
-  );
-  document.getElementById("territoryInfoUrbanPopulation").textContent = Number.isFinite(
-    Number(macrodata?.urbanPopulationPercent)
-  )
-    ? `~${Number(macrodata.urbanPopulationPercent).toFixed(1)}%`
-    : "—";
-  document.getElementById("territoryInfoMedianIncome").textContent = formatTerritoryInfoValue(
-    macrodata?.medianHouseholdIncome,
-    territoryCurrencyFormatter,
-    "~"
-  );
-  document.getElementById("territoryInfoGdp").textContent = formatTerritoryInfoValue(
-    Number(macrodata?.gdpMillions) * 1000000,
-    territoryCompactCurrencyFormatter,
-    "~"
-  );
-
-  card.hidden = false;
+  stack.hidden = false;
   window.requestAnimationFrame(() => {
-    card.classList.add("is-visible");
+    stack.classList.add("is-visible");
+    primaryCard.classList.add("is-visible");
+    syncTerritoryInfoCardScrollOverflow(primaryCard);
+    if (isCompare && compareCard) {
+      compareCard.classList.add("is-visible");
+      syncTerritoryInfoCardScrollOverflow(compareCard);
+    }
   });
 }
 
-function bindTerritoryInfoCard() {
-  const card = getTerritoryInfoCardElement();
-  const closeButton = document.getElementById("territoryInfoClose");
-  if (!card || !closeButton || closeButton.dataset.bound === "true") return;
+function showTerritoryInfoCard(record) {
+  showTerritoryInfoCards(record, null);
+}
 
-  closeButton.dataset.bound = "true";
-  closeButton.addEventListener("click", () => {
-    clearSelectedTerritory();
+function bindTerritoryInfoCard() {
+  const primaryClose = document.getElementById("territoryInfoClose");
+  const compareClose = document.getElementById("territoryInfoCloseCompare");
+  const primaryCard = getTerritoryInfoCardElement();
+  const compareCard = getTerritoryInfoCardElement({ compare: true });
+
+  if (primaryClose && primaryClose.dataset.bound !== "true") {
+    primaryClose.dataset.bound = "true";
+    primaryClose.addEventListener("click", () => {
+      clearSelectedTerritory();
+    });
+  }
+
+  if (compareClose && compareClose.dataset.bound !== "true") {
+    compareClose.dataset.bound = "true";
+    compareClose.addEventListener("click", () => {
+      clearCompareTerritory();
+    });
+  }
+
+  [primaryCard, compareCard].forEach((card) => {
+    const scrollRegion = card?.querySelector(".territory-info-card__scroll");
+    if (!scrollRegion || scrollRegion.dataset.overflowBound === "true") return;
+
+    scrollRegion.dataset.overflowBound = "true";
+    scrollRegion.addEventListener("scroll", () => {
+      updateTerritoryInfoCardScrollOverflow(card);
+    }, { passive: true });
   });
+
+  [primaryCard, compareCard].forEach((card) => {
+    const profileLink = card?.querySelector(".territory-info-card__action[href]");
+    if (!profileLink || profileLink.dataset.profileBound === "true") return;
+
+    profileLink.dataset.profileBound = "true";
+    profileLink.addEventListener("click", (event) => {
+      if (profileLink.getAttribute("aria-disabled") === "true" || profileLink.classList.contains("is-disabled")) {
+        event.preventDefault();
+      }
+    });
+  });
+
+  if (!bindTerritoryInfoCard.resizeBound) {
+    bindTerritoryInfoCard.resizeBound = true;
+    window.addEventListener("resize", () => {
+      syncTerritoryInfoCardScrollOverflow(getTerritoryInfoCardElement());
+      syncTerritoryInfoCardScrollOverflow(getTerritoryInfoCardElement({ compare: true }));
+    });
+  }
 }
 
 function getStateCodeFromMapFeature(feature) {
@@ -692,9 +894,7 @@ function isSharedTerritoryState(stateCode) {
   return Boolean(stateCode) && getVisibleSharedOccupantCount(stateCode) >= 2;
 }
 
-function flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut = true, offset = null } = {}) {
-  if (!territoryMap || !camera) return;
-
+function getTerritoryMapFlyTargetZoom(territoryMap, camera, { allowZoomOut = true } = {}) {
   let targetZoom = Math.min(camera.zoom, TERRITORY_FOCUS_MAX_ZOOM);
 
   if (!allowZoomOut) {
@@ -703,6 +903,14 @@ function flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut = true, of
       targetZoom = Math.max(targetZoom, currentZoom);
     }
   }
+
+  return targetZoom;
+}
+
+function flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut = true, offset = null } = {}) {
+  if (!territoryMap || !camera) return;
+
+  const targetZoom = getTerritoryMapFlyTargetZoom(territoryMap, camera, { allowZoomOut });
 
   territoryMap.flyTo({
     center: camera.center,
@@ -741,19 +949,17 @@ function getMatchingRecordsBounds(matchingRecords) {
 }
 
 function focusTerritoryMapOnRecords(territoryMap, matchingRecords) {
-  if (!territoryMap || !matchingRecords.length || !window.mapboxgl) return;
+  const camera = getTerritoryRecordsFilterCamera(territoryMap, matchingRecords);
+  if (!camera) return;
 
-  const recordBounds = getMatchingRecordsBounds(matchingRecords);
-  if (!recordBounds) return;
-
-  const { west, east, south, north } = recordBounds;
-  const bounds = new mapboxgl.LngLatBounds([west, south], [east, north]);
-  const camera = territoryMap.cameraForBounds(bounds, {
-    padding: TERRITORY_FOCUS_PADDING,
-    maxZoom: TERRITORY_FOCUS_MAX_ZOOM
-  });
-
+  const targetZoom = getTerritoryMapFlyTargetZoom(territoryMap, camera, { allowZoomOut: true });
+  setTerritoryFilterDefaultView(camera.center, targetZoom);
   flyTerritoryMapToCamera(territoryMap, camera, { allowZoomOut: true });
+
+  territoryMap.once("moveend", () => {
+    captureTerritoryFilterDefaultViewFromMap(territoryMap);
+    updateTerritoryMapResetVisibility();
+  });
 }
 
 function scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords) {
@@ -769,13 +975,14 @@ function scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords) {
       territoryMap.resize();
       if (!territoryMap.isStyleLoaded()) return;
 
-      const appliedFilterCount = window.territoryFilters?.getAppliedFilterCount?.() ?? 0;
-
-      if (appliedFilterCount > 0 && matchingRecords.length > 0) {
+      if (shouldAutoFitMapToMatchingRecords(matchingRecords)) {
         focusTerritoryMapOnRecords(territoryMap, matchingRecords);
         return;
       }
 
+      setTerritoryFilterDefaultView(TERRITORY_MAP_CENTER, TERRITORY_MAP_ZOOM);
+
+      const appliedFilterCount = window.territoryFilters?.getAppliedFilterCount?.() ?? 0;
       if (appliedFilterCount === 0 && !isTerritoryMapAtDefaultView(territoryMap)) {
         territoryMap.flyTo({
           center: TERRITORY_MAP_CENTER,
@@ -783,6 +990,11 @@ function scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords) {
           duration: TERRITORY_FOCUS_DURATION,
           curve: TERRITORY_FOCUS_FLY_CURVE,
           essential: true
+        });
+
+        territoryMap.once("moveend", () => {
+          captureTerritoryFilterDefaultViewFromMap(territoryMap);
+          updateTerritoryMapResetVisibility();
         });
       }
     });
@@ -801,6 +1013,44 @@ function getTerritorySelectionFocusPadding(territoryMap) {
     bottom: Math.max(TERRITORY_FOCUS_PADDING, (height * 0.5) + 24),
     left: horizontalPadding
   };
+}
+
+function getTerritoryCompareFocusPadding(territoryMap) {
+  const container = territoryMap.getContainer();
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  const horizontalPadding = Math.max(24, Math.min(48, width * 0.04));
+
+  return {
+    top: Math.max(32, Math.min(56, height * 0.07)),
+    right: horizontalPadding,
+    bottom: Math.max(280, Math.min(460, height * 0.52)),
+    left: horizontalPadding
+  };
+}
+
+function focusTerritoryMapOnSelectedRecords(territoryMap, records) {
+  if (!territoryMap || !records.length || !window.mapboxgl) return;
+
+  if (records.length === 1) {
+    focusTerritoryMapOnState(territoryMap, records[0].state, { reserveInfoCardSpace: true });
+    return;
+  }
+
+  const recordBounds = getMatchingRecordsBounds(records);
+  if (!recordBounds) return;
+
+  const { west, east, south, north } = recordBounds;
+  const bounds = new mapboxgl.LngLatBounds([west, south], [east, north]);
+  const camera = territoryMap.cameraForBounds(bounds, {
+    padding: getTerritoryCompareFocusPadding(territoryMap),
+    maxZoom: TERRITORY_FOCUS_MAX_ZOOM
+  });
+
+  flyTerritoryMapToCamera(territoryMap, camera, {
+    allowZoomOut: true,
+    offset: [0, -(territoryMap.getContainer().clientHeight * 0.12)]
+  });
 }
 
 function focusTerritoryMapOnState(territoryMap, stateCode, { reserveInfoCardSpace = false } = {}) {
@@ -853,14 +1103,104 @@ function setSharedTerritoryBlendHover(territoryMap, stateCode) {
   return true;
 }
 
+function isTerritoryLogoFeature(feature) {
+  const layerId = feature?.layer?.id || "";
+  return layerId.endsWith("-logo");
+}
+
+// Temporarily include a (possibly shared) state in a brand's fill/hatch/line
+// filters and mark it hovered so that brand's color paints the territory.
+function applyBrandTerritoryHoverHighlight(territoryMap, brandId, stateCode) {
+  const layerIds = territoryBrandLayerIds.get(brandId);
+  if (!territoryMap || !layerIds?.fillLayerId || !territoryMap.getLayer(layerIds.fillLayerId)) {
+    return null;
+  }
+
+  const featureState = {
+    source: `territories-${brandId}`,
+    id: stateCode
+  };
+  const stateFilter = ["==", ["get", "state"], stateCode];
+  const hoverTargets = [
+    {
+      layerId: layerIds.fillLayerId,
+      statusFilter: TERRITORY_STATUS_NON_ESTABLISHED_FILTER
+    },
+    {
+      layerId: layerIds.hatchLayerId,
+      statusFilter: TERRITORY_STATUS_ESTABLISHED_FILTER
+    },
+    {
+      layerId: layerIds.lineLayerId,
+      statusFilter: null
+    }
+  ].filter((target) => target.layerId && territoryMap.getLayer(target.layerId));
+
+  const layerFilters = hoverTargets.map(({ layerId, statusFilter }) => {
+    const originalFilter = territoryMap.getFilter(layerId);
+    const stateStatusFilter = combineTerritoryFilters(stateFilter, statusFilter);
+    const hoverFilter = originalFilter
+      ? ["any", originalFilter, stateStatusFilter]
+      : stateStatusFilter;
+
+    territoryMap.setFilter(layerId, hoverFilter);
+    return { layerId, originalFilter };
+  });
+
+  // Hide the shared multi-color outline so the brand border reads clearly.
+  let sharedStroke = null;
+  const sharedLayerIds = territorySharedLayerIdsByState.get(stateCode);
+  if (
+    sharedLayerIds?.strokeLayerId
+    && territoryMap.getLayer(sharedLayerIds.strokeLayerId)
+    && territoryMap.getLayoutProperty(sharedLayerIds.strokeLayerId, "visibility") === "visible"
+  ) {
+    sharedStroke = { layerId: sharedLayerIds.strokeLayerId };
+    territoryMap.setLayoutProperty(sharedLayerIds.strokeLayerId, "visibility", "none");
+  }
+
+  if (layerIds.lineLayerId && territoryMap.getLayer(layerIds.lineLayerId) && territoryBordersEnabled) {
+    territoryMap.setLayoutProperty(layerIds.lineLayerId, "visibility", "visible");
+  }
+
+  territoryMap.setFeatureState(featureState, { hover: true });
+
+  return { featureState, layerFilters, sharedStroke };
+}
+
+function clearBrandTerritoryHoverHighlight(territoryMap, highlight) {
+  if (!territoryMap || !highlight) return;
+
+  territoryMap.setFeatureState(highlight.featureState, { hover: false });
+  highlight.layerFilters.forEach(({ layerId, originalFilter }) => {
+    if (territoryMap.getLayer(layerId)) {
+      territoryMap.setFilter(layerId, originalFilter);
+    }
+  });
+
+  if (
+    highlight.sharedStroke?.layerId
+    && territoryMap.getLayer(highlight.sharedStroke.layerId)
+    && territoryBordersEnabled
+  ) {
+    territoryMap.setLayoutProperty(highlight.sharedStroke.layerId, "visibility", "visible");
+  }
+}
+
 function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, clickLayerIds = interactiveLayerIds) {
   if (!interactiveLayerIds.length && !clickLayerIds.length) return;
 
   const tooltip = createTerritoryTooltipController(territoryMap);
   let hoveredFeatureKey = null;
   let hoveredFeatureState = null;
+  let hoveredBrandHighlight = null;
 
   const clearHoveredFeatureState = () => {
+    if (hoveredBrandHighlight) {
+      clearBrandTerritoryHoverHighlight(territoryMap, hoveredBrandHighlight);
+      hoveredBrandHighlight = null;
+    }
+
     if (hoveredFeatureState) {
       territoryMap.setFeatureState(hoveredFeatureState, { hover: false });
       hoveredFeatureState = null;
@@ -871,6 +1211,25 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
 
   const setHoveredFeatureState = (feature) => {
     const stateCode = getStateCodeFromMapFeature(feature);
+    const brandId = feature.properties?.brandId;
+
+    // Logo over a shared territory → paint that brand's color on the state.
+    if (
+      stateCode
+      && brandId
+      && isTerritoryLogoFeature(feature)
+      && isSharedTerritoryState(stateCode)
+    ) {
+      const nextKey = `logo-brand-${brandId}-${stateCode}`;
+      if (hoveredFeatureKey === nextKey) return;
+
+      clearHoveredFeatureState();
+      hoveredBrandHighlight = applyBrandTerritoryHoverHighlight(territoryMap, brandId, stateCode);
+      if (hoveredBrandHighlight) {
+        hoveredFeatureKey = nextKey;
+      }
+      return;
+    }
 
     if (stateCode && isSharedTerritoryState(stateCode) && territoryBlendEnabled) {
       const nextKey = `shared-blend-${stateCode}`;
@@ -883,7 +1242,6 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
       return;
     }
 
-    const brandId = feature.properties?.brandId;
     const id = feature.id ?? feature.properties?.state;
     const source = brandId ? `territories-${brandId}` : (feature.source || feature.layer?.source);
 
@@ -913,7 +1271,8 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
 
   territoryMap.on("mousemove", (event) => {
     const features = territoryMap.queryRenderedFeatures(event.point, { layers: interactiveLayerIds });
-    const feature = features[0];
+    // Prefer logo symbols so hovering a brand mark wins over the shared fill under it.
+    const feature = features.find(isTerritoryLogoFeature) || features[0];
 
     if (!feature) {
       clearHover();
@@ -936,7 +1295,8 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
     const features = territoryMap.queryRenderedFeatures(event.point, { layers: clickLayerIds });
     if (!features.length) return;
 
-    const featureWithBrand = features.find((candidate) => candidate.properties?.brandId);
+    const featureWithBrand = features.find(isTerritoryLogoFeature)
+      || features.find((candidate) => candidate.properties?.brandId);
     const feature = featureWithBrand || features[0];
     const stateCode = getStateCodeFromMapFeature(feature);
     if (!stateCode) return;
@@ -948,7 +1308,9 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
     }
     if (!brandId) return;
 
-    window.territoryMapSelection?.toggle?.(brandId, stateCode);
+    window.territoryMapSelection?.toggle?.(brandId, stateCode, {
+      compare: Boolean(event.originalEvent.metaKey || event.originalEvent.ctrlKey)
+    });
   });
 }
 
@@ -1068,6 +1430,57 @@ function buildStateVisibilityFilter(states) {
   return ["in", ["get", "state"], ["literal", states]];
 }
 
+function combineTerritoryFilters(...filters) {
+  const parts = filters.filter(Boolean);
+  if (!parts.length) return null;
+  if (parts.length === 1) return parts[0];
+  return ["all", ...parts];
+}
+
+function createDiagonalHatchImage(color, {
+  linePx = TERRITORY_HATCH_LINE_PX,
+  gapPx = TERRITORY_HATCH_GAP_PX,
+  pixelRatio = TERRITORY_HATCH_PIXEL_RATIO
+} = {}) {
+  const period = (linePx + gapPx) * pixelRatio;
+  const lineWidth = linePx * pixelRatio;
+  const { r, g, b } = parseHexColor(color);
+  const data = new Uint8Array(period * period * 4);
+
+  for (let y = 0; y < period; y += 1) {
+    for (let x = 0; x < period; x += 1) {
+      // Screen y grows downward, so x + y keeps ↗ diagonals (bottom-left to top-right).
+      const band = (x + y) % period;
+      if (band >= lineWidth) continue;
+
+      const index = ((y * period) + x) * 4;
+      data[index] = r;
+      data[index + 1] = g;
+      data[index + 2] = b;
+      data[index + 3] = 255;
+    }
+  }
+
+  return {
+    width: period,
+    height: period,
+    data
+  };
+}
+
+function ensureBrandHatchImage(territoryMap, brand) {
+  const imageId = `territory-hatch-${brand.id}`;
+  if (territoryMap.hasImage(imageId)) return imageId;
+
+  territoryMap.addImage(
+    imageId,
+    createDiagonalHatchImage(brand.color),
+    { pixelRatio: TERRITORY_HATCH_PIXEL_RATIO }
+  );
+
+  return imageId;
+}
+
 function getVisibleStatesForBrand(matchingKeys, brandId) {
   const visibleStates = [];
 
@@ -1088,12 +1501,23 @@ function getVisibleStatesForBrand(matchingKeys, brandId) {
   return visibleStates;
 }
 
+function getLogoOccupants(visibleOccupants) {
+  if (!visibleOccupants?.length) return [];
+  return visibleOccupants.slice(0, TERRITORY_LOGO_MAX_VISIBLE);
+}
+
 function getVisibleLogoStatesForBrand(matchingKeys, brandId) {
   const visibleStates = [];
 
   territoryRegistry.forEach((record) => {
     if (record.brandId !== brandId) return;
     if (!matchingKeys.has(territoryRecordKey(record))) return;
+
+    const occupants = territoryStateOccupancy.get(record.state) || [];
+    const visibleOccupants = getLogoOccupants(
+      occupants.filter((occupantId) => matchingKeys.has(`${occupantId}:${record.state}`))
+    );
+    if (!visibleOccupants.includes(brandId)) return;
 
     visibleStates.push(record.state);
   });
@@ -1132,7 +1556,7 @@ function updateBrandLogoOffsets(territoryMap, brandId, visibleOccupantsByState) 
 
   logoInfo.collection.features.forEach((feature) => {
     const stateCode = feature.properties.state;
-    const visibleOccupants = visibleOccupantsByState.get(stateCode) || [];
+    const visibleOccupants = getLogoOccupants(visibleOccupantsByState.get(stateCode) || []);
     const nextOffset = computeLogoOffset(visibleOccupants, brandId, logoInfo.imageWidth);
     const currentOffset = feature.properties.iconOffset || [0, 0];
 
@@ -1185,13 +1609,20 @@ function renderTerritoryRecords(matchingRecords) {
     if (!layerIds) return;
 
     const visibleStates = getVisibleStatesForBrand(matchingKeys, brand.id);
-    const fillFilter = buildStateVisibilityFilter(visibleStates);
+    const stateFilter = buildStateVisibilityFilter(visibleStates);
+    const solidFilter = combineTerritoryFilters(stateFilter, TERRITORY_STATUS_NON_ESTABLISHED_FILTER);
+    const hatchFilter = combineTerritoryFilters(stateFilter, TERRITORY_STATUS_ESTABLISHED_FILTER);
     const logoFilter = buildStateVisibilityFilter(getVisibleLogoStatesForBrand(matchingKeys, brand.id));
 
-    [layerIds.fillLayerId, layerIds.lineLayerId].forEach((layerId) => {
-      if (!layerId || !territoryMap.getLayer(layerId)) return;
-      territoryMap.setFilter(layerId, fillFilter);
-    });
+    if (layerIds.fillLayerId && territoryMap.getLayer(layerIds.fillLayerId)) {
+      territoryMap.setFilter(layerIds.fillLayerId, solidFilter);
+    }
+    if (layerIds.hatchLayerId && territoryMap.getLayer(layerIds.hatchLayerId)) {
+      territoryMap.setFilter(layerIds.hatchLayerId, hatchFilter);
+    }
+    if (layerIds.lineLayerId && territoryMap.getLayer(layerIds.lineLayerId)) {
+      territoryMap.setFilter(layerIds.lineLayerId, stateFilter);
+    }
 
     if (layerIds.logoLayerId && territoryMap.getLayer(layerIds.logoLayerId)) {
       territoryMap.setFilter(layerIds.logoLayerId, logoFilter);
@@ -1234,6 +1665,22 @@ function renderTerritoryRecords(matchingRecords) {
   }
 }
 
+function getSelectedTerritoryRecords(matchingRecords = territoryLastMatchingRecords || territoryRegistry) {
+  const records = [];
+
+  if (selectedTerritoryKey) {
+    const primaryRecord = matchingRecords.find((record) => territoryRecordKey(record) === selectedTerritoryKey);
+    if (primaryRecord) records.push(primaryRecord);
+  }
+
+  if (compareTerritoryKey && compareTerritoryKey !== selectedTerritoryKey) {
+    const compareRecord = matchingRecords.find((record) => territoryRecordKey(record) === compareTerritoryKey);
+    if (compareRecord) records.push(compareRecord);
+  }
+
+  return records;
+}
+
 function applyTerritoryFilters(matchingRecords) {
   const territoryMap = window.territoryMap;
   if (!territoryMap || !territoryBrands.length) return;
@@ -1242,23 +1689,37 @@ function applyTerritoryFilters(matchingRecords) {
   territoryLastMatchingRecords = matchingRecords;
   territoryHoldInitialRender = false;
 
-  const selectedRecord = selectedTerritoryKey
-    ? matchingRecords.find((record) => territoryRecordKey(record) === selectedTerritoryKey)
-    : null;
-
-  if (selectedTerritoryKey && !selectedRecord) {
-    selectedTerritoryKey = null;
-    territoryInfoDismissedKey = null;
-    clearSelectedTerritoryFeatureState();
+  if (selectedTerritoryKey) {
+    const primaryStillVisible = matchingRecords.some(
+      (record) => territoryRecordKey(record) === selectedTerritoryKey
+    );
+    if (!primaryStillVisible) {
+      selectedTerritoryKey = null;
+      compareTerritoryKey = null;
+      territoryInfoDismissedKey = null;
+      clearSelectedTerritoryFeatureStates();
+    }
   }
 
-  renderTerritoryRecords(selectedRecord ? [selectedRecord] : matchingRecords);
+  if (compareTerritoryKey) {
+    const compareStillVisible = matchingRecords.some(
+      (record) => territoryRecordKey(record) === compareTerritoryKey
+    );
+    if (!compareStillVisible || compareTerritoryKey === selectedTerritoryKey) {
+      compareTerritoryKey = null;
+    }
+  }
+
+  const selectedRecords = getSelectedTerritoryRecords(matchingRecords);
+  renderTerritoryRecords(selectedRecords.length ? selectedRecords : matchingRecords);
   window.territoryFilters?.updateSummary?.(matchingRecords.length, territoryRegistry.length);
   window.territoryBrandPanel?.update?.(territoryBrands, matchingRecords);
-  showTerritoryInfoCard(selectedRecord);
+  showTerritoryInfoCards(selectedRecords[0] || null, selectedRecords[1] || null);
 
   if (!selectedTerritoryKey) {
     scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords);
+  } else if (selectedRecords.length > 1) {
+    focusTerritoryMapOnSelectedRecords(territoryMap, selectedRecords);
   }
 }
 
@@ -1315,17 +1776,40 @@ function buildBrandFeatureCollection(brand, statesByCode) {
   return { type: "FeatureCollection", features };
 }
 
-function computeLogoOffset(visibleOccupants, brandId, imageWidth) {
-  if (!visibleOccupants || visibleOccupants.length < 2) return [0, 0];
+function pixelsToIconOffset(offsetPixels, imageWidth) {
+  return (offsetPixels * imageWidth) / TERRITORY_LOGO_MIN_SIZE;
+}
 
-  const index = visibleOccupants.indexOf(brandId);
+// Layout slots for shared-territory logos (centered on the state centroid):
+// 2 → one row; 3 → two on top, one centered below; 4 → 2×2 grid.
+function getLogoLayoutSlot(count, index) {
+  if (count <= 1 || index < 0) return [0, 0];
+
+  if (count === 2) {
+    return [[-0.5, 0], [0.5, 0]][index] || [0, 0];
+  }
+
+  if (count === 3) {
+    return [[-0.5, -0.5], [0.5, -0.5], [0, 0.5]][index] || [0, 0];
+  }
+
+  return [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]][index] || [0, 0];
+}
+
+function computeLogoOffset(visibleOccupants, brandId, imageWidth) {
+  const occupants = getLogoOccupants(visibleOccupants);
+  if (occupants.length < 2) return [0, 0];
+
+  const index = occupants.indexOf(brandId);
   if (index < 0) return [0, 0];
 
   const slot = TERRITORY_LOGO_MIN_SIZE + TERRITORY_LOGO_SHARED_GAP;
-  const offsetPixels = (index - (visibleOccupants.length - 1) / 2) * slot;
-  const offsetIcon = (offsetPixels * imageWidth) / TERRITORY_LOGO_MIN_SIZE;
+  const [slotX, slotY] = getLogoLayoutSlot(occupants.length, index);
 
-  return [offsetIcon, 0];
+  return [
+    pixelsToIconOffset(slotX * slot, imageWidth),
+    pixelsToIconOffset(slotY * slot, imageWidth)
+  ];
 }
 
 function buildBrandLogoFeatureCollection(brand, statesByCode, stateOccupancy, imageWidth) {
@@ -1338,6 +1822,8 @@ function buildBrandLogoFeatureCollection(brand, statesByCode, stateOccupancy, im
     const centroid = getTerritoryCentroid(stateFeature.geometry);
     if (!centroid) return;
 
+    const logoOccupants = getLogoOccupants(stateOccupancy.get(territory.state));
+
     features.push({
       type: "Feature",
       id: territory.state,
@@ -1347,7 +1833,7 @@ function buildBrandLogoFeatureCollection(brand, statesByCode, stateOccupancy, im
       },
       properties: {
         ...getTerritoryProperties(brand, territory),
-        iconOffset: computeLogoOffset(stateOccupancy.get(territory.state), brand.id, imageWidth)
+        iconOffset: computeLogoOffset(logoOccupants, brand.id, imageWidth)
       }
     });
   });
@@ -1372,13 +1858,15 @@ function roundLogoRectPath(context, width, height, radius) {
 }
 
 function createRoundedLogoImage(sourceImage) {
-  const width = sourceImage.width;
-  const height = sourceImage.height;
+  const width = TERRITORY_LOGO_TEXTURE_SIZE;
+  const height = TERRITORY_LOGO_TEXTURE_SIZE;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
 
   const context = canvas.getContext("2d");
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
   const radius = Math.round(Math.min(width, height) * TERRITORY_LOGO_CORNER_RADIUS_RATIO);
 
   context.save();
@@ -1436,8 +1924,8 @@ async function loadBrandLogoImage(territoryMap, brand) {
 
   const logoMeta = {
     imageId,
-    imageWidth: image.width,
-    iconSize: buildTerritoryLogoIconSizeExpression(image.width)
+    imageWidth: TERRITORY_LOGO_TEXTURE_SIZE,
+    iconSize: buildTerritoryLogoIconSizeExpression(TERRITORY_LOGO_TEXTURE_SIZE)
   };
 
   brandLogoMetaById.set(brand.id, logoMeta);
@@ -2087,7 +2575,9 @@ function addSharedTerritoryLayers(territoryMap, sharedStates, stateOccupancy, br
 function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFeatureCollection, logoMeta, excludeFilter) {
   const sourceId = `territories-${brand.id}`;
   const fillLayerId = `${sourceId}-fill`;
+  const hatchLayerId = `${sourceId}-hatch`;
   const logoLayerId = `${sourceId}-logo`;
+  const hatchImageId = ensureBrandHatchImage(territoryMap, brand);
 
   territoryMap.addSource(sourceId, {
     type: "geojson",
@@ -2107,6 +2597,17 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
     }
   };
 
+  const hatchLayer = {
+    id: hatchLayerId,
+    type: "fill",
+    source: sourceId,
+    paint: {
+      "fill-pattern": hatchImageId,
+      // Established hatch stays visible even when blend mode hides solid fills.
+      "fill-opacity": TERRITORY_HATCH_FILL_OPACITY_EXPRESSION
+    }
+  };
+
   const lineLayerId = `${sourceId}-line`;
   const lineLayer = {
     id: lineLayerId,
@@ -2121,13 +2622,18 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
 
   if (territoryHoldInitialRender) {
     fillLayer.filter = TERRITORY_HOLD_FILTER;
+    hatchLayer.filter = TERRITORY_HOLD_FILTER;
     lineLayer.filter = TERRITORY_HOLD_FILTER;
-  } else if (excludeFilter) {
-    fillLayer.filter = excludeFilter;
-    lineLayer.filter = excludeFilter;
+  } else {
+    fillLayer.filter = combineTerritoryFilters(excludeFilter, TERRITORY_STATUS_NON_ESTABLISHED_FILTER);
+    hatchLayer.filter = combineTerritoryFilters(excludeFilter, TERRITORY_STATUS_ESTABLISHED_FILTER);
+    if (excludeFilter) {
+      lineLayer.filter = excludeFilter;
+    }
   }
 
   territoryMap.addLayer(fillLayer);
+  territoryMap.addLayer(hatchLayer);
   territoryMap.addLayer(lineLayer);
 
   territoryLineLayerIds.push(lineLayerId);
@@ -2136,7 +2642,7 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
     territoryMap.setLayoutProperty(lineLayerId, "visibility", "none");
   }
 
-  const layerIds = [fillLayerId];
+  const layerIds = [fillLayerId, hatchLayerId];
 
   if (logoMeta && logoFeatureCollection.features.length) {
     const logoSourceId = `${sourceId}-logos`;
@@ -2181,6 +2687,7 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
 
   territoryBrandLayerIds.set(brand.id, {
     fillLayerId,
+    hatchLayerId,
     lineLayerId,
     logoLayerId: logoMeta && logoFeatureCollection.features.length ? logoLayerId : null
   });
@@ -2441,13 +2948,23 @@ function setTerritoryBlendEnabled(isEnabled, { reapplyFilters = true } = {}) {
 
   territoryBrands.forEach((brand) => {
     const layerIds = territoryBrandLayerIds.get(brand.id);
-    if (!layerIds?.fillLayerId || !territoryMap.getLayer(layerIds.fillLayerId)) return;
+    if (!layerIds) return;
 
-    territoryMap.setPaintProperty(
-      layerIds.fillLayerId,
-      "fill-opacity",
-      isEnabled ? TERRITORY_BLEND_FILL_OPACITY_EXPRESSION : TERRITORY_FILL_OPACITY_EXPRESSION
-    );
+    if (layerIds.fillLayerId && territoryMap.getLayer(layerIds.fillLayerId)) {
+      territoryMap.setPaintProperty(
+        layerIds.fillLayerId,
+        "fill-opacity",
+        isEnabled ? TERRITORY_BLEND_FILL_OPACITY_EXPRESSION : TERRITORY_FILL_OPACITY_EXPRESSION
+      );
+    }
+
+    if (layerIds.hatchLayerId && territoryMap.getLayer(layerIds.hatchLayerId)) {
+      territoryMap.setPaintProperty(
+        layerIds.hatchLayerId,
+        "fill-opacity",
+        TERRITORY_HATCH_FILL_OPACITY_EXPRESSION
+      );
+    }
   });
 
   if (!isEnabled && territoryMap.getLayer(TERRITORY_BLEND_LAYER_ID)) {
@@ -2485,24 +3002,13 @@ function clearSidebarTerritoryHover() {
   const territoryMap = window.territoryMap;
   if (!territoryMap || !sidebarHoveredTerritoryState) return;
 
-  const {
-    featureState,
-    fillLayerId,
-    originalFilter
-  } = sidebarHoveredTerritoryState;
-
-  territoryMap.setFeatureState(featureState, { hover: false });
-  if (territoryMap.getLayer(fillLayerId)) {
-    territoryMap.setFilter(fillLayerId, originalFilter);
-  }
-
+  clearBrandTerritoryHoverHighlight(territoryMap, sidebarHoveredTerritoryState);
   sidebarHoveredTerritoryState = null;
 }
 
 function setSidebarTerritoryHover(brandId, stateCode) {
   const territoryMap = window.territoryMap;
-  const layerIds = territoryBrandLayerIds.get(brandId);
-  if (!territoryMap || !layerIds?.fillLayerId || !territoryMap.getLayer(layerIds.fillLayerId)) return;
+  if (!territoryMap) return;
 
   const hoverKey = `${brandId}:${stateCode}`;
   if (sidebarHoveredTerritoryState?.key === hoverKey) return;
@@ -2510,88 +3016,128 @@ function setSidebarTerritoryHover(brandId, stateCode) {
   clearTerritoryMapHover?.();
   clearSidebarTerritoryHover();
 
-  const featureState = {
-    source: `territories-${brandId}`,
-    id: stateCode
-  };
-  const originalFilter = territoryMap.getFilter(layerIds.fillLayerId);
-  const stateFilter = ["==", ["get", "state"], stateCode];
-  const hoverFilter = originalFilter
-    ? ["any", originalFilter, stateFilter]
-    : stateFilter;
+  const highlight = applyBrandTerritoryHoverHighlight(territoryMap, brandId, stateCode);
+  if (!highlight) return;
 
-  territoryMap.setFilter(layerIds.fillLayerId, hoverFilter);
-  territoryMap.setFeatureState(featureState, { hover: true });
   sidebarHoveredTerritoryState = {
     key: hoverKey,
-    featureState,
-    fillLayerId: layerIds.fillLayerId,
-    originalFilter
+    ...highlight
   };
 }
 
-function clearSelectedTerritoryFeatureState() {
+function clearSelectedTerritoryFeatureStates() {
   const territoryMap = window.territoryMap;
-  if (!territoryMap || !selectedTerritoryFeatureState) return;
+  if (!territoryMap || !selectedTerritoryFeatureStates.length) return;
 
-  territoryMap.setFeatureState(selectedTerritoryFeatureState, { selected: false });
-  selectedTerritoryFeatureState = null;
+  selectedTerritoryFeatureStates.forEach((featureState) => {
+    territoryMap.setFeatureState(featureState, { selected: false });
+  });
+  selectedTerritoryFeatureStates = [];
 }
 
-function setSelectedTerritoryFeatureState(record) {
+function setSelectedTerritoryFeatureStates(records) {
   const territoryMap = window.territoryMap;
-  if (!territoryMap || !record) return;
+  if (!territoryMap) return;
 
-  selectedTerritoryFeatureState = {
-    source: `territories-${record.brandId}`,
-    id: record.state
-  };
-  territoryMap.setFeatureState(selectedTerritoryFeatureState, { selected: true });
+  clearSelectedTerritoryFeatureStates();
+
+  records.forEach((record) => {
+    if (!record) return;
+
+    const featureState = {
+      source: `territories-${record.brandId}`,
+      id: record.state
+    };
+    territoryMap.setFeatureState(featureState, { selected: true });
+    selectedTerritoryFeatureStates.push(featureState);
+  });
 }
 
-function syncSelectedTerritoryMap() {
+function syncSelectedTerritoryMap({ refreshMapView = true } = {}) {
   const matchingRecords = territoryLastMatchingRecords || territoryRegistry;
-  const selectedRecord = selectedTerritoryKey
-    ? matchingRecords.find((record) => territoryRecordKey(record) === selectedTerritoryKey)
-    : null;
 
-  if (selectedTerritoryKey && !selectedRecord) {
-    selectedTerritoryKey = null;
+  if (selectedTerritoryKey) {
+    const primaryStillVisible = matchingRecords.some(
+      (record) => territoryRecordKey(record) === selectedTerritoryKey
+    );
+    if (!primaryStillVisible) {
+      selectedTerritoryKey = null;
+      compareTerritoryKey = null;
+    }
   }
 
-  clearTerritoryMapHover?.();
-  clearSelectedTerritoryFeatureState();
-  renderTerritoryRecords(selectedRecord ? [selectedRecord] : matchingRecords);
-  setSelectedTerritoryFeatureState(selectedRecord);
-  window.territoryBrandPanel?.setSelectedTerritory?.(selectedTerritoryKey);
-  showTerritoryInfoCard(selectedRecord);
+  if (compareTerritoryKey) {
+    const compareStillVisible = matchingRecords.some(
+      (record) => territoryRecordKey(record) === compareTerritoryKey
+    );
+    if (!compareStillVisible || compareTerritoryKey === selectedTerritoryKey) {
+      compareTerritoryKey = null;
+    }
+  }
 
-  if (!selectedTerritoryKey) {
+  const selectedRecords = getSelectedTerritoryRecords(matchingRecords);
+
+  clearTerritoryMapHover?.();
+  clearSelectedTerritoryFeatureStates();
+  renderTerritoryRecords(selectedRecords.length ? selectedRecords : matchingRecords);
+  setSelectedTerritoryFeatureStates(selectedRecords);
+  window.territoryBrandPanel?.setSelectedTerritory?.(selectedTerritoryKey, compareTerritoryKey);
+  showTerritoryInfoCards(selectedRecords[0] || null, selectedRecords[1] || null);
+
+  if (!selectedTerritoryKey && refreshMapView) {
     scheduleTerritoryMapViewForFilters(window.territoryMap, matchingRecords);
   }
 
-  return selectedRecord;
+  return selectedRecords[0] || null;
 }
 
-function toggleSelectedTerritory(brandId, stateCode) {
+function toggleSelectedTerritory(brandId, stateCode, { compare = false } = {}) {
   const nextKey = `${brandId}:${stateCode}`;
-  const isDeselecting = selectedTerritoryKey === nextKey;
-  selectedTerritoryKey = isDeselecting ? null : nextKey;
+
+  if (compare) {
+    if (!selectedTerritoryKey) {
+      selectedTerritoryKey = nextKey;
+      compareTerritoryKey = null;
+    } else if (nextKey === compareTerritoryKey) {
+      compareTerritoryKey = null;
+    } else if (nextKey !== selectedTerritoryKey) {
+      compareTerritoryKey = nextKey;
+    }
+  } else if (selectedTerritoryKey === nextKey && !compareTerritoryKey) {
+    selectedTerritoryKey = null;
+    compareTerritoryKey = null;
+  } else {
+    selectedTerritoryKey = nextKey;
+    compareTerritoryKey = null;
+  }
+
   territoryInfoDismissedKey = null;
 
-  const selectedRecord = syncSelectedTerritoryMap();
-  if (selectedRecord) {
-    focusTerritoryMapOnState(window.territoryMap, selectedRecord.state, {
-      reserveInfoCardSpace: true
-    });
+  syncSelectedTerritoryMap({ refreshMapView: false });
+
+  const selectedRecords = getSelectedTerritoryRecords();
+  if (selectedRecords.length) {
+    focusTerritoryMapOnSelectedRecords(window.territoryMap, selectedRecords);
   }
 }
 
-function clearSelectedTerritory() {
-  if (!selectedTerritoryKey) return;
+function clearCompareTerritory() {
+  if (!compareTerritoryKey) return;
+  compareTerritoryKey = null;
+  syncSelectedTerritoryMap({ refreshMapView: false });
+
+  const selectedRecords = getSelectedTerritoryRecords();
+  if (selectedRecords.length === 1) {
+    focusTerritoryMapOnSelectedRecords(window.territoryMap, selectedRecords);
+  }
+}
+
+function clearSelectedTerritory({ refreshMapView = true } = {}) {
+  if (!selectedTerritoryKey && !compareTerritoryKey) return;
   selectedTerritoryKey = null;
+  compareTerritoryKey = null;
   territoryInfoDismissedKey = null;
-  syncSelectedTerritoryMap();
+  syncSelectedTerritoryMap({ refreshMapView });
 }
 
 function triggerTerritoryGeolocation() {
@@ -2640,7 +3186,9 @@ window.territoryMapFilters = {
 window.territoryMapSelection = {
   toggle: toggleSelectedTerritory,
   clear: clearSelectedTerritory,
-  getSelectedKey: () => selectedTerritoryKey
+  clearCompare: clearCompareTerritory,
+  getSelectedKey: () => selectedTerritoryKey,
+  getCompareKey: () => compareTerritoryKey
 };
 
 window.territoryMapHover = {

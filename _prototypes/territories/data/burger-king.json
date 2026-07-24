@@ -2,17 +2,20 @@
   "id": "burger-king",
   "brand": "Burger King",
   "category": "Food & Beverage",
-  "color": "#EC1C24",
+  "color": "#d3c2a7",
   "logo": "assets/logos/burgerking.jpg",
   "country": "US",
   "level": "state",
   "initialInvestment": 1750000,
   "franchiseeRating": 3.9,
+  "profileUrl": "https://wefranch.com/franchise/ev74/burger-king",
   "territories": [
-    { "state": "FL", "name": "Florida", "status": "available", "initialInvestment": 1925000 },
-    { "state": "TX", "name": "Texas", "status": "available", "initialInvestment": 1650000 },
-    { "state": "GA", "name": "Georgia", "status": "available", "initialInvestment": 1575000 },
-    { "state": "IL", "name": "Illinois", "status": "available", "initialInvestment": 1800000 },
-    { "state": "LA", "name": "Louisiana", "status": "sold", "initialInvestment": 1425000 }
+    {"state": "FL", "name": "Florida", "status": "established", "initialInvestment": 1950000},
+    {"state": "TX", "name": "Texas", "status": "available", "initialInvestment": 1687500},
+    {"state": "GA", "name": "Georgia", "status": "available", "initialInvestment": 1612500},
+    {"state": "IL", "name": "Illinois", "status": "available", "initialInvestment": 1800000},
+    {"state": "LA", "name": "Louisiana", "status": "sold", "initialInvestment": 1425000},
+    {"state": "NC", "name": "North Carolina", "status": "available", "initialInvestment": 1725000},
+    {"state": "AZ", "name": "Arizona", "status": "available", "initialInvestment": 1860000}
   ]
 }

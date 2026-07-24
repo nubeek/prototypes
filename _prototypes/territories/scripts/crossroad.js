@@ -10,7 +10,8 @@ const CROSSROAD_BRAND_FILES = [
   "7eleven.json",
   "remax.json",
   "dominos.json",
-  "ups.json"
+  "ups.json",
+  "wendys.json"
 ];
 
 // Mapbox Static Images API — same style/token the interactive territory map and
@@ -61,7 +62,7 @@ const CROSSROAD_PRESETS = [
     filters: {
       locations: ["GA", "IN", "KY", "NY", "NC", "VA"],
       franchises: ["chick-fil-a"],
-      statuses: ["available"]
+      statuses: ["available", "established", "sold"]
     }
   },
   {
@@ -69,8 +70,8 @@ const CROSSROAD_PRESETS = [
     title: "Burgers & Fries",
     filters: {
       categories: ["Food & Beverage"],
-      franchises: ["mcdonalds", "burger-king"],
-      statuses: ["available", "sold"]
+      franchises: ["mcdonalds", "burger-king", "wendys"],
+      statuses: ["available", "established", "sold"]
     }
   }
 ];
@@ -530,6 +531,9 @@ function startTerritoryMapFromFilters() {
 
   window.territoryCrossroadChoice = { type: "filters" };
   dismissTerritoryCrossroad();
+  // Leaving splash: expand sections that have applied filters (e.g. Territory
+  // status "Available"), while keeping untouched sections collapsed.
+  window.territoryFilters?.syncFilterSectionExpansion?.();
   beginTerritoryMapLoad();
 }
 

@@ -1,9 +1,20 @@
 const TERRITORY_SETTINGS_STORAGE_KEY = "wefranch-territories-settings";
 const INVESTMENT_HISTOGRAM_BINS = 24;
+const DEFAULT_TERRITORY_STATUSES = ["available"];
 const filterComboboxes = new Map();
 let territorySettingsReadyToPersist = false;
 let isRestoringTerritorySettings = false;
 const savedTerritorySettings = readSavedTerritorySettings();
+
+function setTerritoryStatusFilters(statuses) {
+  const statusSet = new Set(getSavedStringArray(statuses));
+  Array.from(document.querySelectorAll(".territory-filter-checkbox"))
+    .filter((checkbox) => checkbox.value)
+    .forEach((checkbox) => {
+      checkbox.checked = statusSet.has(checkbox.value);
+      setFilterCheckboxState(checkbox, checkbox.checked);
+    });
+}
 
 function readSavedTerritorySettings() {
   try {
@@ -250,14 +261,14 @@ function restoreSavedFilterSelections(settings) {
   const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
-  const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
-    .filter((checkbox) => checkbox.value);
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
     ?.closest(".filter-section");
   const ratingSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Franchisee rating range']")
     ?.closest(".filter-section");
   const searchInput = document.getElementById("territorySearchInput");
-  const savedStatuses = new Set(getSavedStringArray(filters.statuses));
+  const savedStatuses = Array.isArray(filters.statuses)
+    ? getSavedStringArray(filters.statuses)
+    : DEFAULT_TERRITORY_STATUSES;
 
   const savedLocations = getSavedLocationFilters(filters);
 
@@ -277,10 +288,7 @@ function restoreSavedFilterSelections(settings) {
     getValidSavedSelectValues(franchiseFilterSelect, filters.franchises?.excluded)
   );
 
-  statusCheckboxes.forEach((checkbox) => {
-    checkbox.checked = savedStatuses.has(checkbox.value);
-    setFilterCheckboxState(checkbox, checkbox.checked);
-  });
+  setTerritoryStatusFilters(savedStatuses);
 
   if (investmentSection) {
     const investmentTrack = investmentSection.querySelector(".filter-range-slider");
@@ -1325,7 +1333,11 @@ function initTerritoryFilters() {
     if (!window.__territoryMapStarted) {
       window.startTerritoryMapFromFilters?.();
     } else {
+      const wasCrossroadOpen = isTerritoryCrossroadOpen();
       window.dismissTerritoryCrossroad?.();
+      if (wasCrossroadOpen) {
+        syncFilterSectionExpansion();
+      }
     }
     window.territoryMapControls?.triggerTerritoryGeolocation?.();
   });
@@ -1340,9 +1352,12 @@ function initTerritoryFilters() {
     } finally {
       isRestoringTerritorySettings = false;
     }
+  } else {
+    setTerritoryStatusFilters(DEFAULT_TERRITORY_STATUSES);
   }
 
   bindTerritoryFilterControls();
+  syncFilterSectionExpansion();
   updateClearFiltersButton();
 }
 
@@ -1536,8 +1551,6 @@ function resetFilterSelections({ refreshMap = true } = {}) {
   const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
-  const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
-    .filter((checkbox) => checkbox.value);
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
     ?.closest(".filter-section");
   const ratingSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Franchisee rating range']")
@@ -1551,10 +1564,7 @@ function resetFilterSelections({ refreshMap = true } = {}) {
   setFilterSelectIncludedExcludedValues(franchiseFilterSelect, [], []);
   syncFilterComboboxes();
 
-  statusCheckboxes.forEach((checkbox) => {
-    checkbox.checked = false;
-    setFilterCheckboxState(checkbox, false);
-  });
+  setTerritoryStatusFilters(DEFAULT_TERRITORY_STATUSES);
 
   if (investmentSection) {
     const investmentTrack = investmentSection.querySelector(".filter-range-slider");
@@ -1601,6 +1611,13 @@ function clearAllFilterSelections() {
   } else {
     window.showTerritoryCrossroad?.({ animate: true });
   }
+
+  // Re-sync after the crossroad is open so splash expansion wins over the
+  // temporary map-open expansion from resetFilterSelections above.
+  syncFilterSectionExpansion();
+  updateClearFiltersButton();
+  updateFilterSectionClearButtons();
+  persistTerritorySettings();
 }
 
 function getTerritoryFilterState() {
@@ -1700,7 +1717,11 @@ function maybeStartTerritoryMapFromFilters() {
     return;
   }
 
+  const wasCrossroadOpen = isTerritoryCrossroadOpen();
   window.dismissTerritoryCrossroad?.();
+  if (wasCrossroadOpen) {
+    syncFilterSectionExpansion();
+  }
 }
 
 function refreshTerritoryFilters() {
@@ -1850,16 +1871,27 @@ function filterSectionHasAppliedFilters(section) {
   return false;
 }
 
+function isTerritoryCrossroadOpen() {
+  return Boolean(document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open"));
+}
+
 function syncFilterSectionExpansion() {
   const filterPanel = document.querySelector(".territory-filter-panel");
   if (!filterPanel) return;
 
+  // Splash / clear-all: only Location stays open, even when the default
+  // Territory status ("Available") is applied. Once a search starts and the
+  // map opens, expand every section that currently has filters applied.
+  const splashState = isTerritoryCrossroadOpen();
   const hasAppliedFilters = getAppliedTerritoryFilterCount() > 0;
 
   filterPanel.querySelectorAll(".filter-section").forEach((section) => {
-    const shouldExpand = hasAppliedFilters
-      ? filterSectionHasAppliedFilters(section)
-      : Boolean(section.querySelector("#locationFilterSelect"));
+    const isLocationSection = Boolean(section.querySelector("#locationFilterSelect"));
+    const shouldExpand = splashState
+      ? isLocationSection
+      : hasAppliedFilters
+        ? filterSectionHasAppliedFilters(section)
+        : isLocationSection;
 
     section.classList.toggle("filter-section-collapsed", !shouldExpand);
     section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(shouldExpand));
@@ -1873,11 +1905,11 @@ function applyCrossroadPresetSelections(preset = {}) {
   const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
-  const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
-    .filter((checkbox) => checkbox.value);
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
     ?.closest(".filter-section");
-  const statusSet = new Set(getSavedStringArray(preset.statuses));
+  const statuses = Array.isArray(preset.statuses)
+    ? preset.statuses
+    : DEFAULT_TERRITORY_STATUSES;
 
   setFilterSelectIncludedExcludedValues(
     locationFilterSelect,
@@ -1895,10 +1927,7 @@ function applyCrossroadPresetSelections(preset = {}) {
     getValidSavedSelectValues(franchiseFilterSelect, preset.franchisesExcluded)
   );
 
-  statusCheckboxes.forEach((checkbox) => {
-    checkbox.checked = statusSet.has(checkbox.value);
-    setFilterCheckboxState(checkbox, checkbox.checked);
-  });
+  setTerritoryStatusFilters(statuses);
 
   if (investmentSection) {
     const investmentTrack = investmentSection.querySelector(".filter-range-slider");
@@ -1961,7 +1990,9 @@ function initTerritoryFilterData(brands, registry) {
 window.territoryFilters = {
   getFilterSelectIncludedValues,
   getFilterSelectExcludedValues,
+  getState: getTerritoryFilterState,
   syncFilterComboboxes,
+  syncFilterSectionExpansion,
   hydrateOptions: hydrateTerritoryFilterOptions,
   getAppliedFilterCount: getAppliedTerritoryFilterCount,
   resetFilterSelections,
