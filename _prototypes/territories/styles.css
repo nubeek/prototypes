@@ -31,10 +31,34 @@
   gap: var(--territory-panel-gap);
 }
 
+.territory-shell.is-crossroad-fullscreen .territory-workspace {
+  gap: 0;
+}
+
+.territory-shell.is-crossroad-fullscreen .territory-filter-panel,
+.territory-shell.is-crossroad-fullscreen .territory-brand-panel {
+  flex: 0 0 0;
+  width: 0;
+  max-width: 0;
+  min-width: 0;
+  padding: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.territory-shell.is-crossroad-hiding-workspace .territory-filter-panel,
+.territory-shell.is-crossroad-hiding-workspace .territory-brand-panel,
+.territory-shell.is-crossroad-hiding-workspace .territory-map-frame {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
 .territory-filter-panel,
 .territory-brand-panel {
   border-radius: var(--radius-md);
-  transition: flex-basis 260ms ease, width 260ms ease, min-width 260ms ease, padding 260ms ease, opacity 180ms ease;
+  transition: flex-basis 260ms ease, width 260ms ease, min-width 260ms ease, padding 260ms ease, opacity 220ms ease, transform 220ms ease;
 }
 
 .territory-shell.is-filter-open .territory-filter-panel {
@@ -337,6 +361,7 @@
   border-radius: var(--radius-md);
   background: #f3f3f3;
   overflow: hidden;
+  transition: opacity 220ms ease, transform 220ms ease;
 }
 
 .territory-map {
@@ -755,9 +780,11 @@
   padding: 0;
   min-height: 0;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1;
   color: var(--color-text-muted);
+  margin-right: 8px;
+  cursor: pointer;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-fast), color var(--transition-fast);
@@ -897,7 +924,6 @@
   background: var(--color-surface);
   overflow: auto;
   opacity: 1;
-  transition: opacity 300ms ease, visibility 300ms ease;
 }
 
 .territory-crossroad.is-leaving,
@@ -905,6 +931,32 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+.territory-crossroad.is-preparing-enter .territory-crossroad__heading,
+.territory-crossroad.is-preparing-enter .territory-crossroad__grid > * {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+.territory-crossroad__animate-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.territory-crossroad.is-entering .territory-crossroad__animate-item {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.territory-crossroad.is-entering.is-entering-active .territory-crossroad__animate-item {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--crossroad-enter-duration, 320ms) ease,
+    transform var(--crossroad-enter-duration, 320ms) ease;
+  transition-delay: calc(var(--enter-index, 0) * var(--crossroad-enter-stagger, 65ms));
 }
 
 .territory-crossroad__inner {
@@ -1121,5 +1173,15 @@
 @media (prefers-reduced-motion: reduce) {
   .territory-info-card {
     transition: none;
+  }
+
+  .territory-shell.is-crossroad-hiding-workspace .territory-filter-panel,
+  .territory-shell.is-crossroad-hiding-workspace .territory-brand-panel,
+  .territory-shell.is-crossroad-hiding-workspace .territory-map-frame,
+  .territory-crossroad.is-entering .territory-crossroad__animate-item,
+  .territory-crossroad.is-entering.is-entering-active .territory-crossroad__animate-item {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
   }
 }

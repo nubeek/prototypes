@@ -1165,7 +1165,7 @@ function updateFilterSummary() {
     : displayedOwners.length;
   const visibleRange = visibleCount > 0 ? `1-${visibleCount}` : "0";
   const totalCount = isDatasetTableView() ? getAllLocationRows().length : owners.length;
-  filterSummary.textContent = `Showing ${visibleRange} of ${totalCount} records sorted by relevancy`;
+  filterSummary.innerHTML = `Showing ${visibleRange} of ${totalCount} records<span class="filter-summary-sort">sorted by relevancy</span>`;
   updateClearFiltersButton();
 }
 

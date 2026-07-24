@@ -381,15 +381,65 @@ function createPresetTile(preset, { baseMapUrl, blendUrl, bordersUrl, count } = 
   return tile;
 }
 
+const CROSSROAD_WORKSPACE_HIDE_MS = 240;
+const CROSSROAD_ENTER_STAGGER_MS = 65;
+const CROSSROAD_ENTER_DURATION_MS = 320;
+
+function playTerritoryCrossroadEnterAnimation(crossroad) {
+  if (!crossroad) return;
+
+  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const items = [
+    crossroad.querySelector(".territory-crossroad__heading"),
+    ...crossroad.querySelectorAll(".territory-crossroad__grid > *")
+  ].filter(Boolean);
+
+  items.forEach((item, index) => {
+    item.classList.add("territory-crossroad__animate-item");
+    item.style.setProperty("--enter-index", String(index));
+  });
+
+  crossroad.classList.remove("is-entering-active");
+  crossroad.classList.add("is-entering");
+
+  if (motionQuery.matches) {
+    crossroad.classList.add("is-entering-active");
+    window.setTimeout(() => {
+      crossroad.classList.remove("is-entering", "is-entering-active");
+      items.forEach((item) => {
+        item.classList.remove("territory-crossroad__animate-item");
+        item.style.removeProperty("--enter-index");
+      });
+    }, 0);
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      crossroad.classList.add("is-entering-active");
+    });
+  });
+
+  const totalMs = CROSSROAD_ENTER_DURATION_MS + Math.max(0, items.length - 1) * CROSSROAD_ENTER_STAGGER_MS;
+  window.setTimeout(() => {
+    crossroad.classList.remove("is-entering", "is-entering-active");
+    items.forEach((item) => {
+      item.classList.remove("territory-crossroad__animate-item");
+      item.style.removeProperty("--enter-index");
+    });
+  }, totalMs + 40);
+}
+
 function dismissTerritoryCrossroad() {
   const shell = document.querySelector(".territory-shell");
   const crossroad = document.getElementById("territoryCrossroad");
 
-  shell?.classList.remove("is-crossroad-open");
+  shell?.classList.remove("is-crossroad-open", "is-crossroad-fullscreen", "is-crossroad-hiding-workspace");
   window.territoryMapControls?.updateResetVisibility?.();
 
   if (!crossroad || crossroad.hidden) return;
 
+  crossroad.classList.remove("is-entering", "is-entering-active");
   crossroad.classList.add("is-leaving");
 
   window.setTimeout(() => {
@@ -399,7 +449,7 @@ function dismissTerritoryCrossroad() {
   }, 300);
 }
 
-function showTerritoryCrossroad() {
+function showTerritoryCrossroad({ animate = false } = {}) {
   const shell = document.querySelector(".territory-shell");
   const crossroad = document.getElementById("territoryCrossroad");
 
@@ -407,13 +457,40 @@ function showTerritoryCrossroad() {
 
   window.territoryMapControls?.clearHover?.();
   crossroad.hidden = false;
-  crossroad.classList.remove("is-leaving");
+  crossroad.classList.remove("is-leaving", "is-entering", "is-entering-active", "is-preparing-enter");
   shell?.classList.add("is-crossroad-open");
   window.territoryCrossroadChoice = null;
   window.territoryMapControls?.updateResetVisibility?.();
+
+  if (animate) {
+    playTerritoryCrossroadEnterAnimation(crossroad);
+  }
+}
+
+function showTerritoryCrossroadAfterClearAll() {
+  const shell = document.querySelector(".territory-shell");
+  const crossroad = document.getElementById("territoryCrossroad");
+  if (!shell || !crossroad) {
+    showTerritoryCrossroad({ animate: true });
+    return;
+  }
+
+  crossroad.hidden = true;
+  crossroad.classList.remove("is-leaving", "is-entering", "is-entering-active");
+  window.territoryCrossroadChoice = null;
+  window.territoryMapControls?.clearHover?.();
+
+  shell.classList.add("is-crossroad-hiding-workspace", "is-crossroad-open", "is-crossroad-fullscreen");
+  window.territoryMapControls?.updateResetVisibility?.();
+
+  window.setTimeout(() => {
+    shell.classList.remove("is-crossroad-hiding-workspace");
+    showTerritoryCrossroad({ animate: true });
+  }, CROSSROAD_WORKSPACE_HIDE_MS);
 }
 
 window.showTerritoryCrossroad = showTerritoryCrossroad;
+window.showTerritoryCrossroadAfterClearAll = showTerritoryCrossroadAfterClearAll;
 window.dismissTerritoryCrossroad = dismissTerritoryCrossroad;
 
 function beginTerritoryMapLoad() {
@@ -428,15 +505,17 @@ function beginTerritoryMapLoad() {
 function chooseCrossroadOption(choice) {
   if (window.__territoryMapStarted) {
     window.territoryCrossroadChoice = choice;
+    window.territoryMapFilters?.hideTerritoryRecords?.();
     dismissTerritoryCrossroad();
 
     if (choice.type === "preset") {
       window.territoryFilters?.applyCrossroadPreset?.(choice.filters || {});
     } else {
-      window.territoryFilters?.resetFilterSelections?.();
+      window.territoryFilters?.resetFilterSelections?.({ refreshMap: false });
     }
 
     window.territoryFilters?.refresh?.();
+    window.territoryMapFilters?.scheduleFilteredReveal?.(window.territoryMap);
     return;
   }
 
@@ -485,27 +564,49 @@ async function fetchCrossroadJson(url) {
   return response.json();
 }
 
+async function loadCrossroadTerritoryData() {
+  if (window.territoryDataCache?.load) {
+    const { statesGeojson, brands } = await window.territoryDataCache.load();
+    return { statesGeojson, brands };
+  }
+
+  const [statesGeojson, ...brands] = await Promise.all([
+    fetchCrossroadJson(CROSSROAD_STATES_URL),
+    ...CROSSROAD_BRAND_FILES.map((file) => fetchCrossroadJson(`data/${file}`))
+  ]);
+
+  return { statesGeojson, brands };
+}
+
+function revealTerritoryCrossroadEnter(crossroad) {
+  if (!crossroad) return;
+
+  crossroad.classList.remove("is-preparing-enter");
+  playTerritoryCrossroadEnterAnimation(crossroad);
+}
+
 async function initTerritoryCrossroad() {
   bindNewSearchTile();
 
   const grid = document.getElementById("territoryCrossroadGrid");
+  const crossroad = document.getElementById("territoryCrossroad");
   if (!grid) return;
 
-  // Render preset tiles up front (no snapshot/count yet) so the crossroad is
-  // interactive immediately, then hydrate them once the lightweight data loads.
+  const shouldRevealOnLoad = Boolean(
+    crossroad
+    && !crossroad.hidden
+    && document.querySelector(".territory-shell.is-crossroad-open")
+    && !window.__territoryMapStarted
+  );
+
+  if (shouldRevealOnLoad) {
+    crossroad.classList.add("is-preparing-enter");
+  }
+
   const tilesByPreset = new Map();
-  CROSSROAD_PRESETS.forEach((preset) => {
-    const tile = createPresetTile(preset);
-    bindPresetTile(tile, preset);
-    grid.append(tile);
-    tilesByPreset.set(preset.id, tile);
-  });
 
   try {
-    const [statesGeojson, ...brands] = await Promise.all([
-      fetchCrossroadJson(CROSSROAD_STATES_URL),
-      ...CROSSROAD_BRAND_FILES.map((file) => fetchCrossroadJson(`data/${file}`))
-    ]);
+    const { statesGeojson, brands } = await loadCrossroadTerritoryData();
 
     const statesByCode = new Map(
       (statesGeojson.features || []).map((feature) => [feature.properties?.code, feature])
@@ -516,9 +617,6 @@ async function initTerritoryCrossroad() {
     window.territoryFilters?.hydrateOptions?.(brands);
 
     CROSSROAD_PRESETS.forEach((preset) => {
-      const tile = tilesByPreset.get(preset.id);
-      if (!tile) return;
-
       const matchingRecords = records.filter((record) => presetMatchesRecord(record, preset.filters));
       const matchedColorsByState = computePresetMatchedColorsByState(records, preset.filters);
 
@@ -531,18 +629,31 @@ async function initTerritoryCrossroad() {
         console.warn("Unable to render blended territory preview.", error);
       }
 
-      const hydratedTile = createPresetTile(preset, {
+      const tile = createPresetTile(preset, {
         baseMapUrl,
         blendUrl,
         bordersUrl,
         count: matchingRecords.length
       });
-      bindPresetTile(hydratedTile, preset);
-      tile.replaceWith(hydratedTile);
-      tilesByPreset.set(preset.id, hydratedTile);
+      bindPresetTile(tile, preset);
+      grid.append(tile);
+      tilesByPreset.set(preset.id, tile);
     });
   } catch (error) {
     console.warn("Unable to build territory crossroad previews.", error);
+
+    CROSSROAD_PRESETS.forEach((preset) => {
+      const tile = createPresetTile(preset);
+      bindPresetTile(tile, preset);
+      grid.append(tile);
+      tilesByPreset.set(preset.id, tile);
+    });
+  }
+
+  if (shouldRevealOnLoad) {
+    revealTerritoryCrossroadEnter(crossroad);
+  } else if (crossroad) {
+    crossroad.classList.remove("is-preparing-enter");
   }
 
   if (!window.__territoryMapStarted && (window.territoryFilters?.getAppliedFilterCount?.() || 0) > 0) {

@@ -82,7 +82,7 @@
       <div class="filter-scroll">
         <div class="filter-header">
           <h2>Filter</h2>
-          <p id="territoryFilterSummary">Showing 0-0 of 0 records sorted by relevancy</p>
+          <p id="territoryFilterSummary">Showing 0-0 of 0 records<span class="filter-summary-sort">sorted by relevancy</span></p>
         </div>
 
         <section class="filter-section filter-section-collapsed">
@@ -263,7 +263,7 @@
 
       <div class="map-container territory-map-frame" aria-label="Territories map">
         <div class="territory-map" id="territoryMap"></div>
-        <div class="territory-crossroad" id="territoryCrossroad" data-territory-crossroad role="group" aria-label="Choose how to start">
+        <div class="territory-crossroad is-preparing-enter" id="territoryCrossroad" data-territory-crossroad role="group" aria-label="Choose how to start">
           <div class="territory-crossroad__inner">
             <p class="territory-crossroad__heading">Start a new search or browse most popular territory searches</p>
             <div class="territory-crossroad__grid" id="territoryCrossroadGrid" data-crossroad-grid>
@@ -337,7 +337,7 @@
                 <img src="assets/collapse.svg" alt="" aria-hidden="true">
               </button>
             </div>
-            <p id="territoryBrandSummary" aria-live="polite">0 franchise brands sorted by relevancy</p>
+            <p id="territoryBrandSummary" aria-live="polite">Showing 0 franchise brands sorted by relevancy</p>
           </div>
           <ul class="territory-brand-list" id="territoryBrandList"></ul>
         </div>

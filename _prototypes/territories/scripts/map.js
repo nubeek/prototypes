@@ -28,6 +28,7 @@ const TERRITORY_BRAND_FILES = [
   "dominos.json",
   "ups.json"
 ];
+let territoryDataCachePromise = null;
 const TERRITORY_FILL_OPACITY = 0.15;
 const TERRITORY_FILL_HOVER_OPACITY = 0.3;
 const TERRITORY_LINE_OPACITY = 0.5;
@@ -105,9 +106,10 @@ let territoryGeolocationPending = false;
 let territoryPendingFocusStateCode = null;
 let territoryPendingGeolocationCoordinates = null;
 let territoryFilterFitRevision = 0;
-// While true, freshly added territory layers are filtered to render nothing so
-// the map can show as an empty (but zoomed) base while data streams in. The
-// real filters applied on data-ready reveal every territory at once.
+let territoryInitialRevealCompleted = false;
+// Sources and layers cache every territory, but nothing may render until the
+// current UI filter state has been applied. This prevents an unfiltered frame
+// from appearing while saved or preset selections are being restored.
 let territoryHoldInitialRender = true;
 const TERRITORY_HOLD_FILTER = ["==", ["get", "state"], "__territory_hold__"];
 let clearTerritoryMapHover = null;
@@ -278,6 +280,51 @@ function bindTerritoryMapResetControl(territoryMap) {
     clearTerritoryMapHover?.();
   });
   territoryMap.on("moveend", updateTerritoryMapResetVisibility);
+}
+
+function scheduleInitialTerritoryMapReveal(territoryMap) {
+  if (!territoryMap || territoryInitialRevealCompleted) return;
+
+  territoryMap.once("idle", () => {
+    if (territoryInitialRevealCompleted) return;
+    territoryInitialRevealCompleted = true;
+    revealTerritoryMapBase();
+    hideTerritoryMapLoading();
+  });
+}
+
+function prepareTerritoryMapForFilterReveal() {
+  const loadingEl = getTerritoryMapLoadingElement();
+  if (!loadingEl) return;
+
+  loadingEl.hidden = false;
+  loadingEl.classList.remove("is-hiding", "is-map-revealed");
+  loadingEl.setAttribute("aria-busy", "true");
+  updateTerritoryMapResetVisibility();
+}
+
+function scheduleTerritoryMapFilteredReveal(territoryMap) {
+  if (!territoryMap) return;
+
+  prepareTerritoryMapForFilterReveal();
+
+  territoryMap.once("idle", () => {
+    revealTerritoryMapBase();
+    hideTerritoryMapLoading();
+  });
+}
+
+function hideTerritoryRecords() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || !territoryBrands.length) return;
+
+  clearTerritoryMapHover?.();
+  territoryLastMatchingRecords = [];
+  territoryRenderedRecords = [];
+  renderTerritoryRecords([]);
+  window.territoryFilters?.updateSummary?.(0, territoryRegistry.length);
+  window.territoryBrandPanel?.update?.(territoryBrands, []);
+  hideTerritoryInfoCard({ immediate: true });
 }
 
 function revealTerritoryMapBase() {
@@ -609,8 +656,7 @@ function bindTerritoryInfoCard() {
 
   closeButton.dataset.bound = "true";
   closeButton.addEventListener("click", () => {
-    territoryInfoDismissedKey = selectedTerritoryKey;
-    hideTerritoryInfoCard();
+    clearSelectedTerritory();
   });
 }
 
@@ -1056,7 +1102,9 @@ function getVisibleLogoStatesForBrand(matchingKeys, brandId) {
 }
 
 function getVisibleSharedOccupantCount(stateCode) {
-  const matchingRecords = territoryRenderedRecords || territoryLastMatchingRecords || territoryRegistry;
+  const matchingRecords = territoryRenderedRecords
+    || territoryLastMatchingRecords
+    || (territoryHoldInitialRender ? [] : territoryRegistry);
   const matchingKeys = new Set(matchingRecords.map(territoryRecordKey));
   const occupants = territoryStateOccupancy.get(stateCode) || [];
 
@@ -1192,6 +1240,7 @@ function applyTerritoryFilters(matchingRecords) {
 
   clearTerritoryMapHover?.();
   territoryLastMatchingRecords = matchingRecords;
+  territoryHoldInitialRender = false;
 
   const selectedRecord = selectedTerritoryKey
     ? matchingRecords.find((record) => territoryRecordKey(record) === selectedTerritoryKey)
@@ -1220,6 +1269,33 @@ async function fetchTerritoryJson(url) {
   }
   return response.json();
 }
+
+function loadTerritoryDataBundle() {
+  if (territoryDataCachePromise) {
+    return territoryDataCachePromise;
+  }
+
+  const dataRequest = Promise.all([
+    fetchTerritoryJson(TERRITORY_STATES_URL),
+    fetchTerritoryJson(TERRITORY_MACRODATA_URL),
+    ...TERRITORY_BRAND_FILES.map((file) => fetchTerritoryJson(`data/${file}`))
+  ]).then(([statesGeojson, macrodata, ...brands]) => ({
+    statesGeojson,
+    macrodata,
+    brands
+  }));
+
+  territoryDataCachePromise = dataRequest.catch((error) => {
+    territoryDataCachePromise = null;
+    throw error;
+  });
+
+  return territoryDataCachePromise;
+}
+
+window.territoryDataCache = {
+  load: loadTerritoryDataBundle
+};
 
 function buildBrandFeatureCollection(brand, statesByCode) {
   const features = [];
@@ -1929,6 +2005,9 @@ function addSharedTerritoryLayers(territoryMap, sharedStates, stateOccupancy, br
       id: fillLayerId,
       type: "raster",
       source: fillSourceId,
+      layout: {
+        visibility: "none"
+      },
       paint: {
         "raster-opacity": 1,
         "raster-fade-duration": 0,
@@ -1945,14 +2024,15 @@ function addSharedTerritoryLayers(territoryMap, sharedStates, stateOccupancy, br
       id: strokeLayerId,
       type: "line",
       source: strokeSourceId,
+      layout: {
+        visibility: "none",
+        "line-join": "round",
+        "line-cap": "round"
+      },
       paint: {
         "line-color": ["get", "color"],
         "line-opacity": TERRITORY_LINE_OPACITY,
         "line-width": TERRITORY_LINE_WIDTH
-      },
-      layout: {
-        "line-join": "round",
-        "line-cap": "round"
       }
     }, beforeLayerId || undefined);
 
@@ -1977,6 +2057,9 @@ function addSharedTerritoryLayers(territoryMap, sharedStates, stateOccupancy, br
       id: hitLayerId,
       type: "fill",
       source: hitSourceId,
+      layout: {
+        visibility: "none"
+      },
       paint: {
         "fill-color": "#000000",
         "fill-opacity": 0
@@ -2036,7 +2119,10 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
     }
   };
 
-  if (excludeFilter) {
+  if (territoryHoldInitialRender) {
+    fillLayer.filter = TERRITORY_HOLD_FILTER;
+    lineLayer.filter = TERRITORY_HOLD_FILTER;
+  } else if (excludeFilter) {
     fillLayer.filter = excludeFilter;
     lineLayer.filter = excludeFilter;
   }
@@ -2067,7 +2153,7 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
       collection: logoFeatureCollection
     });
 
-    territoryMap.addLayer({
+    const logoLayer = {
       id: logoLayerId,
       type: "symbol",
       source: logoSourceId,
@@ -2078,7 +2164,13 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
         "icon-allow-overlap": true,
         "icon-ignore-placement": true
       }
-    });
+    };
+
+    if (territoryHoldInitialRender) {
+      logoLayer.filter = TERRITORY_HOLD_FILTER;
+    }
+
+    territoryMap.addLayer(logoLayer);
 
     if (!territoryBrandLogosEnabled) {
       territoryMap.setLayoutProperty(logoLayerId, "visibility", "none");
@@ -2093,24 +2185,12 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
     logoLayerId: logoMeta && logoFeatureCollection.features.length ? logoLayerId : null
   });
 
-  if (territoryHoldInitialRender) {
-    [fillLayerId, lineLayerId, logoLayerId].forEach((layerId) => {
-      if (layerId && territoryMap.getLayer(layerId)) {
-        territoryMap.setFilter(layerId, TERRITORY_HOLD_FILTER);
-      }
-    });
-  }
-
   return layerIds;
 }
 
 async function loadTerritoryData(territoryMap) {
   try {
-    const [statesGeojson, macrodata, ...brands] = await Promise.all([
-      fetchTerritoryJson(TERRITORY_STATES_URL),
-      fetchTerritoryJson(TERRITORY_MACRODATA_URL),
-      ...TERRITORY_BRAND_FILES.map((file) => fetchTerritoryJson(`data/${file}`))
-    ]);
+    const { statesGeojson, macrodata, brands } = await loadTerritoryDataBundle();
 
     const statesByCode = new Map(
       statesGeojson.features.map((feature) => [feature.properties.code, feature])
@@ -2198,10 +2278,9 @@ async function loadTerritoryData(territoryMap) {
     territoryBlendBeforeLayerId = brands.length ? `territories-${brands[0].id}-fill` : null;
     window.territoryBrands = brands;
 
-    // Releasing the hold before the filter pass lets applyTerritoryFilters
-    // swap the hold filters for the real ones, revealing every territory in a
-    // single frame instead of streaming them in brand by brand.
-    territoryHoldInitialRender = false;
+    // onDataReady restores the selected filter state and performs the only
+    // initial visibility commit. Until that synchronous pass, cached sources
+    // remain hidden behind their hold filters/layout.
     window.territoryFilters?.onDataReady?.(brands, territoryRegistry);
 
     if (territoryPendingGeolocationCoordinates) {
@@ -2214,7 +2293,7 @@ async function loadTerritoryData(territoryMap) {
       focusTerritoryMapOnState(territoryMap, stateCode);
     }
 
-    hideTerritoryMapLoading();
+    scheduleInitialTerritoryMapReveal(territoryMap);
   } catch (error) {
     console.error(error);
     renderTerritoryMapError("Territory data could not be loaded.");
@@ -2304,7 +2383,6 @@ function initializeTerritoryMap() {
 
   territoryMap.on("load", () => {
     territoryMapHasLoaded = true;
-    revealTerritoryMapBase();
     bindTerritoryMapResetControl(territoryMap);
     loadTerritoryData(territoryMap);
 
@@ -2351,7 +2429,7 @@ function getTerritoryBordersVisible() {
   return territoryBordersEnabled;
 }
 
-function setTerritoryBlendEnabled(isEnabled) {
+function setTerritoryBlendEnabled(isEnabled, { reapplyFilters = true } = {}) {
   territoryBlendEnabled = isEnabled;
 
   const territoryMap = window.territoryMap;
@@ -2378,7 +2456,7 @@ function setTerritoryBlendEnabled(isEnabled) {
 
   // Re-apply the current filter state so shared-state gradient rasters swap
   // in/out correctly and the blend image re-renders for the visible records.
-  if (territoryRegistry.length) {
+  if (reapplyFilters && territoryRegistry.length) {
     applyTerritoryFilters(territoryLastMatchingRecords || territoryRegistry);
   }
 }
@@ -2554,6 +2632,8 @@ window.territoryMapControls = {
 
 window.territoryMapFilters = {
   applyTerritoryFilters,
+  hideTerritoryRecords,
+  scheduleFilteredReveal: scheduleTerritoryMapFilteredReveal,
   getTerritoryRegistry: () => territoryRegistry
 };
 

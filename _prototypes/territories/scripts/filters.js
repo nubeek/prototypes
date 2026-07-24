@@ -352,7 +352,10 @@ function applySavedMapSettings(settings = savedTerritorySettings) {
 
   window.territoryMapControls?.setTerritoryBrandLogosVisible?.(mapSettings.brandLogos !== false);
   window.territoryMapControls?.setTerritoryBordersVisible?.(mapSettings.borders !== false);
-  window.territoryMapControls?.setTerritoryBlendEnabled?.(Boolean(mapSettings.blend));
+  window.territoryMapControls?.setTerritoryBlendEnabled?.(
+    Boolean(mapSettings.blend),
+    { reapplyFilters: false }
+  );
 }
 
 function restoreSavedTerritorySettings() {
@@ -1529,7 +1532,7 @@ function updateClearFiltersButton() {
   );
 }
 
-function resetFilterSelections() {
+function resetFilterSelections({ refreshMap = true } = {}) {
   const locationFilterSelect = document.getElementById("locationFilterSelect");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
@@ -1582,14 +1585,22 @@ function resetFilterSelections() {
   }
 
   syncFilterSectionExpansion();
-  refreshTerritoryFilters();
+  if (refreshMap) {
+    refreshTerritoryFilters();
+  }
 }
 
 function clearAllFilterSelections() {
-  resetFilterSelections();
+  resetFilterSelections({ refreshMap: false });
+  window.territoryMapFilters?.hideTerritoryRecords?.();
   window.territoryMapSelection?.clear?.();
   window.territoryBrandPanel?.close?.();
-  window.showTerritoryCrossroad?.();
+
+  if (window.__territoryMapStarted) {
+    window.showTerritoryCrossroadAfterClearAll?.();
+  } else {
+    window.showTerritoryCrossroad?.({ animate: true });
+  }
 }
 
 function getTerritoryFilterState() {
@@ -1708,7 +1719,7 @@ function updateTerritoryFilterSummary(visibleCount, totalCount) {
   if (!filterSummary) return;
 
   const visibleRange = visibleCount > 0 ? `1-${visibleCount}` : "0";
-  filterSummary.textContent = `Showing ${visibleRange} of ${totalCount} records sorted by relevancy`;
+  filterSummary.innerHTML = `Showing ${visibleRange} of ${totalCount} records<span class="filter-summary-sort">sorted by relevancy</span>`;
 }
 
 function populateTerritoryFilterOptions(brands) {

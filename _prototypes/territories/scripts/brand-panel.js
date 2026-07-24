@@ -314,7 +314,7 @@ function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
 
   const visibleBrands = brands.filter((brand) => territoryCountsByBrand.has(brand.id));
 
-  summary.textContent = `${visibleBrands.length} franchise brands sorted by relevancy`;
+  summary.textContent = `Showing ${visibleBrands.length} franchise brands sorted by relevancy`;
   list.replaceChildren(
     ...visibleBrands.map((brand) => (
       createTerritoryBrandItem(brand, territoriesByBrand.get(brand.id) || [])
