@@ -9,3 +9,6 @@
 
 # Playwright CLI test artifacts
 .playwright-cli/
+
+# Local source dumps used to generate the real territories dataset
+_prototypes/territories/data/real/_source/

@@ -450,9 +450,9 @@ function setMainTableView(nextView) {
     return;
   }
 
-  tableSortStates[currentTableView] = { ...sortState };
+  tableSortStates[currentTableView] = cloneSortState(sortState);
   currentTableView = nextView;
-  sortState = { ...tableSortStates[currentTableView] };
+  sortState = cloneSortState(tableSortStates[currentTableView]);
   if (isDatasetTableView()) {
     locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
   }
@@ -743,27 +743,31 @@ function getLocationRowOrder(row) {
   return Number.isFinite(row.rowIndex) ? row.rowIndex : 0;
 }
 
+function compareLocationRowsByColumn(a, b, column) {
+  const valueA = getLocationSortValue(a, column.key);
+  const valueB = getLocationSortValue(b, column.key);
+  const comparison = collator.compare(String(valueA), String(valueB));
+  const direction = getSortDirectionMultiplier(column.key, column.direction, false);
+  return comparison * direction;
+}
+
 function sortLocations() {
   const filteredLocations = getFilteredLocationRows();
 
-  if (!sortState.key) {
+  if (!sortState.columns.length) {
     displayedLocations = filteredLocations.sort((a, b) => (
       getLocationRowOrder(a) - getLocationRowOrder(b)
     ));
     return;
   }
 
-  const direction = sortState.direction === "ascending" ? 1 : -1;
   displayedLocations = filteredLocations.sort((a, b) => {
-    const valueA = getLocationSortValue(a, sortState.key);
-    const valueB = getLocationSortValue(b, sortState.key);
-    const comparison = collator.compare(String(valueA), String(valueB));
-
-    if (comparison === 0) {
-      return getLocationRowOrder(a) - getLocationRowOrder(b);
+    for (const column of sortState.columns) {
+      const comparison = compareLocationRowsByColumn(a, b, column);
+      if (comparison !== 0) return comparison;
     }
 
-    return comparison * direction;
+    return getLocationRowOrder(a) - getLocationRowOrder(b);
   });
 }
 
@@ -1008,12 +1012,53 @@ function getNameSortGroup(owner) {
   return 3;
 }
 
+const NUMERIC_SORT_KEYS = new Set(["contacts", "locations", "franchise"]);
+
 function getInitialSortDirection(sortKey) {
-  if (sortKey === "contacts" || sortKey === "locations" || sortKey === "franchise") {
-    return "descending";
+  return "descending";
+}
+
+function getSortDirectionMultiplier(sortKey, direction, isNumeric = NUMERIC_SORT_KEYS.has(sortKey)) {
+  const isDescending = direction === "descending";
+  if (isNumeric) {
+    return isDescending ? -1 : 1;
   }
 
-  return "ascending";
+  return isDescending ? 1 : -1;
+}
+
+function cloneSortState(state) {
+  return {
+    columns: state.columns.map((column) => ({ ...column }))
+  };
+}
+
+function cycleSortState(sortKey, { additive = false } = {}) {
+  const columnIndex = sortState.columns.findIndex((column) => column.key === sortKey);
+
+  if (!additive) {
+    if (sortState.columns.length === 1 && columnIndex === 0) {
+      const [column] = sortState.columns;
+      sortState.columns = column.direction === "descending"
+        ? [{ ...column, direction: "ascending" }]
+        : [];
+    } else {
+      sortState.columns = [{ key: sortKey, direction: getInitialSortDirection(sortKey) }];
+    }
+    return;
+  }
+
+  if (columnIndex === -1) {
+    sortState.columns.push({ key: sortKey, direction: getInitialSortDirection(sortKey) });
+    return;
+  }
+
+  const column = sortState.columns[columnIndex];
+  if (column.direction === "descending") {
+    sortState.columns[columnIndex] = { ...column, direction: "ascending" };
+  } else {
+    sortState.columns.splice(columnIndex, 1);
+  }
 }
 
 function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
@@ -1159,65 +1204,44 @@ function getFilteredOwners() {
   });
 }
 
+function compareOwnersByColumn(a, b, column) {
+  const direction = getSortDirectionMultiplier(column.key, column.direction);
+
+  if (column.key === "ownerName") {
+    const groupComparison = getNameSortGroup(a) - getNameSortGroup(b);
+    if (groupComparison !== 0) return groupComparison * direction;
+    return collator.compare(a.ownerName, b.ownerName) * direction;
+  }
+
+  if (column.key === "franchise") {
+    const franchiseCountComparison = getFranchiseCount(a) - getFranchiseCount(b);
+    if (franchiseCountComparison !== 0) return franchiseCountComparison * direction;
+    return collator.compare(a.franchise, b.franchise) * direction;
+  }
+
+  const valueA = getSortValue(a, column.key);
+  const valueB = getSortValue(b, column.key);
+  const comparison = typeof valueA === "number" && typeof valueB === "number"
+    ? valueA - valueB
+    : collator.compare(String(valueA), String(valueB));
+  return comparison * direction;
+}
+
 function sortOwners() {
   const filteredOwners = getFilteredOwners();
 
-  if (!sortState.key) {
+  if (!sortState.columns.length) {
     displayedOwners = filteredOwners.sort((a, b) => a.originalIndex - b.originalIndex);
     return;
   }
 
-  const direction = sortState.direction === "ascending" ? 1 : -1;
-
   displayedOwners = filteredOwners.sort((a, b) => {
-    if (sortState.key === "ownerName") {
-      const groupComparison = getNameSortGroup(a) - getNameSortGroup(b);
-
-      if (groupComparison !== 0) {
-        return groupComparison * direction;
-      }
-
-      const nameComparison = collator.compare(a.ownerName, b.ownerName);
-
-      if (nameComparison !== 0) {
-        return nameComparison * direction;
-      }
-
-      return a.originalIndex - b.originalIndex;
+    for (const column of sortState.columns) {
+      const comparison = compareOwnersByColumn(a, b, column);
+      if (comparison !== 0) return comparison;
     }
 
-    if (sortState.key === "franchise") {
-      const franchiseCountComparison = getFranchiseCount(a) - getFranchiseCount(b);
-
-      if (franchiseCountComparison !== 0) {
-        return franchiseCountComparison * direction;
-      }
-
-      const franchiseNameComparison = collator.compare(a.franchise, b.franchise);
-
-      if (franchiseNameComparison !== 0) {
-        return franchiseNameComparison * direction;
-      }
-
-      return a.originalIndex - b.originalIndex;
-    }
-
-    const valueA = getSortValue(a, sortState.key);
-    const valueB = getSortValue(b, sortState.key);
-
-    let comparison;
-
-    if (typeof valueA === "number" && typeof valueB === "number") {
-      comparison = valueA - valueB;
-    } else {
-      comparison = collator.compare(String(valueA), String(valueB));
-    }
-
-    if (comparison === 0) {
-      return a.originalIndex - b.originalIndex;
-    }
-
-    return comparison * direction;
+    return a.originalIndex - b.originalIndex;
   });
 }
 
@@ -1277,9 +1301,30 @@ function updateClearFiltersButton() {
 }
 
 function syncSortHeaders() {
+  const showSortPriority = sortState.columns.length > 1;
+
   sortHeaders.forEach((header) => {
-    const isActive = header.dataset.sortKey === sortState.key;
-    header.setAttribute("aria-sort", isActive ? sortState.direction : "none");
+    const content = header.querySelector(".th-content");
+    const columnIndex = sortState.columns.findIndex((column) => column.key === header.dataset.sortKey);
+    if (columnIndex === -1) {
+      header.setAttribute("aria-sort", "none");
+      delete header.dataset.sortDirection;
+      delete header.dataset.sortPriority;
+      if (content) delete content.dataset.sortPriority;
+      return;
+    }
+
+    const column = sortState.columns[columnIndex];
+    header.setAttribute("aria-sort", columnIndex === 0 ? column.direction : "other");
+    header.dataset.sortDirection = column.direction;
+
+    if (showSortPriority) {
+      header.dataset.sortPriority = String(columnIndex + 1);
+      if (content) content.dataset.sortPriority = String(columnIndex + 1);
+    } else {
+      delete header.dataset.sortPriority;
+      if (content) delete content.dataset.sortPriority;
+    }
   });
 }
 
@@ -1292,7 +1337,7 @@ function renderActiveTable() {
 }
 
 function applySort() {
-  tableSortStates[currentTableView] = { ...sortState };
+  tableSortStates[currentTableView] = cloneSortState(sortState);
   if (isDatasetTableView()) {
     sortLocations();
     renderLocations(displayedLocations);

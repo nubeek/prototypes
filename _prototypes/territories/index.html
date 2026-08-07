@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "styles.css", "scripts/..."). If it's
+    // ever opened without a trailing slash, the browser resolves those relative
+    // paths against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
   <title>Territories — Wefranch Prototype</title>
   <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
@@ -50,6 +58,11 @@
               <span class="toolbar-dropdown-label">Brand logos</span>
               <span class="toolbar-switch" aria-hidden="true"></span>
             </button>
+            <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryBrandCirclesToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
+              <span class="toolbar-dropdown-label">Brand circles</span>
+              <span class="toolbar-switch" aria-hidden="true"></span>
+            </button>
+            <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true"></div>
             <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryBordersToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
               <span class="toolbar-dropdown-label">Territory borders</span>
               <span class="toolbar-switch" aria-hidden="true"></span>
@@ -58,8 +71,29 @@
               <span class="toolbar-dropdown-label">Blended territories</span>
               <span class="toolbar-switch" aria-hidden="true"></span>
             </button>
+            <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryDensityToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+              <span class="toolbar-dropdown-label">Brand density</span>
+              <span class="toolbar-switch" aria-hidden="true"></span>
+            </button>
           </div>
         </details>
+        <div class="toolbar-dataset-selector territory-dataset-selector" id="territoryDatasetSelector" data-dataset-active="true">
+          <div class="dataset-selector-field has-selection">
+            <img class="dataset-selector-icon" src="../cst/assets/dataset.svg?v=2" alt="" aria-hidden="true">
+            <button
+              class="dataset-selector-input"
+              id="territoryDatasetSelectorButton"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-controls="territoryDatasetSelectorMenu"
+            >Default</button>
+            <img class="toolbar-chevron dataset-selector-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
+            <div class="ui-menu dataset-selector-menu" id="territoryDatasetSelectorMenu" role="listbox" aria-label="Datasets">
+              <div class="dataset-selector-options" id="territoryDatasetSelectorOptions"></div>
+            </div>
+          </div>
+        </div>
         <span class="toolbar-divider" aria-hidden="true"></span>
         <label class="toolbar-search-btn toolbar-btn" for="territorySearchInput" role="search">
           <img class="toolbar-asset-icon toolbar-search-icon" src="../cst/assets/search.svg" alt="" aria-hidden="true">
@@ -90,6 +124,14 @@
             <span>Location</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
+          <div class="filter-check-group filter-location-actions">
+            <button class="ui-control filter-location-link" id="searchWithinLocation" type="button">
+              <span class="filter-location-link__icon" aria-hidden="true">
+                <img src="assets/target-me.svg" alt="">
+              </span>
+              <span>Find my location</span>
+            </button>
+          </div>
           <div class="filter-select-field">
             <select class="ui-select filter-field-select" id="locationFilterSelect" aria-label="Select US states">
               <option value="">Search by location</option>
@@ -147,12 +189,19 @@
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
           <div class="filter-check-group">
-            <button class="ui-control filter-location-link" id="searchWithinLocation" type="button">
-              <span class="filter-location-link__icon" aria-hidden="true">
-                <img src="assets/target-me.svg" alt="">
-              </span>
-              <span>Find my location</span>
-            </button>
+            <label class="filter-check filter-radius-toggle" id="radiusToggleLabel">
+              <input type="checkbox" id="radiusToggle">
+              <span class="filter-checkbox" aria-hidden="true"></span>
+              <span>Enable radius</span>
+            </label>
+          </div>
+          <div class="filter-radius-control" id="radiusControl" hidden>
+            <div class="range-track filter-range-slider filter-radius-slider" aria-label="Radius">
+              <span class="range-line"></span>
+              <span class="range-fill" id="radiusRangeFill"></span>
+              <input class="range-input range-input-single" id="radiusRange" type="range" min="25" max="1000" step="25" value="300" aria-label="Radius in miles">
+            </div>
+            <span class="filter-radius-value" id="radiusValueLabel">300 mi</span>
           </div>
         </section>
 
@@ -182,6 +231,40 @@
           </div>
         </section>
 
+        <section class="filter-section filter-section-collapsed" id="geoLevelFilterSection" hidden>
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+            <span>Geographic Level</span>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-check-group" role="radiogroup" aria-label="Geographic level">
+            <label class="filter-check is-checked">
+              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="all types" checked>
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span>All</span>
+            </label>
+            <label class="filter-check">
+              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="region">
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span>State</span>
+            </label>
+            <label class="filter-check">
+              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="cbsa">
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span>CBSA</span>
+            </label>
+            <label class="filter-check">
+              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="district">
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span>County</span>
+            </label>
+            <label class="filter-check">
+              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="place">
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span>City</span>
+            </label>
+          </div>
+        </section>
+
         <section class="filter-section filter-section-collapsed">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Territory status</span>
@@ -196,7 +279,7 @@
           <label class="filter-check">
             <input class="territory-filter-checkbox" type="checkbox" value="established">
             <span class="filter-checkbox" aria-hidden="true"></span>
-            <span>Established</span>
+            <span>For Sale</span>
           </label>
           <label class="filter-check">
             <input class="territory-filter-checkbox" type="checkbox" value="sold">
@@ -471,10 +554,13 @@
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="../../scripts/cst-env.js"></script>
+  <script src="scripts/datasets.js"></script>
+  <script src="scripts/categories.js"></script>
   <script src="scripts/filters.js"></script>
   <script src="scripts/brand-panel.js"></script>
   <script src="scripts/map.js"></script>
   <script src="scripts/crossroad.js"></script>
+  <script src="scripts/dataset-selector.js"></script>
   <script src="scripts/save-search-modal.js"></script>
 </body>
 </html>

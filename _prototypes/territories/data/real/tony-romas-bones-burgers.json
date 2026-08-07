@@ -1,0 +1,28 @@
+{
+  "id": "tony-romas-bones-burgers",
+  "brand": "Tony Roma's Bones & Burgers®",
+  "category": "Food and Beverage",
+  "color": "#BA7C81",
+  "logo": "assets/logos/tony-romas-bones-burgers.jpg",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 30000,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/pmqq/tony-romas-bones-burgers",
+  "territories": [
+    {
+      "geoKey": "region:32",
+      "geoType": "region",
+      "state": "NV",
+      "name": "Nevada",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:48",
+      "geoType": "region",
+      "state": "TX",
+      "name": "Texas",
+      "status": "available"
+    }
+  ]
+}

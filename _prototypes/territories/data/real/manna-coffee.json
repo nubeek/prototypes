@@ -1,0 +1,77 @@
+{
+  "id": "manna-coffee",
+  "brand": "Manna Coffee",
+  "category": "Food and Beverage",
+  "color": "#A1DE87",
+  "logo": "assets/logos/manna-coffee.jpg",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 22950,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/rvlp/manna-coffee",
+  "territories": [
+    {
+      "geoKey": "region:01",
+      "geoType": "region",
+      "state": "AL",
+      "name": "Alabama",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:05",
+      "geoType": "region",
+      "state": "AR",
+      "name": "Arkansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:16",
+      "geoType": "region",
+      "state": "ID",
+      "name": "Idaho",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:18",
+      "geoType": "region",
+      "state": "IN",
+      "name": "Indiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:20",
+      "geoType": "region",
+      "state": "KS",
+      "name": "Kansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:25",
+      "geoType": "region",
+      "state": "MA",
+      "name": "Massachusetts",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:28",
+      "geoType": "region",
+      "state": "MS",
+      "name": "Mississippi",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:34",
+      "geoType": "region",
+      "state": "NJ",
+      "name": "New Jersey",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:39",
+      "geoType": "region",
+      "state": "OH",
+      "name": "Ohio",
+      "status": "available"
+    }
+  ]
+}

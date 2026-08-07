@@ -1,0 +1,140 @@
+{
+  "id": "tradewell",
+  "brand": "Tradewell",
+  "category": "Home & Services",
+  "color": "#C9743D",
+  "logo": "assets/logos/tradewell.jpg",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 0,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/opjy/tradewell",
+  "territories": [
+    {
+      "geoKey": "region:01",
+      "geoType": "region",
+      "state": "AL",
+      "name": "Alabama",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:05",
+      "geoType": "region",
+      "state": "AR",
+      "name": "Arkansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:04",
+      "geoType": "region",
+      "state": "AZ",
+      "name": "Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:08",
+      "geoType": "region",
+      "state": "CO",
+      "name": "Colorado",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:12",
+      "geoType": "region",
+      "state": "FL",
+      "name": "Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:13",
+      "geoType": "region",
+      "state": "GA",
+      "name": "Georgia",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:16",
+      "geoType": "region",
+      "state": "ID",
+      "name": "Idaho",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:22",
+      "geoType": "region",
+      "state": "LA",
+      "name": "Louisiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:28",
+      "geoType": "region",
+      "state": "MS",
+      "name": "Mississippi",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:30",
+      "geoType": "region",
+      "state": "MT",
+      "name": "Montana",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:37",
+      "geoType": "region",
+      "state": "NC",
+      "name": "North Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:32",
+      "geoType": "region",
+      "state": "NV",
+      "name": "Nevada",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:45",
+      "geoType": "region",
+      "state": "SC",
+      "name": "South Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:47",
+      "geoType": "region",
+      "state": "TN",
+      "name": "Tennessee",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:48",
+      "geoType": "region",
+      "state": "TX",
+      "name": "Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:49",
+      "geoType": "region",
+      "state": "UT",
+      "name": "Utah",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:51",
+      "geoType": "region",
+      "state": "VA",
+      "name": "Virginia",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:56",
+      "geoType": "region",
+      "state": "WY",
+      "name": "Wyoming",
+      "status": "available"
+    }
+  ]
+}

@@ -18,20 +18,32 @@
   margin-bottom: var(--territory-panel-gap);
 }
 
+.territory-dataset-selector .dataset-selector-field {
+  width: 180px;
+  min-width: 180px;
+}
+
+.territory-dataset-selector .dataset-selector-input {
+  text-align: left;
+}
+
+.territory-dataset-selector[data-dataset-active="true"] .dataset-selector-icon {
+  opacity: 1;
+}
+
+.territory-dataset-selector .dataset-selector-field.has-selection .dataset-selector-chevron {
+  visibility: visible;
+}
+
+.territory-dataset-selector .dataset-selector-field.is-open .dataset-selector-input {
+  cursor: pointer;
+}
+
 .territory-workspace {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
-  gap: 0;
-}
-
-.territory-shell.is-filter-open .territory-workspace,
-.territory-shell.is-brand-panel-open .territory-workspace {
-  gap: var(--territory-panel-gap);
-}
-
-.territory-shell.is-crossroad-fullscreen .territory-workspace {
   gap: 0;
 }
 
@@ -41,6 +53,7 @@
   width: 0;
   max-width: 0;
   min-width: 0;
+  margin: 0;
   padding: 0;
   opacity: 0;
   overflow: hidden;
@@ -64,7 +77,8 @@
 .territory-filter-panel,
 .territory-brand-panel {
   border-radius: var(--radius-md);
-  transition: flex-basis 260ms ease, width 260ms ease, min-width 260ms ease, padding 260ms ease, opacity 220ms ease, transform 220ms ease;
+  opacity: 1;
+  transition: flex-basis 260ms ease, width 260ms ease, min-width 260ms ease, margin 260ms ease;
 }
 
 .territory-shell.is-filter-open .territory-filter-panel {
@@ -72,21 +86,45 @@
   width: var(--filter-panel-width);
   max-width: var(--filter-panel-width);
   min-width: min(var(--filter-panel-width), 100%);
-  padding: 18px 12px 16px;
+  margin-right: var(--territory-panel-gap);
+  padding: 0;
   opacity: 1;
   pointer-events: auto;
 }
 
 .territory-filter-panel .filter-scroll {
-  margin: -18px -12px -16px;
+  margin: 0;
   padding: 18px 12px 86px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+
+.territory-shell.is-filter-open .territory-filter-panel .filter-scroll {
+  min-width: var(--filter-panel-width);
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.territory-filter-panel .filter-actions {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.territory-shell.is-filter-open .territory-filter-panel .filter-actions {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .filter-location-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   min-height: 26px;
   padding: 0;
   border: 0;
@@ -126,19 +164,25 @@
   border-radius: var(--radius-sm);
 }
 
+.filter-location-actions {
+  margin-bottom: 0;
+  align-items: flex-start;
+}
+
 .territory-shell.is-brand-panel-open .territory-brand-panel {
   flex: 0 0 var(--brand-panel-width);
   width: var(--brand-panel-width);
   max-width: var(--brand-panel-width);
   min-width: min(var(--brand-panel-width), 100%);
-  padding: 18px 12px 16px;
-  opacity: 1;
+  margin-left: var(--territory-panel-gap);
+  padding: 0;
   pointer-events: auto;
 }
 
 .territory-brand-panel .territory-brand-panel__scroll {
-  margin: -18px -12px -16px;
+  margin: 0;
   padding: 18px 12px 86px;
+  min-width: var(--brand-panel-width);
 }
 
 .territory-save-search-btn img {
@@ -359,15 +403,91 @@
   border-bottom: 1px solid #e1e1e1;
 }
 
+.territory-brand-item__header {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.territory-brand-item__header:hover,
+.territory-brand-item__header:focus-within {
+  background: #f5f5f5;
+}
+
 .territory-brand-item__toggle {
   display: flex;
   align-items: center;
+  flex: 1 1 auto;
   gap: 12px;
-  width: 100%;
   min-width: 0;
-  padding: 18px 10px;
+  padding: 18px 0 18px 10px;
   text-align: left;
   cursor: pointer;
+}
+
+.territory-brand-item__filter {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
+  padding: 0;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: background-color 50ms ease;
+}
+
+.territory-brand-item__header:hover .territory-brand-item__filter,
+.territory-brand-item__header:has([aria-expanded="true"]) .territory-brand-item__filter,
+.territory-brand-item__filter:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.territory-brand-item__filter.ui-button-ghost:hover,
+.territory-brand-item__filter.ui-button-ghost:active {
+  background: #e9e9e9;
+}
+
+.territory-brand-item__filter:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.territory-brand-item__filter-icon {
+  display: block;
+  width: 12px;
+  height: auto;
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast);
+}
+
+.territory-brand-item__filter:hover .territory-brand-item__filter-icon,
+.territory-brand-item__filter:focus-visible .territory-brand-item__filter-icon {
+  filter: brightness(0) saturate(100%);
+}
+
+.territory-brand-item__expand {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 10px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 50ms ease;
+}
+
+.territory-brand-item__expand.ui-button-ghost:hover,
+.territory-brand-item__expand.ui-button-ghost:active {
+  background: #e9e9e9;
 }
 
 .territory-brand-item:last-child {
@@ -379,9 +499,10 @@
   background: transparent;
 }
 
-.territory-brand-item__toggle:focus-visible {
+.territory-brand-item__toggle:focus-visible,
+.territory-brand-item__expand:focus-visible {
   outline: 2px solid var(--color-brand-primary);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 .territory-brand-item__logo {
@@ -432,15 +553,15 @@
   transition: filter var(--transition-fast), transform var(--transition-fast);
 }
 
-.territory-brand-item__toggle:hover .territory-brand-item__count {
+.territory-brand-item__header:hover .territory-brand-item__count {
   color: var(--color-text);
 }
 
-.territory-brand-item__toggle:hover .territory-brand-item__chevron {
+.territory-brand-item__header:hover .territory-brand-item__chevron {
   filter: brightness(0) saturate(100%);
 }
 
-.territory-brand-item__toggle[aria-expanded="true"] .territory-brand-item__chevron {
+.territory-brand-item__expand[aria-expanded="true"] .territory-brand-item__chevron {
   transform: rotate(180deg);
 }
 
@@ -932,10 +1053,10 @@ a.territory-info-card__action.is-disabled {
   height: 28px;
   margin-left: auto;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   background: transparent;
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: background-color 50ms ease;
 }
 
 .territory-info-card__close::before,
@@ -1025,6 +1146,12 @@ a.territory-info-card__action.is-disabled {
   min-width: 200px;
 }
 
+.territory-toolbar .toolbar-dropdown-divider {
+  height: 1px;
+  margin: 0;
+  background: var(--color-border);
+}
+
 .filter-investment-range {
   margin-top: 16px;
 }
@@ -1086,16 +1213,26 @@ a.territory-info-card__action.is-disabled {
 
 .territory-filter-panel .filter-section-toggle {
   flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
   padding: 0;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 50ms ease;
 }
 
 .territory-filter-panel .filter-section-toggle.ui-button-ghost:hover,
 .territory-filter-panel .filter-section-toggle.ui-button-ghost:active {
-  background: transparent;
+  background: #e9e9e9;
+}
+
+.territory-filter-panel .filter-section-toggle:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
 }
 
 .territory-filter-panel .filter-section-toggle img {
@@ -1111,6 +1248,14 @@ a.territory-info-card__action.is-disabled {
 
 .territory-filter-panel .filter-section-collapsed .filter-section-toggle img {
   transform: none;
+}
+
+.territory-filter-panel .filter-checkbox--radio {
+  border-radius: 50%;
+}
+
+.territory-filter-panel .filter-check.is-checked .filter-checkbox--radio::after {
+  border-radius: 50%;
 }
 
 .filter-range-histogram {
@@ -1297,17 +1442,21 @@ a.territory-info-card__action.is-disabled {
 }
 
 .territory-crossroad .target-card-title {
+  min-width: 0;
+  overflow: hidden;
   font-size: 18px;
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: -0.01em;
   color: #1d1d22;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .territory-crossroad .target-map {
   position: relative;
-  flex: 0 0 134px;
-  height: 134px;
+  flex: 0 0 118px;
+  height: 118px;
   margin: 0 -8px;
   overflow: hidden;
   border-radius: 12px;
@@ -1315,25 +1464,29 @@ a.territory-info-card__action.is-disabled {
 }
 
 .territory-crossroad .target-map-img {
+  position: relative;
+  z-index: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.territory-crossroad .target-map-blend {
+.territory-crossroad .target-map-fill {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.62;
+  opacity: 0.72;
   pointer-events: none;
 }
 
 .territory-crossroad .target-map-borders {
   position: absolute;
   inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1370,6 +1523,17 @@ a.territory-info-card__action.is-disabled {
   font-weight: 700;
   line-height: 1;
   color: #1d1d22;
+}
+
+.territory-crossroad .target-status-breakdown {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #a0a0a8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .territory-crossroad .target-chevron {
@@ -1482,6 +1646,14 @@ a.territory-info-card__action.is-disabled {
   .territory-info-card,
   .territory-info-stack {
     transition: none;
+  }
+
+  .territory-filter-panel,
+  .territory-brand-panel,
+  .territory-filter-panel .filter-scroll,
+  .territory-filter-panel .filter-actions {
+    transition: none;
+    transform: none;
   }
 
   .territory-shell.is-crossroad-hiding-workspace .territory-filter-panel,

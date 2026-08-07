@@ -1,0 +1,2079 @@
+{
+  "id": "junk-king",
+  "brand": "Junk King",
+  "category": "Cleaning and Maintenance",
+  "color": "#EA3532",
+  "logo": "assets/logos/junk-king.png",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 0,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/ojl4/junk-king",
+  "territories": [
+    {
+      "geoKey": "cbsa:13820",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Birmingham-Hoover, AL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:19300",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Daphne-Fairhope-Foley, AL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26620",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Huntsville, AL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:33660",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Mobile, AL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:33860",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Montgomery, AL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:45180",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Talladega-Sylacauga, AL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46220",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Tuscaloosa, AL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:22220",
+      "geoType": "cbsa",
+      "state": "AR",
+      "name": "Fayetteville-Springdale-Rogers, AR-MO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:30780",
+      "geoType": "cbsa",
+      "state": "AR",
+      "name": "Little Rock-North Little Rock-Conway, AR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:38060",
+      "geoType": "cbsa",
+      "state": "AZ",
+      "name": "Phoenix-Mesa-Scottsdale, AZ",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46060",
+      "geoType": "cbsa",
+      "state": "AZ",
+      "name": "Tucson, AZ",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12540",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Bakersfield, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:17020",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Chico, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:23420",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Fresno, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:25260",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Hanford-Corcoran, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:31080",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Los Angeles-Long Beach-Anaheim, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:31460",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Madera, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:33700",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Modesto, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:34900",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Napa, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:37100",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Oxnard-Thousand Oaks-Ventura, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:39780",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Red Bluff, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:40140",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Riverside-San Bernardino-Ontario, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40900",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Sacramento--Roseville--Arden-Arcade, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41500",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Salinas, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41740",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "San Diego-Carlsbad, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41860",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "San Francisco-Oakland-Hayward, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41940",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "San Jose-Sunnyvale-Santa Clara, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:42020",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "San Luis Obispo-Paso Robles-Arroyo Grande, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:42100",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Santa Cruz-Watsonville, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:42200",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Santa Maria-Santa Barbara, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:42220",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Santa Rosa, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:44700",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Stockton-Lodi, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46020",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Truckee-Grass Valley, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46380",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Ukiah, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46700",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Vallejo-Fairfield, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:47300",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Visalia-Porterville, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:49700",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Yuba City, CA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:14500",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Boulder, CO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:15860",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Cañon City, CO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:17820",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Colorado Springs, CO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:19740",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Denver-Aurora-Lakewood, CO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:22660",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Fort Collins, CO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:24540",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Greeley, CO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:39380",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Pueblo, CO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:14860",
+      "geoType": "cbsa",
+      "state": "CT",
+      "name": "Bridgeport-Stamford-Norwalk, CT",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:47900",
+      "geoType": "cbsa",
+      "state": "DC",
+      "name": "Washington-Arlington-Alexandria, DC-VA-MD-WV",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:15980",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Cape Coral-Fort Myers, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:17500",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Clewiston, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:19660",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Deltona-Daytona Beach-Ormond Beach, FL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:23540",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Gainesville, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26140",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Homosassa Springs, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:27260",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Jacksonville, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:29460",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Lakeland-Winter Haven, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:33100",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Miami-Fort Lauderdale-West Palm Beach, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:34940",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Naples-Immokalee-Marco Island, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:35840",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "North Port-Sarasota-Bradenton, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36100",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Ocala, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36740",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Orlando-Kissimmee-Sanford, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:37260",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Palatka, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:37340",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Palm Bay-Melbourne-Titusville, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:37860",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Pensacola-Ferry Pass-Brent, FL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:38940",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Port St. Lucie, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:39460",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Punta Gorda, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:45220",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Tallahassee, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:45300",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Tampa-St. Petersburg-Clearwater, FL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:45540",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "The Villages, FL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12020",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Athens-Clarke County, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12060",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Atlanta-Sandy Springs-Roswell, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12260",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Augusta-Richmond County, GA-SC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12460",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Bainbridge, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:19140",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Dalton, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:23580",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Gainesville, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:27600",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Jefferson, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:31420",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Macon, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:33300",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Milledgeville, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:42340",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Savannah, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41220",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "St. Marys, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:45580",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Thomaston, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:45620",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Thomasville, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46660",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Valdosta, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:47580",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Warner Robins, GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:11180",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Ames, IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:14340",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Boone, IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:16300",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Cedar Rapids, IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:19780",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Des Moines-West Des Moines, IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26980",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Iowa City, IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:35500",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Newton, IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36820",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Oskaloosa, IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:47940",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Waterloo-Cedar Falls, IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:14260",
+      "geoType": "cbsa",
+      "state": "ID",
+      "name": "Boise City, ID",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:14010",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Bloomington, IL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16980",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Chicago-Naperville-Elgin, IL-IN-WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:28100",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Kankakee, IL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:37900",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Peoria, IL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40420",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Rockford, IL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14020",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Bloomington, IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:18020",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Columbus, IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:18820",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Crawfordsville, IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:21140",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Elkhart-Goshen, IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:21780",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Evansville, IN-KY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:23140",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Frankfort, IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26900",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Indianapolis-Carmel-Anderson, IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:34620",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Muncie, IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:43780",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "South Bend-Mishawaka, IN-MI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:29940",
+      "geoType": "cbsa",
+      "state": "KS",
+      "name": "Lawrence, KS",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36840",
+      "geoType": "cbsa",
+      "state": "KS",
+      "name": "Ottawa, KS",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:45820",
+      "geoType": "cbsa",
+      "state": "KS",
+      "name": "Topeka, KS",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:48620",
+      "geoType": "cbsa",
+      "state": "KS",
+      "name": "Wichita, KS",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:30460",
+      "geoType": "cbsa",
+      "state": "KY",
+      "name": "Lexington-Fayette, KY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31140",
+      "geoType": "cbsa",
+      "state": "KY",
+      "name": "Louisville/Jefferson County, KY-IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36980",
+      "geoType": "cbsa",
+      "state": "KY",
+      "name": "Owensboro, KY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:10780",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Alexandria, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12820",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Bastrop, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12940",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Baton Rouge, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:25220",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Hammond, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:29180",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Lafayette, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:33740",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Monroe, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:35380",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "New Orleans-Metairie, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36660",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Opelousas, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:40820",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Ruston, LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:43340",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Shreveport-Bossier City, LA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14460",
+      "geoType": "cbsa",
+      "state": "MA",
+      "name": "Boston-Cambridge-Newton, MA-NH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:44140",
+      "geoType": "cbsa",
+      "state": "MA",
+      "name": "Springfield, MA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:49340",
+      "geoType": "cbsa",
+      "state": "MA",
+      "name": "Worcester, MA-CT",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12580",
+      "geoType": "cbsa",
+      "state": "MD",
+      "name": "Baltimore-Columbia-Towson, MD",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41540",
+      "geoType": "cbsa",
+      "state": "MD",
+      "name": "Salisbury, MD-DE",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:11460",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Ann Arbor, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12980",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Battle Creek, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:19820",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Detroit-Warren-Dearborn, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22420",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Flint, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24340",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Grand Rapids-Wyoming, MI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26090",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Holland, MI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26960",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Ionia, MI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:28020",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Kalamazoo-Portage, MI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:29620",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Lansing-East Lansing, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:34740",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Muskegon, MI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:40980",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Saginaw, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22060",
+      "geoType": "cbsa",
+      "state": "MN",
+      "name": "Faribault-Northfield, MN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:33460",
+      "geoType": "cbsa",
+      "state": "MN",
+      "name": "Minneapolis-St. Paul-Bloomington, MN-WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:14700",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Branson, MO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:27620",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Jefferson City, MO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:27900",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Joplin, MO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:28140",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Kansas City, MO-KS",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:32340",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Maryville, MO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:44180",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Springfield, MO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41140",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "St. Joseph, MO-KS",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41180",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "St. Louis, MO-IL",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:47660",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Warrensburg, MO",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:27140",
+      "geoType": "cbsa",
+      "state": "MS",
+      "name": "Jackson, MS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:35020",
+      "geoType": "cbsa",
+      "state": "MS",
+      "name": "Natchez, MS-LA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:38100",
+      "geoType": "cbsa",
+      "state": "MS",
+      "name": "Picayune, MS",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46980",
+      "geoType": "cbsa",
+      "state": "MS",
+      "name": "Vicksburg, MS",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:11700",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Asheville, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16740",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Charlotte-Concord-Gastonia, NC-SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:20380",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Dunn, NC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:20500",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Durham-Chapel Hill, NC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:22180",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Fayetteville, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24140",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Goldsboro, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24660",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Greensboro-High Point, NC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:25860",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Hickory-Lenoir-Morganton, NC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:35900",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "North Wilkesboro, NC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:39580",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Raleigh, NC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:40580",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Rocky Mount, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:43140",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Shelby, NC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:48900",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Wilmington, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:49180",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Winston-Salem, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:13100",
+      "geoType": "cbsa",
+      "state": "NE",
+      "name": "Beatrice, NE",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:23340",
+      "geoType": "cbsa",
+      "state": "NE",
+      "name": "Fremont, NE",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:30700",
+      "geoType": "cbsa",
+      "state": "NE",
+      "name": "Lincoln, NE",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36540",
+      "geoType": "cbsa",
+      "state": "NE",
+      "name": "Omaha-Council Bluffs, NE-IA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:31700",
+      "geoType": "cbsa",
+      "state": "NH",
+      "name": "Manchester-Nashua, NH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:10740",
+      "geoType": "cbsa",
+      "state": "NM",
+      "name": "Albuquerque, NM",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:29740",
+      "geoType": "cbsa",
+      "state": "NM",
+      "name": "Las Cruces, NM",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16180",
+      "geoType": "cbsa",
+      "state": "NV",
+      "name": "Carson City, NV",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:21980",
+      "geoType": "cbsa",
+      "state": "NV",
+      "name": "Fallon, NV",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:22280",
+      "geoType": "cbsa",
+      "state": "NV",
+      "name": "Fernley, NV",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:23820",
+      "geoType": "cbsa",
+      "state": "NV",
+      "name": "Gardnerville Ranchos, NV",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:29820",
+      "geoType": "cbsa",
+      "state": "NV",
+      "name": "Las Vegas-Henderson-Paradise, NV",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:39900",
+      "geoType": "cbsa",
+      "state": "NV",
+      "name": "Reno, NV",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:10580",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Albany-Schenectady-Troy, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:11220",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Amsterdam, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12180",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Auburn, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12860",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Batavia, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:13780",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Binghamton, NY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:18500",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Corning, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:18660",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Cortland, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:24020",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Glens Falls, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:24100",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Gloversville, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26460",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Hudson, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:35620",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "New York-Newark-Jersey City, NY-NJ-PA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:40380",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Rochester, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:42900",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Seneca Falls, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:45060",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Syracuse, NY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:10420",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Akron, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:15940",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Canton-Massillon, OH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:17140",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Cincinnati, OH-KY-IN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:18140",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Columbus, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:19380",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Dayton, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:24820",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Greenville, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:43380",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Sidney, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:44220",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Springfield, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:45780",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Toledo, OH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:46500",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Urbana, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:47920",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Washington Court House, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:48940",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Wilmington, OH",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:49660",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Youngstown-Warren-Boardman, OH-PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12780",
+      "geoType": "cbsa",
+      "state": "OK",
+      "name": "Bartlesville, OK",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:34780",
+      "geoType": "cbsa",
+      "state": "OK",
+      "name": "Muskogee, OK",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36420",
+      "geoType": "cbsa",
+      "state": "OK",
+      "name": "Oklahoma City, OK",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46140",
+      "geoType": "cbsa",
+      "state": "OK",
+      "name": "Tulsa, OK",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36620",
+      "geoType": "cbsa",
+      "state": "OR",
+      "name": "Ontario, OR-ID",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:38900",
+      "geoType": "cbsa",
+      "state": "OR",
+      "name": "Portland-Vancouver-Hillsboro, OR-WA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41420",
+      "geoType": "cbsa",
+      "state": "OR",
+      "name": "Salem, OR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:23900",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Gettysburg, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:25420",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Harrisburg-Carlisle, PA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26860",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Indiana, PA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:29540",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Lancaster, PA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:30140",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Lebanon, PA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:37980",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:38300",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Pittsburgh, PA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:39740",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Reading, PA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:42540",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Scranton--Wilkes-Barre--Hazleton, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:44300",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "State College, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:49620",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "York-Hanover, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:39300",
+      "geoType": "cbsa",
+      "state": "RI",
+      "name": "Providence-Warwick, RI-MA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:16700",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Charleston-North Charleston, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:17900",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Columbia, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:22500",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Florence, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:23500",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Gaffney, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:23860",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Georgetown, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:24860",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Greenville-Anderson-Mauldin, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:24940",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Greenwood, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:25940",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Hilton Head Island-Bluffton-Beaufort, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:34820",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Myrtle Beach-Conway-North Myrtle Beach, SC-NC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:43900",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Spartanburg, SC",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:43620",
+      "geoType": "cbsa",
+      "state": "SD",
+      "name": "Sioux Falls, SD",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16860",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Chattanooga, TN-GA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:17300",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Clarksville, TN-KY",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:17420",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Cleveland, TN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:28940",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Knoxville, TN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:30280",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Lewisburg, TN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:32820",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Memphis, TN-MS-AR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:34980",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Nashville-Davidson--Murfreesboro--Franklin, TN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:43180",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Shelbyville, TN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46100",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Tullahoma-Manchester, TN",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:12420",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Austin-Round Rock, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:13140",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Beaumont-Port Arthur, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14780",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Brenham, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:15180",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Brownsville-Harlingen, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:17780",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "College Station-Bryan, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:18580",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Corpus Christi, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:19100",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Dallas-Fort Worth-Arlington, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:20900",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "El Campo, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:21340",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "El Paso, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:23620",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Gainesville, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:26420",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Houston-The Woodlands-Sugar Land, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:26660",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Huntsville, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:28500",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Kerrville, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:28660",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Killeen-Temple, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:29700",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Laredo, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:30980",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Longview, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31180",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Lubbock, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:32580",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "McAllen-Edinburg-Mission, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41700",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "San Antonio-New Braunfels, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:43300",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Sherman-Denison, TX",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:46340",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Tyler, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:47380",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Waco, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16260",
+      "geoType": "cbsa",
+      "state": "UT",
+      "name": "Cedar City, UT",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:25720",
+      "geoType": "cbsa",
+      "state": "UT",
+      "name": "Heber, UT",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36260",
+      "geoType": "cbsa",
+      "state": "UT",
+      "name": "Ogden-Clearfield, UT",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:39340",
+      "geoType": "cbsa",
+      "state": "UT",
+      "name": "Provo-Orem, UT",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41620",
+      "geoType": "cbsa",
+      "state": "UT",
+      "name": "Salt Lake City, UT",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:41100",
+      "geoType": "cbsa",
+      "state": "UT",
+      "name": "St. George, UT",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:31340",
+      "geoType": "cbsa",
+      "state": "VA",
+      "name": "Lynchburg, VA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40060",
+      "geoType": "cbsa",
+      "state": "VA",
+      "name": "Richmond, VA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:40220",
+      "geoType": "cbsa",
+      "state": "VA",
+      "name": "Roanoke, VA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:47260",
+      "geoType": "cbsa",
+      "state": "VA",
+      "name": "Virginia Beach-Norfolk-Newport News, VA-NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:28420",
+      "geoType": "cbsa",
+      "state": "WA",
+      "name": "Kennewick-Richland, WA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:36500",
+      "geoType": "cbsa",
+      "state": "WA",
+      "name": "Olympia-Tumwater, WA",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:42660",
+      "geoType": "cbsa",
+      "state": "WA",
+      "name": "Seattle-Tacoma-Bellevue, WA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:44060",
+      "geoType": "cbsa",
+      "state": "WA",
+      "name": "Spokane-Spokane Valley, WA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:11540",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Appleton, WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12660",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Baraboo, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:13180",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Beaver Dam, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:24580",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Green Bay, WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:27500",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Janesville-Beloit, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:31540",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Madison, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:31820",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Manitowoc, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:33340",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Milwaukee-Waukesha-West Allis, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:36780",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Oshkosh-Neenah, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:39540",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Racine, WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:43020",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Shawano, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:43100",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Sheboygan, WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:48020",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Watertown-Fort Atkinson, WI",
+      "status": "sold"
+    },
+    {
+      "geoKey": "cbsa:48580",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Whitewater-Elkhorn, WI",
+      "status": "sold"
+    }
+  ]
+}

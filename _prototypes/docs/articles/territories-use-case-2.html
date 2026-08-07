@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finding a top-rated franchise in a single state — Wefranch Docs</title>
+  <link rel="icon" href="../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../assets/x192.png" />
+  <link rel="manifest" href="../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../../../scripts/gate.js"></script>
+  <link rel="stylesheet" href="../../../styles/gate.css">
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="on" method="get" action="./territories-use-case-2.html">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input type="text" name="username" autocomplete="username" value="prototype-access" hidden readonly>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="password" name="password" autocomplete="current-password" autofocus>
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <header class="docs-topbar">
+    <a class="docs-brand" href="../">Wefranch Docs</a>
+    <nav class="docs-topbar-nav" aria-label="Docs navigation">
+      <a href="../">Guides</a>
+      <a href="../../">All prototypes</a>
+      <a href="../../territories/">Territories app</a>
+    </nav>
+  </header>
+
+  <main class="docs-article">
+    <article class="docs-article-inner">
+      <nav class="docs-breadcrumb docs-breadcrumb--in-article" aria-label="Breadcrumb">
+        <a href="../">Docs</a>
+        <span aria-hidden="true">/</span>
+        <a href="../../territories/">Territories</a>
+        <span aria-hidden="true">/</span>
+        <span class="is-current">Use case 02</span>
+      </nav>
+
+      <header class="docs-article-header">
+        <h1 class="docs-article-title">Finding a top-rated franchise in a single state</h1>
+        <p class="docs-article-dek">
+          Narrow to one state, then filter by franchisee rating to compare brands
+          across categories — not just within one.
+        </p>
+      </header>
+
+      <div class="docs-article-body">
+
+        <div class="docs-step">
+          <span class="docs-step__number" aria-hidden="true">01</span>
+          <h2 class="docs-step__title">Start a new search</h2>
+          <div class="docs-step__body">
+            <p>
+              Territories opens on a set of popular searches — QSR Territories, Fitness
+              Franchises, Chick-fil-A South-East, and a few others. Click
+              <strong>New search</strong> for a blank map instead.
+            </p>
+          </div>
+          <figure class="docs-figure">
+            <div class="docs-figure__frame">
+              <img src="../assets/territories-use-case-2/01-start-a-search.jpg" alt="Territories splash screen with New search and popular territory searches." loading="lazy" width="1400" height="770">
+            </div>
+          </figure>
+        </div>
+
+        <div class="docs-step">
+          <span class="docs-step__number" aria-hidden="true">02</span>
+          <h2 class="docs-step__title">Filter by location</h2>
+          <div class="docs-step__body">
+            <p>
+              Add just <strong>Texas</strong> under Location — no other states this
+              time. The map zooms in and the right-hand list fills with every available
+              territory in the state: five brands, spanning food &amp; beverage,
+              real estate and fitness.
+            </p>
+          </div>
+          <figure class="docs-figure">
+            <div class="docs-figure__frame">
+              <img src="../assets/territories-use-case-2/02-filter-by-location.jpg" alt="Texas selected in the Location filter with five brand territories on the map." loading="lazy" width="1400" height="770">
+            </div>
+          </figure>
+        </div>
+
+        <div class="docs-step">
+          <span class="docs-step__number" aria-hidden="true">03</span>
+          <h2 class="docs-step__title">Filter by franchisee rating</h2>
+          <div class="docs-step__body">
+            <p>
+              Set <strong>Franchisee rating</strong> to a 4.0 minimum. Burger King —
+              the lowest-rated brand in Texas at 3.9 — drops off the list. The other
+              four stay: Subway, Popeyes, RE/MAX and Planet Fitness.
+            </p>
+          </div>
+          <figure class="docs-figure">
+            <div class="docs-figure__frame">
+              <img src="../assets/territories-use-case-2/03-filter-by-rating.jpg" alt="Franchisee rating filter set to a 4.0 minimum; Burger King drops out of the Texas results." loading="lazy" width="1400" height="770">
+            </div>
+          </figure>
+        </div>
+
+        <div class="docs-step">
+          <span class="docs-step__number" aria-hidden="true">04</span>
+          <h2 class="docs-step__title">Compare rating and investment</h2>
+          <div class="docs-step__body">
+            <p>
+              Click each territory to open its detail card. Rating and price don't
+              move together here — sorted by investment, low to high:
+            </p>
+          </div>
+          <figure class="docs-figure">
+            <div class="docs-figure__frame">
+              <img src="../assets/territories-use-case-2/04-compare-territories.jpg" alt="Planet Fitness Texas detail card open on the map with initial investment and market data." loading="lazy" width="1400" height="770">
+            </div>
+          </figure>
+
+          <div class="docs-table-wrap">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th scope="col">Brand</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Investment</th>
+                  <th scope="col">Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Subway</td>
+                  <td>Food &amp; Beverage</td>
+                  <td class="docs-cell-strong">$332,500</td>
+                  <td>4.2</td>
+                </tr>
+                <tr>
+                  <td>RE/MAX</td>
+                  <td>Real Estate</td>
+                  <td class="docs-cell-strong">$625,000</td>
+                  <td>4.4</td>
+                </tr>
+                <tr>
+                  <td>Popeyes</td>
+                  <td>Food &amp; Beverage</td>
+                  <td>$1,312,500</td>
+                  <td>4.0</td>
+                </tr>
+                <tr>
+                  <td>Planet Fitness</td>
+                  <td>Health &amp; Fitness</td>
+                  <td>$3,250,000</td>
+                  <td>4.5</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="docs-table-note">Planet Fitness Texas, highlighted above, is the one opened in the screenshot.</p>
+
+          <div class="docs-note">
+            <p>
+              Rating and price aren't correlated. Subway is the cheapest option here
+              and still rated 4.2; Popeyes costs almost $1M more and rates lower, at
+              4.0. Same state means the same population, income and growth numbers for
+              all four — the difference is brand, not market.
+            </p>
+          </div>
+        </div>
+
+        <section class="docs-closing">
+          <h2>Why it matters</h2>
+          <p>
+            Filtering by rating instead of category surfaces good operators regardless
+            of industry. In one state, that turns five options into four worth
+            comparing — and shows the priciest territory isn't automatically the
+            best-reviewed one, or the cheapest the riskiest.
+          </p>
+        </section>
+
+        <div class="docs-cta">
+          <a class="docs-cta-primary" href="../../territories/">Try it in Territories →</a>
+          <a class="docs-cta-secondary" href="../">All guides</a>
+        </div>
+
+        <p class="docs-article-footnote">
+          Screens shown are from the Territories prototype using sample data.
+        </p>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

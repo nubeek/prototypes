@@ -1,0 +1,1274 @@
+{
+  "id": "wendys",
+  "brand": "Wendy's",
+  "category": "Food & Beverage",
+  "color": "#49bbef",
+  "logo": "assets/logos/wendys.jpg",
+  "country": "US",
+  "level": "county",
+  "initialInvestment": 2850000,
+  "franchiseeRating": 3.4,
+  "profileUrl": "https://wefranch.com/franchise/dzwp/wendys",
+  "territories": [
+    {
+      "state": "FL",
+      "fips": "12075",
+      "name": "Levy County",
+      "status": "available",
+      "initialInvestment": 3482962
+    },
+    {
+      "state": "GA",
+      "fips": "13141",
+      "name": "Hancock County",
+      "status": "available",
+      "initialInvestment": 3498248
+    },
+    {
+      "state": "MS",
+      "fips": "28033",
+      "name": "DeSoto County",
+      "status": "established",
+      "initialInvestment": 2080991
+    },
+    {
+      "state": "TX",
+      "fips": "48095",
+      "name": "Concho County",
+      "status": "established",
+      "initialInvestment": 3313138
+    },
+    {
+      "state": "AZ",
+      "fips": "04007",
+      "name": "Gila County",
+      "status": "established",
+      "initialInvestment": 2195065
+    },
+    {
+      "state": "MO",
+      "fips": "29079",
+      "name": "Grundy County",
+      "status": "established",
+      "initialInvestment": 3348206
+    },
+    {
+      "state": "AL",
+      "fips": "01081",
+      "name": "Lee County",
+      "status": "available",
+      "initialInvestment": 3577316
+    },
+    {
+      "state": "MO",
+      "fips": "29161",
+      "name": "Phelps County",
+      "status": "established",
+      "initialInvestment": 2001968
+    },
+    {
+      "state": "TN",
+      "fips": "47035",
+      "name": "Cumberland County",
+      "status": "established",
+      "initialInvestment": 2425823
+    },
+    {
+      "state": "PA",
+      "fips": "42095",
+      "name": "Northampton County",
+      "status": "available",
+      "initialInvestment": 2449239
+    },
+    {
+      "state": "MO",
+      "fips": "29183",
+      "name": "St. Charles County",
+      "status": "established",
+      "initialInvestment": 2270723
+    },
+    {
+      "state": "CA",
+      "fips": "06059",
+      "name": "Orange County",
+      "status": "available",
+      "initialInvestment": 2482463
+    },
+    {
+      "state": "LA",
+      "fips": "22095",
+      "name": "St. John the Baptist Parish",
+      "status": "established",
+      "initialInvestment": 3272982
+    },
+    {
+      "state": "FL",
+      "fips": "12081",
+      "name": "Manatee County",
+      "status": "available",
+      "initialInvestment": 2088162
+    },
+    {
+      "state": "NC",
+      "fips": "37103",
+      "name": "Jones County",
+      "status": "available",
+      "initialInvestment": 3243485
+    },
+    {
+      "state": "NC",
+      "fips": "37059",
+      "name": "Davie County",
+      "status": "established",
+      "initialInvestment": 3276910
+    },
+    {
+      "state": "GA",
+      "fips": "13311",
+      "name": "White County",
+      "status": "established",
+      "initialInvestment": 3593038
+    },
+    {
+      "state": "MO",
+      "fips": "29017",
+      "name": "Bollinger County",
+      "status": "available",
+      "initialInvestment": 3697821
+    },
+    {
+      "state": "TX",
+      "fips": "48175",
+      "name": "Goliad County",
+      "status": "established",
+      "initialInvestment": 2326866
+    },
+    {
+      "state": "SC",
+      "fips": "45005",
+      "name": "Allendale County",
+      "status": "established",
+      "initialInvestment": 3490292
+    },
+    {
+      "state": "GA",
+      "fips": "13275",
+      "name": "Thomas County",
+      "status": "available",
+      "initialInvestment": 3229714
+    },
+    {
+      "state": "GA",
+      "fips": "13085",
+      "name": "Dawson County",
+      "status": "available",
+      "initialInvestment": 3251925
+    },
+    {
+      "state": "CO",
+      "fips": "08001",
+      "name": "Adams County",
+      "status": "available",
+      "initialInvestment": 3406732
+    },
+    {
+      "state": "GA",
+      "fips": "13171",
+      "name": "Lamar County",
+      "status": "available",
+      "initialInvestment": 3637860
+    },
+    {
+      "state": "GA",
+      "fips": "13095",
+      "name": "Dougherty County",
+      "status": "established",
+      "initialInvestment": 2394950
+    },
+    {
+      "state": "KY",
+      "fips": "21209",
+      "name": "Scott County",
+      "status": "available",
+      "initialInvestment": 2281355
+    },
+    {
+      "state": "TX",
+      "fips": "48135",
+      "name": "Ector County",
+      "status": "available",
+      "initialInvestment": 2118926
+    },
+    {
+      "state": "SC",
+      "fips": "45053",
+      "name": "Jasper County",
+      "status": "available",
+      "initialInvestment": 2192069
+    },
+    {
+      "state": "TX",
+      "fips": "48313",
+      "name": "Madison County",
+      "status": "available",
+      "initialInvestment": 2087479
+    },
+    {
+      "state": "TX",
+      "fips": "48419",
+      "name": "Shelby County",
+      "status": "available",
+      "initialInvestment": 3398819
+    },
+    {
+      "state": "TX",
+      "fips": "48053",
+      "name": "Burnet County",
+      "status": "established",
+      "initialInvestment": 2256612
+    },
+    {
+      "state": "GA",
+      "fips": "13063",
+      "name": "Clayton County",
+      "status": "available",
+      "initialInvestment": 2188416
+    },
+    {
+      "state": "FL",
+      "fips": "12069",
+      "name": "Lake County",
+      "status": "established",
+      "initialInvestment": 3551913
+    },
+    {
+      "state": "MI",
+      "fips": "26107",
+      "name": "Mecosta County",
+      "status": "available",
+      "initialInvestment": 3385774
+    },
+    {
+      "state": "LA",
+      "fips": "22023",
+      "name": "Cameron Parish",
+      "status": "available",
+      "initialInvestment": 3292698
+    },
+    {
+      "state": "TX",
+      "fips": "48157",
+      "name": "Fort Bend County",
+      "status": "available",
+      "initialInvestment": 3340374
+    },
+    {
+      "state": "GA",
+      "fips": "13231",
+      "name": "Pike County",
+      "status": "available",
+      "initialInvestment": 2180790
+    },
+    {
+      "state": "NC",
+      "fips": "37189",
+      "name": "Watauga County",
+      "status": "available",
+      "initialInvestment": 2392999
+    },
+    {
+      "state": "FL",
+      "fips": "12086",
+      "name": "Miami-Dade County",
+      "status": "available",
+      "initialInvestment": 3224639
+    },
+    {
+      "state": "TX",
+      "fips": "48179",
+      "name": "Gray County",
+      "status": "available",
+      "initialInvestment": 3363905
+    },
+    {
+      "state": "AR",
+      "fips": "05073",
+      "name": "Lafayette County",
+      "status": "established",
+      "initialInvestment": 3408612
+    },
+    {
+      "state": "GA",
+      "fips": "13151",
+      "name": "Henry County",
+      "status": "available",
+      "initialInvestment": 2281305
+    },
+    {
+      "state": "LA",
+      "fips": "22025",
+      "name": "Catahoula Parish",
+      "status": "available",
+      "initialInvestment": 3277941
+    },
+    {
+      "state": "FL",
+      "fips": "12121",
+      "name": "Suwannee County",
+      "status": "established",
+      "initialInvestment": 3290633
+    },
+    {
+      "state": "NJ",
+      "fips": "34037",
+      "name": "Sussex County",
+      "status": "established",
+      "initialInvestment": 2346339
+    },
+    {
+      "state": "LA",
+      "fips": "22075",
+      "name": "Plaquemines Parish",
+      "status": "established",
+      "initialInvestment": 2263926
+    },
+    {
+      "state": "TX",
+      "fips": "48141",
+      "name": "El Paso County",
+      "status": "available",
+      "initialInvestment": 2027179
+    },
+    {
+      "state": "GA",
+      "fips": "13313",
+      "name": "Whitfield County",
+      "status": "available",
+      "initialInvestment": 3291438
+    },
+    {
+      "state": "GA",
+      "fips": "13019",
+      "name": "Berrien County",
+      "status": "available",
+      "initialInvestment": 2266012
+    },
+    {
+      "state": "OH",
+      "fips": "39119",
+      "name": "Muskingum County",
+      "status": "available",
+      "initialInvestment": 2319811
+    },
+    {
+      "state": "IA",
+      "fips": "19015",
+      "name": "Boone County",
+      "status": "established",
+      "initialInvestment": 2365053
+    },
+    {
+      "state": "GA",
+      "fips": "13009",
+      "name": "Baldwin County",
+      "status": "available",
+      "initialInvestment": 3291038
+    },
+    {
+      "state": "TX",
+      "fips": "48273",
+      "name": "Kleberg County",
+      "status": "available",
+      "initialInvestment": 3352671
+    },
+    {
+      "state": "MI",
+      "fips": "26079",
+      "name": "Kalkaska County",
+      "status": "available",
+      "initialInvestment": 2123742
+    },
+    {
+      "state": "GA",
+      "fips": "13043",
+      "name": "Candler County",
+      "status": "available",
+      "initialInvestment": 3265110
+    },
+    {
+      "state": "LA",
+      "fips": "22037",
+      "name": "East Feliciana Parish",
+      "status": "available",
+      "initialInvestment": 2296847
+    },
+    {
+      "state": "WI",
+      "fips": "55049",
+      "name": "Iowa County",
+      "status": "available",
+      "initialInvestment": 3680630
+    },
+    {
+      "state": "FL",
+      "fips": "12015",
+      "name": "Charlotte County",
+      "status": "established",
+      "initialInvestment": 2044242
+    },
+    {
+      "state": "TN",
+      "fips": "47011",
+      "name": "Bradley County",
+      "status": "available",
+      "initialInvestment": 2106318
+    },
+    {
+      "state": "IA",
+      "fips": "19041",
+      "name": "Clay County",
+      "status": "established",
+      "initialInvestment": 3206888
+    },
+    {
+      "state": "NC",
+      "fips": "37091",
+      "name": "Hertford County",
+      "status": "available",
+      "initialInvestment": 2133819
+    },
+    {
+      "state": "SC",
+      "fips": "45017",
+      "name": "Calhoun County",
+      "status": "established",
+      "initialInvestment": 3666755
+    },
+    {
+      "state": "IN",
+      "fips": "18167",
+      "name": "Vigo County",
+      "status": "available",
+      "initialInvestment": 3423609
+    },
+    {
+      "state": "GA",
+      "fips": "13239",
+      "name": "Quitman County",
+      "status": "available",
+      "initialInvestment": 2468129
+    },
+    {
+      "state": "IA",
+      "fips": "19167",
+      "name": "Sioux County",
+      "status": "available",
+      "initialInvestment": 3267616
+    },
+    {
+      "state": "NY",
+      "fips": "36027",
+      "name": "Dutchess County",
+      "status": "available",
+      "initialInvestment": 3272943
+    },
+    {
+      "state": "MN",
+      "fips": "27161",
+      "name": "Waseca County",
+      "status": "available",
+      "initialInvestment": 2157251
+    },
+    {
+      "state": "TN",
+      "fips": "47089",
+      "name": "Jefferson County",
+      "status": "available",
+      "initialInvestment": 2174508
+    },
+    {
+      "state": "TX",
+      "fips": "48353",
+      "name": "Nolan County",
+      "status": "established",
+      "initialInvestment": 2204951
+    },
+    {
+      "state": "GA",
+      "fips": "13221",
+      "name": "Oglethorpe County",
+      "status": "available",
+      "initialInvestment": 3546649
+    },
+    {
+      "state": "NC",
+      "fips": "37007",
+      "name": "Anson County",
+      "status": "available",
+      "initialInvestment": 3301998
+    },
+    {
+      "state": "NJ",
+      "fips": "34033",
+      "name": "Salem County",
+      "status": "available",
+      "initialInvestment": 2278429
+    },
+    {
+      "state": "SC",
+      "fips": "45075",
+      "name": "Orangeburg County",
+      "status": "established",
+      "initialInvestment": 3376289
+    },
+    {
+      "state": "MS",
+      "fips": "28025",
+      "name": "Clay County",
+      "status": "established",
+      "initialInvestment": 3470117
+    },
+    {
+      "state": "GA",
+      "fips": "13283",
+      "name": "Treutlen County",
+      "status": "available",
+      "initialInvestment": 2314515
+    },
+    {
+      "state": "TX",
+      "fips": "48191",
+      "name": "Hall County",
+      "status": "established",
+      "initialInvestment": 3492709
+    },
+    {
+      "state": "GA",
+      "fips": "13235",
+      "name": "Pulaski County",
+      "status": "available",
+      "initialInvestment": 3636805
+    },
+    {
+      "state": "PA",
+      "fips": "42027",
+      "name": "Centre County",
+      "status": "available",
+      "initialInvestment": 2025851
+    },
+    {
+      "state": "AL",
+      "fips": "01015",
+      "name": "Calhoun County",
+      "status": "established",
+      "initialInvestment": 2024645
+    },
+    {
+      "state": "TX",
+      "fips": "48489",
+      "name": "Willacy County",
+      "status": "available",
+      "initialInvestment": 3389176
+    },
+    {
+      "state": "TX",
+      "fips": "48187",
+      "name": "Guadalupe County",
+      "status": "available",
+      "initialInvestment": 2352339
+    },
+    {
+      "state": "FL",
+      "fips": "12063",
+      "name": "Jackson County",
+      "status": "available",
+      "initialInvestment": 2022854
+    },
+    {
+      "state": "TX",
+      "fips": "48467",
+      "name": "Van Zandt County",
+      "status": "available",
+      "initialInvestment": 2469631
+    },
+    {
+      "state": "TX",
+      "fips": "48395",
+      "name": "Robertson County",
+      "status": "established",
+      "initialInvestment": 3247175
+    },
+    {
+      "state": "SC",
+      "fips": "45025",
+      "name": "Chesterfield County",
+      "status": "available",
+      "initialInvestment": 3510317
+    },
+    {
+      "state": "TX",
+      "fips": "48471",
+      "name": "Walker County",
+      "status": "available",
+      "initialInvestment": 3469119
+    },
+    {
+      "state": "TX",
+      "fips": "48483",
+      "name": "Wheeler County",
+      "status": "available",
+      "initialInvestment": 3474109
+    },
+    {
+      "state": "TX",
+      "fips": "48123",
+      "name": "DeWitt County",
+      "status": "available",
+      "initialInvestment": 3412494
+    },
+    {
+      "state": "FL",
+      "fips": "12007",
+      "name": "Bradford County",
+      "status": "available",
+      "initialInvestment": 3654922
+    },
+    {
+      "state": "GA",
+      "fips": "13201",
+      "name": "Miller County",
+      "status": "established",
+      "initialInvestment": 2381451
+    },
+    {
+      "state": "TX",
+      "fips": "48289",
+      "name": "Leon County",
+      "status": "established",
+      "initialInvestment": 3496153
+    },
+    {
+      "state": "FL",
+      "fips": "12133",
+      "name": "Washington County",
+      "status": "available",
+      "initialInvestment": 2076643
+    },
+    {
+      "state": "TX",
+      "fips": "48205",
+      "name": "Hartley County",
+      "status": "established",
+      "initialInvestment": 2426667
+    },
+    {
+      "state": "FL",
+      "fips": "12117",
+      "name": "Seminole County",
+      "status": "available",
+      "initialInvestment": 2030442
+    },
+    {
+      "state": "NC",
+      "fips": "37073",
+      "name": "Gates County",
+      "status": "available",
+      "initialInvestment": 3274729
+    },
+    {
+      "state": "IL",
+      "fips": "17087",
+      "name": "Johnson County",
+      "status": "available",
+      "initialInvestment": 2405527
+    },
+    {
+      "state": "IN",
+      "fips": "18029",
+      "name": "Dearborn County",
+      "status": "established",
+      "initialInvestment": 2349088
+    },
+    {
+      "state": "GA",
+      "fips": "13109",
+      "name": "Evans County",
+      "status": "available",
+      "initialInvestment": 3366922
+    },
+    {
+      "state": "TX",
+      "fips": "48081",
+      "name": "Coke County",
+      "status": "established",
+      "initialInvestment": 2286888
+    },
+    {
+      "state": "OK",
+      "fips": "40061",
+      "name": "Haskell County",
+      "status": "available",
+      "initialInvestment": 2291575
+    },
+    {
+      "state": "GA",
+      "fips": "13247",
+      "name": "Rockdale County",
+      "status": "available",
+      "initialInvestment": 2471308
+    },
+    {
+      "state": "CA",
+      "fips": "06111",
+      "name": "Ventura County",
+      "status": "available",
+      "initialInvestment": 3557145
+    },
+    {
+      "state": "MO",
+      "fips": "29181",
+      "name": "Ripley County",
+      "status": "available",
+      "initialInvestment": 3378851
+    },
+    {
+      "state": "VA",
+      "fips": "51690",
+      "name": "Martinsville city",
+      "status": "available",
+      "initialInvestment": 2456254
+    },
+    {
+      "state": "MN",
+      "fips": "27017",
+      "name": "Carlton County",
+      "status": "available",
+      "initialInvestment": 3314573
+    },
+    {
+      "state": "KS",
+      "fips": "20077",
+      "name": "Harper County",
+      "status": "established",
+      "initialInvestment": 2128914
+    },
+    {
+      "state": "TX",
+      "fips": "48119",
+      "name": "Delta County",
+      "status": "available",
+      "initialInvestment": 2145418
+    },
+    {
+      "state": "AL",
+      "fips": "01071",
+      "name": "Jackson County",
+      "status": "established",
+      "initialInvestment": 2067299
+    },
+    {
+      "state": "IL",
+      "fips": "17199",
+      "name": "Williamson County",
+      "status": "available",
+      "initialInvestment": 3524512
+    },
+    {
+      "state": "MN",
+      "fips": "27083",
+      "name": "Lyon County",
+      "status": "established",
+      "initialInvestment": 2379513
+    },
+    {
+      "state": "GA",
+      "fips": "13193",
+      "name": "Macon County",
+      "status": "available",
+      "initialInvestment": 2293355
+    },
+    {
+      "state": "TN",
+      "fips": "47075",
+      "name": "Haywood County",
+      "status": "available",
+      "initialInvestment": 2431071
+    },
+    {
+      "state": "SC",
+      "fips": "45079",
+      "name": "Richland County",
+      "status": "available",
+      "initialInvestment": 2232489
+    },
+    {
+      "state": "FL",
+      "fips": "12053",
+      "name": "Hernando County",
+      "status": "available",
+      "initialInvestment": 2319575
+    },
+    {
+      "state": "LA",
+      "fips": "22111",
+      "name": "Union Parish",
+      "status": "available",
+      "initialInvestment": 3563537
+    },
+    {
+      "state": "GA",
+      "fips": "13131",
+      "name": "Grady County",
+      "status": "available",
+      "initialInvestment": 2148699
+    },
+    {
+      "state": "NC",
+      "fips": "37159",
+      "name": "Rowan County",
+      "status": "available",
+      "initialInvestment": 3416481
+    },
+    {
+      "state": "AL",
+      "fips": "01123",
+      "name": "Tallapoosa County",
+      "status": "available",
+      "initialInvestment": 2470337
+    },
+    {
+      "state": "TX",
+      "fips": "48351",
+      "name": "Newton County",
+      "status": "established",
+      "initialInvestment": 3321597
+    },
+    {
+      "state": "NY",
+      "fips": "36035",
+      "name": "Fulton County",
+      "status": "available",
+      "initialInvestment": 2257275
+    },
+    {
+      "state": "FL",
+      "fips": "12093",
+      "name": "Okeechobee County",
+      "status": "established",
+      "initialInvestment": 2175740
+    },
+    {
+      "state": "FL",
+      "fips": "12019",
+      "name": "Clay County",
+      "status": "established",
+      "initialInvestment": 2050015
+    },
+    {
+      "state": "TX",
+      "fips": "48251",
+      "name": "Johnson County",
+      "status": "available",
+      "initialInvestment": 3284857
+    },
+    {
+      "state": "GA",
+      "fips": "13199",
+      "name": "Meriwether County",
+      "status": "available",
+      "initialInvestment": 3290849
+    },
+    {
+      "state": "MO",
+      "fips": "29203",
+      "name": "Shannon County",
+      "status": "available",
+      "initialInvestment": 2266029
+    },
+    {
+      "state": "NC",
+      "fips": "37095",
+      "name": "Hyde County",
+      "status": "established",
+      "initialInvestment": 2395059
+    },
+    {
+      "state": "CA",
+      "fips": "06007",
+      "name": "Butte County",
+      "status": "established",
+      "initialInvestment": 2129609
+    },
+    {
+      "state": "VA",
+      "fips": "51730",
+      "name": "Petersburg city",
+      "status": "available",
+      "initialInvestment": 2003810
+    },
+    {
+      "state": "NY",
+      "fips": "36009",
+      "name": "Cattaraugus County",
+      "status": "available",
+      "initialInvestment": 2245687
+    },
+    {
+      "state": "NC",
+      "fips": "37011",
+      "name": "Avery County",
+      "status": "available",
+      "initialInvestment": 3291117
+    },
+    {
+      "state": "TX",
+      "fips": "48323",
+      "name": "Maverick County",
+      "status": "established",
+      "initialInvestment": 3604995
+    },
+    {
+      "state": "GA",
+      "fips": "13253",
+      "name": "Seminole County",
+      "status": "available",
+      "initialInvestment": 3341546
+    },
+    {
+      "state": "NC",
+      "fips": "37093",
+      "name": "Hoke County",
+      "status": "available",
+      "initialInvestment": 3400860
+    },
+    {
+      "state": "MS",
+      "fips": "28009",
+      "name": "Benton County",
+      "status": "established",
+      "initialInvestment": 3661490
+    },
+    {
+      "state": "GA",
+      "fips": "13011",
+      "name": "Banks County",
+      "status": "available",
+      "initialInvestment": 3243524
+    },
+    {
+      "state": "OH",
+      "fips": "39141",
+      "name": "Ross County",
+      "status": "available",
+      "initialInvestment": 3198865
+    },
+    {
+      "state": "NC",
+      "fips": "37151",
+      "name": "Randolph County",
+      "status": "available",
+      "initialInvestment": 2116335
+    },
+    {
+      "state": "PA",
+      "fips": "42089",
+      "name": "Monroe County",
+      "status": "available",
+      "initialInvestment": 3552241
+    },
+    {
+      "state": "TX",
+      "fips": "48345",
+      "name": "Motley County",
+      "status": "established",
+      "initialInvestment": 3308002
+    },
+    {
+      "state": "GA",
+      "fips": "13289",
+      "name": "Twiggs County",
+      "status": "established",
+      "initialInvestment": 3440497
+    },
+    {
+      "state": "KY",
+      "fips": "21037",
+      "name": "Campbell County",
+      "status": "available",
+      "initialInvestment": 2219754
+    },
+    {
+      "state": "IN",
+      "fips": "18089",
+      "name": "Lake County",
+      "status": "established",
+      "initialInvestment": 3329967
+    },
+    {
+      "state": "PA",
+      "fips": "42039",
+      "name": "Crawford County",
+      "status": "available",
+      "initialInvestment": 3645186
+    },
+    {
+      "state": "GA",
+      "fips": "13089",
+      "name": "DeKalb County",
+      "status": "established",
+      "initialInvestment": 2033028
+    },
+    {
+      "state": "FL",
+      "fips": "12119",
+      "name": "Sumter County",
+      "status": "available",
+      "initialInvestment": 2174853
+    },
+    {
+      "state": "NC",
+      "fips": "37031",
+      "name": "Carteret County",
+      "status": "available",
+      "initialInvestment": 2014185
+    },
+    {
+      "state": "NC",
+      "fips": "37075",
+      "name": "Graham County",
+      "status": "available",
+      "initialInvestment": 2480194
+    },
+    {
+      "state": "GA",
+      "fips": "13155",
+      "name": "Irwin County",
+      "status": "available",
+      "initialInvestment": 2459542
+    },
+    {
+      "state": "MS",
+      "fips": "28135",
+      "name": "Tallahatchie County",
+      "status": "available",
+      "initialInvestment": 3329352
+    },
+    {
+      "state": "IN",
+      "fips": "18009",
+      "name": "Blackford County",
+      "status": "available",
+      "initialInvestment": 3413548
+    },
+    {
+      "state": "SC",
+      "fips": "45037",
+      "name": "Edgefield County",
+      "status": "available",
+      "initialInvestment": 3395383
+    },
+    {
+      "state": "NY",
+      "fips": "36023",
+      "name": "Cortland County",
+      "status": "available",
+      "initialInvestment": 3562653
+    },
+    {
+      "state": "TN",
+      "fips": "47151",
+      "name": "Scott County",
+      "status": "established",
+      "initialInvestment": 3393883
+    },
+    {
+      "state": "GA",
+      "fips": "13027",
+      "name": "Brooks County",
+      "status": "available",
+      "initialInvestment": 2289307
+    },
+    {
+      "state": "MI",
+      "fips": "26075",
+      "name": "Jackson County",
+      "status": "available",
+      "initialInvestment": 3315096
+    },
+    {
+      "state": "MO",
+      "fips": "29011",
+      "name": "Barton County",
+      "status": "available",
+      "initialInvestment": 3631439
+    },
+    {
+      "state": "TN",
+      "fips": "47013",
+      "name": "Campbell County",
+      "status": "established",
+      "initialInvestment": 3435317
+    },
+    {
+      "state": "PA",
+      "fips": "42025",
+      "name": "Carbon County",
+      "status": "available",
+      "initialInvestment": 3502376
+    },
+    {
+      "state": "MO",
+      "fips": "29213",
+      "name": "Taney County",
+      "status": "available",
+      "initialInvestment": 3637093
+    },
+    {
+      "state": "NE",
+      "fips": "31087",
+      "name": "Hitchcock County",
+      "status": "established",
+      "initialInvestment": 2223307
+    },
+    {
+      "state": "VA",
+      "fips": "51145",
+      "name": "Powhatan County",
+      "status": "established",
+      "initialInvestment": 2194814
+    },
+    {
+      "state": "FL",
+      "fips": "12027",
+      "name": "DeSoto County",
+      "status": "available",
+      "initialInvestment": 3373091
+    },
+    {
+      "state": "FL",
+      "fips": "12035",
+      "name": "Flagler County",
+      "status": "established",
+      "initialInvestment": 3586636
+    },
+    {
+      "state": "IA",
+      "fips": "19171",
+      "name": "Tama County",
+      "status": "available",
+      "initialInvestment": 2464645
+    },
+    {
+      "state": "KY",
+      "fips": "21125",
+      "name": "Laurel County",
+      "status": "available",
+      "initialInvestment": 2363985
+    },
+    {
+      "state": "TX",
+      "fips": "48437",
+      "name": "Swisher County",
+      "status": "available",
+      "initialInvestment": 3215038
+    },
+    {
+      "state": "NC",
+      "fips": "37113",
+      "name": "Macon County",
+      "status": "established",
+      "initialInvestment": 3328082
+    },
+    {
+      "state": "TX",
+      "fips": "48117",
+      "name": "Deaf Smith County",
+      "status": "available",
+      "initialInvestment": 3637517
+    },
+    {
+      "state": "TX",
+      "fips": "48261",
+      "name": "Kenedy County",
+      "status": "available",
+      "initialInvestment": 3576312
+    },
+    {
+      "state": "TN",
+      "fips": "47045",
+      "name": "Dyer County",
+      "status": "available",
+      "initialInvestment": 3560212
+    },
+    {
+      "state": "MS",
+      "fips": "28041",
+      "name": "Greene County",
+      "status": "available",
+      "initialInvestment": 2395904
+    },
+    {
+      "state": "MS",
+      "fips": "28053",
+      "name": "Humphreys County",
+      "status": "established",
+      "initialInvestment": 3582838
+    },
+    {
+      "state": "NC",
+      "fips": "37139",
+      "name": "Pasquotank County",
+      "status": "available",
+      "initialInvestment": 3324431
+    },
+    {
+      "state": "LA",
+      "fips": "22021",
+      "name": "Caldwell Parish",
+      "status": "established",
+      "initialInvestment": 3454948
+    },
+    {
+      "state": "TX",
+      "fips": "48035",
+      "name": "Bosque County",
+      "status": "available",
+      "initialInvestment": 3235897
+    },
+    {
+      "state": "WI",
+      "fips": "55097",
+      "name": "Portage County",
+      "status": "available",
+      "initialInvestment": 2181751
+    },
+    {
+      "state": "MS",
+      "fips": "28099",
+      "name": "Neshoba County",
+      "status": "established",
+      "initialInvestment": 2147531
+    },
+    {
+      "state": "CO",
+      "fips": "08039",
+      "name": "Elbert County",
+      "status": "available",
+      "initialInvestment": 3262445
+    },
+    {
+      "state": "TX",
+      "fips": "48493",
+      "name": "Wilson County",
+      "status": "available",
+      "initialInvestment": 3539329
+    },
+    {
+      "state": "TX",
+      "fips": "48387",
+      "name": "Red River County",
+      "status": "available",
+      "initialInvestment": 2134571
+    }
+  ]
+}

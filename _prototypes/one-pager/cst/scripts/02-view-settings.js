@@ -244,8 +244,7 @@ function resetViewSettings() {
     removeSavedViewSettings();
     reduceMotionEnabled = false;
     sortState = {
-      key: "locations",
-      direction: "descending"
+      columns: [{ key: "locations", direction: "descending" }]
     };
     lockedToolbarMode = "map";
     clearSidebarOwnerState();

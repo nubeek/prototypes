@@ -237,27 +237,24 @@ const PANEL_LAYOUT_CLASSES = {
 const orgCollapsedNodeIdsByOwner = new Map();
 const tableSortStates = {
   owners: {
-    key: "locations",
-    direction: "descending"
+    columns: [{ key: "locations", direction: "descending" }]
   },
   locations: {
-    key: "contactName",
-    direction: "ascending"
+    columns: [{ key: "contactName", direction: "descending" }]
   },
   userProfiles: {
-    key: "contactName",
-    direction: "ascending"
+    columns: [{ key: "contactName", direction: "descending" }]
   },
   searchers: {
-    key: "contactName",
-    direction: "ascending"
+    columns: [{ key: "contactName", direction: "descending" }]
   },
   athletes: {
-    key: "contactName",
-    direction: "ascending"
+    columns: [{ key: "contactName", direction: "descending" }]
   }
 };
-let sortState = { ...tableSortStates.owners };
+let sortState = {
+  columns: tableSortStates.owners.columns.map((column) => ({ ...column }))
+};
 const columnWidths = {
   owner: "31%",
   contact: "31%",

@@ -10,6 +10,8 @@ const TERRITORY_SHAPE_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const TERRITORY_SHAPE_WIDTH = 34;
 const TERRITORY_SHAPE_HEIGHT = 24;
 const TERRITORY_SHAPE_PADDING = 2;
+const TERRITORY_PANEL_DENSITY_MID_COLOR = "#a98abc";
+const TERRITORY_PANEL_DENSITY_MID_OPACITY = 0.51;
 
 function getTerritoryShapePolygons(geometry) {
   if (geometry?.type === "Polygon") return [geometry.coordinates];
@@ -25,7 +27,19 @@ function projectTerritoryShapeLatitude(latitude) {
 
 let territoryShapeHatchId = 0;
 
-function createTerritoryShape(geometry, color, { status } = {}) {
+function buildTerritoryPanelDensityStyles(records) {
+  return new Map(
+    records.map((record) => [
+      record.geoKey || record.state,
+      {
+        color: TERRITORY_PANEL_DENSITY_MID_COLOR,
+        fillOpacity: TERRITORY_PANEL_DENSITY_MID_OPACITY
+      }
+    ])
+  );
+}
+
+function createTerritoryShape(geometry, color, { status, fillOpacity } = {}) {
   const polygons = getTerritoryShapePolygons(geometry);
   if (!polygons.length) return null;
 
@@ -104,10 +118,10 @@ function createTerritoryShape(geometry, color, { status } = {}) {
     defs.append(pattern);
     svg.append(defs);
     path.setAttribute("fill", `url(#${patternId})`);
-    path.setAttribute("fill-opacity", "0.55");
+    path.setAttribute("fill-opacity", String(fillOpacity ?? 0.55));
   } else {
     path.setAttribute("fill", color);
-    path.setAttribute("fill-opacity", "0.25");
+    path.setAttribute("fill-opacity", String(fillOpacity ?? 0.25));
   }
 
   svg.append(path);
@@ -115,6 +129,58 @@ function createTerritoryShape(geometry, color, { status } = {}) {
 }
 
 const collapsedTerritoryBrandIds = new Set();
+let brandPanelFloatingTooltip = null;
+
+function getBrandPanelFloatingTooltip() {
+  if (!brandPanelFloatingTooltip) {
+    brandPanelFloatingTooltip = document.createElement("div");
+    brandPanelFloatingTooltip.className = "filter-combobox-floating-tooltip";
+  }
+
+  return brandPanelFloatingTooltip;
+}
+
+function positionBrandPanelFloatingTooltip(target) {
+  const tooltipText = target.dataset.tooltip;
+  if (!tooltipText) return;
+
+  const tooltip = getBrandPanelFloatingTooltip();
+  tooltip.textContent = tooltipText;
+
+  if (!tooltip.isConnected) {
+    document.body.append(tooltip);
+  }
+
+  const targetRect = target.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const viewportPadding = 8;
+  const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+  const left = Math.min(
+    Math.max(viewportPadding, centeredLeft),
+    window.innerWidth - tooltipRect.width - viewportPadding
+  );
+  const top = Math.max(viewportPadding, targetRect.top - tooltipRect.height - 6);
+
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function showBrandPanelFloatingTooltip(event) {
+  positionBrandPanelFloatingTooltip(event.currentTarget);
+  getBrandPanelFloatingTooltip().classList.add("is-visible");
+}
+
+function hideBrandPanelFloatingTooltip() {
+  brandPanelFloatingTooltip?.classList.remove("is-visible");
+}
+
+function bindBrandPanelFloatingTooltip(button) {
+  button.addEventListener("mouseenter", showBrandPanelFloatingTooltip);
+  button.addEventListener("mouseleave", hideBrandPanelFloatingTooltip);
+  button.addEventListener("focus", showBrandPanelFloatingTooltip);
+  button.addEventListener("blur", hideBrandPanelFloatingTooltip);
+  button.addEventListener("click", hideBrandPanelFloatingTooltip);
+}
 let selectedBrandPanelTerritoryKey = null;
 let selectedBrandPanelCompareKey = null;
 let territoryBrandPanelLayoutPending = false;
@@ -149,9 +215,38 @@ function whenTerritoryBrandPanelLayoutSettled() {
   return territoryBrandPanelLayoutPromise;
 }
 
-function createTerritoryBrandItem(brand, territories) {
+function setTerritoryBrandItemExpanded(
+  toggle,
+  expandToggle,
+  territoryList,
+  brandId,
+  expanded,
+  { syncExpandToggle = true } = {}
+) {
+  toggle.setAttribute("aria-expanded", String(expanded));
+  expandToggle.setAttribute("aria-expanded", String(expanded));
+  territoryList.hidden = !expanded;
+
+  if (brandId) {
+    if (expanded) {
+      collapsedTerritoryBrandIds.delete(brandId);
+    } else {
+      collapsedTerritoryBrandIds.add(brandId);
+    }
+  }
+
+  if (syncExpandToggle) {
+    syncTerritoryBrandPanelExpandToggle();
+  }
+}
+
+function createTerritoryBrandItem(brand, territories, densityStylesByGeoKey) {
   const item = document.createElement("li");
+  const header = document.createElement("div");
   const toggle = document.createElement("button");
+  const filterButton = document.createElement("button");
+  const filterIcon = document.createElement("img");
+  const expandToggle = document.createElement("button");
   const logo = document.createElement("img");
   const details = document.createElement("div");
   const name = document.createElement("span");
@@ -164,10 +259,28 @@ function createTerritoryBrandItem(brand, territories) {
   item.className = "territory-brand-item";
   item.dataset.brandId = brand.id;
 
+  header.className = "territory-brand-item__header";
+
   toggle.className = "ui-control ui-button-ghost territory-brand-item__toggle";
   toggle.type = "button";
   toggle.setAttribute("aria-expanded", String(isExpanded));
   toggle.setAttribute("aria-controls", territoryListId);
+
+  filterButton.className = "ui-control ui-button-ghost territory-brand-item__filter";
+  filterButton.type = "button";
+  filterButton.setAttribute("aria-label", `Add ${brand.brand} to Franchise filter`);
+  filterButton.dataset.tooltip = "Add to\nFranchise filter";
+
+  filterIcon.className = "territory-brand-item__filter-icon";
+  filterIcon.src = "assets/filter-single.svg";
+  filterIcon.alt = "";
+  filterIcon.setAttribute("aria-hidden", "true");
+
+  expandToggle.className = "ui-control ui-button-ghost territory-brand-item__expand";
+  expandToggle.type = "button";
+  expandToggle.setAttribute("aria-expanded", String(isExpanded));
+  expandToggle.setAttribute("aria-controls", territoryListId);
+  expandToggle.setAttribute("aria-label", `Toggle ${brand.brand} territories`);
 
   logo.className = "territory-brand-item__logo";
   logo.src = brand.logo;
@@ -196,10 +309,13 @@ function createTerritoryBrandItem(brand, territories) {
     const territoryButton = document.createElement("button");
     const territoryLabel = document.createElement("span");
     const territoryStatus = document.createElement("span");
-    const territoryShape = createTerritoryShape(territory.geometry, brand.color, {
-      status: territory.status
+    const territoryGeoKey = territory.geoKey || territory.state;
+    const densityStyle = densityStylesByGeoKey.get(territoryGeoKey);
+    const territoryShape = createTerritoryShape(territory.geometry, densityStyle?.color || brand.color, {
+      status: territory.status,
+      fillOpacity: densityStyle?.fillOpacity
     });
-    const territoryKey = `${territory.brandId}:${territory.state}`;
+    const territoryKey = `${territory.brandId}:${territoryGeoKey}`;
     const isSelected = territoryKey === selectedBrandPanelTerritoryKey;
     const isCompare = territoryKey === selectedBrandPanelCompareKey;
 
@@ -221,18 +337,18 @@ function createTerritoryBrandItem(brand, territories) {
     territoryButton.append(territoryLabel, territoryStatus);
 
     territoryButton.addEventListener("click", (event) => {
-      window.territoryMapSelection?.toggle?.(territory.brandId, territory.state, {
+      window.territoryMapSelection?.toggle?.(territory.brandId, territory.geoKey || territory.state, {
         compare: Boolean(event.metaKey || event.ctrlKey)
       });
     });
     territoryButton.addEventListener("mouseenter", () => {
-      window.territoryMapHover?.set?.(territory.brandId, territory.state);
+      window.territoryMapHover?.set?.(territory.brandId, territory.geoKey || territory.state);
     });
     territoryButton.addEventListener("mouseleave", () => {
       window.territoryMapHover?.clear?.();
     });
     territoryButton.addEventListener("focus", () => {
-      window.territoryMapHover?.set?.(territory.brandId, territory.state);
+      window.territoryMapHover?.set?.(territory.brandId, territory.geoKey || territory.state);
     });
     territoryButton.addEventListener("blur", () => {
       window.territoryMapHover?.clear?.();
@@ -243,22 +359,25 @@ function createTerritoryBrandItem(brand, territories) {
   });
 
   details.append(name, count);
-  toggle.append(logo, details, chevron);
-  item.append(toggle, territoryList);
+  filterButton.append(filterIcon);
+  expandToggle.append(chevron);
+  toggle.append(logo, details);
+  header.append(toggle, filterButton, expandToggle);
+  item.append(header, territoryList);
 
-  toggle.addEventListener("click", () => {
+  const handleExpandToggle = () => {
     const nextExpanded = toggle.getAttribute("aria-expanded") !== "true";
-    toggle.setAttribute("aria-expanded", String(nextExpanded));
-    territoryList.hidden = !nextExpanded;
+    setTerritoryBrandItemExpanded(toggle, expandToggle, territoryList, brand.id, nextExpanded);
+  };
 
-    if (nextExpanded) {
-      collapsedTerritoryBrandIds.delete(brand.id);
-    } else {
-      collapsedTerritoryBrandIds.add(brand.id);
-    }
+  toggle.addEventListener("click", handleExpandToggle);
+  expandToggle.addEventListener("click", handleExpandToggle);
 
-    syncTerritoryBrandPanelExpandToggle();
+  filterButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    window.territoryFilters?.addFranchise?.(brand.id);
   });
+  bindBrandPanelFloatingTooltip(filterButton);
 
   return item;
 }
@@ -299,19 +418,13 @@ function setAllTerritoryBrandRowsExpanded(expanded) {
   getTerritoryBrandListItems().forEach((item) => {
     const brandId = item.dataset.brandId;
     const toggle = item.querySelector(".territory-brand-item__toggle");
+    const expandToggle = item.querySelector(".territory-brand-item__expand");
     const territoryList = item.querySelector(".territory-brand-territories");
-    if (!toggle || !territoryList) return;
+    if (!toggle || !expandToggle || !territoryList) return;
 
-    toggle.setAttribute("aria-expanded", String(expanded));
-    territoryList.hidden = !expanded;
-
-    if (brandId) {
-      if (expanded) {
-        collapsedTerritoryBrandIds.delete(brandId);
-      } else {
-        collapsedTerritoryBrandIds.add(brandId);
-      }
-    }
+    setTerritoryBrandItemExpanded(toggle, expandToggle, territoryList, brandId, expanded, {
+      syncExpandToggle: false
+    });
   });
 
   syncTerritoryBrandPanelExpandToggle();
@@ -322,6 +435,9 @@ function initTerritoryBrandPanel() {
   expandToggle?.addEventListener("click", () => {
     setAllTerritoryBrandRowsExpanded(areAllTerritoryBrandRowsCollapsed());
   });
+
+  document.querySelector(".territory-brand-panel__scroll")?.addEventListener("scroll", hideBrandPanelFloatingTooltip);
+  window.addEventListener("resize", hideBrandPanelFloatingTooltip);
 }
 
 function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
@@ -347,11 +463,14 @@ function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
   }, new Map());
 
   const visibleBrands = brands.filter((brand) => territoryCountsByBrand.has(brand.id));
+  const densityStylesByGeoKey = window.territoryMapControls?.getTerritoryDensityEnabled?.()
+    ? buildTerritoryPanelDensityStyles(matchingRecords)
+    : new Map();
 
   summary.textContent = `Showing ${visibleBrands.length} franchise brands sorted by relevancy`;
   list.replaceChildren(
     ...visibleBrands.map((brand) => (
-      createTerritoryBrandItem(brand, territoriesByBrand.get(brand.id) || [])
+      createTerritoryBrandItem(brand, territoriesByBrand.get(brand.id) || [], densityStylesByGeoKey)
     ))
   );
   syncTerritoryBrandPanelExpandToggle();

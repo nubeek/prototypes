@@ -1,14 +1,9 @@
 sortHeaders.forEach((header) => {
-  header.addEventListener("click", () => {
+  header.addEventListener("click", (event) => {
     const { sortKey } = header.dataset;
     if (!sortKey) return;
 
-    if (sortState.key === sortKey) {
-      sortState.direction = sortState.direction === "ascending" ? "descending" : "ascending";
-    } else {
-      sortState.key = sortKey;
-      sortState.direction = getInitialSortDirection(sortKey);
-    }
+    cycleSortState(sortKey, { additive: event.metaKey || event.ctrlKey });
 
     if (isDatasetTableView()) {
       locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;

@@ -39,8 +39,7 @@ let prototypeMode = prototypeModeSelect ? prototypeModeSelect.value : "modified"
 let changesVisible = false;
 let subtitleHovering = false;
 let sortState = {
-  key: "locations",
-  direction: "descending"
+  columns: [{ key: "locations", direction: "descending" }]
 };
 let locationSortCycleActive = false;
 const columnWidths = {
@@ -170,15 +169,17 @@ function syncModeColumn() {
   combinedContactsHeader.hidden = !isCombinedMode;
   syncColumnWidths();
 
-  if (isContactsMode && sortState.key === "modified") {
-    sortState.key = nextModeKey;
-    sortState.direction = getInitialSortDirection(nextModeKey);
-  }
+  sortState.columns = sortState.columns.map((column) => {
+    if (isContactsMode && column.key === "modified") {
+      return { key: nextModeKey, direction: getInitialSortDirection(nextModeKey) };
+    }
 
-  if (!isContactsMode && !isCombinedMode && sortState.key === "contacts") {
-    sortState.key = nextModeKey;
-    sortState.direction = getInitialSortDirection(nextModeKey);
-  }
+    if (!isContactsMode && !isCombinedMode && column.key === "contacts") {
+      return { key: nextModeKey, direction: getInitialSortDirection(nextModeKey) };
+    }
+
+    return column;
+  });
 }
 
 function renderOwners(rows) {
@@ -246,12 +247,47 @@ function getNameSortGroup(owner) {
   return 3;
 }
 
+const NUMERIC_SORT_KEYS = new Set(["modified", "contacts", "locations", "contactCount", "unitCount", "franchise"]);
+
 function getInitialSortDirection(sortKey) {
-  if (sortKey === "modified" || sortKey === "contacts" || sortKey === "locations" || sortKey === "franchise") {
-    return "descending";
+  return "descending";
+}
+
+function getSortDirectionMultiplier(sortKey, direction) {
+  const isDescending = direction === "descending";
+  if (NUMERIC_SORT_KEYS.has(sortKey)) {
+    return isDescending ? -1 : 1;
   }
 
-  return "ascending";
+  return isDescending ? 1 : -1;
+}
+
+function cycleSortState(sortKey, { additive = false } = {}) {
+  const columnIndex = sortState.columns.findIndex((column) => column.key === sortKey);
+
+  if (!additive) {
+    if (sortState.columns.length === 1 && columnIndex === 0) {
+      const [column] = sortState.columns;
+      sortState.columns = column.direction === "descending"
+        ? [{ ...column, direction: "ascending" }]
+        : [];
+    } else {
+      sortState.columns = [{ key: sortKey, direction: getInitialSortDirection(sortKey) }];
+    }
+    return;
+  }
+
+  if (columnIndex === -1) {
+    sortState.columns.push({ key: sortKey, direction: getInitialSortDirection(sortKey) });
+    return;
+  }
+
+  const column = sortState.columns[columnIndex];
+  if (column.direction === "descending") {
+    sortState.columns[columnIndex] = { ...column, direction: "ascending" };
+  } else {
+    sortState.columns.splice(columnIndex, 1);
+  }
 }
 
 function getContactsModeSortPriority(owner, sortKey) {
@@ -260,18 +296,18 @@ function getContactsModeSortPriority(owner, sortKey) {
   return 0;
 }
 
-function compareLocationsForCurrentCycle(a, b) {
+function compareLocationsForCurrentCycle(a, b, direction) {
   const aHasLocationChange = a.addedLocations > 0;
   const bHasLocationChange = b.addedLocations > 0;
 
   // Initial/default locations sort: pure highest-to-lowest count.
-  if (!locationSortCycleActive && sortState.direction === "descending") {
+  if (!locationSortCycleActive && direction === "descending") {
     const defaultComparison = b.locations - a.locations;
     if (defaultComparison !== 0) return defaultComparison;
     return a.originalIndex - b.originalIndex;
   }
 
-  if (sortState.direction === "ascending") {
+  if (direction === "ascending") {
     // First click from default: unchanged rows first, then lowest counts.
     if (aHasLocationChange !== bHasLocationChange) {
       return aHasLocationChange ? 1 : -1;
@@ -294,81 +330,82 @@ function compareLocationsForCurrentCycle(a, b) {
   return a.originalIndex - b.originalIndex;
 }
 
+function compareOwnersByColumn(a, b, column, { useLocationCycle = false } = {}) {
+  const direction = getSortDirectionMultiplier(column.key, column.direction);
+
+  if (column.key === "ownerName") {
+    const groupComparison = getNameSortGroup(a) - getNameSortGroup(b);
+    if (groupComparison !== 0) return groupComparison * direction;
+    return collator.compare(a.ownerName, b.ownerName) * direction;
+  }
+
+  if (column.key === "franchise") {
+    const franchiseCountComparison = getFranchiseCount(a) - getFranchiseCount(b);
+    if (franchiseCountComparison !== 0) return franchiseCountComparison * direction;
+    return collator.compare(a.franchise, b.franchise) * direction;
+  }
+
+  if (column.key === "locations" && useLocationCycle) {
+    return compareLocationsForCurrentCycle(a, b, column.direction);
+  }
+
+  const priorityComparison =
+    getContactsModeSortPriority(a, column.key) - getContactsModeSortPriority(b, column.key);
+  if (priorityComparison !== 0) return priorityComparison;
+
+  const valueA = getSortValue(a, column.key);
+  const valueB = getSortValue(b, column.key);
+  const comparison = typeof valueA === "number" && typeof valueB === "number"
+    ? valueA - valueB
+    : collator.compare(String(valueA), String(valueB));
+  return comparison * direction;
+}
+
 function sortOwners() {
-  if (!sortState.key) {
+  if (!sortState.columns.length) {
     displayedOwners = [...owners].sort((a, b) => a.originalIndex - b.originalIndex);
     return;
   }
 
-  const direction = sortState.direction === "ascending" ? 1 : -1;
+  const useLocationCycle = sortState.columns.length === 1
+    && sortState.columns[0].key === "locations"
+    && showsContactUpdates();
 
   displayedOwners = [...owners].sort((a, b) => {
-    if (sortState.key === "ownerName") {
-      const groupComparison = getNameSortGroup(a) - getNameSortGroup(b);
-
-      if (groupComparison !== 0) {
-        return groupComparison * direction;
-      }
-
-      const nameComparison = collator.compare(a.ownerName, b.ownerName);
-
-      if (nameComparison !== 0) {
-        return nameComparison * direction;
-      }
-
-      return a.originalIndex - b.originalIndex;
+    for (const column of sortState.columns) {
+      const comparison = compareOwnersByColumn(a, b, column, { useLocationCycle });
+      if (comparison !== 0) return comparison;
     }
 
-    if (sortState.key === "franchise") {
-      const franchiseCountComparison = getFranchiseCount(a) - getFranchiseCount(b);
-
-      if (franchiseCountComparison !== 0) {
-        return franchiseCountComparison * direction;
-      }
-
-      const franchiseNameComparison = collator.compare(a.franchise, b.franchise);
-
-      if (franchiseNameComparison !== 0) {
-        return franchiseNameComparison * direction;
-      }
-
-      return a.originalIndex - b.originalIndex;
-    }
-
-    if (sortState.key === "locations" && showsContactUpdates()) {
-      return compareLocationsForCurrentCycle(a, b);
-    }
-
-    const priorityComparison =
-      getContactsModeSortPriority(a, sortState.key) - getContactsModeSortPriority(b, sortState.key);
-
-    if (priorityComparison !== 0) {
-      return priorityComparison;
-    }
-
-    const valueA = getSortValue(a, sortState.key);
-    const valueB = getSortValue(b, sortState.key);
-
-    let comparison;
-
-    if (typeof valueA === "number" && typeof valueB === "number") {
-      comparison = valueA - valueB;
-    } else {
-      comparison = collator.compare(String(valueA), String(valueB));
-    }
-
-    if (comparison === 0) {
-      return a.originalIndex - b.originalIndex;
-    }
-
-    return comparison * direction;
+    return a.originalIndex - b.originalIndex;
   });
 }
 
 function syncSortHeaders() {
+  const showSortPriority = sortState.columns.length > 1;
+
   sortHeaders.forEach((header) => {
-    const isActive = header.dataset.sortKey === sortState.key;
-    header.setAttribute("aria-sort", isActive ? sortState.direction : "none");
+    const content = header.querySelector(".th-content");
+    const columnIndex = sortState.columns.findIndex((column) => column.key === header.dataset.sortKey);
+    if (columnIndex === -1) {
+      header.setAttribute("aria-sort", "none");
+      delete header.dataset.sortDirection;
+      delete header.dataset.sortPriority;
+      if (content) delete content.dataset.sortPriority;
+      return;
+    }
+
+    const column = sortState.columns[columnIndex];
+    header.setAttribute("aria-sort", columnIndex === 0 ? column.direction : "other");
+    header.dataset.sortDirection = column.direction;
+
+    if (showSortPriority) {
+      header.dataset.sortPriority = String(columnIndex + 1);
+      if (content) content.dataset.sortPriority = String(columnIndex + 1);
+    } else {
+      delete header.dataset.sortPriority;
+      if (content) delete content.dataset.sortPriority;
+    }
   });
 }
 
@@ -462,18 +499,21 @@ function advanceChangeRow(delta) {
 }
 
 sortHeaders.forEach((header) => {
-  header.addEventListener("click", () => {
+  header.addEventListener("click", (event) => {
     const { sortKey } = header.dataset;
+    const isAdditiveSort = event.metaKey || event.ctrlKey;
+    const wasSingleDescendingLocations = !isAdditiveSort
+      && sortState.columns.length === 1
+      && sortState.columns[0].key === "locations"
+      && sortState.columns[0].direction === "descending"
+      && sortKey === "locations";
 
-    if (sortState.key === sortKey) {
-      if (sortKey === "locations" && showsContactUpdates()) {
-        locationSortCycleActive = true;
-      }
-      sortState.direction = sortState.direction === "ascending" ? "descending" : "ascending";
-    } else {
-      sortState.key = sortKey;
-      sortState.direction = getInitialSortDirection(sortKey);
-      locationSortCycleActive = sortKey === "locations" ? false : locationSortCycleActive;
+    cycleSortState(sortKey, { additive: isAdditiveSort });
+
+    if (sortState.columns.length !== 1 || sortState.columns[0].key !== "locations") {
+      locationSortCycleActive = false;
+    } else if (wasSingleDescendingLocations) {
+      locationSortCycleActive = true;
     }
 
     applySort();

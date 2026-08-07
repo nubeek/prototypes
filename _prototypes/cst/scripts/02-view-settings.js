@@ -255,8 +255,7 @@ function resetViewSettings() {
     mapClusteringEnabled = true;
     mapClusteringLevel = MAP_CLUSTERING_DEFAULT_LEVEL;
     sortState = {
-      key: "locations",
-      direction: "descending"
+      columns: [{ key: "locations", direction: "descending" }]
     };
     lockedToolbarMode = null;
     clearSidebarOwnerState();

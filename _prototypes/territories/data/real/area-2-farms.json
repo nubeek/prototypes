@@ -1,0 +1,266 @@
+{
+  "id": "area-2-farms",
+  "brand": "Area 2 Farms",
+  "category": "Other Businesses",
+  "color": "#025A5B",
+  "logo": "assets/logos/area-2-farms.jpg",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 389500,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/9r2q/area-2-farms",
+  "territories": [
+    {
+      "geoKey": "district:04013",
+      "geoType": "district",
+      "state": "AZ",
+      "name": "Maricopa County, Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:12011",
+      "geoType": "district",
+      "state": "FL",
+      "name": "Broward County, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:12057",
+      "geoType": "district",
+      "state": "FL",
+      "name": "Hillsborough County, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:12086",
+      "geoType": "district",
+      "state": "FL",
+      "name": "Miami-Dade County, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:12095",
+      "geoType": "district",
+      "state": "FL",
+      "name": "Orange County, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:12099",
+      "geoType": "district",
+      "state": "FL",
+      "name": "Palm Beach County, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:12103",
+      "geoType": "district",
+      "state": "FL",
+      "name": "Pinellas County, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:13121",
+      "geoType": "district",
+      "state": "GA",
+      "name": "Fulton County, Georgia",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:21111",
+      "geoType": "district",
+      "state": "KY",
+      "name": "Jefferson County, Kentucky",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:37063",
+      "geoType": "district",
+      "state": "NC",
+      "name": "Durham County, North Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:37119",
+      "geoType": "district",
+      "state": "NC",
+      "name": "Mecklenburg County, North Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:37183",
+      "geoType": "district",
+      "state": "NC",
+      "name": "Wake County, North Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:47037",
+      "geoType": "district",
+      "state": "TN",
+      "name": "Davidson County, Tennessee",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48085",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Collin County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48111",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Dallam County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48113",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Dallas County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48121",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Denton County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48201",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Harris County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48257",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Kaufman County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48439",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Tarrant County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48453",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Travis County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0455000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Phoenix, Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0465000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Scottsdale, Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0473000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Tempe, Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1245000",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Miami, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2148000",
+      "geoType": "place",
+      "state": "KY",
+      "name": "Louisville, Kentucky",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3915000",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Cincinnati, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3918000",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Columbus, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:12",
+      "geoType": "region",
+      "state": "FL",
+      "name": "Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:13",
+      "geoType": "region",
+      "state": "GA",
+      "name": "Georgia",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:21",
+      "geoType": "region",
+      "state": "KY",
+      "name": "Kentucky",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:37",
+      "geoType": "region",
+      "state": "NC",
+      "name": "North Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:39",
+      "geoType": "region",
+      "state": "OH",
+      "name": "Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:45",
+      "geoType": "region",
+      "state": "SC",
+      "name": "South Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:47",
+      "geoType": "region",
+      "state": "TN",
+      "name": "Tennessee",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:48",
+      "geoType": "region",
+      "state": "TX",
+      "name": "Texas",
+      "status": "available"
+    }
+  ]
+}

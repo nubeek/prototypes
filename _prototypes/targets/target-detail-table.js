@@ -58,8 +58,7 @@ const franchiseLogoFileOverrides = {
 };
 
 let sortState = {
-  key: "unitCount",
-  direction: "descending"
+  columns: [{ key: "unitCount", direction: "descending" }]
 };
 const savedLeadOwnerIndexes = new Set();
 
@@ -1187,38 +1186,107 @@ function getSortValue(owner, key) {
   return owner[key] || "";
 }
 
+const NUMERIC_SORT_KEYS = new Set(["contactCount", "unitCount", "franchise"]);
+
 function getInitialSortDirection(sortKey) {
-  return sortKey === "contactCount" || sortKey === "unitCount" || sortKey === "franchise"
-    ? "descending"
-    : "ascending";
+  return "descending";
+}
+
+function getSortDirectionMultiplier(sortKey, direction) {
+  const isDescending = direction === "descending";
+  if (NUMERIC_SORT_KEYS.has(sortKey)) {
+    return isDescending ? -1 : 1;
+  }
+
+  return isDescending ? 1 : -1;
+}
+
+function cycleSortState(sortKey, { additive = false } = {}) {
+  const columnIndex = sortState.columns.findIndex((column) => column.key === sortKey);
+
+  if (!additive) {
+    if (sortState.columns.length === 1 && columnIndex === 0) {
+      const [column] = sortState.columns;
+      sortState.columns = column.direction === "descending"
+        ? [{ ...column, direction: "ascending" }]
+        : [];
+    } else {
+      sortState.columns = [{ key: sortKey, direction: getInitialSortDirection(sortKey) }];
+    }
+    return;
+  }
+
+  if (columnIndex === -1) {
+    sortState.columns.push({ key: sortKey, direction: getInitialSortDirection(sortKey) });
+    return;
+  }
+
+  const column = sortState.columns[columnIndex];
+  if (column.direction === "descending") {
+    sortState.columns[columnIndex] = { ...column, direction: "ascending" };
+  } else {
+    sortState.columns.splice(columnIndex, 1);
+  }
+}
+
+function compareOwnersByColumn(a, b, column) {
+  const valueA = getSortValue(a, column.key);
+  const valueB = getSortValue(b, column.key);
+  const direction = getSortDirectionMultiplier(column.key, column.direction);
+  let comparison;
+
+  if (column.key === "franchise") {
+    comparison = valueA - valueB || collator.compare(a.franchise, b.franchise);
+  } else if (typeof valueA === "number" && typeof valueB === "number") {
+    comparison = valueA - valueB;
+  } else {
+    comparison = collator.compare(String(valueA), String(valueB));
+  }
+
+  return comparison * direction;
 }
 
 function sortOwners() {
-  const direction = sortState.direction === "ascending" ? 1 : -1;
+  if (!sortState.columns.length) {
+    displayedOwners = [...owners].sort((a, b) => a.originalIndex - b.originalIndex);
+    return;
+  }
 
   displayedOwners = [...owners].sort((a, b) => {
-    const valueA = getSortValue(a, sortState.key);
-    const valueB = getSortValue(b, sortState.key);
-    let comparison;
-
-    if (sortState.key === "franchise") {
-      comparison = valueA - valueB || collator.compare(a.franchise, b.franchise);
-    } else if (typeof valueA === "number" && typeof valueB === "number") {
-      comparison = valueA - valueB;
-    } else {
-      comparison = collator.compare(String(valueA), String(valueB));
+    for (const column of sortState.columns) {
+      const comparison = compareOwnersByColumn(a, b, column);
+      if (comparison !== 0) return comparison;
     }
 
-    return comparison === 0
-      ? a.originalIndex - b.originalIndex
-      : comparison * direction;
+    return a.originalIndex - b.originalIndex;
   });
 }
 
 function syncSortHeaders() {
+  const showSortPriority = sortState.columns.length > 1;
+
   sortHeaders.forEach((header) => {
-    const isActive = header.dataset.sortKey === sortState.key;
-    header.setAttribute("aria-sort", isActive ? sortState.direction : "none");
+    const content = header.querySelector(".th-content");
+    const columnIndex = sortState.columns.findIndex((column) => column.key === header.dataset.sortKey);
+    if (columnIndex === -1) {
+      header.setAttribute("aria-sort", "none");
+      delete header.dataset.sortDirection;
+      delete header.dataset.sortPriority;
+      if (content) delete content.dataset.sortPriority;
+      return;
+    }
+
+    const column = sortState.columns[columnIndex];
+    header.setAttribute("aria-sort", columnIndex === 0 ? column.direction : "other");
+    header.dataset.sortDirection = column.direction;
+
+    if (showSortPriority) {
+      header.dataset.sortPriority = String(columnIndex + 1);
+      if (content) content.dataset.sortPriority = String(columnIndex + 1);
+    } else {
+      delete header.dataset.sortPriority;
+      if (content) delete content.dataset.sortPriority;
+    }
   });
 }
 
@@ -1268,15 +1336,10 @@ if (changesToggleIcon) changesToggleIcon.src = "assets/unhide.svg";
 if (changesToggleLabel) changesToggleLabel.textContent = "No changes";
 
 sortHeaders.forEach((header) => {
-  header.addEventListener("click", () => {
+  header.addEventListener("click", (event) => {
     const { sortKey } = header.dataset;
 
-    if (sortState.key === sortKey) {
-      sortState.direction = sortState.direction === "ascending" ? "descending" : "ascending";
-    } else {
-      sortState.key = sortKey;
-      sortState.direction = getInitialSortDirection(sortKey);
-    }
+    cycleSortState(sortKey, { additive: event.metaKey || event.ctrlKey });
 
     applySort();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
