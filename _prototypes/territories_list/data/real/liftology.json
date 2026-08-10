@@ -1,0 +1,28 @@
+{
+  "id": "liftology",
+  "brand": "Liftology",
+  "category": "Healthcare Services",
+  "color": "#FE5501",
+  "logo": "assets/logos/liftology.jpg",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 0,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/mnv7/liftology",
+  "territories": [
+    {
+      "geoKey": "region:48",
+      "geoType": "region",
+      "state": "TX",
+      "name": "Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:49",
+      "geoType": "region",
+      "state": "UT",
+      "name": "Utah",
+      "status": "sold"
+    }
+  ]
+}

@@ -106,9 +106,6 @@ const TERRITORY_DENSITY_HOVER_HIGH_OPACITY = 0.86;
 const TERRITORY_DENSITY_SOURCE_ID = "territories-density";
 const TERRITORY_DENSITY_FILL_LAYER_ID = "territories-density-fill";
 const TERRITORY_DENSITY_LINE_LAYER_ID = "territories-density-line";
-const TERRITORY_RADIUS_SOURCE_ID = "territory-radius-circles";
-const TERRITORY_RADIUS_FILL_LAYER_ID = "territory-radius-circles-fill";
-const TERRITORY_RADIUS_OUTLINE_LAYER_ID = "territory-radius-circles-outline";
 const TERRITORY_BLEND_CLIP_TO_LAND = true;
 const TERRITORY_FILL_OPACITY_EXPRESSION = [
   "case",
@@ -166,11 +163,6 @@ let territoryGeoLevel = "state";
 let territoryStateMacrodata = new Map();
 let territoryLastMatchingRecords = null;
 let territoryRenderedRecords = null;
-let territoryRadiusFilter = {
-  enabled: false,
-  miles: 300,
-  stateCodes: []
-};
 let selectedTerritoryKey = null;
 let compareTerritoryKey = null;
 let selectedTerritoryFeatureStates = [];
@@ -1049,17 +1041,6 @@ function getMatchingRecordsBounds(matchingRecords) {
     if (geometryBounds.north > north) north = geometryBounds.north;
   });
 
-  getTerritoryRadiusFeatureCollection().features.forEach((feature) => {
-    const circleBounds = getGeometryBounds(feature.geometry);
-    if (!circleBounds) return;
-
-    hasBounds = true;
-    if (circleBounds.west < west) west = circleBounds.west;
-    if (circleBounds.east > east) east = circleBounds.east;
-    if (circleBounds.south < south) south = circleBounds.south;
-    if (circleBounds.north > north) north = circleBounds.north;
-  });
-
   if (!hasBounds) return null;
 
   return { west, east, south, north };
@@ -1610,102 +1591,6 @@ function getTerritoryCentroid(geometry) {
   });
 
   return getRingCentroid(largestRing);
-}
-
-function createTerritoryRadiusCircleFeature(center, radiusMiles, stateCode, pointCount = 96) {
-  const earthRadiusMiles = 3958.8;
-  const centerLongitude = (center[0] * Math.PI) / 180;
-  const centerLatitude = (center[1] * Math.PI) / 180;
-  const angularDistance = radiusMiles / earthRadiusMiles;
-  const ring = [];
-
-  for (let pointIndex = 0; pointIndex <= pointCount; pointIndex += 1) {
-    const bearing = (pointIndex / pointCount) * 2 * Math.PI;
-    const pointLatitude = Math.asin(
-      Math.sin(centerLatitude) * Math.cos(angularDistance)
-      + Math.cos(centerLatitude) * Math.sin(angularDistance) * Math.cos(bearing)
-    );
-    const pointLongitude = centerLongitude + Math.atan2(
-      Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(centerLatitude),
-      Math.cos(angularDistance) - Math.sin(centerLatitude) * Math.sin(pointLatitude)
-    );
-
-    ring.push([(pointLongitude * 180) / Math.PI, (pointLatitude * 180) / Math.PI]);
-  }
-
-  return {
-    type: "Feature",
-    properties: { state: stateCode },
-    geometry: {
-      type: "Polygon",
-      coordinates: [ring]
-    }
-  };
-}
-
-function getTerritoryRadiusFeatureCollection() {
-  if (!territoryRadiusFilter.enabled || !territoryRadiusFilter.stateCodes.length) {
-    return { type: "FeatureCollection", features: [] };
-  }
-
-  const features = territoryRadiusFilter.stateCodes.flatMap((stateCode) => {
-    const geometry = territoryStatesByCode.get(stateCode)?.geometry;
-    const center = geometry ? getTerritoryCentroid(geometry) : null;
-    if (!center) return [];
-
-    return [
-      createTerritoryRadiusCircleFeature(
-        center,
-        territoryRadiusFilter.miles,
-        stateCode
-      )
-    ];
-  });
-
-  return { type: "FeatureCollection", features };
-}
-
-function ensureTerritoryRadiusLayers(territoryMap) {
-  if (!territoryMap || territoryMap.getSource(TERRITORY_RADIUS_SOURCE_ID)) return;
-
-  territoryMap.addSource(TERRITORY_RADIUS_SOURCE_ID, {
-    type: "geojson",
-    data: getTerritoryRadiusFeatureCollection()
-  });
-
-  territoryMap.addLayer({
-    id: TERRITORY_RADIUS_FILL_LAYER_ID,
-    type: "fill",
-    source: TERRITORY_RADIUS_SOURCE_ID,
-    paint: {
-      "fill-color": "#7a63dd",
-      "fill-opacity": 0.12
-    }
-  });
-
-  territoryMap.addLayer({
-    id: TERRITORY_RADIUS_OUTLINE_LAYER_ID,
-    type: "line",
-    source: TERRITORY_RADIUS_SOURCE_ID,
-    paint: {
-      "line-color": "#7a63dd",
-      "line-width": 1.5,
-      "line-opacity": 0.55
-    }
-  });
-}
-
-function setTerritoryRadiusFilter({ enabled = false, miles = 300, stateCodes = [] } = {}) {
-  const numericMiles = Number(miles);
-  territoryRadiusFilter = {
-    enabled: Boolean(enabled),
-    miles: Number.isFinite(numericMiles) ? numericMiles : 300,
-    stateCodes: [...new Set(stateCodes.map(String).filter(Boolean))]
-  };
-
-  window.territoryMap
-    ?.getSource(TERRITORY_RADIUS_SOURCE_ID)
-    ?.setData(getTerritoryRadiusFeatureCollection());
 }
 
 function isCountyLevelBrand(brand) {
@@ -3408,7 +3293,6 @@ async function loadTerritoryData(territoryMap) {
       : brands.some((brand) => isCountyLevelBrand(brand))
         ? "county"
         : "state";
-    ensureTerritoryRadiusLayers(territoryMap);
 
     const geoOccupancy = new Map();
     brands.forEach((brand) => {
@@ -3956,7 +3840,6 @@ window.territoryMapControls = {
   getTerritoryBrandLogosVisible,
   setTerritoryBrandCirclesVisible,
   getTerritoryBrandCirclesVisible,
-  setTerritoryRadiusFilter,
   triggerTerritoryGeolocation,
   focusTerritoryState,
   updateResetVisibility: updateTerritoryMapResetVisibility,

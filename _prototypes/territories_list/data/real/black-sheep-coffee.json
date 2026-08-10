@@ -1,0 +1,231 @@
+{
+  "id": "black-sheep-coffee",
+  "brand": "Black Sheep Coffee",
+  "category": "Food and Beverage",
+  "color": "#E8DFB8",
+  "logo": "assets/logos/black-sheep-coffee.jpg",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 1015000,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/qrxw/black-sheep-coffee",
+  "territories": [
+    {
+      "geoKey": "region:02",
+      "geoType": "region",
+      "state": "AK",
+      "name": "Alaska",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:01",
+      "geoType": "region",
+      "state": "AL",
+      "name": "Alabama",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:05",
+      "geoType": "region",
+      "state": "AR",
+      "name": "Arkansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:04",
+      "geoType": "region",
+      "state": "AZ",
+      "name": "Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:08",
+      "geoType": "region",
+      "state": "CO",
+      "name": "Colorado",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:09",
+      "geoType": "region",
+      "state": "CT",
+      "name": "Connecticut",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:12",
+      "geoType": "region",
+      "state": "FL",
+      "name": "Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:13",
+      "geoType": "region",
+      "state": "GA",
+      "name": "Georgia",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:19",
+      "geoType": "region",
+      "state": "IA",
+      "name": "Iowa",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:16",
+      "geoType": "region",
+      "state": "ID",
+      "name": "Idaho",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:20",
+      "geoType": "region",
+      "state": "KS",
+      "name": "Kansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:22",
+      "geoType": "region",
+      "state": "LA",
+      "name": "Louisiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:25",
+      "geoType": "region",
+      "state": "MA",
+      "name": "Massachusetts",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:23",
+      "geoType": "region",
+      "state": "ME",
+      "name": "Maine",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:29",
+      "geoType": "region",
+      "state": "MO",
+      "name": "Missouri",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:28",
+      "geoType": "region",
+      "state": "MS",
+      "name": "Mississippi",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:30",
+      "geoType": "region",
+      "state": "MT",
+      "name": "Montana",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:37",
+      "geoType": "region",
+      "state": "NC",
+      "name": "North Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:33",
+      "geoType": "region",
+      "state": "NH",
+      "name": "New Hampshire",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:35",
+      "geoType": "region",
+      "state": "NM",
+      "name": "New Mexico",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:32",
+      "geoType": "region",
+      "state": "NV",
+      "name": "Nevada",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:39",
+      "geoType": "region",
+      "state": "OH",
+      "name": "Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:40",
+      "geoType": "region",
+      "state": "OK",
+      "name": "Oklahoma",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:41",
+      "geoType": "region",
+      "state": "OR",
+      "name": "Oregon",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:42",
+      "geoType": "region",
+      "state": "PA",
+      "name": "Pennsylvania",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:45",
+      "geoType": "region",
+      "state": "SC",
+      "name": "South Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:47",
+      "geoType": "region",
+      "state": "TN",
+      "name": "Tennessee",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:48",
+      "geoType": "region",
+      "state": "TX",
+      "name": "Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:50",
+      "geoType": "region",
+      "state": "VT",
+      "name": "Vermont",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:54",
+      "geoType": "region",
+      "state": "WV",
+      "name": "West Virginia",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:56",
+      "geoType": "region",
+      "state": "WY",
+      "name": "Wyoming",
+      "status": "available"
+    }
+  ]
+}

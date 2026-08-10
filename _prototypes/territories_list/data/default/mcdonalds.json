@@ -1,0 +1,23 @@
+{
+  "id": "mcdonalds",
+  "brand": "McDonald's",
+  "category": "Food & Beverage",
+  "color": "#FFC72C",
+  "logo": "assets/logos/mcdonalds.jpg",
+  "country": "US",
+  "level": "state",
+  "initialInvestment": 2250000,
+  "franchiseeRating": 4.1,
+  "profileUrl": "https://wefranch.com/franchise/go48/mcdonalds",
+  "territories": [
+    {"state": "IL", "name": "Illinois", "status": "available", "initialInvestment": 2100000},
+    {"state": "OH", "name": "Ohio", "status": "established", "initialInvestment": 1925000},
+    {"state": "PA", "name": "Pennsylvania", "status": "available", "initialInvestment": 2300000},
+    {"state": "TN", "name": "Tennessee", "status": "available", "initialInvestment": 1875000},
+    {"state": "WA", "name": "Washington", "status": "available", "initialInvestment": 2525000},
+    {"state": "MN", "name": "Minnesota", "status": "sold", "initialInvestment": 2050000},
+    {"state": "MO", "name": "Missouri", "status": "available", "initialInvestment": 1980000},
+    {"state": "NC", "name": "North Carolina", "status": "available", "initialInvestment": 2175000},
+    {"state": "VA", "name": "Virginia", "status": "available", "initialInvestment": 2375000}
+  ]
+}

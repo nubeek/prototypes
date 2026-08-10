@@ -93,7 +93,7 @@ function getGeometryLngBounds(geometry) {
   return { west, east };
 }
 
-function getGeometryBounds(geometry) {
+function getCrossroadGeometryBounds(geometry) {
   let west = Infinity;
   let south = Infinity;
   let east = -Infinity;
@@ -130,7 +130,7 @@ function getMatchedFeaturesBounds(matchedFeatures) {
 
   matchedFeatures.forEach(({ feature }) => {
     if (!feature?.geometry) return;
-    bounds = mergeBounds(bounds, getGeometryBounds(feature.geometry));
+    bounds = mergeBounds(bounds, getCrossroadGeometryBounds(feature.geometry));
   });
 
   return bounds;
@@ -142,7 +142,7 @@ function getLocationFilterBounds(locations, geoIndex) {
   locations.forEach((code) => {
     const feature = geoIndex.statesByCode.get(code);
     if (!feature?.geometry) return;
-    bounds = mergeBounds(bounds, getGeometryBounds(feature.geometry));
+    bounds = mergeBounds(bounds, getCrossroadGeometryBounds(feature.geometry));
   });
 
   return bounds;
@@ -355,13 +355,25 @@ function normalizeCrossroadInvestmentValue(value) {
   return 0;
 }
 
+function getCrossroadGeoLevelFilters(filters = {}) {
+  if (Array.isArray(filters.geoLevels)) {
+    return filters.geoLevels.filter(Boolean);
+  }
+
+  if (filters.geoLevel && filters.geoLevel !== "all types") {
+    return [filters.geoLevel];
+  }
+
+  return [];
+}
+
 function presetMatchesRecord(record, filters = {}) {
   const categories = filters.categories || [];
   const statuses = filters.statuses || [];
   const franchises = filters.franchises || [];
   const locations = filters.locations || [];
   const locationsExcluded = filters.locationsExcluded || [];
-  const geoLevel = filters.geoLevel;
+  const geoLevels = getCrossroadGeoLevelFilters(filters);
   const investment = filters.investment;
 
   if (categories.length && !categories.includes(record.category)) return false;
@@ -369,7 +381,7 @@ function presetMatchesRecord(record, filters = {}) {
   if (franchises.length && !franchises.includes(record.brandId)) return false;
   if (locations.length && !locations.includes(record.state)) return false;
   if (locationsExcluded.length && locationsExcluded.includes(record.state)) return false;
-  if (geoLevel && geoLevel !== "all types" && record.geoType !== geoLevel) return false;
+  if (geoLevels.length && !geoLevels.includes(record.geoType)) return false;
 
   if (investment) {
     const value = normalizeCrossroadInvestmentValue(record.initialInvestment);
@@ -449,9 +461,10 @@ function getCrossroadFeatureKey(record) {
 }
 
 function resolveCrossroadPreviewLevel(filters, records) {
-  const geoLevelFilter = filters.geoLevel;
-  if (geoLevelFilter && geoLevelFilter !== "all types") {
-    return geoLevelFilter === "state" ? "state" : "geo";
+  const geoLevels = getCrossroadGeoLevelFilters(filters);
+  if (geoLevels.length === 1) {
+    const geoLevelFilter = geoLevels[0];
+    return geoLevelFilter === "region" ? "state" : "geo";
   }
 
   const matching = records.filter((record) => presetMatchesRecord(record, filters));

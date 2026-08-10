@@ -158,32 +158,44 @@ const TERRITORY_DATASETS = {
       {
         id: "home-services",
         title: "Available Home Services",
-        filters: { categories: ["Home & Services"], statuses: ["available"] }
+        filters: {
+          categories: ["Home & Services"],
+          statuses: ["available"],
+          geoLevels: ["cbsa", "district", "place"]
+        }
       },
       {
         id: "home-services-sold",
         title: "Home & Services Sold Territories",
-        filters: { categories: ["Home & Services"], statuses: ["sold"] }
+        filters: {
+          categories: ["Home & Services"],
+          statuses: ["sold"],
+          geoLevels: ["cbsa", "district", "place"]
+        }
       },
       {
         id: "available-markets",
         title: "Available Markets",
-        filters: { statuses: ["available"] }
+        filters: {
+          statuses: ["available"],
+          geoLevels: ["cbsa", "district", "place"]
+        }
       },
       {
         id: "southeast",
         title: "Southeast Opportunities",
         filters: {
           locations: ["FL", "GA", "NC", "SC", "TN"],
-          statuses: ["available"]
+          statuses: ["available"],
+          geoLevels: ["cbsa", "district", "place"]
         }
       },
       {
         id: "cbsa-150k-500k",
         title: "CBSA Territories for $150k - $500k",
         filters: {
-          geoLevel: "cbsa",
           statuses: ["available"],
+          geoLevels: ["cbsa", "district", "place"],
           investment: { min: 150000, max: 500000 }
         }
       }

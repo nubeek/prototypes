@@ -1,0 +1,483 @@
+{
+  "id": "synergy-homecare",
+  "brand": "SYNERGY HomeCare",
+  "category": "Senior Services",
+  "color": "#59667A",
+  "logo": "assets/logos/synergy-homecare.png",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 118580,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/ejk8/synergy-homecare",
+  "territories": [
+    {
+      "geoKey": "district:01059",
+      "geoType": "district",
+      "state": "AL",
+      "name": "Franklin County, Alabama",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:12031",
+      "geoType": "district",
+      "state": "FL",
+      "name": "Duval County, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:18003",
+      "geoType": "district",
+      "state": "IN",
+      "name": "Allen County, Indiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:20173",
+      "geoType": "district",
+      "state": "KS",
+      "name": "Sedgwick County, Kansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:29213",
+      "geoType": "district",
+      "state": "MO",
+      "name": "Taney County, Missouri",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36003",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Allegany County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36009",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Cattaraugus County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36011",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Cayuga County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36017",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Chenango County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36019",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Clinton County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36021",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Columbia County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36023",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Cortland County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36025",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Delaware County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36031",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Essex County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36035",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Fulton County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36037",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Genesee County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36039",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Greene County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36041",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Hamilton County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36043",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Herkimer County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36045",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Jefferson County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36049",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Lewis County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36053",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Madison County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36057",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Montgomery County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36063",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Niagara County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36065",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Oneida County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36073",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Orleans County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36077",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Otsego County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36083",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Rensselaer County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36095",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Schoharie County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36089",
+      "geoType": "district",
+      "state": "NY",
+      "name": "St. Lawrence County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36107",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Tioga County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36109",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Tompkins County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36113",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Warren County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36115",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Washington County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:36121",
+      "geoType": "district",
+      "state": "NY",
+      "name": "Wyoming County, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:42003",
+      "geoType": "district",
+      "state": "PA",
+      "name": "Allegheny County, Pennsylvania",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48135",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Ector County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48141",
+      "geoType": "district",
+      "state": "TX",
+      "name": "El Paso County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48329",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Midland County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48375",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Potter County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:48381",
+      "geoType": "district",
+      "state": "TX",
+      "name": "Randall County, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1235000",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Jacksonville, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1825000",
+      "geoType": "place",
+      "state": "IN",
+      "name": "Fort Wayne, Indiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2079000",
+      "geoType": "place",
+      "state": "KS",
+      "name": "Wichita, Kansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2146027",
+      "geoType": "place",
+      "state": "KY",
+      "name": "Lexington-Fayette, Kentucky",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2148000",
+      "geoType": "place",
+      "state": "KY",
+      "name": "Louisville, Kentucky",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2240735",
+      "geoType": "place",
+      "state": "LA",
+      "name": "Lafayette, Louisiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2360545",
+      "geoType": "place",
+      "state": "ME",
+      "name": "Portland, Maine",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2907966",
+      "geoType": "place",
+      "state": "MO",
+      "name": "Branson, Missouri",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2970000",
+      "geoType": "place",
+      "state": "MO",
+      "name": "Springfield, Missouri",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3345140",
+      "geoType": "place",
+      "state": "NH",
+      "name": "Manchester, New Hampshire",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3502000",
+      "geoType": "place",
+      "state": "NM",
+      "name": "Albuquerque, New Mexico",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3231900",
+      "geoType": "place",
+      "state": "NV",
+      "name": "Henderson, Nevada",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3601000",
+      "geoType": "place",
+      "state": "NY",
+      "name": "Albany, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3611000",
+      "geoType": "place",
+      "state": "NY",
+      "name": "Buffalo, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3673000",
+      "geoType": "place",
+      "state": "NY",
+      "name": "Syracuse, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4261000",
+      "geoType": "place",
+      "state": "PA",
+      "name": "Pittsburgh, Pennsylvania",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4803000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Amarillo, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4848072",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Midland, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4853388",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Odessa, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:5475292",
+      "geoType": "place",
+      "state": "WV",
+      "name": "South Charleston, West Virginia",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:02",
+      "geoType": "region",
+      "state": "AK",
+      "name": "Alaska",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:15",
+      "geoType": "region",
+      "state": "HI",
+      "name": "Hawaii",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:23",
+      "geoType": "region",
+      "state": "ME",
+      "name": "Maine",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:38",
+      "geoType": "region",
+      "state": "ND",
+      "name": "North Dakota",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:33",
+      "geoType": "region",
+      "state": "NH",
+      "name": "New Hampshire",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:35",
+      "geoType": "region",
+      "state": "NM",
+      "name": "New Mexico",
+      "status": "available"
+    }
+  ]
+}

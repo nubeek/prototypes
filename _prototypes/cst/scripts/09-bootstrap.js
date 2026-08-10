@@ -405,11 +405,7 @@ if (radiusToggle) {
   });
 }
 
-if (radiusRange) {
-  radiusRange.addEventListener("input", () => {
-    setRadiusValue(radiusRange.value, { refresh: true });
-  });
-}
+initRadiusFilterControls();
 
 syncStatusFilterStates();
 syncUnitsFilterControls();

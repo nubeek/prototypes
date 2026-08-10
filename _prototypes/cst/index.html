@@ -305,7 +305,13 @@
               <span class="range-fill" id="radiusRangeFill"></span>
               <input class="range-input range-input-single" id="radiusRange" type="range" min="25" max="1000" step="25" value="300" aria-label="Radius in miles">
             </div>
-            <span class="filter-radius-value" id="radiusValueLabel">300 mi</span>
+            <div class="filter-radius-value" id="radiusValueLabel">
+              <button class="filter-radius-value__display" id="radiusValueDisplay" type="button">300 mi</button>
+              <span class="filter-radius-value__edit" id="radiusValueEdit" hidden>
+                <input class="filter-radius-value__input" id="radiusValueInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Radius in miles">
+                <span class="filter-radius-value__suffix" aria-hidden="true"> mi</span>
+              </span>
+            </div>
           </div>
         </section>
 
@@ -607,6 +613,7 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="../../scripts/cst-env.js"></script>
+  <script src="../shared/radius-control.js"></script>
   <script src="scripts/01-dom-state.js"></script>
   <script src="scripts/02-view-settings.js"></script>
   <script src="scripts/03-map-panel.js"></script>

@@ -1,0 +1,301 @@
+{
+  "id": "college-hunks-hauling-junk-and-moving",
+  "brand": "College HUNKS Hauling Junk and Moving",
+  "category": "Other Businesses",
+  "color": "#EB7422",
+  "logo": "assets/logos/college-hunks-hauling-junk-and-moving.png",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 0,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/9oo8/college-hunks-hauling-junk-and-moving",
+  "territories": [
+    {
+      "geoKey": "district:39007",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Ashtabula County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39009",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Athens County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39013",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Belmont County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39019",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Carroll County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39029",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Columbiana County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39031",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Coshocton County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39035",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Cuyahoga County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39055",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Geauga County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39059",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Guernsey County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39067",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Harrison County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39073",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Hocking County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39075",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Holmes County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39081",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Jefferson County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39085",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Lake County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39099",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Mahoning County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39105",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Meigs County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39119",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Muskingum County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39133",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Portage County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39151",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Stark County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39153",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Summit County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39155",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Trumbull County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "district:39157",
+      "geoType": "district",
+      "state": "OH",
+      "name": "Tuscarawas County, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0455000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Phoenix, Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1836003",
+      "geoType": "place",
+      "state": "IN",
+      "name": "Indianapolis, Indiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2205000",
+      "geoType": "place",
+      "state": "LA",
+      "name": "Baton Rouge, Louisiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2255000",
+      "geoType": "place",
+      "state": "LA",
+      "name": "New Orleans, Louisiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3240000",
+      "geoType": "place",
+      "state": "NV",
+      "name": "Las Vegas, Nevada",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3916000",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Cleveland, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3918868",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Coshocton, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3922456",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Dover, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3928826",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Fremont, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3944856",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Lorain, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3948790",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Medina, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3957302",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Norwalk, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3970380",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Sandusky, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3986548",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Wooster, Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4748000",
+      "geoType": "place",
+      "state": "TN",
+      "name": "Memphis, Tennessee",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4819000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Dallas, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4967000",
+      "geoType": "place",
+      "state": "UT",
+      "name": "Salt Lake City, Utah",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:06",
+      "geoType": "region",
+      "state": "CA",
+      "name": "California",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:48",
+      "geoType": "region",
+      "state": "TX",
+      "name": "Texas",
+      "status": "available"
+    }
+  ]
+}

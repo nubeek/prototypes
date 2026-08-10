@@ -1,0 +1,22 @@
+{
+  "id": "remax",
+  "brand": "RE/MAX",
+  "category": "Real Estate",
+  "color": "#DC1C2E",
+  "logo": "assets/logos/remax.jpg",
+  "country": "US",
+  "level": "state",
+  "initialInvestment": 650000,
+  "franchiseeRating": 4.4,
+  "profileUrl": "https://wefranch.com/franchise/ep0j/remax",
+  "territories": [
+    {"state": "CA", "name": "California", "status": "available", "initialInvestment": 895000},
+    {"state": "CO", "name": "Colorado", "status": "established", "initialInvestment": 575000},
+    {"state": "AZ", "name": "Arizona", "status": "available", "initialInvestment": 540000},
+    {"state": "TX", "name": "Texas", "status": "available", "initialInvestment": 625000},
+    {"state": "HI", "name": "Hawaii", "status": "sold", "initialInvestment": 950000},
+    {"state": "FL", "name": "Florida", "status": "available", "initialInvestment": 725000},
+    {"state": "GA", "name": "Georgia", "status": "available", "initialInvestment": 595000},
+    {"state": "WA", "name": "Washington", "status": "available", "initialInvestment": 695000}
+  ]
+}

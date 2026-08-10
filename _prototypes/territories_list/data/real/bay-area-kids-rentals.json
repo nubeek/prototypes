@@ -1,0 +1,175 @@
+{
+  "id": "bay-area-kids-rentals",
+  "brand": "Bay Area Kids Rentals",
+  "category": "Retail",
+  "color": "#D6A129",
+  "logo": "assets/logos/bay-area-kids-rentals.jpg",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 144000,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/kl36/bay-area-kids-rentals",
+  "territories": [
+    {
+      "geoKey": "place:0403530",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Arizona City, Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0455000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Phoenix, Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0644000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Los Angeles, California",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0656000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Pasadena, California",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0664000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Sacramento, California",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0667000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "San Francisco, California",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0669070",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Santa Barbara, California",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0670000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Santa Monica, California",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1245000",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Miami, Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1304000",
+      "geoType": "place",
+      "state": "GA",
+      "name": "Atlanta, Georgia",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1714000",
+      "geoType": "place",
+      "state": "IL",
+      "name": "Chicago, Illinois",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2507000",
+      "geoType": "place",
+      "state": "MA",
+      "name": "Boston, Massachusetts",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2451075",
+      "geoType": "place",
+      "state": "MD",
+      "name": "Maryland City, Maryland",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2743000",
+      "geoType": "place",
+      "state": "MN",
+      "name": "Minneapolis, Minnesota",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2743144",
+      "geoType": "place",
+      "state": "MN",
+      "name": "Minnesota City, Minnesota",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3436000",
+      "geoType": "place",
+      "state": "NJ",
+      "name": "Jersey City, New Jersey",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3240000",
+      "geoType": "place",
+      "state": "NV",
+      "name": "Las Vegas, Nevada",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3651000",
+      "geoType": "place",
+      "state": "NY",
+      "name": "New York, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3665431",
+      "geoType": "place",
+      "state": "NY",
+      "name": "Scarsdale, New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4752006",
+      "geoType": "place",
+      "state": "TN",
+      "name": "Nashville",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4819000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Dallas, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4835000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Houston, Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:5363000",
+      "geoType": "place",
+      "state": "WA",
+      "name": "Seattle, Washington",
+      "status": "available"
+    }
+  ]
+}

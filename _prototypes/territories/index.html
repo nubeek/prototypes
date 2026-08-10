@@ -188,21 +188,6 @@
             </select>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
-          <div class="filter-check-group">
-            <label class="filter-check filter-radius-toggle" id="radiusToggleLabel">
-              <input type="checkbox" id="radiusToggle">
-              <span class="filter-checkbox" aria-hidden="true"></span>
-              <span>Enable radius</span>
-            </label>
-          </div>
-          <div class="filter-radius-control" id="radiusControl" hidden>
-            <div class="range-track filter-range-slider filter-radius-slider" aria-label="Radius">
-              <span class="range-line"></span>
-              <span class="range-fill" id="radiusRangeFill"></span>
-              <input class="range-input range-input-single" id="radiusRange" type="range" min="25" max="1000" step="25" value="300" aria-label="Radius in miles">
-            </div>
-            <span class="filter-radius-value" id="radiusValueLabel">300 mi</span>
-          </div>
         </section>
 
         <section class="filter-section filter-section-collapsed">
@@ -236,30 +221,25 @@
             <span>Geographic Level</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
-          <div class="filter-check-group" role="radiogroup" aria-label="Geographic level">
-            <label class="filter-check is-checked">
-              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="all types" checked>
-              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-              <span>All</span>
-            </label>
+          <div class="filter-check-group" role="group" aria-label="Geographic level">
             <label class="filter-check">
-              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="region">
-              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <input class="territory-geo-level-checkbox" type="checkbox" value="region">
+              <span class="filter-checkbox" aria-hidden="true"></span>
               <span>State</span>
             </label>
             <label class="filter-check">
-              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="cbsa">
-              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <input class="territory-geo-level-checkbox" type="checkbox" value="cbsa">
+              <span class="filter-checkbox" aria-hidden="true"></span>
               <span>CBSA</span>
             </label>
             <label class="filter-check">
-              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="district">
-              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <input class="territory-geo-level-checkbox" type="checkbox" value="district">
+              <span class="filter-checkbox" aria-hidden="true"></span>
               <span>County</span>
             </label>
             <label class="filter-check">
-              <input class="territory-geo-level-radio" type="radio" name="territoryGeoLevelFilter" value="place">
-              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <input class="territory-geo-level-checkbox" type="checkbox" value="place">
+              <span class="filter-checkbox" aria-hidden="true"></span>
               <span>City</span>
             </label>
           </div>

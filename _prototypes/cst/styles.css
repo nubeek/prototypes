@@ -1280,7 +1280,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 }
 
 .save-lead-list-selector .filter-combobox-clear {
-  right: 16px;
+  right: 12px;
   z-index: 3;
 }
 
@@ -2389,7 +2389,7 @@ body.reduce-motion .save-lead-note {
   font-size: 16px;
   line-height: 1;
   outline: none;
-  padding: 6px 40px 6px 8px;
+  padding: 6px 28px 6px 6px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -2645,7 +2645,7 @@ body.reduce-motion .save-lead-note {
 .filter-combobox-clear {
   position: absolute;
   top: 50%;
-  right: 14px;
+  right: 10px;
   z-index: 2;
   width: 12px;
   height: 12px;
@@ -3082,7 +3082,7 @@ body.reduce-motion .save-lead-note {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 16px;
+  gap: 4px;
   margin-top: 16px;
 }
 
@@ -3094,8 +3094,46 @@ body.reduce-motion .save-lead-note {
   margin-top: 0;
 }
 
+@property --radius-thumb-halo-scale {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes radius-thumb-halo-scale-up {
+  from {
+    --radius-thumb-halo-scale: 0.2;
+  }
+
+  to {
+    --radius-thumb-halo-scale: 1;
+  }
+}
+
 .range-input-single {
   z-index: 2;
+}
+
+.range-input-single::-webkit-slider-thumb {
+  --radius-thumb-halo-scale: 0;
+  box-shadow: 0 0 0 calc(var(--radius-thumb-halo-scale) * 6px) rgb(111 88 216 / 0.25);
+  transition: --radius-thumb-halo-scale 50ms ease-out;
+}
+
+.range-input-single::-webkit-slider-thumb:hover {
+  animation: radius-thumb-halo-scale-up 50ms ease-out forwards;
+  transition: none;
+}
+
+.range-input-single::-moz-range-thumb {
+  --radius-thumb-halo-scale: 0;
+  box-shadow: 0 0 0 calc(var(--radius-thumb-halo-scale) * 6px) rgb(111 88 216 / 0.25);
+  transition: --radius-thumb-halo-scale 50ms ease-out;
+}
+
+.range-input-single::-moz-range-thumb:hover {
+  animation: radius-thumb-halo-scale-up 50ms ease-out forwards;
+  transition: none;
 }
 
 .filter-radius-slider .range-fill {
@@ -3104,10 +3142,87 @@ body.reduce-motion .save-lead-note {
 }
 
 .filter-radius-value {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 72px;
+  height: 32px;
+  padding: 2px 8px 2px 0;
+  border: 0;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 600;
   white-space: nowrap;
   color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 50ms ease;
+}
+
+.filter-radius-value:hover:not(.is-editing) {
+  background: #e9e9e9;
+}
+
+.filter-radius-value.is-editing {
+  background: #fff;
+  cursor: text;
+}
+
+.filter-radius-value.is-editing .filter-radius-value__display {
+  display: none;
+}
+
+.filter-radius-value__display {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: inherit;
+  color: inherit;
+  cursor: inherit;
+  text-align: right;
+}
+
+.filter-radius-value__display:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.filter-radius-value__edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-radius-value__edit[hidden] {
+  display: none;
+}
+
+.filter-radius-value__input {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 1ch;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 500;
+  color: inherit;
+  text-align: right;
+  appearance: textfield;
+}
+
+.filter-radius-value__input:focus {
+  outline: none;
+}
+
+.filter-radius-value__suffix {
+  flex: 0 0 auto;
+  font-weight: 500;
 }
 
 /* ==========================================================================
@@ -3613,7 +3728,7 @@ h1 {
 .dataset-selector-clear {
   position: absolute;
   top: 50%;
-  right: 12px;
+  right: 10px;
   flex: 0 0 auto;
   width: 18px;
   height: 18px;
@@ -4060,7 +4175,7 @@ h1 {
   background: transparent;
   position: absolute;
   top: 50%;
-  right: 10px;
+  right: 8px;
   width: 24px;
   height: 24px;
   display: none;

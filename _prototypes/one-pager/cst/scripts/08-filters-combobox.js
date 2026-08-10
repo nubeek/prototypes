@@ -130,7 +130,7 @@ function setContactsFilterRange(minValue, maxValue, { changed = "min", refresh =
   }
 }
 
-function syncRadiusFilterControls() {
+function syncRadiusFilterControls(options = {}) {
   if (radiusToggle) {
     radiusToggle.checked = radiusFilterEnabled;
     setFilterCheckboxState(radiusToggle, radiusFilterEnabled);
@@ -140,24 +140,19 @@ function syncRadiusFilterControls() {
     radiusControl.hidden = !radiusFilterEnabled;
   }
 
-  if (radiusRange) {
-    radiusRange.min = String(RADIUS_FILTER_DEFAULTS.min);
-    radiusRange.max = String(RADIUS_FILTER_DEFAULTS.max);
-    radiusRange.step = String(RADIUS_FILTER_DEFAULTS.step);
-    radiusRange.value = String(selectedRadiusMiles);
-  }
-
-  if (radiusValueLabel) {
-    radiusValueLabel.textContent = `${Math.round(selectedRadiusMiles)} mi`;
-  }
-
-  if (radiusRangeFill) {
-    const rangeSize = RADIUS_FILTER_DEFAULTS.max - RADIUS_FILTER_DEFAULTS.min;
-    const percent = rangeSize
-      ? ((selectedRadiusMiles - RADIUS_FILTER_DEFAULTS.min) / rangeSize) * 100
-      : 0;
-    radiusRangeFill.style.right = `${100 - percent}%`;
-  }
+  window.WefranchRadiusControl?.syncRadiusControlElements({
+    defaults: RADIUS_FILTER_DEFAULTS,
+    selectedMiles: selectedRadiusMiles,
+    radiusRange,
+    radiusRangeFill,
+    radiusValueLabel,
+    radiusValueDisplay,
+    radiusValueInput,
+    sliderValue: options.sliderValue,
+    previewMiles: options.previewMiles,
+    isEditing: options.isEditing,
+    roundDisplay: true
+  });
 }
 
 function setRadiusFilterEnabled(enabled, { refresh = false } = {}) {
@@ -178,7 +173,10 @@ function setRadiusValue(value, { refresh = false, preservePrecision = false } = 
       Number.isFinite(numericValue) ? numericValue : RADIUS_FILTER_DEFAULTS.value
     )
   );
-  const nextValue = preservePrecision ? normalizedValue : Math.round(normalizedValue);
+  const nextValue = preservePrecision
+    ? normalizedValue
+    : window.WefranchRadiusControl?.clampRadiusValue(normalizedValue, RADIUS_FILTER_DEFAULTS)
+      ?? RADIUS_FILTER_DEFAULTS.value;
   const didChange = nextValue !== selectedRadiusMiles;
   selectedRadiusMiles = nextValue;
   syncRadiusFilterControls();
@@ -186,6 +184,42 @@ function setRadiusValue(value, { refresh = false, preservePrecision = false } = 
   if (refresh && didChange && radiusFilterEnabled) {
     refreshRangeFilterResults();
   }
+}
+
+function initRadiusFilterControls() {
+  window.WefranchRadiusControl?.initRadiusRangeSlider({
+    defaults: RADIUS_FILTER_DEFAULTS,
+    radiusRange,
+    getSelectedMiles: () => selectedRadiusMiles,
+    setSelectedMiles: (nextValue) => {
+      selectedRadiusMiles = nextValue;
+    },
+    syncControls: syncRadiusFilterControls,
+    onValueCommit: (_nextValue, { didChange } = {}) => {
+      if (didChange && radiusFilterEnabled) {
+        refreshRangeFilterResults();
+      }
+    }
+  });
+
+  window.WefranchRadiusControl?.initRadiusValueEditor({
+    defaults: RADIUS_FILTER_DEFAULTS,
+    radiusValueLabel,
+    radiusValueDisplay,
+    radiusValueInput,
+    radiusValueEdit,
+    getSelectedMiles: () => selectedRadiusMiles,
+    setSelectedMiles: (nextValue) => {
+      selectedRadiusMiles = nextValue;
+    },
+    syncControls: syncRadiusFilterControls,
+    onValueCommit: (_nextValue, { didChange } = {}) => {
+      if (didChange && radiusFilterEnabled) {
+        refreshRangeFilterResults();
+      }
+    },
+    roundDisplay: true
+  });
 }
 
 function clearAllFilterSelections() {
