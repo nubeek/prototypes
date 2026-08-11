@@ -30,7 +30,6 @@ if (toolbarView) {
 syncColumnWidths();
 syncReduceMotionToggleOption();
 syncReduceMotionStateClass();
-syncMapClusteringOptions();
 setPanelLayout("right");
 setFilterPanelOpen(true);
 applySort();
@@ -666,27 +665,6 @@ if (reduceMotionToggleOption) {
   });
 }
 
-if (mapClusteringToggleOption) {
-  mapClusteringToggleOption.addEventListener("click", () => {
-    mapClusteringEnabled = !mapClusteringEnabled;
-    syncMapClusteringOptions();
-    refreshOwnersMapPointData();
-    persistViewSettings();
-  });
-}
-
-mapClusteringLevelOptions.forEach((option) => {
-  option.addEventListener("click", () => {
-    const level = option.dataset.clusteringLevel;
-    if (!MAP_CLUSTERING_LEVEL_KEYS.includes(level) || level === mapClusteringLevel) return;
-
-    mapClusteringLevel = level;
-    syncMapClusteringLevelOptions();
-    refreshOwnersMapPointData();
-    persistViewSettings();
-  });
-});
-
 if (takeScreenshotOption) {
   takeScreenshotOption.addEventListener("click", () => {
     closeToolbarSubmenus();
@@ -793,7 +771,6 @@ function closeToolbarSubmenu(submenu, trigger) {
 }
 
 function closeToolbarSubmenus() {
-  closeToolbarSubmenu(toolbarClusteringSubmenu, toolbarClusteringSubmenuTrigger);
   closeToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
 }
 
@@ -831,7 +808,6 @@ function bindToolbarSubmenu(submenu, trigger) {
   });
 }
 
-bindToolbarSubmenu(toolbarClusteringSubmenu, toolbarClusteringSubmenuTrigger);
 bindToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
 
 if (toolbarDropdowns.length) {
@@ -843,7 +819,6 @@ if (toolbarDropdowns.length) {
       closeToolbarDropdowns(openDropdown);
       if (
         openDropdown === toolbarDropdown &&
-        !toolbarClusteringSubmenu?.contains(event.target) &&
         !toolbarSettingsSubmenu?.contains(event.target)
       ) {
         closeToolbarSubmenus();

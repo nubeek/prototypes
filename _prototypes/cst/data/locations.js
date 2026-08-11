@@ -1,16 +1,16 @@
 const OWNER_LOCATION_COLORS = [
-  "#8772df",
-  "#4385f3",
-  "#76af62",
-  "#ff696d",
-  "#9b90ec",
-  "#8ab5f0",
-  "#00c69b",
-  "#edbd9d",
-  "#c3bcf2",
-  "#99d3f0",
-  "#a3e095",
-  "#f5de58"
+  "#647AD4",
+  "#96A8E6",
+  "#36AB6D",
+  "#7ACC9F",
+  "#DA911C",
+  "#E9B861",
+  "#C05FD4",
+  "#D998E6",
+  "#DA652E",
+  "#EA9166",
+  "#058A8A",
+  "#4AAFAF"
 ];
 
 const OWNER_LOCATION_CENTERS = [
@@ -576,47 +576,8 @@ function getOwnerLocations(owner, ownerIndex) {
   });
 }
 
-// Manual overrides used to stack extra units on top of an existing one, so we can
-// verify map marker clustering behaves correctly at a known, shared coordinate.
-const CLUSTER_TEST_EXTRA_UNITS = {
-  "Argonne Capital": { count: 8, lat: 35.06089, lng: -120.18006, label: "Fresno, California" },
-  "United FP": { count: 6, lat: 33.7512, lng: -84.3925, label: "Atlanta, Georgia" },
-  "Flynn Fitness": { count: 5, lat: 32.7791, lng: -96.8012, label: "Dallas, Texas" },
-  "Trilantic Capital Management": { count: 7, lat: 42.6561, lng: -73.7518, label: "Albany, New York" },
-  "Epic Fitness": { count: 4, lat: 39.7428, lng: -104.9871, label: "Denver, Colorado" },
-  "Olympus Partners": { count: 9, lat: 44.9812, lng: -93.2698, label: "Minneapolis, Minnesota" },
-  "Black Duck Partners": { count: 6, lat: 28.5412, lng: -81.3845, label: "Orlando, Florida" }
-};
-
-function getClusterTestExtraUnits(owner, ownerIndex, existingUnitCount) {
-  const config = CLUSTER_TEST_EXTRA_UNITS[owner.ownerName];
-  if (!config) return [];
-
-  const franchiseName = getOwnerPrimaryFranchise(owner);
-  const category = getOwnerCategory(owner);
-
-  return Array.from({ length: config.count }, (_, extraIndex) => {
-    const locationIndex = existingUnitCount + extraIndex;
-    const unitOwnerName = getOwnerUnitContactName(ownerIndex, locationIndex);
-
-    return {
-      id: `${getOwnerUnitSlug(owner, locationIndex)}`,
-      name: unitOwnerName,
-      email: getOwnerUnitContactEmail(unitOwnerName, ownerIndex, locationIndex),
-      phone: getOwnerUnitPhone(ownerIndex, locationIndex),
-      franchise: franchiseName,
-      category,
-      lat: config.lat,
-      lng: config.lng,
-      label: config.label
-    };
-  });
-}
-
 window.ownerLocationsData = (window.ownersData || []).map((owner, ownerIndex) => {
   const units = getOwnerLocations(owner, ownerIndex);
-
-  units.push(...getClusterTestExtraUnits(owner, ownerIndex, units.length));
 
   owner.units = units;
 

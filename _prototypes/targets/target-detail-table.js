@@ -1112,7 +1112,7 @@ function getContactColumn(owner) {
   const isLeadSaved = savedLeadOwnerIndexes.has(owner.originalIndex);
   const leadTooltip = isLeadSaved ? "Remove from leads" : "Save as lead";
   const contactDetail = owner.email
-    ? `<span class="ui-link ui-ellipsis email">${owner.email}</span>`
+    ? `<span class="ui-link ui-ellipsis email contact-email-copy" tabindex="0" role="button">${owner.email}</span>`
     : `<span class="email">${owner.contactDetail || "Public profile"}</span>`;
 
   return `

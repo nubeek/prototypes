@@ -706,6 +706,38 @@ body.target-detail.changes-hidden .added-count {
   white-space: nowrap;
 }
 
+.contact-email-copy {
+  cursor: pointer;
+}
+
+.contact-email-floating-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
+  color: #17171c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 140ms ease, transform 200ms ease;
+}
+
+.contact-email-floating-tooltip.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 .contact-row-actions {
   align-self: center;
   flex: 0 0 auto;

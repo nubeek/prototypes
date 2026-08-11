@@ -131,33 +131,6 @@ function syncReduceMotionStateClass() {
   document.body.classList.toggle("reduce-motion", reduceMotionEnabled);
 }
 
-function syncMapClusteringToggleOption() {
-  if (!mapClusteringToggleOption) return;
-
-  mapClusteringToggleOption.setAttribute("aria-checked", String(mapClusteringEnabled));
-  const label = mapClusteringToggleOption.querySelector(".toolbar-dropdown-label");
-  if (label) {
-    label.textContent = mapClusteringEnabled ? "Disable clustering" : "Enable clustering";
-  }
-}
-
-function syncMapClusteringLevelOptions() {
-  if (toolbarClusteringLevels) {
-    toolbarClusteringLevels.hidden = !mapClusteringEnabled;
-  }
-
-  mapClusteringLevelOptions.forEach((option) => {
-    const isSelected = option.dataset.clusteringLevel === mapClusteringLevel;
-    option.classList.toggle("is-selected", isSelected);
-    option.setAttribute("aria-checked", String(isSelected));
-  });
-}
-
-function syncMapClusteringOptions() {
-  syncMapClusteringToggleOption();
-  syncMapClusteringLevelOptions();
-}
-
 function getProjectNamePrefix() {
   const pathSegments = window.location.pathname.split("/").filter(Boolean);
   const projectSegment = pathSegments[pathSegments.length - 2] || "project";
@@ -509,7 +482,7 @@ function renderOwners(rows) {
               >
                 <span class="contact-profile-text">
                   <span class="contact-name">${owner.contactName}</span>
-                  <span class="ui-link ui-ellipsis email">${owner.email}</span>
+                  <span class="ui-link ui-ellipsis email contact-email-copy" tabindex="0" role="button">${owner.email}</span>
                 </span>
               </button>
               <div class="contact-row-actions">

@@ -68,11 +68,6 @@ const datasetSelectorOptions = document.getElementById("datasetSelectorOptions")
 const toolbarView = document.getElementById("toolbarView");
 const toolbarViewButtons = Array.from(document.querySelectorAll(".toolbar-view-btn[data-table-view]"));
 let datasetSelectorApi = null;
-const toolbarClusteringSubmenu = document.querySelector('[data-toolbar-submenu="clustering"]');
-const toolbarClusteringSubmenuTrigger = document.getElementById("toolbarClusteringSubmenuTrigger");
-const mapClusteringToggleOption = document.getElementById("mapClusteringToggleOption");
-const toolbarClusteringLevels = document.getElementById("toolbarClusteringLevels");
-const mapClusteringLevelOptions = Array.from(document.querySelectorAll("[data-clustering-level]"));
 const toolbarSettingsSubmenu = document.querySelector('[data-toolbar-submenu="settings"]');
 const toolbarSettingsSubmenuTrigger = document.getElementById("toolbarSettingsSubmenuTrigger");
 const reduceMotionToggleOption = document.getElementById("reduceMotionToggleOption");
@@ -141,22 +136,6 @@ const MAP_POINT_RADIUS_MAX = 8;
 const MAP_POINT_HOVER_SCALE = 2;
 const MAP_POINT_ZOOM_MIN = 1;
 const MAP_POINT_ZOOM_MAX = 10;
-const MAP_CLUSTERING_LEVELS = {
-  max: { overlapRatio: 0, label: "Max" },
-  high: { overlapRatio: 0.4, label: "High" },
-  medium: { overlapRatio: 0.6, label: "Medium" },
-  minimal: { overlapRatio: 0.75, label: "Minimal" },
-  low: { overlapRatio: 0.9, label: "Low" }
-};
-const MAP_CLUSTERING_LEVEL_KEYS = Object.keys(MAP_CLUSTERING_LEVELS);
-const MAP_CLUSTERING_DEFAULT_LEVEL = "low";
-const MAP_CLUSTER_ZOOM_DURATION_MS = 1500;
-const MAP_CLUSTER_EXPANSION_DURATION_MS = 520;
-const MAP_ZOOM_CLUSTER_TRANSITION_DURATION_MS = 320;
-const MAP_ZOOM_CLUSTER_TRANSITION_FRAME_INTERVAL_MS = 1000 / 30;
-const MAP_CLUSTER_MAX_ZOOM = 14;
-const MAP_CLUSTER_SPIDERFY_RADIUS_PX = 250;
-const MAP_CLUSTER_SPIDERFY_RING_GAP_PX = 100;
 const MAP_LOCATION_FILTER_RADIUS_MILES = 50;
 const RADIUS_FILTER_DEFAULTS = { min: 25, max: 1000, step: 25, value: 300 };
 const VIEW_SETTINGS_STORAGE_KEY = "cst.viewSettings.v1";
@@ -205,13 +184,6 @@ let selectedContactsMax = contactsFilterDefaults.max;
 let radiusFilterEnabled = false;
 let selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
 let reduceMotionEnabled = false;
-let mapClusteringEnabled = true;
-let mapClusteringLevel = MAP_CLUSTERING_DEFAULT_LEVEL;
-
-function getMapClusteringOverlapRatio() {
-  return MAP_CLUSTERING_LEVELS[mapClusteringLevel]?.overlapRatio ??
-    MAP_CLUSTERING_LEVELS[MAP_CLUSTERING_DEFAULT_LEVEL].overlapRatio;
-}
 let ownersMap;
 let ownersMapInitialized = false;
 let ownerDetailsMap;
@@ -240,12 +212,6 @@ const hiddenProspectRowKeys = new Set();
 let ownersMapResizeObserver = null;
 let ownersMapResizeFrame = null;
 let ownersMapPointHover = null;
-let ownersMapPointClusterFrame = null;
-let ownersMapPointExpansionFrame = null;
-let pendingOwnersMapClusterExpansion = null;
-let ownersMapSpiderExpansionActive = false;
-let ownersMapStablePointCollection = null;
-let ownersMapStablePointZoom = null;
 let screenshotInProgress = false;
 let screenshotToastTimeout;
 let viewSettingsReadyToPersist = false;

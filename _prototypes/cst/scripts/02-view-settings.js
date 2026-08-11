@@ -55,8 +55,6 @@ function getCurrentViewSettings() {
     panelMode: lockedToolbarMode,
     panelLayout: currentPanelLayout,
     reduceMotionEnabled,
-    mapClusteringEnabled,
-    mapClusteringLevel,
     filters: {
       open: Boolean(card?.classList.contains("is-filter-open")),
       sections: getFilterSectionSettings(),
@@ -142,13 +140,8 @@ function restoreFilterSectionState(sectionSettings = {}) {
 
 function restoreSavedOptionSettings(settings) {
   reduceMotionEnabled = Boolean(settings?.reduceMotionEnabled);
-  mapClusteringEnabled = settings?.mapClusteringEnabled !== false;
-  mapClusteringLevel = MAP_CLUSTERING_LEVEL_KEYS.includes(settings?.mapClusteringLevel)
-    ? settings.mapClusteringLevel
-    : MAP_CLUSTERING_DEFAULT_LEVEL;
   syncReduceMotionToggleOption();
   syncReduceMotionStateClass();
-  syncMapClusteringOptions();
   refreshOwnersMapPointData();
 }
 
@@ -252,8 +245,6 @@ function resetViewSettings() {
   try {
     removeSavedViewSettings();
     reduceMotionEnabled = false;
-    mapClusteringEnabled = true;
-    mapClusteringLevel = MAP_CLUSTERING_DEFAULT_LEVEL;
     sortState = {
       columns: [{ key: "locations", direction: "descending" }]
     };
@@ -262,7 +253,6 @@ function resetViewSettings() {
 
     syncReduceMotionToggleOption();
     syncReduceMotionStateClass();
-    syncMapClusteringOptions();
     refreshOwnersMapPointData();
     clearAllFilterSelections();
     restoreFilterSectionState({});
