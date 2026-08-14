@@ -371,6 +371,7 @@ function refreshFilteredViews() {
   if (isDatasetTableView()) {
     locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
   }
+  syncMapLocationFilter();
   applySort();
 
   if (globalRawDataViewOpen) {

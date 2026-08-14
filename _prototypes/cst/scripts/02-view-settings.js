@@ -62,6 +62,8 @@ function getCurrentViewSettings() {
         included: selectedLocationLabels,
         excluded: excludedLocationLabels
       },
+      locationSearches: selectedLocationSearches.map((location) => ({ ...location })),
+      locationSearchesExcluded: excludedLocationSearches.map((location) => ({ ...location })),
       categories: {
         included: selectedCategoryValues,
         excluded: excludedCategoryValues
@@ -83,10 +85,17 @@ function getCurrentViewSettings() {
         min: selectedContactsMin,
         max: selectedContactsMax
       },
+      netWorth: {
+        min: selectedNetWorthMin,
+        max: selectedNetWorthMax
+      },
       radius: {
         enabled: radiusFilterEnabled,
         miles: selectedRadiusMiles
-      }
+      },
+      userLocation: userLocationCenter
+        ? { lat: userLocationCenter.lat, lng: userLocationCenter.lng }
+        : null
     }
   };
 }
@@ -135,6 +144,7 @@ function restoreFilterSectionState(sectionSettings = {}) {
     const isCollapsed = typeof savedCollapsed === "boolean" ? savedCollapsed : fallbackCollapsed;
     section.classList.toggle("filter-section-collapsed", isCollapsed);
     section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(!isCollapsed));
+    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(!isCollapsed));
   });
 }
 
@@ -148,9 +158,12 @@ function restoreSavedOptionSettings(settings) {
 function restoreSavedFilterSelections(settings) {
   const filters = settings?.filters || {};
 
-  selectedLocationLabels = getValidSavedSelectValues(locationFilterSelect, filters.locations?.included);
-  excludedLocationLabels = getValidSavedSelectValues(locationFilterSelect, filters.locations?.excluded);
-  setFilterSelectIncludedExcludedValues(locationFilterSelect, selectedLocationLabels, excludedLocationLabels);
+  setLocationFilterSelections(
+    filters.locations?.included,
+    filters.locations?.excluded,
+    filters.locationSearches,
+    filters.locationSearchesExcluded
+  );
 
   selectedCategoryValues = getValidSavedSelectValues(categoryFilterSelect, filters.categories?.included);
   excludedCategoryValues = getValidSavedSelectValues(categoryFilterSelect, filters.categories?.excluded);
@@ -177,6 +190,19 @@ function restoreSavedFilterSelections(settings) {
     filters.contacts?.min ?? contactsFilterDefaults.min,
     filters.contacts?.max ?? contactsFilterDefaults.max
   );
+  setNetWorthFilterRange(
+    filters.netWorth?.min ?? netWorthFilterDefaults.min,
+    filters.netWorth?.max ?? netWorthFilterDefaults.max
+  );
+  const savedUserLocation = filters.userLocation;
+  userLocationCenter = Number.isFinite(Number(savedUserLocation?.lat))
+    && Number.isFinite(Number(savedUserLocation?.lng))
+    ? {
+        lat: Number(savedUserLocation.lat),
+        lng: Number(savedUserLocation.lng),
+        label: "My location"
+      }
+    : null;
   radiusFilterEnabled = Boolean(filters.radius?.enabled);
   const savedRadiusMiles = Number(filters.radius?.miles);
   selectedRadiusMiles = Number.isFinite(savedRadiusMiles)

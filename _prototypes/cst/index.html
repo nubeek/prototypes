@@ -37,27 +37,27 @@
     </form>
   </div>
 
-  <main class="card">
+  <main class="card is-splash-open">
     <div class="content-shell">
       <div class="header" aria-label="Owners toolbar">
         <div class="toolbar-group toolbar-primary">
           <div class="view" id="toolbarView" aria-label="Table view">
-            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn is-active" type="button" data-table-view="owners" aria-pressed="true">
+            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="owners" aria-pressed="false">
               <img class="toolbar-asset-icon view-btn-icon" src="assets/owners.svg" alt="" aria-hidden="true">
               <span class="view-btn-label">Operators</span>
             </button>
             <span class="view-divider" aria-hidden="true"></span>
             <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="userProfiles" aria-pressed="false">
               <img class="toolbar-asset-icon view-btn-icon" src="assets/prospects.svg" alt="" aria-hidden="true">
-              <span class="view-btn-label">Prospects</span>
+              <span class="view-btn-label">Franchisees</span>
             </button>
           </div>
           <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
             <img class="toolbar-asset-icon filter-toggle-icon" src="assets/filters.svg" alt="" aria-hidden="true">
             <span id="filterToggleLabel">Filters</span>
           </button>
-          <span class="toolbar-divider" aria-hidden="true"></span>
-          <div class="toolbar-tabs segmented-control">
+          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
+          <div class="toolbar-tabs segmented-control" data-splash-workspace-control>
             <div class="toolbar-tab-item">
               <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" aria-controls="mapPanel" aria-expanded="false">
                 <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
@@ -149,8 +149,8 @@
               </div>
             </div>
           </div>
-          <span class="toolbar-divider" aria-hidden="true"></span>
-          <label class="toolbar-search-btn toolbar-btn" for="toolbarSearchInput" role="search">
+          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
+          <label class="toolbar-search-btn toolbar-btn" data-splash-workspace-control for="toolbarSearchInput" role="search">
             <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
             <input
               class="toolbar-search-input"
@@ -238,24 +238,117 @@
       </div>
 
       <div class="workspace">
+    <div class="cst-splash is-preparing-enter" id="cstSplash" data-cst-splash role="group" aria-label="Start a search">
+      <div class="cst-splash__inner">
+        <div class="cst-splash__intro">
+          <p class="cst-splash__heading">Start a new search<br>or reopen one of your saved searches</p>
+          <form class="cst-splash__search" id="cstSplashSearch" role="search" autocomplete="off" novalidate>
+            <img class="cst-splash__search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+            <input
+              class="cst-splash__search-input"
+              id="cstSplashSearchInput"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              spellcheck="false"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-controls="cstSplashSearchSuggestions"
+              placeholder="Search by operator, brand, or location..."
+              aria-label="Search operators, brands, and locations"
+              aria-describedby="cstSplashSearchFeedback"
+            >
+            <div
+              class="cst-splash__search-suggestions"
+              id="cstSplashSearchSuggestions"
+              role="listbox"
+              aria-label="Search suggestions"
+              aria-hidden="true"
+            ></div>
+            <button class="cst-splash__search-clear" id="cstSplashSearchClear" type="button" aria-label="Clear search" hidden></button>
+          </form>
+          <p class="cst-splash__search-feedback" id="cstSplashSearchFeedback" role="status" aria-live="polite" hidden></p>
+        </div>
+
+        <section class="cst-splash__saved" aria-labelledby="cstSplashSavedToggle">
+          <div class="cst-splash__saved-scroll">
+            <button
+              class="cst-splash__saved-toggle"
+              id="cstSplashSavedToggle"
+              type="button"
+              aria-expanded="true"
+              aria-controls="cstSplashSavedContent"
+            >
+              <span>Saved searches</span>
+              <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            </button>
+            <div class="cst-splash__saved-content" id="cstSplashSavedContent">
+              <div class="cst-splash__grid" id="cstSplashGrid"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
     <aside class="filter-panel" id="filterPanel" aria-label="Filters">
       <div class="filter-scroll">
         <div class="filter-header">
           <h2>Filter</h2>
-          <p id="filterSummary">Showing 0 of 0 records<span class="filter-summary-sort">sorted by relevancy</span></p>
+          <p id="filterSummary">Showing 0 of 0 records</p>
         </div>
 
-        <section class="filter-section">
+        <section class="filter-section" data-filter-section="location">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="true">
             <span>Location</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
-          <div class="filter-select-field">
-            <select class="ui-select filter-field-select" id="locationFilterSelect" aria-label="Select location" required>
-              <option value="">Select location...</option>
-            </select>
+          <div class="filter-check-group filter-location-actions">
+            <button class="ui-control filter-location-link" id="searchWithinLocation" type="button">
+              <span class="filter-location-link__icon" aria-hidden="true">
+                <img src="assets/target-me.svg" alt="">
+              </span>
+              <span>Find my location</span>
+            </button>
+          </div>
+          <div class="filter-select-field filter-location-search-field" id="locationFilterSearchField">
+            <div class="filter-combobox-control" role="presentation">
+              <div class="filter-combobox-chips" id="locationFilterSearchChips"></div>
+              <input
+                class="filter-combobox-input"
+                id="locationFilterSearchInput"
+                type="text"
+                inputmode="search"
+                autocomplete="off"
+                spellcheck="false"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="locationFilterSearchSuggestions"
+                placeholder="Select location"
+                aria-label="Search by address, city, or state"
+                aria-describedby="locationFilterSearchFeedback"
+              >
+            </div>
+            <button
+              class="filter-combobox-clear"
+              id="locationFilterSearchClear"
+              type="button"
+              aria-label="Clear location search"
+              hidden
+            ></button>
+            <div class="filter-combobox-menu" id="locationFilterSearchMenu" aria-hidden="true">
+              <div
+                class="filter-combobox-options"
+                id="locationFilterSearchSuggestions"
+                role="listbox"
+                aria-label="Location suggestions"
+              ></div>
+            </div>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
+          <p class="filter-location-search__feedback" id="locationFilterSearchFeedback" role="status" aria-live="polite" hidden></p>
           <div class="filter-check-group">
           <label class="filter-check filter-radius-toggle" id="radiusToggleLabel">
             <input type="checkbox" id="radiusToggle">
@@ -263,23 +356,27 @@
             <span>Enable radius</span>
           </label>
           </div>
-          <div class="filter-radius-control" id="radiusControl" hidden>
-            <div class="range-track filter-range-slider filter-radius-slider" aria-label="Radius">
-              <span class="range-line"></span>
-              <span class="range-fill" id="radiusRangeFill"></span>
-              <input class="range-input range-input-single" id="radiusRange" type="range" min="25" max="1000" step="25" value="300" aria-label="Radius in miles">
-            </div>
-            <div class="filter-radius-value" id="radiusValueLabel">
-              <button class="filter-radius-value__display" id="radiusValueDisplay" type="button">300 mi</button>
-              <span class="filter-radius-value__edit" id="radiusValueEdit" hidden>
-                <input class="filter-radius-value__input" id="radiusValueInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Radius in miles">
-                <span class="filter-radius-value__suffix" aria-hidden="true"> mi</span>
-              </span>
+          <div class="filter-radius-section" id="radiusFilterSection" aria-hidden="true">
+            <div class="filter-radius-section__content">
+              <div class="filter-radius-control" id="radiusControl">
+                <div class="range-track filter-range-slider filter-radius-slider" aria-label="Radius">
+                  <span class="range-line"></span>
+                  <span class="range-fill" id="radiusRangeFill"></span>
+                  <input class="range-input range-input-single" id="radiusRange" type="range" min="25" max="1000" step="25" value="300" aria-label="Radius in miles">
+                </div>
+                <div class="filter-radius-value" id="radiusValueLabel">
+                  <button class="filter-radius-value__display" id="radiusValueDisplay" type="button">300 mi</button>
+                  <span class="filter-radius-value__edit" id="radiusValueEdit" hidden>
+                    <input class="filter-radius-value__input" id="radiusValueInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Radius in miles">
+                    <span class="filter-radius-value__suffix" aria-hidden="true"> mi</span>
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed">
+        <section class="filter-section filter-section-collapsed" data-filter-section="category">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Category</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
@@ -292,7 +389,7 @@
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed">
+        <section class="filter-section filter-section-collapsed" data-filter-section="owners">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Owners</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
@@ -305,7 +402,7 @@
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed">
+        <section class="filter-section filter-section-collapsed" data-filter-section="franchise">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Franchise</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
@@ -318,16 +415,21 @@
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed">
+        <section class="filter-section filter-section-collapsed" data-filter-section="units">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Units</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
-          <div class="range-track filter-range-slider" aria-label="Units range">
-            <span class="range-line"></span>
-            <span class="range-fill" id="unitsRangeFill"></span>
-            <input class="range-input range-input-min" id="unitsMinRange" type="range" min="0" max="0" value="0" aria-label="Minimum units">
-            <input class="range-input range-input-max" id="unitsMaxRange" type="range" min="0" max="0" value="0" aria-label="Maximum units">
+          <div class="filter-range-histogram-wrap">
+            <div class="filter-range-histogram" aria-hidden="true">
+              <div class="filter-range-histogram-bars"></div>
+            </div>
+            <div class="range-track filter-range-slider filter-range-slider--histogram" aria-label="Units range">
+              <span class="range-line"></span>
+              <span class="range-fill" id="unitsRangeFill"></span>
+              <input class="range-input range-input-min" id="unitsMinRange" type="range" min="0" max="0" value="0" aria-label="Minimum units">
+              <input class="range-input range-input-max" id="unitsMaxRange" type="range" min="0" max="0" value="0" aria-label="Maximum units">
+            </div>
           </div>
           <div class="filter-range-labels">
             <span>Minimum</span>
@@ -340,16 +442,21 @@
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed">
+        <section class="filter-section filter-section-collapsed" data-filter-section="contacts">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Contacts</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
-          <div class="range-track filter-range-slider" aria-label="Contacts range">
-            <span class="range-line"></span>
-            <span class="range-fill" id="contactsRangeFill"></span>
-            <input class="range-input range-input-min" id="contactsMinRange" type="range" min="0" max="0" value="0" aria-label="Minimum contacts">
-            <input class="range-input range-input-max" id="contactsMaxRange" type="range" min="0" max="0" value="0" aria-label="Maximum contacts">
+          <div class="filter-range-histogram-wrap">
+            <div class="filter-range-histogram" aria-hidden="true">
+              <div class="filter-range-histogram-bars"></div>
+            </div>
+            <div class="range-track filter-range-slider filter-range-slider--histogram" aria-label="Contacts range">
+              <span class="range-line"></span>
+              <span class="range-fill" id="contactsRangeFill"></span>
+              <input class="range-input range-input-min" id="contactsMinRange" type="range" min="0" max="0" value="0" aria-label="Minimum contacts">
+              <input class="range-input range-input-max" id="contactsMaxRange" type="range" min="0" max="0" value="0" aria-label="Maximum contacts">
+            </div>
           </div>
           <div class="filter-range-labels">
             <span>Minimum</span>
@@ -362,7 +469,7 @@
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed">
+        <section class="filter-section filter-section-collapsed" data-filter-section="status">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Status</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
@@ -396,24 +503,36 @@
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed">
+        <section class="filter-section filter-section-collapsed filter-section--net-worth" data-filter-section="net-worth">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Net worth</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
-          <div class="range-track" aria-hidden="true">
-            <span class="range-line"></span>
-            <span class="range-thumb range-thumb-min"></span>
-            <span class="range-thumb range-thumb-max"></span>
+          <div class="filter-range-histogram-wrap">
+            <div class="filter-range-histogram" aria-hidden="true">
+              <div class="filter-range-histogram-bars"></div>
+            </div>
+            <div class="range-track filter-range-slider filter-range-slider--histogram" aria-label="Net worth range">
+              <span class="range-line"></span>
+              <span class="range-fill" id="netWorthRangeFill"></span>
+              <input class="range-input range-input-min" id="netWorthMinRange" type="range" min="0" max="1000000000" step="1000000" value="0" aria-label="Minimum net worth">
+              <input class="range-input range-input-max" id="netWorthMaxRange" type="range" min="0" max="1000000000" step="1000000" value="1000000000" aria-label="Maximum net worth">
+            </div>
           </div>
           <div class="filter-range-labels">
             <span>Minimum</span>
             <span>Maximum</span>
           </div>
           <div class="filter-input-row">
-            <div class="filter-value">$ 0</div>
+            <label class="filter-value filter-value--currency">
+              <span class="filter-value-prefix" aria-hidden="true">$</span>
+              <input class="filter-number-input filter-number-input--currency" id="netWorthMinInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="0" aria-label="Minimum net worth value">
+            </label>
             <span class="filter-range-separator">-</span>
-            <div class="filter-value">$ 1B</div>
+            <label class="filter-value filter-value--currency">
+              <span class="filter-value-prefix" aria-hidden="true">$</span>
+              <input class="filter-number-input filter-number-input--currency" id="netWorthMaxInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="1,000,000,000" aria-label="Maximum net worth value">
+            </label>
           </div>
         </section>
       </div>
@@ -422,7 +541,12 @@
       </div>
     </aside>
       <div class="workspace-main">
-        <div class="table-wrap" id="tableWrap">
+        <div class="table-column">
+          <header class="table-heading">
+            <h2 id="tableHeadingTitle">Operators</h2>
+            <p id="tableHeadingSummary" aria-live="polite">Showing 0 operators, 0 contacts and 0 units</p>
+          </header>
+          <div class="table-wrap" id="tableWrap">
         <table>
           <thead>
             <tr>
@@ -439,6 +563,7 @@
           <tbody id="ownersTableBody"></tbody>
         </table>
         <p class="table-empty-state" id="tableEmptyState" role="status" hidden>We couldn't find anything matching your query.</p>
+          </div>
         </div>
 
         <aside class="map-panel" id="mapPanel" aria-label="Franchisee details">
@@ -573,6 +698,7 @@
   <script src="data/owners.js"></script>
   <script src="data/locations.js"></script>
   <script src="data/prospect-datasets.js"></script>
+  <script src="data/saved-searches.js"></script>
   <script src="data/org-chart.js"></script>
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -585,10 +711,12 @@
   <script src="scripts/05-raw-data.js"></script>
   <script src="scripts/06-owner-details-org.js"></script>
   <script src="scripts/07-table-sort.js"></script>
+  <script src="scripts/14-location-search.js"></script>
   <script src="scripts/08-filters-combobox.js"></script>
   <script src="scripts/10-dataset-selector.js"></script>
   <script src="scripts/11-save-lead-modal.js"></script>
   <script src="scripts/12-contact-action-tooltips.js"></script>
   <script src="scripts/09-bootstrap.js"></script>
+  <script src="scripts/13-splash.js"></script>
 </body>
 </html>

@@ -202,30 +202,93 @@ if (ownersTable) {
   });
 }
 
-if (filterPanel) {
+function enhanceFilterSectionHeaders() {
+  if (!filterPanel) return;
+
   filterPanel.querySelectorAll(".filter-section").forEach((section) => {
-    const title = section.querySelector(".filter-section-title");
-    title?.setAttribute("aria-expanded", String(!section.classList.contains("filter-section-collapsed")));
+    const title = section.querySelector(":scope > .filter-section-title");
+    if (!title || section.querySelector(".filter-section-header")) return;
+
+    const label = title.querySelector("span")?.textContent?.trim() || "filters";
+    const chevron = title.querySelector("img");
+    const header = document.createElement("div");
+    header.className = "filter-section-header";
+
+    const clearButton = document.createElement("button");
+    clearButton.type = "button";
+    clearButton.className = "ui-control ui-button-ghost filter-section-clear";
+    clearButton.textContent = "Clear";
+    clearButton.setAttribute("aria-label", `Clear ${label}`);
+    clearButton.hidden = true;
+
+    const toggleButton = document.createElement("button");
+    toggleButton.type = "button";
+    toggleButton.className = "ui-control ui-button-ghost filter-section-toggle";
+    toggleButton.setAttribute("aria-label", `Toggle ${label}`);
+    toggleButton.setAttribute("aria-expanded", title.getAttribute("aria-expanded") || "false");
+    if (chevron) toggleButton.appendChild(chevron);
+
+    const labelNode = title.querySelector("span");
+    title.replaceChildren(labelNode || document.createTextNode(label));
+
+    section.insertBefore(header, title);
+    header.append(title, clearButton, toggleButton);
+
+    const selectionKey = section.dataset.filterSection;
+    if (["units", "contacts", "status", "net-worth"].includes(selectionKey)
+      && !section.querySelector(".filter-section-selection")) {
+      const selection = document.createElement("div");
+      selection.className = "filter-section-selection";
+      selection.hidden = true;
+      header.after(selection);
+    }
+
+    clearButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      clearFilterSection(section);
+    });
+  });
+}
+
+function toggleFilterSectionCollapsed(section) {
+  const title = section.querySelector(".filter-section-title");
+  const toggle = section.querySelector(".filter-section-toggle");
+  const isCollapsed = section.classList.toggle("filter-section-collapsed");
+  const isExpanded = !isCollapsed;
+
+  title?.setAttribute("aria-expanded", String(isExpanded));
+  toggle?.setAttribute("aria-expanded", String(isExpanded));
+  persistViewSettings();
+
+  if (isCollapsed) {
+    section.querySelectorAll(".filter-field-select").forEach((select) => {
+      filterComboboxes.get(select)?.close();
+    });
+  }
+}
+
+if (filterPanel) {
+  enhanceFilterSectionHeaders();
+
+  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
+    const isExpanded = !section.classList.contains("filter-section-collapsed");
+    section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(isExpanded));
+    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(isExpanded));
   });
 
   filterPanel.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
+    if (event.target.closest(".filter-section-clear")) return;
 
     const title = event.target.closest(".filter-section-title");
-    if (!title || !filterPanel.contains(title)) return;
+    const toggle = event.target.closest(".filter-section-toggle");
+    if (!title && !toggle) return;
+    if (!filterPanel.contains(title || toggle)) return;
 
-    const section = title.closest(".filter-section");
+    const section = (title || toggle)?.closest(".filter-section");
     if (!section) return;
 
-    const isCollapsed = section.classList.toggle("filter-section-collapsed");
-    title.setAttribute("aria-expanded", String(!isCollapsed));
-    persistViewSettings();
-
-    if (isCollapsed) {
-      section.querySelectorAll(".filter-field-select").forEach((select) => {
-        filterComboboxes.get(select)?.close();
-      });
-    }
+    toggleFilterSectionCollapsed(section);
   });
 }
 document.addEventListener("mousedown", (event) => {
@@ -241,39 +304,23 @@ document.addEventListener("mousedown", (event) => {
   }
 });
 
-if (locationFilterSelect) {
-  const locationSource = (window.ownerLocationsData || []).flatMap((owner) => owner.locations);
-  const prospectLocationLabels = Object.values(window.prospectDatasetsData || {})
-    .flatMap((dataset) => dataset.rows || [])
-    .map((row) => row.location)
-    .map(normalizeDatasetCellValue)
-    .filter(Boolean);
-  const locationLabels = [
-    ...new Set([
-      ...locationSource.map((location) => location.label).filter(Boolean),
-      ...prospectLocationLabels
-    ])
-  ].sort((a, b) => collator.compare(a, b));
-
-  locationLabels.forEach((locationLabel) => {
-    const option = document.createElement("option");
-    option.value = locationLabel;
-    option.textContent = locationLabel;
-    locationFilterSelect.append(option);
-  });
-
-  locationFilterSelect.addEventListener("change", () => {
-    selectedLocationLabels = getFilterSelectIncludedValues(locationFilterSelect);
-    excludedLocationLabels = getFilterSelectExcludedValues(locationFilterSelect);
-    activeMapOwnerIndex = null;
-    syncMapLocationFilter();
-    refreshFilteredViews();
-    refitOpenMapToVisibleLocations();
-    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
-  });
-
-  enhanceFilterCombobox(locationFilterSelect, { allowExclude: true });
-}
+filterLocationSearchControl = window.cstLocationSearch?.bind({
+  variant: "filter",
+  field: locationFilterSearchField,
+  menu: document.getElementById("locationFilterSearchMenu"),
+  input: document.getElementById("locationFilterSearchInput"),
+  suggestions: document.getElementById("locationFilterSearchSuggestions"),
+  clearButton: document.getElementById("locationFilterSearchClear"),
+  feedback: document.getElementById("locationFilterSearchFeedback"),
+  suggestionPrefix: "locationFilterSearchSuggestion",
+  onInclude: applyLocationInclude,
+  onExclude: applyLocationExclude,
+  onClear: () => {
+    clearLocationFilterState();
+    refreshLocationFilterResults();
+  }
+});
+syncFilterLocationSearchUI();
 
 if (ownerFilterSelect) {
   owners.forEach((owner) => {
@@ -398,6 +445,30 @@ if (contactsMaxInput) {
   });
 }
 
+if (netWorthMinRange) {
+  netWorthMinRange.addEventListener("input", () => {
+    setNetWorthFilterRange(netWorthMinRange.value, selectedNetWorthMax, { changed: "min", refresh: true });
+  });
+}
+
+if (netWorthMaxRange) {
+  netWorthMaxRange.addEventListener("input", () => {
+    setNetWorthFilterRange(selectedNetWorthMin, netWorthMaxRange.value, { changed: "max", refresh: true });
+  });
+}
+
+if (netWorthMinInput) {
+  netWorthMinInput.addEventListener("change", () => {
+    setNetWorthFilterRange(getFilterNumberInputValue(netWorthMinInput), selectedNetWorthMax, { changed: "min", refresh: true });
+  });
+}
+
+if (netWorthMaxInput) {
+  netWorthMaxInput.addEventListener("change", () => {
+    setNetWorthFilterRange(selectedNetWorthMin, getFilterNumberInputValue(netWorthMaxInput), { changed: "max", refresh: true });
+  });
+}
+
 if (radiusToggle) {
   radiusToggle.addEventListener("change", () => {
     setRadiusFilterEnabled(radiusToggle.checked, { refresh: true });
@@ -409,7 +480,14 @@ initRadiusFilterControls();
 syncStatusFilterStates();
 syncUnitsFilterControls();
 syncContactsFilterControls();
+syncNetWorthFilterControls();
 syncRadiusFilterControls();
+renderFilterHistograms();
+updateFilterSectionClearButtons();
+
+searchWithinLocation?.addEventListener("click", () => {
+  locateUserFromFilters();
+});
 
 if (clearAllFilters) {
   clearAllFilters.addEventListener("click", clearAllFilterSelections);

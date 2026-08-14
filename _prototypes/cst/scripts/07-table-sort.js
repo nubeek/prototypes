@@ -1035,22 +1035,24 @@ function cycleSortState(sortKey, { additive = false } = {}) {
 }
 
 function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
+  const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
+
   if (isRadiusFilterActive()) {
-    const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
     return ownerLocations.some((location) => locationWithinSelectedRadius(location));
   }
 
-  if (!locationLabels.length) return true;
+  if (selectedLocationSearches.length || locationLabels.length) {
+    return ownerLocations.some((location) => locationRecordMatchesIncludedSelection(location));
+  }
 
-  const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
-  return ownerLocations.some((location) => locationLabels.includes(location.label));
+  return true;
 }
 
 function ownerExcludesLocationLabel(owner, locationLabels = excludedLocationLabels) {
-  if (!locationLabels.length) return false;
+  if (!excludedLocationSearches.length && !locationLabels.length) return false;
 
   const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
-  return ownerLocations.some((location) => locationLabels.includes(location.label));
+  return ownerLocations.some((location) => locationRecordIsExcluded(location));
 }
 
 function getOwnerCategories(owner) {
@@ -1104,9 +1106,18 @@ function contactsFilterIsActive() {
   return selectedContactsMin !== contactsFilterDefaults.min || selectedContactsMax !== contactsFilterDefaults.max;
 }
 
+function netWorthFilterIsActive() {
+  return selectedNetWorthMin !== netWorthFilterDefaults.min || selectedNetWorthMax !== netWorthFilterDefaults.max;
+}
+
 function ownerMatchesContactsFilter(owner) {
   const contacts = getOwnerContactCount(owner);
   return Number.isFinite(contacts) && contacts >= selectedContactsMin && contacts <= selectedContactsMax;
+}
+
+function ownerMatchesNetWorthFilter(owner) {
+  const netWorth = getOwnerNetWorth(owner);
+  return Number.isFinite(netWorth) && netWorth >= selectedNetWorthMin && netWorth <= selectedNetWorthMax;
 }
 
 function getOwnerSearchIndex(owner) {
@@ -1173,6 +1184,7 @@ function getFilteredOwners() {
     if (!ownerMatchesFranchiseFilter(owner)) return false;
     if (!ownerMatchesUnitsFilter(owner)) return false;
     if (!ownerMatchesContactsFilter(owner)) return false;
+    if (!ownerMatchesNetWorthFilter(owner)) return false;
     return ownerMatchesOwnerFilter(owner);
   });
 }
@@ -1218,6 +1230,57 @@ function sortOwners() {
   });
 }
 
+function formatTableHeadingCount(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
+
+function pluralizeTableHeadingCount(count, singular, plural = `${singular}s`) {
+  return count === 1 ? singular : plural;
+}
+
+function getTableHeadingCopy(tableView = currentTableView) {
+  if (tableView === "owners") {
+    const operatorCount = displayedOwners.length;
+    const contactCount = displayedOwners.reduce((total, owner) => total + getOwnerContactCount(owner), 0);
+    const unitCount = displayedOwners.reduce((total, owner) => total + getOwnerUnitCount(owner), 0);
+
+    return {
+      title: "Operators",
+      summary: `Showing ${formatTableHeadingCount(operatorCount)} ${pluralizeTableHeadingCount(operatorCount, "operator")}, ${formatTableHeadingCount(contactCount)} ${pluralizeTableHeadingCount(contactCount, "contact")} and ${formatTableHeadingCount(unitCount)} ${pluralizeTableHeadingCount(unitCount, "unit")}`
+    };
+  }
+
+  const headingByView = {
+    userProfiles: { title: "Franchisees", singular: "franchisee", plural: "franchisees" },
+    locations: { title: "Locations", singular: "location", plural: "locations" },
+    searchers: { title: "Searchers", singular: "searcher", plural: "searchers" },
+    athletes: { title: "Athletes", singular: "athlete", plural: "athletes" }
+  };
+  const heading = headingByView[tableView] || {
+    title: TABLE_VIEW_OPTIONS[tableView]?.label || "Results",
+    singular: "record",
+    plural: "records"
+  };
+  const count = displayedLocations.length;
+
+  return {
+    title: heading.title,
+    summary: `Showing ${formatTableHeadingCount(count)} ${pluralizeTableHeadingCount(count, heading.singular, heading.plural)}`
+  };
+}
+
+function updateTableHeading() {
+  const { title, summary } = getTableHeadingCopy();
+
+  if (tableHeadingTitle) {
+    tableHeadingTitle.textContent = title;
+  }
+
+  if (tableHeadingSummary) {
+    tableHeadingSummary.textContent = summary;
+  }
+}
+
 function updateFilterSummary() {
   if (!filterSummary) return;
 
@@ -1226,14 +1289,21 @@ function updateFilterSummary() {
     : displayedOwners.length;
   const visibleRange = visibleCount > 0 ? `1-${visibleCount}` : "0";
   const totalCount = isDatasetTableView() ? getAllLocationRows().length : owners.length;
-  filterSummary.innerHTML = `Showing ${visibleRange} of ${totalCount} records<span class="filter-summary-sort">sorted by relevancy</span>`;
+  filterSummary.textContent = `Showing ${visibleRange} of ${totalCount} records`;
+  updateTableHeading();
   updateClearFiltersButton();
 }
 
 function getAppliedFilterCount() {
   const selectedFilterCount =
-    selectedLocationLabels.length +
-    excludedLocationLabels.length +
+    selectedLocationSearches.length +
+    excludedLocationSearches.length +
+    selectedLocationLabels.filter((label) => (
+      !selectedLocationSearches.some((search) => search.label === label)
+    )).length +
+    excludedLocationLabels.filter((label) => (
+      !excludedLocationSearches.some((search) => search.label === label)
+    )).length +
     selectedCategoryValues.length +
     excludedCategoryValues.length +
     selectedOwnerIndexes.length +
@@ -1244,8 +1314,16 @@ function getAppliedFilterCount() {
   const selectedSearchCount = searchQuery ? 1 : 0;
   const selectedUnitsCount = unitsFilterIsActive() ? 1 : 0;
   const selectedContactsCount = contactsFilterIsActive() ? 1 : 0;
+  const selectedNetWorthCount = netWorthFilterIsActive() ? 1 : 0;
+  const selectedUserLocationCount = userLocationCenter || radiusFilterEnabled ? 1 : 0;
 
-  return selectedFilterCount + selectedStatusCount + selectedSearchCount + selectedUnitsCount + selectedContactsCount;
+  return selectedFilterCount
+    + selectedStatusCount
+    + selectedSearchCount
+    + selectedUnitsCount
+    + selectedContactsCount
+    + selectedNetWorthCount
+    + selectedUserLocationCount;
 }
 
 function updateClearFiltersButton() {
@@ -1271,6 +1349,10 @@ function updateClearFiltersButton() {
   }
 
   persistViewSettings();
+
+  if (typeof updateFilterSectionClearButtons === "function") {
+    updateFilterSectionClearButtons();
+  }
 }
 
 function syncSortHeaders() {

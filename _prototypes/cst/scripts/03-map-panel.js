@@ -27,8 +27,31 @@ function getMotionDelay(delay) {
   return usesReducedMotion() ? 0 : delay;
 }
 
+function getLocationSearchCoordinates(search) {
+  const storedLongitude = Number(search?.coordinates?.longitude);
+  const storedLatitude = Number(search?.coordinates?.latitude);
+  const regionCenter = window.cstLocationSearch?.getRegionCenter?.(search?.stateCode)
+    || window.cstLocationSearch?.getRegionCenter?.(
+      window.cstLocationSearch?.getRegionCodeFromLabel?.(search?.label)
+    );
+  const longitude = Number.isFinite(storedLongitude) ? storedLongitude : Number(regionCenter?.longitude);
+  const latitude = Number.isFinite(storedLatitude) ? storedLatitude : Number(regionCenter?.latitude);
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+
+  return {
+    label: search.label,
+    lat: latitude,
+    lng: longitude
+  };
+}
+
 function getMapFilterLocationCenter(locationLabel) {
   if (!locationLabel) return null;
+
+  const searchMatch = [...selectedLocationSearches, ...excludedLocationSearches]
+    .find((search) => search.label === locationLabel);
+  const searchCenter = getLocationSearchCoordinates(searchMatch);
+  if (searchCenter) return searchCenter;
 
   const locationCenters = [];
 
@@ -40,7 +63,18 @@ function getMapFilterLocationCenter(locationLabel) {
     locationCenters.push(...OWNER_HEADQUARTERS_CENTERS);
   }
 
-  return locationCenters.find((location) => location.label === locationLabel) || null;
+  const knownCenter = locationCenters.find((location) => location.label === locationLabel);
+  if (knownCenter) return knownCenter;
+
+  const regionCode = window.cstLocationSearch?.getRegionCodeFromLabel?.(locationLabel);
+  const regionCenter = window.cstLocationSearch?.getRegionCenter?.(regionCode);
+  if (!regionCenter) return null;
+
+  return {
+    label: locationLabel,
+    lat: regionCenter.latitude,
+    lng: regionCenter.longitude
+  };
 }
 
 function getLocationDistanceMiles(location, center) {
@@ -56,9 +90,36 @@ function getLocationDistanceMiles(location, center) {
 }
 
 function getSelectedRadiusCenters() {
-  return selectedLocationLabels
-    .map((label) => getMapFilterLocationCenter(label))
-    .filter(Boolean);
+  const centers = [
+    ...selectedLocationSearches.map(getLocationSearchCoordinates),
+    ...selectedLocationLabels.map((label) => getMapFilterLocationCenter(label))
+  ].filter(Boolean);
+
+  if (userLocationCenter) {
+    centers.push(userLocationCenter);
+  }
+
+  const seen = new Set();
+  return centers.filter((center) => {
+    const key = `${Number(center.lat).toFixed(5)}:${Number(center.lng).toFixed(5)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function locationRecordMatchesSearchList(location, searches = []) {
+  return searches.some((search) => window.cstLocationSearch?.matchesLocation?.(location, search));
+}
+
+function locationRecordMatchesSelectedLabels(location, labels = []) {
+  const locationLabel = location?.label || location?.location || "";
+  if (labels.includes(locationLabel)) return true;
+
+  return labels.some((label) => {
+    const search = window.cstLocationSearch?.fromLabel?.(label);
+    return Boolean(search && window.cstLocationSearch?.matchesLocation?.(location, search));
+  });
 }
 
 function isRadiusFilterActive() {
@@ -73,8 +134,32 @@ function locationWithinSelectedRadius(location) {
   );
 }
 
+function locationRecordIsExcluded(location) {
+  if (locationRecordMatchesSearchList(location, excludedLocationSearches)) return true;
+  if (!excludedLocationLabels.length) return false;
+  return locationRecordMatchesSelectedLabels(location, excludedLocationLabels);
+}
+
+function locationRecordMatchesIncludedSelection(location) {
+  const hasIncludedSearches = selectedLocationSearches.length > 0;
+  const hasIncludedLabels = selectedLocationLabels.length > 0;
+  if (!hasIncludedSearches && !hasIncludedLabels) return true;
+
+  return (
+    locationRecordMatchesSearchList(location, selectedLocationSearches)
+    || locationRecordMatchesSelectedLabels(location, selectedLocationLabels)
+  );
+}
+
 function rowMatchesLocationFilter(row) {
-  if (excludedLocationLabels.includes(row.location)) return false;
+  const location = {
+    label: row.location,
+    location: row.location,
+    lat: row.lat,
+    lng: row.lng
+  };
+
+  if (locationRecordIsExcluded(location)) return false;
 
   if (isRadiusFilterActive()) {
     if (typeof row?.lat === "number" && typeof row?.lng === "number") {
@@ -83,24 +168,26 @@ function rowMatchesLocationFilter(row) {
     return true;
   }
 
-  if (selectedLocationLabels.length && !selectedLocationLabels.includes(row.location)) {
-    return false;
-  }
-
-  return true;
+  return locationRecordMatchesIncludedSelection(location);
 }
 
 function mapLocationMatchesSelectedFilter(location) {
-  if (excludedLocationLabels.includes(location.label)) return false;
+  if (locationRecordIsExcluded(location)) return false;
 
   if (isRadiusFilterActive()) {
     return locationWithinSelectedRadius(location);
   }
 
-  if (!selectedLocationLabels.length) return true;
-  if (!selectedLocationLabels.includes(location.label)) return false;
+  if (!selectedLocationSearches.length && !selectedLocationLabels.length) return true;
+  if (!locationRecordMatchesIncludedSelection(location)) return false;
 
-  const selectedMapLocationCenter = getMapFilterLocationCenter(location.label);
+  const selectedSearch = selectedLocationSearches.find((search) => (
+    window.cstLocationSearch?.matchesLocation?.(location, search)
+  ));
+  if (selectedSearch?.geoLevel === "region") return true;
+
+  const selectedMapLocationCenter = getLocationSearchCoordinates(selectedSearch)
+    || getMapFilterLocationCenter(location.label);
   if (!selectedMapLocationCenter) return true;
 
   return getLocationDistanceMiles(location, selectedMapLocationCenter) <= MAP_LOCATION_FILTER_RADIUS_MILES;
@@ -134,7 +221,7 @@ function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
             ownerName: owner.ownerName,
             locationLabel: location.label,
             franchise: location.franchise || "",
-            color: owner.color
+            color: location.color || FRANCHISE_ACCENT_COLOR_FALLBACK
           },
           geometry: {
             type: "Point",
@@ -892,9 +979,71 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
   }
 }
 
+const CST_MOCK_USER_LOCATION = window.CST_ENV?.MOCK_USER_LOCATION ?? true;
+const CST_MOCK_USER_COORDS = window.CST_ENV?.MOCK_USER_COORDS ?? {
+  longitude: -73.986472,
+  latitude: 40.703875,
+  accuracy: 25
+};
+
+function installCstMockGeolocation() {
+  if (!CST_MOCK_USER_LOCATION || !navigator.geolocation || navigator.geolocation.__cstMocked) return;
+
+  const createMockPosition = () => ({
+    coords: {
+      latitude: CST_MOCK_USER_COORDS.latitude,
+      longitude: CST_MOCK_USER_COORDS.longitude,
+      accuracy: CST_MOCK_USER_COORDS.accuracy,
+      altitude: null,
+      altitudeAccuracy: null,
+      heading: null,
+      speed: null
+    },
+    timestamp: Date.now()
+  });
+
+  const geolocation = navigator.geolocation;
+  geolocation.getCurrentPosition = (success) => {
+    window.setTimeout(() => success(createMockPosition()), 0);
+  };
+  geolocation.watchPosition = (success) => {
+    return window.setTimeout(() => success(createMockPosition()), 0);
+  };
+  geolocation.clearWatch = (watchId) => {
+    window.clearTimeout(watchId);
+  };
+  geolocation.__cstMocked = true;
+}
+
+function locateUserFromFilters() {
+  installCstMockGeolocation();
+
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition((position) => {
+    const { latitude, longitude } = position.coords;
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+
+    userLocationCenter = {
+      lat: latitude,
+      lng: longitude,
+      label: "My location"
+    };
+
+    if (typeof dismissOpenCstSplash === "function") {
+      dismissOpenCstSplash();
+    }
+
+    setRadiusFilterEnabled(true, { refresh: true });
+    openMapPanel("map");
+    updateFilterSectionClearButtons?.();
+  });
+}
+
 function initializeOwnersMap() {
   if (ownersMapInitialized || !window.mapboxgl || !HAS_MAPBOX_ACCESS_TOKEN) return;
 
+  installCstMockGeolocation();
   ownersMapInitialized = true;
   mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
   ownersMap = new mapboxgl.Map({

@@ -1,17 +1,15 @@
-const OWNER_LOCATION_COLORS = [
-  "#647AD4",
-  "#96A8E6",
-  "#36AB6D",
-  "#7ACC9F",
-  "#DA911C",
-  "#E9B861",
-  "#C05FD4",
-  "#D998E6",
-  "#DA652E",
-  "#EA9166",
-  "#058A8A",
-  "#4AAFAF"
-];
+const FRANCHISE_ACCENT_COLORS = Object.freeze({
+  "Planet Fitness": "#9800F8",
+  "Snap Fitness": "#B81020",
+  "Crunch Fitness": "#F02038",
+  "Gold's Gym": "#FFC800",
+  "Orangetheory": "#F88020",
+  "OrangeTheory Fitness": "#F88020",
+  "Club Pilates": "#6090C8",
+  "F45 Training": "#E21D2F",
+  "Anytime Fitness": "#5B4BC4"
+});
+const FRANCHISE_ACCENT_COLOR_FALLBACK = "#7A63DD";
 
 const OWNER_LOCATION_CENTERS = [
   { label: "Charlotte, North Carolina", lat: 35.2271, lng: -80.8431 },
@@ -418,9 +416,19 @@ function getOwnerUnitDomain(owner) {
   return primaryEmail.split("@")[1] || `${String(owner.ownerName || "owner").toLowerCase().replace(/[^a-z0-9]+/g, "")}.com`;
 }
 
-function getOwnerPrimaryFranchise(owner) {
-  if (Array.isArray(owner.franchises) && owner.franchises.length) return owner.franchises[0];
-  return String(owner.franchise || "Franchise").split(",")[0].trim() || "Franchise";
+function getOwnerLocationFranchises(owner) {
+  const franchises = Array.isArray(owner.franchises)
+    ? owner.franchises
+    : String(owner.franchise || "").split(",");
+  const uniqueFranchises = [...new Set(
+    franchises.map((franchise) => String(franchise).trim()).filter(Boolean)
+  )];
+
+  return uniqueFranchises.length ? uniqueFranchises : ["Franchise"];
+}
+
+function getFranchiseAccentColor(franchiseName) {
+  return FRANCHISE_ACCENT_COLORS[franchiseName] || FRANCHISE_ACCENT_COLOR_FALLBACK;
 }
 
 function getOwnerCategory(owner) {
@@ -541,7 +549,7 @@ function getOwnerLocations(owner, ownerIndex) {
   const locationCount = getOwnerUnitCount(owner);
   const headquartersCenter = getOwnerHeadquartersCenter(ownerIndex);
   const closeCount = getCloseLocationCount(locationCount, ownerIndex);
-  const franchiseName = getOwnerPrimaryFranchise(owner);
+  const franchiseNames = getOwnerLocationFranchises(owner);
   const category = getOwnerCategory(owner);
 
   return Array.from({ length: locationCount }, (_, locationIndex) => {
@@ -562,6 +570,7 @@ function getOwnerLocations(owner, ownerIndex) {
     const locationCenter = supplementalCenter || headquartersCenter;
     const location = getBoundedOwnerLocation(locationCenter, distanceFromHeadquarters, seed, ownerIndex);
     const unitOwnerName = getOwnerUnitContactName(ownerIndex, locationIndex);
+    const franchiseName = franchiseNames[locationIndex % franchiseNames.length];
 
     return {
       id: `${getOwnerUnitSlug(owner, locationIndex)}`,
@@ -569,6 +578,7 @@ function getOwnerLocations(owner, ownerIndex) {
       email: getOwnerUnitContactEmail(unitOwnerName, ownerIndex, locationIndex),
       phone: getOwnerUnitPhone(ownerIndex, locationIndex),
       franchise: franchiseName,
+      color: getFranchiseAccentColor(franchiseName),
       category,
       ...location,
       label: getNearestOwnerLocationLabel(location)
@@ -583,7 +593,6 @@ window.ownerLocationsData = (window.ownersData || []).map((owner, ownerIndex) =>
 
   return {
     ownerName: owner.ownerName,
-    color: OWNER_LOCATION_COLORS[ownerIndex % OWNER_LOCATION_COLORS.length],
     locations: units,
     units
   };

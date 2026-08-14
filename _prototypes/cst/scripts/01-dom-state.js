@@ -1,6 +1,8 @@
 const tableBody = document.getElementById("ownersTableBody");
 const tableWrap = document.getElementById("tableWrap");
 const tableEmptyState = document.getElementById("tableEmptyState");
+const tableHeadingTitle = document.getElementById("tableHeadingTitle");
+const tableHeadingSummary = document.getElementById("tableHeadingSummary");
 const card = document.querySelector(".card");
 const filterToggle = document.getElementById("filterToggle");
 const filterToggleLabel = document.getElementById("filterToggleLabel");
@@ -10,6 +12,7 @@ const filterPanel = document.getElementById("filterPanel");
 const filterSummary = document.getElementById("filterSummary");
 const clearAllFilters = document.getElementById("clearAllFilters");
 const locationFilterSelect = document.getElementById("locationFilterSelect");
+const locationFilterSearchField = document.getElementById("locationFilterSearchField");
 const categoryFilterSelect = document.getElementById("categoryFilterSelect");
 const ownerFilterSelect = document.getElementById("ownerFilterSelect");
 const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
@@ -24,7 +27,14 @@ const contactsMaxRange = document.getElementById("contactsMaxRange");
 const contactsMinInput = document.getElementById("contactsMinInput");
 const contactsMaxInput = document.getElementById("contactsMaxInput");
 const contactsRangeFill = document.getElementById("contactsRangeFill");
+const netWorthMinRange = document.getElementById("netWorthMinRange");
+const netWorthMaxRange = document.getElementById("netWorthMaxRange");
+const netWorthMinInput = document.getElementById("netWorthMinInput");
+const netWorthMaxInput = document.getElementById("netWorthMaxInput");
+const netWorthRangeFill = document.getElementById("netWorthRangeFill");
 const radiusToggle = document.getElementById("radiusToggle");
+const radiusFilterSection = document.getElementById("radiusFilterSection");
+const searchWithinLocation = document.getElementById("searchWithinLocation");
 const radiusControl = document.getElementById("radiusControl");
 const radiusRange = document.getElementById("radiusRange");
 const radiusRangeFill = document.getElementById("radiusRangeFill");
@@ -120,6 +130,10 @@ const contactsFilterDefaults = {
   min: contactCounts.length ? Math.min(...contactCounts) : 0,
   max: contactCounts.length ? Math.max(...contactCounts) : 0
 };
+const netWorthFilterDefaults = {
+  min: 0,
+  max: 1000000000
+};
 const activeIconColor = "#7a63dd";
 const inactiveIconColor = "rgba(122, 99, 221, 0.15)";
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
@@ -161,6 +175,13 @@ function getOwnerUnitCount(owner) {
   return Array.isArray(owner.units) ? owner.units.length : 0;
 }
 
+function getOwnerNetWorth(owner) {
+  const units = getOwnerUnitCount(owner);
+  const maxUnits = Math.max(unitsFilterDefaults?.max || 0, 1);
+  const t = Math.min(1, Math.max(0, units / maxUnits));
+  return Math.round((t ** 0.65) * netWorthFilterDefaults.max);
+}
+
 let currentTableView = "owners";
 let displayedOwners = [...owners];
 let displayedLocations = [];
@@ -171,6 +192,9 @@ let searchQuery = "";
 const ownerSearchIndexById = new Map();
 let selectedLocationLabels = [];
 let excludedLocationLabels = [];
+let selectedLocationSearches = [];
+let excludedLocationSearches = [];
+let filterLocationSearchControl = null;
 let selectedCategoryValues = [];
 let excludedCategoryValues = [];
 let selectedOwnerIndexes = [];
@@ -181,6 +205,9 @@ let selectedUnitsMin = unitsFilterDefaults.min;
 let selectedUnitsMax = unitsFilterDefaults.max;
 let selectedContactsMin = contactsFilterDefaults.min;
 let selectedContactsMax = contactsFilterDefaults.max;
+let selectedNetWorthMin = netWorthFilterDefaults.min;
+let selectedNetWorthMax = netWorthFilterDefaults.max;
+let userLocationCenter = null;
 let radiusFilterEnabled = false;
 let selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
 let reduceMotionEnabled = false;

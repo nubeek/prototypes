@@ -1,5 +1,7 @@
 (function () {
   const RADIUS_SLIDER_INPUT_STEP = 1;
+  const RADIUS_SLIDER_ANIMATION_MS = 320;
+  let radiusSliderAnimationFrame = null;
 
   function clampRadiusValue(value, defaults) {
     const numericValue = Number(value);
@@ -17,6 +19,72 @@
   function getRadiusFillPercent(value, defaults) {
     const rangeSize = defaults.max - defaults.min;
     return rangeSize ? ((value - defaults.min) / rangeSize) * 100 : 0;
+  }
+
+  function easeOutCubic(progress) {
+    return 1 - ((1 - progress) ** 3);
+  }
+
+  function cancelRadiusSliderAnimation() {
+    if (radiusSliderAnimationFrame === null) {
+      return;
+    }
+
+    cancelAnimationFrame(radiusSliderAnimationFrame);
+    radiusSliderAnimationFrame = null;
+  }
+
+  function animateRadiusSliderTo({
+    fromValue,
+    toValue,
+    syncControls,
+    duration = RADIUS_SLIDER_ANIMATION_MS
+  }) {
+    cancelRadiusSliderAnimation();
+
+    const startValue = Number(fromValue);
+    const endValue = Number(toValue);
+
+    if (
+      !Number.isFinite(startValue)
+      || !Number.isFinite(endValue)
+      || startValue === endValue
+      || typeof syncControls !== "function"
+    ) {
+      syncControls?.();
+      return;
+    }
+
+    // Seed the start position immediately so the first paint never overshoots.
+    // Use the rAF timestamp as t0 — performance.now() can be slightly ahead of
+    // the first frame time, which produced negative progress / wiggle.
+    let startedAt = null;
+    syncControls({
+      sliderValue: startValue
+    });
+
+    function step(now) {
+      if (startedAt === null) {
+        startedAt = now;
+      }
+
+      const progress = Math.min(1, Math.max(0, (now - startedAt) / duration));
+      const currentValue = startValue + ((endValue - startValue) * easeOutCubic(progress));
+
+      syncControls({
+        sliderValue: currentValue
+      });
+
+      if (progress < 1) {
+        radiusSliderAnimationFrame = requestAnimationFrame(step);
+        return;
+      }
+
+      radiusSliderAnimationFrame = null;
+      syncControls();
+    }
+
+    radiusSliderAnimationFrame = requestAnimationFrame(step);
   }
 
   function formatRadiusMiles(value, { roundDisplay = false } = {}) {
@@ -91,6 +159,7 @@
         return;
       }
 
+      cancelRadiusSliderAnimation();
       isEditing = true;
       radiusValueEdit?.removeAttribute("hidden");
       const currentValue = getSelectedMiles();
@@ -107,15 +176,32 @@
         return;
       }
 
+      let animateFromValue = null;
+
       if (shouldCommit) {
+        const previousValue = getSelectedMiles();
         const nextValue = clampRadiusValue(radiusValueInput.value, defaults);
-        const didChange = nextValue !== getSelectedMiles();
+        const didChange = nextValue !== previousValue;
         setSelectedMiles(nextValue);
         onValueCommit?.(nextValue, { didChange });
+
+        if (didChange) {
+          animateFromValue = previousValue;
+        }
       }
 
       isEditing = false;
       radiusValueEdit?.setAttribute("hidden", "");
+
+      if (animateFromValue !== null) {
+        animateRadiusSliderTo({
+          fromValue: animateFromValue,
+          toValue: getSelectedMiles(),
+          syncControls: (options = {}) => syncControls({ isEditing: false, ...options })
+        });
+        return;
+      }
+
       syncControls({ isEditing: false });
     }
 
@@ -159,6 +245,7 @@
     }
 
     radiusRange.addEventListener("input", () => {
+      cancelRadiusSliderAnimation();
       const rawValue = Number(radiusRange.value);
       const previewValue = clampRadiusValue(rawValue, defaults);
       syncControls({
@@ -168,6 +255,7 @@
     });
 
     radiusRange.addEventListener("change", () => {
+      cancelRadiusSliderAnimation();
       const nextValue = clampRadiusValue(radiusRange.value, defaults);
       const didChange = nextValue !== getSelectedMiles();
       setSelectedMiles(nextValue);
@@ -186,6 +274,8 @@
     getRadiusFillPercent,
     syncRadiusControlElements,
     initRadiusValueEditor,
-    initRadiusRangeSlider
+    initRadiusRangeSlider,
+    cancelRadiusSliderAnimation,
+    animateRadiusSliderTo
   };
 })();
