@@ -105,7 +105,8 @@ function createTerritoryLocationResult({
   stateCode,
   coordinates = null,
   geoLevel = null,
-  geoKey = null
+  geoKey = null,
+  suggestionLabel = null
 }) {
   if (!label || !stateCode) return null;
 
@@ -115,8 +116,26 @@ function createTerritoryLocationResult({
     coordinates,
     geoLevel,
     geoKey,
+    suggestionLabel: suggestionLabel || label,
     placeTypes: geoLevel ? [geoLevel] : []
   };
+}
+
+function getTerritoryLocationSuggestionLabel(item) {
+  return item?.suggestionLabel || item?.label || "";
+}
+
+function createTerritoryStateLocationResult(stateCode) {
+  const label = getTerritoryStateLabel(stateCode);
+  if (!stateCode || !label) return null;
+
+  const suggestionLabel = `${label}, United States`;
+  return createTerritoryLocationResult({
+    label,
+    suggestionLabel,
+    stateCode,
+    geoLevel: "region"
+  });
 }
 
 function searchTerritoryStateSuggestions(query, limit = TERRITORY_GEOCODING_LIMIT) {
@@ -129,11 +148,7 @@ function searchTerritoryStateSuggestions(query, limit = TERRITORY_GEOCODING_LIMI
       || normalizeTerritoryLocationQuery(code).startsWith(normalizedQuery)
     ))
     .slice(0, limit)
-    .map(({ code, label }) => createTerritoryLocationResult({
-      label,
-      stateCode: code,
-      geoLevel: "region"
-    }))
+    .map(({ code }) => createTerritoryStateLocationResult(code))
     .filter(Boolean);
 }
 
@@ -168,15 +183,28 @@ function searchTerritoryCbsaSuggestions(query, limit = TERRITORY_GEOCODING_LIMIT
   ));
 }
 
+function getTerritoryLocationResultDedupeKey(item) {
+  if (
+    item?.stateCode
+    && (item.geoLevel === "region" || !item.geoLevel)
+    && !item.geoKey
+    && !item.coordinates
+  ) {
+    return `region:${item.stateCode}`;
+  }
+
+  return [
+    item.geoLevel || "unknown",
+    item.geoKey || item.label,
+    item.stateCode
+  ].join(":");
+}
+
 function dedupeTerritoryLocationResults(items) {
   const seen = new Set();
 
   return items.filter((item) => {
-    const key = [
-      item.geoLevel || "unknown",
-      item.geoKey || item.label,
-      item.stateCode
-    ].join(":");
+    const key = getTerritoryLocationResultDedupeKey(item);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -259,6 +287,9 @@ function parseMapboxGeocodingFeature(feature) {
   if (!stateCode) return null;
 
   const geoLevel = getPrimaryMapboxPlaceType(feature);
+  if (geoLevel === "region") {
+    return createTerritoryStateLocationResult(stateCode);
+  }
 
   return createTerritoryLocationResult({
     label: feature.place_name || feature.text || "",
@@ -310,21 +341,11 @@ async function fetchTerritoryGeocodingSuggestions(query, { signal, autocomplete 
 }
 
 function toTerritoryLocationResultFromState(stateMatch) {
-  return createTerritoryLocationResult({
-    label: stateMatch.label,
-    stateCode: stateMatch.code,
-    geoLevel: "region"
-  });
+  return createTerritoryStateLocationResult(stateMatch.code);
 }
 
-function createTerritoryLocationResultFromStateCode(stateCode, label = getTerritoryStateLabel(stateCode)) {
-  if (!stateCode) return null;
-
-  return createTerritoryLocationResult({
-    label,
-    stateCode,
-    geoLevel: "region"
-  });
+function createTerritoryLocationResultFromStateCode(stateCode) {
+  return createTerritoryStateLocationResult(stateCode);
 }
 
 async function reverseGeocodeTerritoryCoordinates(longitude, latitude, { types = "address" } = {}) {
@@ -419,6 +440,7 @@ function bindTerritoryLocationSearch({
   onInclude,
   onExclude,
   onClear,
+  isSelected,
   variant = "splash",
   emptyMessage = "Enter a street, city, county, CBSA, or state to begin.",
   noMatchMessage = "Choose a matching U.S. location from the suggestions.",
@@ -571,18 +593,19 @@ function bindTerritoryLocationSearch({
   }
 
   function renderSuggestions(items) {
-    renderedSuggestions = items;
-    activeSuggestionIndex = items.length ? 0 : -1;
+    const visibleItems = items.filter((item) => !isSelected?.(item));
+    renderedSuggestions = visibleItems;
+    activeSuggestionIndex = visibleItems.length ? 0 : -1;
     suggestions.replaceChildren();
 
-    if (!items.length) {
+    if (!visibleItems.length) {
       renderSuggestionStatus("No matching locations.");
       return;
     }
 
     appendSuggestionHeading();
 
-    items.forEach((item, index) => {
+    visibleItems.forEach((item, index) => {
       const optionElement = document.createElement(isFilterVariant ? "div" : "button");
       const label = document.createElement("span");
 
@@ -594,11 +617,11 @@ function bindTerritoryLocationSearch({
       optionElement.id = `${suggestionPrefix}-${index}`;
       optionElement.setAttribute("role", "option");
       optionElement.setAttribute("aria-selected", "false");
-      optionElement.setAttribute("aria-label", `Select ${item.label}`);
+      optionElement.setAttribute("aria-label", `Select ${getTerritoryLocationSuggestionLabel(item)}`);
 
       if (isFilterVariant) {
         label.className = ui.optionLabel;
-        label.textContent = item.label;
+        label.textContent = getTerritoryLocationSuggestionLabel(item);
 
         const optionActions = document.createElement("span");
         const includeAction = document.createElement("button");
@@ -608,12 +631,12 @@ function bindTerritoryLocationSearch({
         includeAction.className = `${ui.optionAction} is-include`;
         includeAction.type = "button";
         includeAction.tabIndex = -1;
-        includeAction.setAttribute("aria-label", `Include ${item.label} in results`);
+        includeAction.setAttribute("aria-label", `Include ${getTerritoryLocationSuggestionLabel(item)} in results`);
         includeAction.dataset.tooltip = "Include\nin results";
         excludeAction.className = `${ui.optionAction} is-exclude`;
         excludeAction.type = "button";
         excludeAction.tabIndex = -1;
-        excludeAction.setAttribute("aria-label", `Exclude ${item.label} from results`);
+        excludeAction.setAttribute("aria-label", `Exclude ${getTerritoryLocationSuggestionLabel(item)} from results`);
         excludeAction.dataset.tooltip = "Exclude\nfrom results";
 
         [includeAction, excludeAction].forEach((actionButton) => {
@@ -654,7 +677,7 @@ function bindTerritoryLocationSearch({
         `;
 
         label.className = ui.optionLabel;
-        label.textContent = item.label;
+        label.textContent = getTerritoryLocationSuggestionLabel(item);
 
         action.className = ui.optionAction;
         action.setAttribute("aria-hidden", "true");

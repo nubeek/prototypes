@@ -412,7 +412,7 @@ function buildCrossroadRecords(brands) {
     state: territory.state,
     geoKey: territory.geoKey || null,
     fips: territory.fips || null,
-    geoType: territory.geoType || null,
+    geoType: territory.geoType || (brand.level === "county" ? "district" : brand.level === "geo" ? "place" : "region"),
     status: territory.status,
     initialInvestment: getCrossroadTerritoryInvestment(brand, territory)
   })));
@@ -928,6 +928,7 @@ function toCrossroadLocationSuggestion(result) {
   return {
     group: "Locations",
     label: result.label,
+    suggestionLabel: result.suggestionLabel || result.label,
     locationResult: result,
     type: "location"
   };
@@ -1108,10 +1109,11 @@ function bindCrossroadLocationSearch() {
     button.id = `territoryCrossroadSearchSuggestion-${index}`;
     button.setAttribute("role", "option");
     button.setAttribute("aria-selected", "false");
-    button.setAttribute("aria-label", `Select ${item.label}`);
+    const displayedLabel = item.suggestionLabel || item.label;
+    button.setAttribute("aria-label", `Select ${displayedLabel}`);
 
     label.className = "territory-crossroad__search-suggestion-label";
-    label.textContent = item.label;
+    label.textContent = displayedLabel;
 
     action.className = "territory-crossroad__search-suggestion-action";
     action.setAttribute("aria-hidden", "true");

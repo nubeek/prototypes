@@ -48,7 +48,7 @@ const TERRITORY_SHAPE_FOCUS_PADDING_SMALL = 120;
 const TERRITORY_SELECTION_FOCUS_EDGE_LARGE = 100;
 const TERRITORY_SELECTION_FOCUS_EDGE_SMALL = 64;
 // Used only if the detail card has not laid out yet when measuring inset.
-const TERRITORY_INFO_CARD_FALLBACK_HEIGHT = 420;
+const TERRITORY_INFO_CARD_MAX_VIEWPORT_RATIO = 0.5;
 const TERRITORY_INFO_CARD_SLIDE_MS = 340;
 const TERRITORY_SHAPE_FOCUS_BREAKPOINT = 761;
 const TERRITORY_STATES_URL = "data/us-states.geojson";
@@ -1327,11 +1327,23 @@ function clearTerritoryInfoCardHeight(card) {
   card.style.height = "";
 }
 
+function getTerritoryMapViewportHeight() {
+  return document.querySelector(".territory-map-frame")?.clientHeight
+    || document.getElementById("territoryMap")?.clientHeight
+    || window.innerHeight;
+}
+
+function getTerritoryInfoCardFallbackHeight() {
+  return Math.round(getTerritoryMapViewportHeight() * TERRITORY_INFO_CARD_MAX_VIEWPORT_RATIO);
+}
+
 function getTerritoryInfoCardMaxHeight(card) {
   const maxHeight = parseFloat(getComputedStyle(card).maxHeight);
-  return Number.isFinite(maxHeight) && maxHeight > 0
-    ? maxHeight
-    : TERRITORY_INFO_CARD_FALLBACK_HEIGHT;
+  const viewportMax = getTerritoryInfoCardFallbackHeight();
+  if (Number.isFinite(maxHeight) && maxHeight > 0) {
+    return Math.min(maxHeight, viewportMax);
+  }
+  return viewportMax;
 }
 
 function getVisibleTerritoryInfoPane(card) {
@@ -2276,7 +2288,8 @@ function mergeFocusBounds(target, bounds) {
 }
 
 function getLocationSearchFocusBounds() {
-  const searches = window.territoryFilters?.getState?.()?.locationSearches || [];
+  const searches = (window.territoryFilters?.getState?.()?.locationSearches || [])
+    .filter((location) => !location.excluded);
   if (!searches.length) return null;
 
   let bounds = null;
@@ -2457,7 +2470,7 @@ function getTerritoryInfoOverlayInset(territoryMap, { allowFallback = false } = 
   const primaryCard = getTerritoryInfoCardElement();
   const compareCard = getTerritoryInfoCardElement({ compare: true });
   const fallbackInset = allowFallback
-    ? TERRITORY_INFO_CARD_FALLBACK_HEIGHT + 24
+    ? getTerritoryInfoCardFallbackHeight() + 24
     : 0;
   const visibleCards = [primaryCard, compareCard].filter((card) => (
     card && !card.hidden

@@ -1,7 +1,6 @@
 const TERRITORY_DATASET_STORAGE_KEY = "wefranch-territories-list-dataset";
 const TERRITORY_SKIP_CROSSROAD_KEY = "wefranch-territories-list-skip-crossroad";
 const TERRITORY_DEFAULT_DATASET_ID = "default";
-const TERRITORY_POPULAR_SEARCH_GEO_LEVELS = ["cbsa", "district", "place"];
 
 const TERRITORY_DATASETS = {
   default: {
@@ -23,20 +22,28 @@ const TERRITORY_DATASETS = {
     ],
     presets: [
       {
-        id: "qsr",
-        title: "QSR Territories",
-        filters: { categories: ["Food & Beverage"], statuses: ["available"] }
-      },
-      {
-        id: "fitness",
-        title: "Fitness Franchises",
-        filters: { categories: ["Health & Fitness"], statuses: ["available"] }
-      },
-      {
-        id: "low-investment",
-        title: "Low Initial Investment",
+        id: "qsr-southeast",
+        title: "QSR in the South-East",
         filters: {
-          locationsExcluded: ["AK"],
+          locations: ["FL", "GA", "AL", "SC", "NC", "TN", "KY", "VA", "MS", "LA"],
+          categories: ["Food & Beverage"],
+          statuses: ["available"]
+        }
+      },
+      {
+        id: "fitness-california",
+        title: "Fitness in California",
+        filters: {
+          locations: ["CA"],
+          categories: ["Health & Fitness"],
+          statuses: ["available"]
+        }
+      },
+      {
+        id: "low-investment-midwest",
+        title: "Low Investment in the Midwest",
+        filters: {
+          locations: ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"],
           investment: { min: 0, max: 500000 }
         }
       },
@@ -50,9 +57,10 @@ const TERRITORY_DATASETS = {
         }
       },
       {
-        id: "burgers-and-fries",
-        title: "Burgers & Fries",
+        id: "burgers-and-fries-texas",
+        title: "Burgers & Fries in Texas",
         filters: {
+          locations: ["TX"],
           categories: ["Food & Beverage"],
           franchises: ["mcdonalds", "burger-king", "wendys"],
           statuses: ["available", "established", "sold"]
@@ -79,9 +87,13 @@ const TERRITORY_DATASETS = {
     ],
     presets: [
       {
-        id: "qsr",
-        title: "QSR Territories",
-        filters: { categories: ["Food & Beverage"], statuses: ["available"] }
+        id: "qsr-texas-florida",
+        title: "QSR in Texas & Florida",
+        filters: {
+          locations: ["TX", "FL"],
+          categories: ["Food & Beverage"],
+          statuses: ["available"]
+        }
       },
       {
         id: "southeast-growth",
@@ -92,9 +104,13 @@ const TERRITORY_DATASETS = {
         }
       },
       {
-        id: "fitness",
-        title: "Fitness Franchises",
-        filters: { categories: ["Health & Fitness"], statuses: ["available"] }
+        id: "fitness-west",
+        title: "Fitness in the West",
+        filters: {
+          locations: ["CA", "AZ", "CO"],
+          categories: ["Health & Fitness"],
+          statuses: ["available"]
+        }
       },
       {
         id: "western-metros",
@@ -157,12 +173,12 @@ const TERRITORY_DATASETS = {
     ],
     presets: [
       {
-        id: "home-services",
-        title: "Available Home Services",
+        id: "texas-home-services",
+        title: "Home Services in Texas",
         filters: {
+          locations: ["TX"],
           categories: ["Home & Services"],
-          statuses: ["available"],
-          geoLevels: [...TERRITORY_POPULAR_SEARCH_GEO_LEVELS]
+          statuses: ["available"]
         }
       },
       {
@@ -170,8 +186,7 @@ const TERRITORY_DATASETS = {
         title: "South-East of the US",
         filters: {
           locations: ["FL", "GA", "AL", "SC", "NC", "TN", "KY", "VA", "MS", "LA"],
-          statuses: ["available"],
-          geoLevels: [...TERRITORY_POPULAR_SEARCH_GEO_LEVELS]
+          statuses: ["available"]
         }
       },
       {
@@ -184,12 +199,12 @@ const TERRITORY_DATASETS = {
         }
       },
       {
-        id: "cleaning-maintenance",
-        title: "Cleaning & Maintenance Available",
+        id: "florida-cleaning",
+        title: "Cleaning in Florida",
         filters: {
+          locations: ["FL"],
           categories: ["Cleaning and Maintenance"],
-          statuses: ["available"],
-          geoLevels: [...TERRITORY_POPULAR_SEARCH_GEO_LEVELS]
+          statuses: ["available"]
         }
       },
       {
@@ -197,16 +212,15 @@ const TERRITORY_DATASETS = {
         title: "Texas & Florida Growth Markets",
         filters: {
           locations: ["TX", "FL"],
-          statuses: ["available"],
-          geoLevels: [...TERRITORY_POPULAR_SEARCH_GEO_LEVELS]
+          statuses: ["available"]
         }
       },
       {
-        id: "low-investment",
-        title: "Under $150k Initial Investment",
+        id: "midwest-low-investment",
+        title: "Under $150k in the Midwest",
         filters: {
+          locations: ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"],
           statuses: ["available"],
-          geoLevels: [...TERRITORY_POPULAR_SEARCH_GEO_LEVELS],
           investment: { min: 0, max: 150000 }
         }
       }

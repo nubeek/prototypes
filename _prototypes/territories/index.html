@@ -390,19 +390,44 @@
           </div>
         </div>
         <div class="filter-scroll territory-brand-panel__scroll">
-          <div class="filter-header">
+          <div class="filter-header territory-brand-panel__header">
             <div class="territory-brand-panel__heading">
               <h2>Territories</h2>
-              <button
-                class="ui-control ui-button-ghost territory-brand-panel__alert-toggle territory-save-search-btn"
-                id="territorySaveSearch"
-                type="button"
-                aria-label="Add alert"
-                data-tooltip="Get notified when these&#10;results change"
-              >
-                <img src="assets/add-alert.svg" alt="" aria-hidden="true">
-                <span class="territory-brand-panel__alert-label">Add alert</span>
-              </button>
+              <div class="territory-brand-panel__heading-actions">
+                <details class="toolbar-dropdown territory-brand-panel__sort" id="territoryBrandSort">
+                  <summary
+                    class="ui-control ui-button-ghost territory-brand-panel__sort-toggle"
+                    aria-label="Sort by Nearest first"
+                  >
+                    <span class="territory-brand-panel__sort-label">Sort by</span>
+                    <img class="territory-brand-panel__sort-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                  </summary>
+                  <div class="ui-menu toolbar-dropdown-menu territory-brand-panel__sort-menu" role="menu" aria-label="Sort territories">
+                    <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="true" data-sort="proximity">
+                      <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                      <span class="toolbar-dropdown-label">Nearest first</span>
+                    </button>
+                    <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="alphabetical">
+                      <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                      <span class="toolbar-dropdown-label">Name A–Z</span>
+                    </button>
+                    <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="count">
+                      <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                      <span class="toolbar-dropdown-label">Most territories</span>
+                    </button>
+                  </div>
+                </details>
+                <span class="territory-brand-panel__heading-divider" aria-hidden="true"></span>
+                <button
+                  class="ui-control ui-button-ghost territory-brand-panel__alert-toggle territory-save-search-btn"
+                  id="territorySaveSearch"
+                  type="button"
+                  aria-label="Add alert"
+                  data-tooltip="Get notified when these&#10;results change"
+                >
+                  <img src="assets/add-alert.svg" alt="" aria-hidden="true">
+                </button>
+              </div>
               <button
                 class="ui-control ui-button-ghost territory-brand-panel__expand-toggle"
                 id="territoryBrandExpandToggle"

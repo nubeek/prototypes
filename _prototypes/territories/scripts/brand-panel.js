@@ -31,6 +31,134 @@ function compareTerritoriesByStatusThenName(left, right) {
   );
 }
 
+function getBrandPanelSortCenter() {
+  const center = window.territoryMap?.getCenter?.();
+  const longitude = Number(center?.lng);
+  const latitude = Number(center?.lat);
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+  return [longitude, latitude];
+}
+
+function getBrandPanelDistanceMiles([fromLongitude, fromLatitude], [toLongitude, toLatitude]) {
+  const latitudeDelta = ((toLatitude - fromLatitude) * Math.PI) / 180;
+  const longitudeDelta = ((toLongitude - fromLongitude) * Math.PI) / 180;
+  const fromLatitudeRadians = (fromLatitude * Math.PI) / 180;
+  const toLatitudeRadians = (toLatitude * Math.PI) / 180;
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(fromLatitudeRadians)
+      * Math.cos(toLatitudeRadians)
+      * Math.sin(longitudeDelta / 2) ** 2;
+  const normalizedHaversine = Math.min(1, Math.max(0, haversine));
+
+  return 3958.8 * 2 * Math.atan2(
+    Math.sqrt(normalizedHaversine),
+    Math.sqrt(1 - normalizedHaversine)
+  );
+}
+
+function getTerritoryDistanceToCenter(territory, center) {
+  if (!center || !Array.isArray(territory?.center) || territory.center.length < 2) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return getBrandPanelDistanceMiles(center, territory.center);
+}
+
+function getBrandClosestDistanceToCenter(territories, center) {
+  let closest = Number.POSITIVE_INFINITY;
+
+  territories.forEach((territory) => {
+    const distance = getTerritoryDistanceToCenter(territory, center);
+    if (distance < closest) closest = distance;
+  });
+
+  return closest;
+}
+
+function compareTerritoriesByProximityThenStatusThenName(center) {
+  return (left, right) => {
+    const distanceDiff = getTerritoryDistanceToCenter(left, center)
+      - getTerritoryDistanceToCenter(right, center);
+    if (distanceDiff !== 0) return distanceDiff;
+    return compareTerritoriesByStatusThenName(left, right);
+  };
+}
+
+const TERRITORY_BRAND_SORT_MODES = {
+  proximity: "proximity",
+  alphabetical: "alphabetical",
+  count: "count"
+};
+const TERRITORY_BRAND_SORT_LABELS = {
+  proximity: "Nearest first",
+  alphabetical: "Name A–Z",
+  count: "Most territories"
+};
+
+let selectedBrandPanelSort = TERRITORY_BRAND_SORT_MODES.proximity;
+let lastBrandPanelUpdate = { brands: [], matchingRecords: [] };
+
+function compareBrandsByName(left, right) {
+  return territoryNameCollator.compare(left.brand.brand || "", right.brand.brand || "");
+}
+
+function compareBrandsByProximityThenCount(left, right) {
+  const distanceDiff = left.distance - right.distance;
+  if (distanceDiff !== 0) return distanceDiff;
+
+  const countDiff = right.count - left.count;
+  if (countDiff !== 0) return countDiff;
+
+  return compareBrandsByName(left, right);
+}
+
+function compareBrandsByCountThenName(left, right) {
+  const countDiff = right.count - left.count;
+  if (countDiff !== 0) return countDiff;
+  return compareBrandsByName(left, right);
+}
+
+function getVisibleBrandsSorted(brands, territoriesByBrand, { sort = selectedBrandPanelSort, center = null } = {}) {
+  const entries = brands
+    .filter((brand) => territoriesByBrand.has(brand.id))
+    .map((brand) => {
+      const territories = territoriesByBrand.get(brand.id) || [];
+      return {
+        brand,
+        count: territories.length,
+        distance: sort === TERRITORY_BRAND_SORT_MODES.proximity
+          ? getBrandClosestDistanceToCenter(territories, center)
+          : Number.POSITIVE_INFINITY
+      };
+    });
+
+  if (sort === TERRITORY_BRAND_SORT_MODES.alphabetical) {
+    entries.sort(compareBrandsByName);
+  } else if (sort === TERRITORY_BRAND_SORT_MODES.count) {
+    entries.sort(compareBrandsByCountThenName);
+  } else {
+    entries.sort(compareBrandsByProximityThenCount);
+  }
+
+  return entries.map((entry) => entry.brand);
+}
+
+function getTerritoryCompare(sort, center) {
+  if (sort === TERRITORY_BRAND_SORT_MODES.alphabetical) {
+    return (left, right) => territoryNameCollator.compare(
+      getTerritorySortName(left),
+      getTerritorySortName(right)
+    );
+  }
+
+  if (sort === TERRITORY_BRAND_SORT_MODES.proximity && center) {
+    return compareTerritoriesByProximityThenStatusThenName(center);
+  }
+
+  return compareTerritoriesByStatusThenName;
+}
+
 function formatTerritoryPanelStatus(status) {
   return String(status || "").replace(/^\w/, (character) => character.toUpperCase());
 }
@@ -811,6 +939,61 @@ function setAllTerritoryBrandRowsExpanded(expanded) {
   syncTerritoryBrandPanelExpandToggle();
 }
 
+function closeTerritoryBrandSortDropdown() {
+  document.getElementById("territoryBrandSort")?.removeAttribute("open");
+}
+
+function syncTerritoryBrandSortUI() {
+  const dropdown = document.getElementById("territoryBrandSort");
+  const summary = dropdown?.querySelector("summary");
+  const sortLabel = TERRITORY_BRAND_SORT_LABELS[selectedBrandPanelSort] || TERRITORY_BRAND_SORT_LABELS.proximity;
+
+  summary?.setAttribute("aria-label", `Sort by ${sortLabel}`);
+  dropdown?.querySelectorAll("[data-sort]").forEach((option) => {
+    option.setAttribute("aria-checked", String(option.dataset.sort === selectedBrandPanelSort));
+  });
+}
+
+function setTerritoryBrandPanelSort(sort) {
+  const nextSort = TERRITORY_BRAND_SORT_MODES[sort] || TERRITORY_BRAND_SORT_MODES.proximity;
+  closeTerritoryBrandSortDropdown();
+  if (nextSort === selectedBrandPanelSort) return;
+
+  selectedBrandPanelSort = nextSort;
+  syncTerritoryBrandSortUI();
+  updateTerritoryBrandPanel(lastBrandPanelUpdate.brands, lastBrandPanelUpdate.matchingRecords);
+}
+
+function initTerritoryBrandSort() {
+  const dropdown = document.getElementById("territoryBrandSort");
+  if (!dropdown) return;
+
+  dropdown.addEventListener("toggle", () => {
+    if (!dropdown.open) return;
+    document.getElementById("territoryMenuDropdown")?.removeAttribute("open");
+  });
+
+  dropdown.querySelectorAll("[data-sort]").forEach((option) => {
+    option.addEventListener("click", (event) => {
+      event.preventDefault();
+      setTerritoryBrandPanelSort(option.dataset.sort);
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!dropdown.open || dropdown.contains(event.target)) return;
+    closeTerritoryBrandSortDropdown();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && dropdown.open) {
+      closeTerritoryBrandSortDropdown();
+    }
+  });
+
+  syncTerritoryBrandSortUI();
+}
+
 function initTerritoryBrandPanel() {
   const alertToggle = document.getElementById("territorySaveSearch");
   const expandToggle = document.getElementById("territoryBrandExpandToggle");
@@ -832,7 +1015,11 @@ function initTerritoryBrandPanel() {
     setAllTerritoryBrandRowsExpanded(areAllTerritoryBrandRowsCollapsed());
   });
 
-  document.querySelector(".territory-brand-panel__scroll")?.addEventListener("scroll", hideBrandPanelFloatingTooltip);
+  initTerritoryBrandSort();
+  document.querySelector(".territory-brand-panel__scroll")?.addEventListener("scroll", () => {
+    hideBrandPanelFloatingTooltip();
+    closeTerritoryBrandSortDropdown();
+  });
   window.addEventListener("resize", hideBrandPanelFloatingTooltip);
 }
 
@@ -852,15 +1039,17 @@ async function buildTerritoryBrandListContent(
   visibleBrands,
   territoriesByBrand,
   densityStyle,
-  isStale
+  isStale,
+  sortCenter
 ) {
   const fragment = document.createDocumentFragment();
   let sliceStartedAt = performance.now();
+  const compareTerritories = getTerritoryCompare(selectedBrandPanelSort, sortCenter);
 
   for (const brand of visibleBrands) {
     const territories = (territoriesByBrand.get(brand.id) || [])
       .slice()
-      .sort(compareTerritoriesByStatusThenName);
+      .sort(compareTerritories);
 
     fragment.append(createTerritoryBrandItem(brand, territories, densityStyle));
 
@@ -872,6 +1061,382 @@ async function buildTerritoryBrandListContent(
   }
 
   return fragment;
+}
+
+const TERRITORY_BRAND_SUMMARY_MAX_CONCEPTS = 3;
+const TERRITORY_BRAND_SUMMARY_NAMED_LIMIT = 2;
+const TERRITORY_BRAND_SUMMARY_STATUS_LABELS = {
+  available: "available",
+  established: "for sale",
+  sold: "sold"
+};
+const TERRITORY_BRAND_SUMMARY_PRIORITY = [
+  "status",
+  "category",
+  "location",
+  "franchise",
+  "investment",
+  "rating",
+  "geoLevel"
+];
+
+function formatSummaryNameList(names) {
+  if (names.length <= 1) return names[0] || "";
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
+function formatSummaryCompactInvestment(value) {
+  if (!Number.isFinite(value)) return "";
+
+  if (value >= 1_000_000) {
+    const millions = value / 1_000_000;
+    const text = Number.isInteger(millions)
+      ? String(millions)
+      : millions.toFixed(1).replace(/\.0$/, "");
+    return `$${text}M`;
+  }
+
+  if (value >= 1_000) {
+    return `$${Math.round(value / 1000)}K`;
+  }
+
+  return `$${Math.round(value)}`;
+}
+
+function formatSummaryRatingValue(value) {
+  if (!Number.isFinite(value)) return "";
+  return String(value).replace(/\.0$/, "");
+}
+
+function getSummarySelectLabels(selectId, values, formatValue) {
+  if (!values?.length) return [];
+
+  const select = document.getElementById(selectId);
+  const valueSet = new Set(values.map(String));
+  if (!select) {
+    return values.map((value) => formatValue?.(value) || value);
+  }
+
+  const labels = Array.from(select.options)
+    .filter((option) => option.value && valueSet.has(option.value))
+    .map((option) => option.textContent.trim())
+    .filter(Boolean);
+
+  return labels.length
+    ? labels
+    : values.map((value) => formatValue?.(value) || value);
+}
+
+function getSummaryRangeDefaults(ariaLabel) {
+  const section = document
+    .querySelector(`.filter-section .filter-range-slider[aria-label='${ariaLabel}']`)
+    ?.closest(".filter-section");
+  const minRange = section?.querySelector(".range-input-min");
+  const maxRange = section?.querySelector(".range-input-max");
+
+  return {
+    min: Number(minRange?.min ?? Number.NaN),
+    max: Number(maxRange?.max ?? Number.NaN)
+  };
+}
+
+function isSummaryRangeActive(valueMin, valueMax, defaults) {
+  if (!Number.isFinite(valueMin) || !Number.isFinite(valueMax)) return false;
+  if (!Number.isFinite(defaults.min) || !Number.isFinite(defaults.max)) return false;
+  return valueMin !== defaults.min || valueMax !== defaults.max;
+}
+
+function formatSummaryRangePhrase(valueMin, valueMax, defaults, { compactValue, under, over, between, at }) {
+  const minChanged = valueMin !== defaults.min;
+  const maxChanged = valueMax !== defaults.max;
+
+  if (minChanged && maxChanged && valueMin === valueMax) {
+    return `${at} ${compactValue(valueMin)}`;
+  }
+  if (minChanged && maxChanged) {
+    return `${between} ${compactValue(valueMin)} and ${compactValue(valueMax)}`;
+  }
+  if (maxChanged) {
+    return `${under} ${compactValue(valueMax)}`;
+  }
+  if (minChanged) {
+    return `${over} ${compactValue(valueMin)}`;
+  }
+
+  return "";
+}
+
+function isSummaryStateLocation(location) {
+  return Boolean(location?.stateCode)
+    && !location.geoKey
+    && !location.coordinates
+    && (location.geoLevel === "region" || !location.geoLevel);
+}
+
+function formatSummaryLocationLabel(location) {
+  const raw = String(location?.label || "").replace(/, United States$/i, "").trim();
+  if (!raw) return "";
+  if (/^Map area\b/i.test(raw)) return "this map area";
+
+  if (isSummaryStateLocation(location) || location.geoLevel === "region") {
+    return raw;
+  }
+
+  if (location.geoLevel === "address") {
+    return raw.split(",")[0].trim();
+  }
+
+  const stateCode = String(location.stateCode || "").trim().toUpperCase();
+  if (stateCode && /,\s*[^,]+$/.test(raw)) {
+    const head = raw.replace(/,\s*[^,]+$/, "").trim();
+    if (head) return `${head}, ${stateCode}`;
+  }
+
+  return raw;
+}
+
+function buildNamedOrCountedPhrase(names, { named, counted }) {
+  if (names.length >= TERRITORY_BRAND_SUMMARY_NAMED_LIMIT + 1) {
+    return counted(names.length);
+  }
+
+  return named(formatSummaryNameList(names));
+}
+
+function buildExclusionPhrase(names, countedNoun) {
+  if (!names.length) return "";
+  if (names.length >= TERRITORY_BRAND_SUMMARY_NAMED_LIMIT + 1) {
+    return `excluding ${names.length} ${countedNoun}`;
+  }
+
+  return `excluding ${formatSummaryNameList(names)}`;
+}
+
+function buildStatusSummaryConcept(filters) {
+  const labels = (filters.statuses || [])
+    .map((status) => TERRITORY_BRAND_SUMMARY_STATUS_LABELS[status] || String(status || "").toLowerCase())
+    .filter(Boolean);
+  if (!labels.length) return null;
+
+  return {
+    id: "status",
+    modifier: formatSummaryNameList(labels)
+  };
+}
+
+function buildCategorySummaryConcept(filters) {
+  const formatCategory = (value) => window.territoryCategories?.formatLabel?.(value) || value;
+  const included = getSummarySelectLabels(
+    "categoryFilterSelect",
+    filters.categories?.included || [],
+    formatCategory
+  );
+  const excluded = getSummarySelectLabels(
+    "categoryFilterSelect",
+    filters.categories?.excluded || [],
+    formatCategory
+  );
+
+  if (included.length) {
+    if (included.length >= TERRITORY_BRAND_SUMMARY_NAMED_LIMIT + 1) {
+      return { id: "category", phrase: `across ${included.length} categories` };
+    }
+
+    return { id: "category", modifier: formatSummaryNameList(included) };
+  }
+
+  if (!excluded.length) return null;
+
+  return {
+    id: "category",
+    phrase: buildExclusionPhrase(excluded, "categories")
+  };
+}
+
+function buildLocationSummaryConcept(filters) {
+  const searches = filters.locationSearches || [];
+  if (!searches.length) return null;
+
+  const included = searches.filter((location) => !location.excluded);
+  const excluded = searches.filter((location) => location.excluded);
+  const includedLabels = included.map(formatSummaryLocationLabel).filter(Boolean);
+  const excludedLabels = excluded.map(formatSummaryLocationLabel).filter(Boolean);
+  const radiusMiles = Number(filters.radius?.miles);
+  const radiusEnabled = Boolean(filters.radius?.enabled) && Number.isFinite(radiusMiles);
+
+  if (includedLabels.length) {
+    return {
+      id: "location",
+      phrase: buildNamedOrCountedPhrase(includedLabels, {
+        named: (list) => {
+          if (radiusEnabled) return `within ${radiusMiles} miles of ${list}`;
+          if (included.every(isSummaryStateLocation)) return `in ${list}`;
+          return `near ${list}`;
+        },
+        counted: (count) => `across ${count} locations`
+      })
+    };
+  }
+
+  if (!excludedLabels.length) return null;
+
+  return {
+    id: "location",
+    phrase: buildExclusionPhrase(excludedLabels, "locations")
+  };
+}
+
+function buildFranchiseSummaryConcept(filters) {
+  const included = getSummarySelectLabels("franchiseFilterSelect", filters.franchises?.included || []);
+  const excluded = getSummarySelectLabels("franchiseFilterSelect", filters.franchises?.excluded || []);
+
+  if (included.length) {
+    return {
+      id: "franchise",
+      phrase: buildNamedOrCountedPhrase(included, {
+        named: (list) => `from ${list}`,
+        counted: (count) => `from ${count} franchises`
+      })
+    };
+  }
+
+  if (!excluded.length) return null;
+
+  return {
+    id: "franchise",
+    phrase: buildExclusionPhrase(excluded, "franchises")
+  };
+}
+
+function buildInvestmentSummaryConcept(filters) {
+  const defaults = getSummaryRangeDefaults("Initial investment range");
+  if (!isSummaryRangeActive(filters.investmentMin, filters.investmentMax, defaults)) {
+    return null;
+  }
+
+  const phrase = formatSummaryRangePhrase(
+    filters.investmentMin,
+    filters.investmentMax,
+    defaults,
+    {
+      compactValue: formatSummaryCompactInvestment,
+      under: "under",
+      over: "over",
+      between: "between",
+      at: "at"
+    }
+  );
+  if (!phrase) return null;
+
+  return { id: "investment", phrase };
+}
+
+function buildRatingSummaryConcept(filters) {
+  const defaults = getSummaryRangeDefaults("Franchisee rating range");
+  if (!isSummaryRangeActive(filters.ratingMin, filters.ratingMax, defaults)) {
+    return null;
+  }
+
+  const minChanged = filters.ratingMin !== defaults.min;
+  const maxChanged = filters.ratingMax !== defaults.max;
+  const minLabel = formatSummaryRatingValue(filters.ratingMin);
+  const maxLabel = formatSummaryRatingValue(filters.ratingMax);
+  let phrase = "";
+
+  if (minChanged && maxChanged && filters.ratingMin === filters.ratingMax) {
+    phrase = `rated ${minLabel}`;
+  } else if (minChanged && maxChanged) {
+    phrase = `rated ${minLabel} to ${maxLabel}`;
+  } else if (maxChanged) {
+    phrase = `rated up to ${maxLabel}`;
+  } else if (minChanged) {
+    phrase = `rated ${minLabel}+`;
+  }
+
+  return phrase ? { id: "rating", phrase } : null;
+}
+
+function buildGeoLevelSummaryConcept(filters) {
+  const labels = (filters.geoLevels || [])
+    .map((geoLevel) => {
+      const label = TERRITORY_PANEL_GEO_LEVEL_LABELS[geoLevel] || geoLevel;
+      return label === "CBSA" ? "CBSA" : String(label || "").toLowerCase();
+    })
+    .filter(Boolean);
+  if (!labels.length) return null;
+
+  if (labels.length >= TERRITORY_BRAND_SUMMARY_NAMED_LIMIT + 1) {
+    return { id: "geoLevel", phrase: `across ${labels.length} geographic levels` };
+  }
+
+  const named = formatSummaryNameList(labels);
+  const plural = labels.length > 1;
+  return {
+    id: "geoLevel",
+    phrase: `at the ${named} ${plural ? "levels" : "level"}`
+  };
+}
+
+function collectTerritoryBrandSummaryConcepts(filters) {
+  const builders = {
+    status: buildStatusSummaryConcept,
+    category: buildCategorySummaryConcept,
+    location: buildLocationSummaryConcept,
+    franchise: buildFranchiseSummaryConcept,
+    investment: buildInvestmentSummaryConcept,
+    rating: buildRatingSummaryConcept,
+    geoLevel: buildGeoLevelSummaryConcept
+  };
+
+  return TERRITORY_BRAND_SUMMARY_PRIORITY
+    .map((id) => builders[id](filters))
+    .filter(Boolean);
+}
+
+function joinSummaryPhrases(phrases) {
+  const combined = [];
+
+  phrases.forEach((phrase) => {
+    const acrossMatch = /^across (.+)$/.exec(phrase);
+    const last = combined[combined.length - 1];
+    const lastAcross = last ? /^across (.+)$/.exec(last) : null;
+    if (acrossMatch && lastAcross) {
+      combined[combined.length - 1] = `across ${lastAcross[1]} and ${acrossMatch[1]}`;
+      return;
+    }
+
+    combined.push(phrase);
+  });
+
+  return combined.join(" ");
+}
+
+function formatTerritoryBrandSummary(count) {
+  const filters = window.territoryFilters?.getState?.() || {};
+  const concepts = collectTerritoryBrandSummaryConcepts(filters);
+  const visible = concepts.slice(0, TERRITORY_BRAND_SUMMARY_MAX_CONCEPTS);
+  const overflowCount = concepts.length - visible.length;
+  const byId = Object.fromEntries(visible.map((concept) => [concept.id, concept]));
+  const modifiers = [byId.status?.modifier, byId.category?.modifier].filter(Boolean);
+  const phrases = [
+    byId.location?.phrase,
+    byId.franchise?.phrase,
+    byId.investment?.phrase,
+    byId.rating?.phrase,
+    byId.geoLevel?.phrase,
+    byId.category?.phrase
+  ].filter(Boolean);
+
+  let sentence = `Showing ${count}`;
+  if (modifiers.length) sentence += ` ${modifiers.join(" ")}`;
+  sentence += ` ${count === 1 ? "territory" : "territories"}`;
+  if (phrases.length) sentence += ` ${joinSummaryPhrases(phrases)}`;
+  if (overflowCount > 0) {
+    sentence += ` with ${overflowCount} more filter${overflowCount === 1 ? "" : "s"} applied`;
+  }
+
+  return `${sentence}.`;
 }
 
 async function updateTerritoryBrandPanel(brands = [], matchingRecords = [], { isCancelled } = {}) {
@@ -895,18 +1460,26 @@ async function updateTerritoryBrandPanel(brands = [], matchingRecords = [], { is
     }
   });
 
-  const visibleBrands = brands.filter((brand) => territoriesByBrand.has(brand.id));
+  lastBrandPanelUpdate = { brands, matchingRecords };
+  const sortCenter = selectedBrandPanelSort === TERRITORY_BRAND_SORT_MODES.proximity
+    ? getBrandPanelSortCenter()
+    : null;
+  const visibleBrands = getVisibleBrandsSorted(brands, territoriesByBrand, {
+    sort: selectedBrandPanelSort,
+    center: sortCenter
+  });
   const densityStyle = window.territoryMapControls?.getTerritoryDensityEnabled?.()
     ? TERRITORY_PANEL_DENSITY_STYLE
     : null;
 
-  summary.textContent = `Showing ${matchingRecords.length} territories`;
+  summary.textContent = formatTerritoryBrandSummary(matchingRecords.length);
 
   const content = await buildTerritoryBrandListContent(
     visibleBrands,
     territoriesByBrand,
     densityStyle,
-    isStale
+    isStale,
+    sortCenter
   );
   if (!content || isStale()) return;
 

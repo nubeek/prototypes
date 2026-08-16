@@ -30,8 +30,6 @@ let isRestoringTerritorySettings = false;
 let radiusFilterEnabled = false;
 let selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
 let selectedLocationSearches = [];
-let locationIncludedStates = [];
-let locationExcludedStates = [];
 let implicitViewportBounds = null;
 let filterLocationSearchControl = null;
 const savedTerritorySettings = readSavedTerritorySettings();
@@ -156,10 +154,10 @@ function getCurrentTerritorySettings() {
       open: Boolean(shell?.classList.contains("is-filter-open")),
       sections: getFilterSectionSettings(),
       locations: {
-        included: [...locationIncludedStates],
-        excluded: [...locationExcludedStates]
+        included: getLocationIncludedStates(),
+        excluded: getLocationExcludedStates()
       },
-      locationSearch: selectedLocationSearches[0] || null,
+      locationSearch: getIncludedLocationSearches()[0] || selectedLocationSearches[0] || null,
       locationSearches: selectedLocationSearches.map((location) => ({ ...location })),
       radius: {
         enabled: radiusFilterEnabled,
@@ -208,12 +206,14 @@ function normalizeSavedLocationSearch(savedSearch) {
       ? { longitude, latitude }
       : null,
     geoLevel: savedSearch.geoLevel ? String(savedSearch.geoLevel) : null,
-    geoKey: savedSearch.geoKey ? String(savedSearch.geoKey) : null
+    geoKey: savedSearch.geoKey ? String(savedSearch.geoKey) : null,
+    excluded: Boolean(savedSearch.excluded)
   };
 }
 
 function getLocationSearchKey(location) {
   if (!location?.stateCode) return "";
+  if (isStateOnlyLocationSearch(location)) return `region:${location.stateCode}`;
   if (location.geoKey) return `${location.geoLevel || "location"}:${location.geoKey}`;
   if (location.coordinates) {
     return [
@@ -228,6 +228,80 @@ function getLocationSearchKey(location) {
     location.stateCode,
     String(location.label || "").trim().toLocaleLowerCase()
   ].join(":");
+}
+
+function isStateOnlyLocationSearch(location) {
+  return Boolean(location?.stateCode)
+    && !location.geoKey
+    && !location.coordinates
+    && (location.geoLevel === "region" || !location.geoLevel);
+}
+
+function createStateLocationSearch(stateCode, { excluded = false } = {}) {
+  const code = String(stateCode || "");
+  if (!code) return null;
+
+  return {
+    label: window.territoryLocationSearch?.getStateLabel?.(code) || code,
+    stateCode: code,
+    coordinates: null,
+    geoLevel: "region",
+    geoKey: null,
+    excluded
+  };
+}
+
+function toLocationSearch(result, { excluded = false } = {}) {
+  if (!result?.stateCode) return null;
+
+  return {
+    label: result.label,
+    stateCode: result.stateCode,
+    coordinates: result.coordinates || null,
+    geoLevel: result.geoLevel || null,
+    geoKey: result.geoKey || null,
+    excluded
+  };
+}
+
+function getIncludedLocationSearches() {
+  return selectedLocationSearches.filter((location) => !location.excluded);
+}
+
+function getExcludedLocationSearches() {
+  return selectedLocationSearches.filter((location) => location.excluded);
+}
+
+function getLocationIncludedStates() {
+  return getIncludedLocationSearches()
+    .filter(isStateOnlyLocationSearch)
+    .map((location) => location.stateCode);
+}
+
+function getLocationExcludedStates() {
+  return getExcludedLocationSearches()
+    .filter(isStateOnlyLocationSearch)
+    .map((location) => location.stateCode);
+}
+
+function upsertLocationSearch(nextLocation) {
+  const nextKey = getLocationSearchKey(nextLocation);
+  if (!nextKey) return false;
+
+  selectedLocationSearches = [
+    ...selectedLocationSearches.filter((location) => getLocationSearchKey(location) !== nextKey),
+    nextLocation
+  ];
+  return true;
+}
+
+function syncLocationSearchViewport() {
+  if (radiusFilterEnabled || !hasImplicitAreaSearch()) {
+    clearImplicitViewportBounds();
+    return;
+  }
+
+  syncImplicitViewportBounds({ framed: false });
 }
 
 function getSavedLocationSearches(filters) {
@@ -249,23 +323,39 @@ function getSavedLocationSearches(filters) {
     });
 }
 
+function hydrateLocationSearches(filters) {
+  const searches = getSavedLocationSearches(filters);
+  const savedLocations = getSavedLocationFilters(filters);
+  const seen = new Set(searches.map((location) => getLocationSearchKey(location)));
+
+  const mergeStates = (stateCodes, excluded) => {
+    stateCodes.forEach((stateCode) => {
+      const location = createStateLocationSearch(stateCode, { excluded });
+      if (!location) return;
+
+      const key = getLocationSearchKey(location);
+      if (seen.has(key)) return;
+
+      searches.push(location);
+      seen.add(key);
+    });
+  };
+
+  mergeStates(savedLocations.included, false);
+  mergeStates(savedLocations.excluded, true);
+  return searches;
+}
+
 function getLocationFilterLabels() {
-  return [
-    ...selectedLocationSearches.map((location) => location.label),
-    ...locationIncludedStates.map((stateCode) => (
-      window.territoryLocationSearch?.getStateLabel?.(stateCode) || stateCode
-    ))
-  ];
+  return getIncludedLocationSearches().map((location) => location.label);
 }
 
 function hasIncludedLocationSelection() {
-  return selectedLocationSearches.length > 0 || locationIncludedStates.length > 0;
+  return getIncludedLocationSearches().length > 0;
 }
 
 function hasAppliedLocationFilters() {
-  return selectedLocationSearches.length > 0
-    || locationIncludedStates.length > 0
-    || locationExcludedStates.length > 0;
+  return selectedLocationSearches.length > 0;
 }
 
 function syncFilterLocationSearchUI() {
@@ -276,46 +366,17 @@ function syncFilterLocationSearchUI() {
 
   selectedLocationSearches.forEach((location) => {
     const locationKey = getLocationSearchKey(location);
+    const excluded = Boolean(location.excluded);
     chipEntries.push({
-      key: `search:${locationKey}`,
+      key: locationKey,
       label: location.label,
-      excluded: false,
-      onRecenter: () => recenterTerritoryMapToLocation(location),
+      excluded,
+      onRecenter: excluded ? null : () => recenterTerritoryMapToLocation(location),
+      onToggleExclude: () => toggleLocationSearchExcluded(locationKey),
       onRemove: () => {
         selectedLocationSearches = selectedLocationSearches.filter(
           (candidate) => getLocationSearchKey(candidate) !== locationKey
         );
-        syncLocationFilterAfterRemoval();
-      }
-    });
-  });
-
-  locationIncludedStates.forEach((stateCode) => {
-    chipEntries.push({
-      key: `include:${stateCode}`,
-      label: window.territoryLocationSearch?.getStateLabel?.(stateCode) || stateCode,
-      excluded: false,
-      onRecenter: () => recenterTerritoryMapToLocation({ stateCode }),
-      onRemove: () => {
-        locationIncludedStates = locationIncludedStates.filter((code) => code !== stateCode);
-        syncLocationFilterAfterRemoval();
-      }
-    });
-  });
-
-  locationExcludedStates.forEach((stateCode) => {
-    chipEntries.push({
-      key: `exclude:${stateCode}`,
-      label: window.territoryLocationSearch?.getStateLabel?.(stateCode) || stateCode,
-      excluded: true,
-      onToggleExclude: () => {
-        locationExcludedStates = locationExcludedStates.filter((code) => code !== stateCode);
-        locationIncludedStates = [...new Set([...locationIncludedStates, stateCode])];
-        syncFilterLocationSearchUI();
-        refreshTerritoryFilters();
-      },
-      onRemove: () => {
-        locationExcludedStates = locationExcludedStates.filter((code) => code !== stateCode);
         syncLocationFilterAfterRemoval();
       }
     });
@@ -339,9 +400,12 @@ function syncFilterLocationSearchUI() {
         const chipToggle = document.createElement("button");
         chipToggle.className = "filter-combobox-chip-toggle";
         chipToggle.type = "button";
-        chipToggle.setAttribute("aria-pressed", "true");
-        chipToggle.setAttribute("aria-label", `Include ${label} in results`);
-        chipToggle.dataset.tooltip = "Include\nin results";
+        chipToggle.setAttribute("aria-pressed", String(excluded));
+        chipToggle.setAttribute(
+          "aria-label",
+          excluded ? `Include ${label} in results` : `Exclude ${label} from results`
+        );
+        chipToggle.dataset.tooltip = excluded ? "Include\nin results" : "Exclude\nfrom results";
         chipToggle.addEventListener("mousedown", (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -446,57 +510,34 @@ function applyAutoRadiusForLocationResult(result) {
   return true;
 }
 
-function applyLocationSearchSelection(result, { autoRadius = false, replace = true } = {}) {
-  if (!result?.stateCode) return false;
-
-  const nextLocation = {
-    label: result.label,
-    stateCode: result.stateCode,
-    coordinates: result.coordinates || null,
-    geoLevel: result.geoLevel || null,
-    geoKey: result.geoKey || null
-  };
-  const nextLocationKey = getLocationSearchKey(nextLocation);
-
-  locationExcludedStates = locationExcludedStates.filter((code) => code !== result.stateCode);
-  selectedLocationSearches = replace
-    ? [nextLocation]
-    : [
-        ...selectedLocationSearches.filter(
-          (location) => getLocationSearchKey(location) !== nextLocationKey
-        ),
-        nextLocation
-      ];
+function applyLocationSearchSelection(result, { autoRadius = false, replace = true, excluded = false } = {}) {
+  const nextLocation = toLocationSearch(result, { excluded });
+  if (!nextLocation) return false;
 
   if (replace) {
-    locationIncludedStates = [];
-  } else {
-    locationIncludedStates = locationIncludedStates.filter(
-      (stateCode) => stateCode !== result.stateCode || result.geoLevel !== "region"
-    );
+    selectedLocationSearches = [nextLocation];
+  } else if (!upsertLocationSearch(nextLocation)) {
+    return false;
   }
 
-  if (autoRadius) {
+  if (autoRadius && !excluded) {
     applyAutoRadiusForLocationResult(result);
   } else if (replace) {
     radiusFilterEnabled = false;
   }
 
-  if (nextLocation.coordinates) {
-    window.territoryMapControls?.armLocationReveal?.(
-      nextLocation.coordinates.longitude,
-      nextLocation.coordinates.latitude
-    );
-  } else if (nextLocation.stateCode) {
-    window.territoryMapControls?.armStateReveal?.(nextLocation.stateCode);
+  if (!excluded) {
+    if (nextLocation.coordinates) {
+      window.territoryMapControls?.armLocationReveal?.(
+        nextLocation.coordinates.longitude,
+        nextLocation.coordinates.latitude
+      );
+    } else if (nextLocation.stateCode) {
+      window.territoryMapControls?.armStateReveal?.(nextLocation.stateCode);
+    }
   }
 
-  if (radiusFilterEnabled || !nextLocation.coordinates) {
-    clearImplicitViewportBounds();
-  } else {
-    syncImplicitViewportBounds({ framed: false });
-  }
-
+  syncLocationSearchViewport();
   syncFilterLocationSearchUI();
   return true;
 }
@@ -507,12 +548,10 @@ function applyLocationInclude(result) {
   ensureTerritoryMapStartedFromLocationFilter();
   applyLocationSearchSelection(result, {
     autoRadius: false,
-    replace: false
+    replace: false,
+    excluded: false
   });
-  if (!radiusFilterEnabled) {
-    syncImplicitViewportBounds({ framed: false });
-  }
-  const hasMultipleSearchAreas = selectedLocationSearches.length > 1
+  const hasMultipleSearchAreas = getIncludedLocationSearches().length > 1
     || (radiusFilterEnabled && getTerritoryRadiusCentersForFilter().length > 1);
   if (!hasMultipleSearchAreas) {
     focusTerritoryLocationSearchResult(result);
@@ -525,21 +564,30 @@ function applyLocationExclude(result) {
   if (!result?.stateCode) return;
 
   ensureTerritoryMapStartedFromLocationFilter();
-  locationIncludedStates = locationIncludedStates.filter((code) => code !== result.stateCode);
-  selectedLocationSearches = selectedLocationSearches.filter(
-    (location) => location.stateCode !== result.stateCode
+  applyLocationSearchSelection(result, {
+    autoRadius: false,
+    replace: false,
+    excluded: true
+  });
+  refreshTerritoryFilters();
+}
+
+function toggleLocationSearchExcluded(locationKey) {
+  const location = selectedLocationSearches.find(
+    (candidate) => getLocationSearchKey(candidate) === locationKey
   );
-  if (!locationExcludedStates.includes(result.stateCode)) {
-    locationExcludedStates = [...locationExcludedStates, result.stateCode];
-  }
-  syncFilterLocationSearchUI();
+  if (!location) return;
+
+  applyLocationSearchSelection(location, {
+    autoRadius: false,
+    replace: false,
+    excluded: !location.excluded
+  });
   refreshTerritoryFilters();
 }
 
 function clearLocationFilterState() {
   selectedLocationSearches = [];
-  locationIncludedStates = [];
-  locationExcludedStates = [];
   clearImplicitViewportBounds();
   syncFilterLocationSearchUI();
 }
@@ -584,22 +632,10 @@ function syncLocationFilterAfterRemoval() {
 }
 
 function setSelectedLocationSearch(result, { refresh = true } = {}) {
-  selectedLocationSearches = result?.stateCode ? [{
-    label: result.label,
-    stateCode: result.stateCode,
-    coordinates: result.coordinates || null,
-    geoLevel: result.geoLevel || null,
-    geoKey: result.geoKey || null
-  }] : [];
-  if (result?.stateCode) {
-    locationIncludedStates = [];
-    locationExcludedStates = locationExcludedStates.filter((code) => code !== result.stateCode);
-  }
-  if (radiusFilterEnabled || !result?.coordinates) {
-    clearImplicitViewportBounds();
-  } else {
-    syncImplicitViewportBounds({ framed: false });
-  }
+  selectedLocationSearches = result?.stateCode
+    ? [toLocationSearch(result, { excluded: false })].filter(Boolean)
+    : [];
+  syncLocationSearchViewport();
   syncFilterLocationSearchUI();
 
   if (refresh) {
@@ -608,12 +644,18 @@ function setSelectedLocationSearch(result, { refresh = true } = {}) {
 }
 
 function setLocationStateFilters(includedStates = [], excludedStates = [], { refresh = true } = {}) {
-  selectedLocationSearches = [];
-  locationIncludedStates = getSavedStringArray(includedStates);
-  locationExcludedStates = getSavedStringArray(excludedStates);
+  selectedLocationSearches = [
+    ...getSavedStringArray(includedStates).map((stateCode) => (
+      createStateLocationSearch(stateCode, { excluded: false })
+    )),
+    ...getSavedStringArray(excludedStates).map((stateCode) => (
+      createStateLocationSearch(stateCode, { excluded: true })
+    ))
+  ].filter(Boolean);
   clearImplicitViewportBounds();
-  if (locationIncludedStates.length) {
-    window.territoryMapControls?.armStatesReveal?.(locationIncludedStates);
+  const includedStateCodes = getLocationIncludedStates();
+  if (includedStateCodes.length) {
+    window.territoryMapControls?.armStatesReveal?.(includedStateCodes);
   }
   syncFilterLocationSearchUI();
 
@@ -627,7 +669,7 @@ function focusTerritoryLocationSearchResult(result) {
 
   // Multiple location pins / radius circles are framed together by the filter
   // camera. Only fly to a single search area when this is the sole center.
-  const hasMultipleSearchAreas = selectedLocationSearches.length > 1
+  const hasMultipleSearchAreas = getIncludedLocationSearches().length > 1
     || (radiusFilterEnabled && getTerritoryRadiusCentersForFilter().length > 1);
   if (hasMultipleSearchAreas) {
     return;
@@ -660,7 +702,7 @@ function recenterTerritoryMapToLocation(location) {
 }
 
 function getCoordinateLocationCenters() {
-  return selectedLocationSearches
+  return getIncludedLocationSearches()
     .filter((location) => location.coordinates)
     .map((location) => ({
       state: location.stateCode,
@@ -722,7 +764,7 @@ function deriveViewportBoundsFromLocation(location) {
 }
 
 function deriveViewportBoundsFromLocationSearches() {
-  return selectedLocationSearches.reduce(
+  return getIncludedLocationSearches().reduce(
     (bounds, location) => mergeViewportBounds(bounds, deriveViewportBoundsFromLocation(location)),
     null
   );
@@ -781,7 +823,8 @@ function captureViewportFromMap() {
 }
 
 function getTerritoryRadiusCentersForFilter(registry = window.territoryMapFilters?.getTerritoryRegistry?.() || []) {
-  const searchCenters = selectedLocationSearches
+  const includedSearches = getIncludedLocationSearches();
+  const searchCenters = includedSearches
     .filter((location) => location.coordinates)
     .map((location) => ({
       state: location.stateCode,
@@ -790,12 +833,11 @@ function getTerritoryRadiusCentersForFilter(registry = window.territoryMapFilter
         location.coordinates.latitude
       ]
     }));
-  const stateCodes = [...new Set([
-    ...locationIncludedStates,
-    ...selectedLocationSearches
+  const stateCodes = [...new Set(
+    includedSearches
       .filter((location) => !location.coordinates)
       .map((location) => location.stateCode)
-  ])];
+  )];
 
   return [...searchCenters, ...getTerritoryRadiusCenters(stateCodes, registry)];
 }
@@ -971,10 +1013,7 @@ function restoreSavedFilterSelections(settings) {
     ? getSavedStringArray(filters.statuses)
     : DEFAULT_TERRITORY_STATUSES;
 
-  const savedLocations = getSavedLocationFilters(filters);
-  selectedLocationSearches = getSavedLocationSearches(filters);
-  locationIncludedStates = savedLocations.included;
-  locationExcludedStates = savedLocations.excluded;
+  selectedLocationSearches = hydrateLocationSearches(filters);
   syncFilterLocationSearchUI();
   setFilterSelectIncludedExcludedValues(
     categoryFilterSelect,
@@ -1041,10 +1080,7 @@ function restoreSelectFiltersFromSaved(settings) {
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
 
-  const savedLocations = getSavedLocationFilters(filters);
-  selectedLocationSearches = getSavedLocationSearches(filters);
-  locationIncludedStates = savedLocations.included;
-  locationExcludedStates = savedLocations.excluded;
+  selectedLocationSearches = hydrateLocationSearches(filters);
   syncFilterLocationSearchUI();
 
   setFilterSelectIncludedExcludedValues(
@@ -2226,6 +2262,9 @@ function initTerritoryFilters() {
     suggestionPrefix: "locationFilterSearchSuggestion",
     onInclude: applyLocationInclude,
     onExclude: applyLocationExclude,
+    isSelected: (item) => selectedLocationSearches.some(
+      (location) => getLocationSearchKey(location) === getLocationSearchKey(item)
+    ),
     onClear: () => {
       clearLocationFilterState();
       returnToSplashAfterLocationCleared();
@@ -2302,6 +2341,12 @@ function initTerritoryToolbarMenu() {
   const syncTerritoryDensityToggle = () => {
     territoryDensityToggle?.setAttribute("aria-checked", String(territoryDensityEnabled));
   };
+
+  toolbarDropdown?.addEventListener("toggle", () => {
+    if (toolbarDropdown.open) {
+      document.getElementById("territoryBrandSort")?.removeAttribute("open");
+    }
+  });
 
   territoryBrandLogosToggle?.addEventListener("click", () => {
     territoryBrandLogosEnabled = !territoryBrandLogosEnabled;
@@ -2445,9 +2490,7 @@ function getAppliedTerritoryFilterCount() {
     ?.closest(".filter-section");
   const searchInput = document.getElementById("territorySearchInput");
 
-  const selectedLocationCount = selectedLocationSearches.length
-    + locationIncludedStates.length
-    + locationExcludedStates.length;
+  const selectedLocationCount = selectedLocationSearches.length;
   const selectedFilterCount =
     selectedLocationCount +
     getFilterSelectIncludedValues(categoryFilterSelect).length +
@@ -2556,11 +2599,11 @@ function getTerritoryFilterState() {
   const radiusCenters = getTerritoryRadiusCentersForFilter();
 
   return {
-    locationSearch: selectedLocationSearches[0] || null,
+    locationSearch: getIncludedLocationSearches()[0] || selectedLocationSearches[0] || null,
     locationSearches: selectedLocationSearches.map((location) => ({ ...location })),
     locations: {
-      included: [...locationIncludedStates],
-      excluded: [...locationExcludedStates]
+      included: getLocationIncludedStates(),
+      excluded: getLocationExcludedStates()
     },
     radius: {
       enabled: radiusFilterEnabled,
@@ -2608,7 +2651,9 @@ function recordMatchesLocationTarget(record, target, cache) {
 }
 
 function territoryMatchesFilters(record, filters, context) {
-  if (context.excludedStates.has(record.state)) {
+  if (context.excludedTargets.some((target) => (
+    recordMatchesLocationTarget(record, target, context.locationCache)
+  ))) {
     return false;
   }
 
@@ -2630,10 +2675,9 @@ function territoryMatchesFilters(record, filters, context) {
       return false;
     }
   } else if (context.hasLocationConstraint) {
-    const matchesLocation = context.includedStates.has(record.state)
-      || context.locationTargets.some((target) => (
-        recordMatchesLocationTarget(record, target, context.locationCache)
-      ));
+    const matchesLocation = context.locationTargets.some((target) => (
+      recordMatchesLocationTarget(record, target, context.locationCache)
+    ));
 
     if (!matchesLocation) {
       return false;
@@ -2708,15 +2752,16 @@ function applySearchThisArea(result) {
 function createTerritoryMatchContext(filters) {
   const activeRadius = getActiveLocationRadius(filters);
   const viewportBounds = activeRadius ? null : getImplicitViewportBounds();
-  const locationTargets = resolveLocationMatchTargets(filters.locationSearches);
-  const includedStates = new Set(filters.locations.included);
+  const includedSearches = (filters.locationSearches || []).filter((location) => !location.excluded);
+  const excludedSearches = (filters.locationSearches || []).filter((location) => location.excluded);
+  const locationTargets = resolveLocationMatchTargets(includedSearches);
+  const excludedTargets = resolveLocationMatchTargets(excludedSearches);
 
   return {
-    excludedStates: new Set(filters.locations.excluded),
-    includedStates,
+    excludedTargets,
     locationTargets,
     locationCache: new Map(),
-    hasLocationConstraint: includedStates.size > 0 || locationTargets.length > 0,
+    hasLocationConstraint: locationTargets.length > 0,
     radiusIsActive: Boolean(activeRadius),
     includedCategories: filters.categories.included.length
       ? new Set(filters.categories.included)
@@ -3195,6 +3240,7 @@ window.territoryFilters = {
   getImplicitViewportBounds,
   captureViewportFromMap,
   applyLocationInclude,
+  applyLocationExclude,
   isFilterDataReady: () => territorySettingsReadyToPersist,
   shouldAutoEnableRadiusForLocation,
   setLocation: setTerritoryLocationFilter,
