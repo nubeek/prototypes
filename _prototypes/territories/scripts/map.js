@@ -58,26 +58,20 @@ const TERRITORY_MACRODATA_URL = "data/state-macrodata.json";
 const territoryDataCachePromises = new Map();
 const TERRITORY_FILL_OPACITY = 0.15;
 const TERRITORY_FILL_HOVER_OPACITY = 0.3;
+const TERRITORY_FILL_SELECTED_OPACITY = 0.65;
 const TERRITORY_HATCH_FILL_OPACITY = 0.4;
 const TERRITORY_HATCH_FILL_HOVER_OPACITY = 0.65;
 const TERRITORY_HATCH_LINE_PX = 2;
 const TERRITORY_HATCH_GAP_PX = 2;
 const TERRITORY_HATCH_PIXEL_RATIO = 2;
 const TERRITORY_LINE_OPACITY = 0.5;
+const TERRITORY_LINE_SELECTED_OPACITY = 0.8;
 const TERRITORY_LINE_WIDTH = 2;
-const TERRITORY_SHARED_FILL_OPACITY = 0.28;
-const TERRITORY_SHARED_OUTLINE_STEPS = 24;
-// Shared (multi-brand) territories stack per-brand fill/hatch layers when brand
-// territories are visible. The consolidated shared sources remain for hit testing
-// infrastructure but stay hidden in that mode.
-const TERRITORY_SHARED_PATTERN_WIDTH_BY_LEVEL = { state: 384, county: 96, geo: 96 };
-const TERRITORY_SHARED_PATTERN_HEIGHT = 8;
-const TERRITORY_SHARED_PATTERN_PIXEL_RATIO = 2;
+// Shared (multi-brand) territories are painted by stacking each brand's own
+// fill/hatch layers. The consolidated shared source only carries an invisible
+// hit layer so hover and click treat the whole territory as one target.
 const TERRITORY_SHARED_ALL_SOURCE_ID = "territories-shared-all";
-const TERRITORY_SHARED_ALL_FILL_LAYER_ID = "territories-shared-all-fill";
 const TERRITORY_SHARED_ALL_HIT_LAYER_ID = "territories-shared-all-hit";
-const TERRITORY_SHARED_ALL_STROKE_SOURCE_ID = "territories-shared-all-stroke";
-const TERRITORY_SHARED_ALL_STROKE_LAYER_ID = "territories-shared-all-stroke-layer";
 // Territory outlines carry no detail worth re-tiling past this zoom, so let
 // Mapbox overzoom the cached tiles rather than rebuilding them on every step in.
 const TERRITORY_SOURCE_MAX_ZOOM = 10;
@@ -98,17 +92,50 @@ const TERRITORY_LOGO_ZOOM_MAX = 8;
 const TERRITORY_COUNTY_LOGO_MIN_ZOOM = 8;
 // State-level territories are large enough for logos at mid zoom.
 const TERRITORY_STATE_LOGO_MIN_ZOOM = 5;
-const TERRITORY_DENSITY_LOW_COLOR = "#d1bbde";
 const TERRITORY_DENSITY_HIGH_COLOR = "#81599a";
-const TERRITORY_DENSITY_HOVER_LOW_COLOR = "#b99aca";
-const TERRITORY_DENSITY_HOVER_HIGH_COLOR = "#69457f";
-const TERRITORY_DENSITY_LOW_OPACITY = 0.3;
-const TERRITORY_DENSITY_HIGH_OPACITY = 0.72;
-const TERRITORY_DENSITY_HOVER_LOW_OPACITY = 0.48;
-const TERRITORY_DENSITY_HOVER_HIGH_OPACITY = 0.86;
+const TERRITORY_DENSITY_FILL_OPACITY_EXPRESSION = [
+  "step",
+  ["get", "brandCount"],
+  0.06,
+  2, 0.14,
+  4, 0.24,
+  8, 0.38,
+  15, 0.54,
+  25, 0.7,
+  40, 0.84
+];
+const TERRITORY_DENSITY_LINE_OPACITY_EXPRESSION = [
+  "step",
+  ["get", "brandCount"],
+  0.22,
+  2, 0.3,
+  4, 0.4,
+  8, 0.52,
+  15, 0.66,
+  25, 0.8,
+  40, 0.92
+];
+const TERRITORY_DENSITY_FILL_HOVER_OPACITY_EXPRESSION = [
+  "min",
+  1,
+  ["+", TERRITORY_DENSITY_FILL_OPACITY_EXPRESSION, 0.2]
+];
+const TERRITORY_DENSITY_LINE_HOVER_OPACITY_EXPRESSION = [
+  "min",
+  1,
+  ["+", TERRITORY_DENSITY_LINE_OPACITY_EXPRESSION, 0.15]
+];
+const TERRITORY_AREA_CONTEXT_OPACITY = 0.15;
+const TERRITORY_AREA_CONTEXT_HOVER_OPACITY = 0.3;
+const TERRITORY_AREA_CONTEXT_LINE_OPACITY = 0.25;
+const TERRITORY_AREA_CONTEXT_LINE_HOVER_OPACITY = 0.4;
+const TERRITORY_AREA_FOCUS_OPACITY = 0.5;
+const TERRITORY_AREA_FOCUS_LINE_OPACITY = 0.65;
 const TERRITORY_DENSITY_SOURCE_ID = "territories-density";
 const TERRITORY_DENSITY_FILL_LAYER_ID = "territories-density-fill";
 const TERRITORY_DENSITY_LINE_LAYER_ID = "territories-density-line";
+const TERRITORY_AREA_FOCUS_FILL_LAYER_ID = "territories-area-focus-fill";
+const TERRITORY_AREA_FOCUS_LINE_LAYER_ID = "territories-area-focus-line";
 const TERRITORY_RADIUS_SOURCE_ID = "territory-radius-circles";
 const TERRITORY_RADIUS_FILL_LAYER_ID = "territory-radius-circles-fill";
 const TERRITORY_RADIUS_OUTLINE_LAYER_ID = "territory-radius-circles-outline";
@@ -116,25 +143,36 @@ const TERRITORY_RADIUS_OUTLINE_LAYER_ID = "territory-radius-circles-outline";
 // for both fill and stroke.
 const TERRITORY_RADIUS_OUTSIDE_OPACITY = 0.1;
 const TERRITORY_RADIUS_OUTSIDE_GEOKEY_SUFFIX = "__radius_outside";
+const TERRITORY_LOCATION_POINT_FOCUS_MILES = 50;
+const TERRITORY_REVEAL_DURATION_MS = 1500;
+const TERRITORY_REVEAL_FADE_MS = 220;
+const TERRITORY_REVEAL_MIN_MILES = 14;
+// Start state polygons during the second half of the city / county / CBSA sweep
+// so they still come late, but not as a separate final beat.
+const TERRITORY_REVEAL_STATE_OVERLAP = 0.55;
+const TERRITORY_LOCATION_SHAPE_GEO_TYPES = new Set(["place", "district", "cbsa"]);
+const TERRITORY_EARTH_RADIUS_MILES = 3958.8;
 const TERRITORY_FILL_OPACITY_EXPRESSION = [
   "case",
-  [
-    "any",
-    ["boolean", ["feature-state", "hover"], false],
-    ["boolean", ["feature-state", "selected"], false]
-  ],
+  ["boolean", ["feature-state", "selected"], false],
+  TERRITORY_FILL_SELECTED_OPACITY,
+  ["boolean", ["feature-state", "hover"], false],
   TERRITORY_FILL_HOVER_OPACITY,
   TERRITORY_FILL_OPACITY
 ];
 const TERRITORY_HATCH_FILL_OPACITY_EXPRESSION = [
   "case",
-  [
-    "any",
-    ["boolean", ["feature-state", "hover"], false],
-    ["boolean", ["feature-state", "selected"], false]
-  ],
+  ["boolean", ["feature-state", "selected"], false],
+  TERRITORY_FILL_SELECTED_OPACITY,
+  ["boolean", ["feature-state", "hover"], false],
   TERRITORY_HATCH_FILL_HOVER_OPACITY,
   TERRITORY_HATCH_FILL_OPACITY
+];
+const TERRITORY_LINE_OPACITY_EXPRESSION = [
+  "case",
+  ["boolean", ["feature-state", "selected"], false],
+  TERRITORY_LINE_SELECTED_OPACITY,
+  TERRITORY_LINE_OPACITY
 ];
 
 function withTerritoryRadiusOutsideOpacity(baseOpacity) {
@@ -144,6 +182,28 @@ function withTerritoryRadiusOutsideOpacity(baseOpacity) {
     TERRITORY_RADIUS_OUTSIDE_OPACITY,
     baseOpacity
   ];
+}
+
+function withTerritoryRevealOpacity(baseOpacity) {
+  if (!territoryRevealActive) return baseOpacity;
+  return [
+    "*",
+    [
+      "case",
+      ["boolean", ["feature-state", "reveal"], false],
+      1,
+      0
+    ],
+    baseOpacity
+  ];
+}
+
+function withTerritoryLayerOpacity(baseOpacity) {
+  return withTerritoryRevealOpacity(withTerritoryRadiusOutsideOpacity(baseOpacity));
+}
+
+function prefersTerritoryReducedMotion() {
+  return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
 }
 const TERRITORY_STATUS_ESTABLISHED_FILTER = ["==", ["get", "status"], "established"];
 const TERRITORY_STATUS_NON_ESTABLISHED_FILTER = ["!=", ["get", "status"], "established"];
@@ -168,19 +228,22 @@ const brandLogoMetaById = new Map();
 const territoryLineLayerIds = [];
 const territoryBrandLayerIds = new Map();
 const territoryBrandLogoInfo = new Map();
-const territorySharedPatternIdsByColors = new Map();
-// Set only while shared territories are rendered through the consolidated
-// sources; null means the per-territory raster path is in use.
+const territoryLayerFilterSignatures = new Map();
+// Set only once the consolidated shared hit layer exists; null means shared
+// territories have no dedicated hit target yet.
 let territorySharedConsolidated = null;
 let territoryBaseHoverLayerIds = [];
 let territoryBordersEnabled = true;
 let territoryDensityEnabled = true;
+let territoryDensitySignature = null;
+let territoryDensityDataStale = true;
 let territoryBrandLogosEnabled = false;
 let territoryBrands = [];
 let territoryBrandsById = new Map();
 let territoryRegistry = [];
 let territoryStateOccupancy = new Map();
 let territoryStatesByCode = new Map();
+const territoryStateBoundsByCode = new Map();
 let territoryCountiesByFips = new Map();
 let territoryGeoFeaturesByKey = new Map();
 let territoryGeoLevel = "state";
@@ -189,9 +252,20 @@ let territoryLastMatchingRecords = null;
 let territoryRenderedRecords = null;
 let territoryRadiusFilter = {
   enabled: false,
+  overlay: false,
   miles: 300,
   centers: []
 };
+let territorySkipNextFilterFit = false;
+let territorySearchAreaInFlight = false;
+let territoryViewportFramed = false;
+let territoryRevealActive = false;
+let territoryPendingRevealCenter = null;
+let territoryPendingRevealRecords = null;
+let territoryPendingRevealFromMapCenter = false;
+let territoryRevealWhenListEnters = null;
+let territoryRevealAfterOverlay = null;
+let territoryRevealRaf = 0;
 const territoryBrandBaseCollections = new Map();
 let territoryRadiusFadeVisibleGeoKeys = new Set();
 let territoryRadiusFadeSignature = "";
@@ -200,18 +274,29 @@ let compareTerritoryKey = null;
 let selectedTerritoryFeatureStates = [];
 let territoryInfoDismissedKey = null;
 let territoryInfoHideTimer = null;
+let territoryInfoCardResizeCleanup = null;
 let territoryAreaCardGeoKey = null;
 let territoryDetailReturnGeoKey = null;
 let territoryIntersectionIndex = new Map();
+let territoryIntersectionScope = new Map();
 const territoryIntersectionCache = new Map();
 let territoryGeolocateControl = null;
 let territoryMapHasLoaded = false;
 let territoryGeolocationPending = false;
 let territoryPendingFocusStateCode = null;
 let territoryPendingFocusCoordinates = null;
+let territoryPendingFocusSkipReveal = false;
 let territoryPendingGeolocationCoordinates = null;
 let territoryFilterFitRevision = 0;
 let territoryInitialRevealCompleted = false;
+let territoryFilteredRevealPending = false;
+let territoryFilteredRevealArmed = false;
+let territoryFilteredRevealToken = 0;
+let territoryFilteredRevealTimer = 0;
+let territoryFilteredRevealSettleTimer = 0;
+let territoryResultsLoadingActive = false;
+let territoryResultsCommit = null;
+let territoryRevealCommitToken = 0;
 // Sources and layers cache every territory, but nothing may render until the
 // current UI filter state has been applied. This prevents an unfiltered frame
 // from appearing while saved or preset selections are being restored.
@@ -226,6 +311,12 @@ const TERRITORY_STATUS_LABELS = {
   established: "For Sale",
   sold: "Sold"
 };
+
+function formatTerritoryGeoTypeLabel(geoType) {
+  const normalized = normalizeTerritoryGeoType(geoType);
+  return TERRITORY_GEO_TYPE_LABELS[normalized]
+    || normalized.replace(/^\w/, (character) => character.toUpperCase());
+}
 
 function formatTerritoryStatus(status) {
   return TERRITORY_STATUS_LABELS[status] || status.replace(/^\w/, (char) => char.toUpperCase());
@@ -302,11 +393,16 @@ function resolveTerritoryTooltipName(geoKey, properties = {}) {
 }
 
 const TERRITORY_MAP_LOADING_FADE_MS = 240;
+const TERRITORY_FILTERED_REVEAL_SETTLE_MS = 250;
+const TERRITORY_FILTERED_REVEAL_TIMEOUT_MS = 5000;
 const TERRITORY_MAP_RESET_FADE_MS = 240;
+const TERRITORY_MAP_PILL_CROSSFADE_MS = 180;
 const TERRITORY_MAP_VIEW_RESET_ZOOM_TOLERANCE = 0.05;
 const TERRITORY_MAP_VIEW_RESET_CENTER_TOLERANCE = 0.05;
 const TERRITORY_MAP_RESET_TOP_OFFSET = 32;
 let territoryMapResetHideTimer = null;
+let territoryMapBusyHideTimer = null;
+let territoryBusyHeldForReveal = false;
 let territoryMapResetPositionObserver = null;
 let territoryFilterDefaultView = {
   center: [...TERRITORY_MAP_CENTER],
@@ -491,6 +587,7 @@ function captureTerritoryFilterDefaultViewFromMap(territoryMap) {
 
 function shouldAutoFitMapToMatchingRecords(matchingRecords) {
   if (!matchingRecords.length) return false;
+  if (window.territoryFilters?.hasImplicitAreaSearch?.()) return false;
 
   const activeDataset = window.territoryDatasets?.getActive?.();
   if (activeDataset?.autoFitMap === false) {
@@ -556,7 +653,22 @@ function isTerritoryMapAtDefaultView(territoryMap) {
     && Math.abs(center.lat - defaultLat) < TERRITORY_MAP_VIEW_RESET_CENTER_TOLERANCE;
 }
 
-function showTerritoryMapReset() {
+function isTerritoryMapResetVisible() {
+  const resetEl = getTerritoryMapResetElement();
+  return Boolean(
+    resetEl
+    && !resetEl.hidden
+    && resetEl.classList.contains("is-visible")
+    && !resetEl.classList.contains("is-hiding")
+  );
+}
+
+function isTerritoryMapBusyVisible() {
+  const busyEl = getTerritoryMapBusyElement();
+  return Boolean(busyEl && !busyEl.hidden && busyEl.classList.contains("is-visible"));
+}
+
+function showTerritoryMapReset({ crossfade = false } = {}) {
   const resetEl = getTerritoryMapResetElement();
   if (!resetEl) return;
 
@@ -572,11 +684,12 @@ function showTerritoryMapReset() {
   resetEl.hidden = false;
   syncTerritoryMapResetPosition();
   resetEl.classList.remove("is-hiding", "is-visible");
+  resetEl.classList.toggle("is-crossfade", crossfade);
   void resetEl.offsetWidth;
   resetEl.classList.add("is-visible");
 }
 
-function hideTerritoryMapReset({ immediate = false } = {}) {
+function hideTerritoryMapReset({ immediate = false, crossfade = false } = {}) {
   const resetEl = getTerritoryMapResetElement();
   if (!resetEl) {
     return;
@@ -588,7 +701,7 @@ function hideTerritoryMapReset({ immediate = false } = {}) {
       territoryMapResetHideTimer = null;
     }
     resetEl.hidden = true;
-    resetEl.classList.remove("is-visible", "is-hiding");
+    resetEl.classList.remove("is-visible", "is-hiding", "is-crossfade");
     return;
   }
 
@@ -596,32 +709,90 @@ function hideTerritoryMapReset({ immediate = false } = {}) {
     return;
   }
 
+  resetEl.classList.toggle("is-crossfade", crossfade);
   resetEl.classList.remove("is-visible");
   resetEl.classList.add("is-hiding");
 
   territoryMapResetHideTimer = window.setTimeout(() => {
     resetEl.hidden = true;
-    resetEl.classList.remove("is-hiding");
+    resetEl.classList.remove("is-hiding", "is-crossfade");
     territoryMapResetHideTimer = null;
-  }, TERRITORY_MAP_RESET_FADE_MS);
+  }, crossfade ? TERRITORY_MAP_PILL_CROSSFADE_MS : TERRITORY_MAP_RESET_FADE_MS);
+}
+
+function isTerritoryMapInspectionOpen() {
+  return Boolean(selectedTerritoryKey || compareTerritoryKey || territoryAreaCardGeoKey);
+}
+
+function isTerritoryMapSearchAreaMode() {
+  return !isTerritoryMapInspectionOpen();
+}
+
+function syncTerritoryMapResetLabel() {
+  const resetEl = getTerritoryMapResetElement();
+  if (!resetEl) return;
+
+  const isSearchArea = isTerritoryMapSearchAreaMode();
+  const label = isSearchArea ? "Search this area" : "Reset map view";
+  const labelEl = resetEl.querySelector(".territory-map-reset__label");
+
+  resetEl.classList.toggle("is-search-area", isSearchArea);
+  if (labelEl) {
+    labelEl.textContent = label;
+  } else {
+    resetEl.textContent = label;
+  }
+  resetEl.setAttribute("aria-label", label);
+}
+
+function shouldTerritoryMapResetShow() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || typeof territoryMap.isStyleLoaded !== "function") return false;
+
+  return isTerritoryMapPanelOpen()
+    && !isTerritoryCrossroadOpen()
+    && !isTerritoryMapLoadingVisible()
+    && territoryMap.isStyleLoaded()
+    && !territorySearchAreaInFlight
+    && (isTerritoryMapInspectionOpen() || !isTerritoryMapAtDefaultView(territoryMap));
 }
 
 function updateTerritoryMapResetVisibility() {
-  const territoryMap = window.territoryMap;
-  if (!territoryMap || typeof territoryMap.isStyleLoaded !== "function") return;
+  syncTerritoryMapResetLabel();
 
-  const crossroadOpen = isTerritoryCrossroadOpen();
-  const shouldShow = isTerritoryMapPanelOpen()
-    && !crossroadOpen
-    && !isTerritoryMapLoadingVisible()
-    && territoryMap.isStyleLoaded()
-    && !isTerritoryMapAtDefaultView(territoryMap);
+  if (isTerritoryMapBusyVisible()) return;
 
-  if (shouldShow) {
-    showTerritoryMapReset();
-  } else {
-    hideTerritoryMapReset({ immediate: crossroadOpen });
+  if (shouldTerritoryMapResetShow()) {
+    showTerritoryMapReset({ crossfade: isTerritoryMapBusyVisible() });
+    return;
   }
+
+  // Leave Search this area up until Updating territories can crossfade in.
+  if (territorySearchAreaInFlight && isTerritoryMapResetVisible() && !isTerritoryMapBusyVisible()) {
+    return;
+  }
+
+  hideTerritoryMapReset({
+    immediate: isTerritoryCrossroadOpen(),
+    crossfade: isTerritoryMapBusyVisible()
+  });
+}
+
+function flyTerritoryMapToQueryView(territoryMap) {
+  const queryView = territoryFilterDefaultView;
+  if (!queryView?.center || !Number.isFinite(queryView.zoom)) return false;
+
+  territoryMap.flyTo({
+    center: queryView.center,
+    zoom: queryView.zoom,
+    duration: TERRITORY_FOCUS_DURATION,
+    curve: TERRITORY_FOCUS_FLY_CURVE,
+    essential: true
+  });
+  territoryMap.once("moveend", () => {
+    updateTerritoryMapResetVisibility();
+  });
+  return true;
 }
 
 function resetTerritoryMapView() {
@@ -637,15 +808,54 @@ function resetTerritoryMapView() {
     return;
   }
 
-  const defaultView = getTerritoryDatasetDefaultView();
-  setTerritoryFilterDefaultView(defaultView.center, defaultView.zoom);
-  territoryMap.flyTo({
-    center: defaultView.center,
-    zoom: defaultView.zoom,
-    duration: TERRITORY_FOCUS_DURATION,
-    curve: TERRITORY_FOCUS_FLY_CURVE,
-    essential: true
-  });
+  flyTerritoryMapToQueryView(territoryMap);
+}
+
+async function searchTerritoryMapThisArea() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || territorySearchAreaInFlight) return;
+
+  const anchor = resolveTerritorySearchAreaAnchor(territoryMap);
+  if (!anchor) {
+    updateTerritoryMapResetVisibility();
+    return;
+  }
+
+  const { longitude: lng, latitude: lat, stateCode } = anchor;
+  territorySearchAreaInFlight = true;
+
+  try {
+    const result = await window.territoryLocationSearch?.resolveFromCoordinates?.(lng, lat, stateCode)
+      || window.territoryLocationSearch?.fromCoordinates?.(
+        lng,
+        lat,
+        stateCode,
+        stateCode
+          ? `Map area, ${window.territoryLocationSearch?.getStateLabel?.(stateCode) || stateCode}`
+          : null
+      );
+
+    if (!result?.stateCode) {
+      updateTerritoryMapResetVisibility();
+      return;
+    }
+
+    territorySkipNextFilterFit = true;
+    window.territoryFilters?.applySearchThisArea?.(result);
+    captureTerritoryFilterDefaultViewFromMap(territoryMap);
+    updateTerritoryMapResetVisibility();
+  } finally {
+    territorySearchAreaInFlight = false;
+  }
+}
+
+function handleTerritoryMapResetClick() {
+  if (isTerritoryMapSearchAreaMode()) {
+    void searchTerritoryMapThisArea();
+    return;
+  }
+
+  resetTerritoryMapView();
 }
 
 function bindTerritoryMapResetControl(territoryMap) {
@@ -653,7 +863,7 @@ function bindTerritoryMapResetControl(territoryMap) {
   if (!resetEl) return;
 
   bindTerritoryMapResetPositionSync();
-  resetEl.addEventListener("click", resetTerritoryMapView);
+  resetEl.addEventListener("click", handleTerritoryMapResetClick);
   resetEl.addEventListener("mouseenter", () => {
     clearTerritoryMapHover?.();
   });
@@ -671,31 +881,151 @@ function scheduleInitialTerritoryMapReveal(territoryMap) {
   });
 }
 
-function prepareTerritoryMapForFilterReveal() {
-  const loadingEl = getTerritoryMapLoadingElement();
-  if (!loadingEl) return;
+function getTerritoryMapBusyElement() {
+  return document.getElementById("territoryMapBusy");
+}
 
-  loadingEl.hidden = false;
-  loadingEl.classList.remove("is-hiding", "is-map-revealed");
-  loadingEl.setAttribute("aria-busy", "true");
+function setTerritoryMapBusy(isBusy, { crossfade = false } = {}) {
+  const busyEl = getTerritoryMapBusyElement();
+  if (!busyEl) return;
+
+  if (territoryMapBusyHideTimer) {
+    window.clearTimeout(territoryMapBusyHideTimer);
+    territoryMapBusyHideTimer = null;
+  }
+
+  if (isBusy) {
+    if (busyEl.classList.contains("is-visible")) return;
+
+    const swap = crossfade || isTerritoryMapResetVisible();
+    if (swap) hideTerritoryMapReset({ crossfade: true });
+
+    busyEl.hidden = false;
+    busyEl.classList.remove("is-visible");
+    busyEl.classList.toggle("is-crossfade", swap);
+    void busyEl.offsetWidth;
+    busyEl.classList.add("is-visible");
+    return;
+  }
+
+  if (busyEl.hidden && !busyEl.classList.contains("is-visible")) return;
+
+  busyEl.classList.toggle("is-crossfade", crossfade);
+  busyEl.classList.remove("is-visible");
+
+  territoryMapBusyHideTimer = window.setTimeout(() => {
+    if (!busyEl.classList.contains("is-visible")) {
+      busyEl.hidden = true;
+      busyEl.classList.remove("is-crossfade");
+    }
+    territoryMapBusyHideTimer = null;
+  }, crossfade ? TERRITORY_MAP_PILL_CROSSFADE_MS : TERRITORY_MAP_LOADING_FADE_MS);
+}
+
+function showTerritoryListLoading() {
+  const loadingEl = getTerritoryMapLoadingElement();
+  if (loadingEl) {
+    loadingEl.hidden = false;
+    loadingEl.classList.remove("is-hiding");
+    loadingEl.setAttribute("aria-busy", "true");
+  }
+
+  setTerritoryMapBusy(true);
   updateTerritoryMapResetVisibility();
 }
 
+// Held while a filter pass is running so the list and the map both read as
+// loading, and so the reveal animations only start once results are committed.
+function beginTerritoryResultsLoading() {
+  territoryResultsLoadingActive = true;
+  showTerritoryListLoading();
+}
+
+function endTerritoryResultsLoading() {
+  if (!territoryResultsLoadingActive) return;
+  territoryResultsLoadingActive = false;
+
+  // The initial reveal waits for the map to go idle before uncovering the list.
+  if (!territoryInitialRevealCompleted) return;
+
+  territoryFilteredRevealArmed = false;
+  startTerritoryMapFilteredReveal();
+}
+
+function prepareTerritoryMapForFilterReveal() {
+  const loadingEl = getTerritoryMapLoadingElement();
+  loadingEl?.classList.remove("is-map-revealed");
+  showTerritoryListLoading();
+}
+
+function isTerritoryMapPlottingSettled(territoryMap) {
+  if (!territoryMap) return true;
+  if (territoryMap.isMoving?.()) return false;
+  if (typeof territoryMap.loaded === "function") return territoryMap.loaded();
+  return Boolean(territoryMap.areTilesLoaded?.());
+}
+
+// Waits for the map to finish plotting the committed results before hiding
+// Updating territories, so the pill stays up until the shapes are on screen.
+function startTerritoryMapFilteredReveal() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap) {
+    hideTerritoryMapLoading();
+    return;
+  }
+
+  territoryFilteredRevealPending = true;
+  const revealToken = ++territoryFilteredRevealToken;
+
+  const finish = () => {
+    if (revealToken !== territoryFilteredRevealToken) return;
+    // Retires the pending "idle" listener along with the timers.
+    territoryFilteredRevealToken += 1;
+    territoryFilteredRevealPending = false;
+    window.clearTimeout(territoryFilteredRevealSettleTimer);
+    window.clearTimeout(territoryFilteredRevealTimer);
+    revealTerritoryMapBase();
+    hideTerritoryMapLoading();
+  };
+
+  territoryMap.once("idle", finish);
+
+  // A pass that leaves the map untouched renders nothing and so never fires
+  // "idle". Once the new filters have had a moment to register, an already
+  // settled map counts as revealed.
+  territoryFilteredRevealSettleTimer = window.setTimeout(() => {
+    if (revealToken !== territoryFilteredRevealToken) return;
+    if (!isTerritoryMapPlottingSettled(territoryMap)) return;
+    finish();
+  }, TERRITORY_FILTERED_REVEAL_SETTLE_MS);
+
+  territoryFilteredRevealTimer = window.setTimeout(finish, TERRITORY_FILTERED_REVEAL_TIMEOUT_MS);
+}
+
+// Armed before a filter pass so the reveal plays against the committed results
+// rather than whatever the map happened to be showing when it was requested.
 function scheduleTerritoryMapFilteredReveal(territoryMap) {
   if (!territoryMap) return;
 
   prepareTerritoryMapForFilterReveal();
+  territoryFilteredRevealArmed = true;
 
-  territoryMap.once("idle", () => {
-    revealTerritoryMapBase();
-    hideTerritoryMapLoading();
-  });
+  // Nothing is loading, so there is no commit to wait for.
+  if (!territoryResultsLoadingActive) {
+    territoryFilteredRevealArmed = false;
+    startTerritoryMapFilteredReveal();
+  }
 }
 
 function hideTerritoryRecords() {
   const territoryMap = window.territoryMap;
   if (!territoryMap || !territoryBrands.length) return;
 
+  territoryPendingRevealCenter = null;
+  territoryPendingRevealRecords = null;
+  territoryPendingRevealFromMapCenter = false;
+  territoryRevealWhenListEnters = null;
+  if (territoryRevealActive) finishTerritoryReveal();
   clearTerritoryMapHover?.();
   territoryLastMatchingRecords = [];
   territoryRenderedRecords = [];
@@ -707,22 +1037,55 @@ function hideTerritoryRecords() {
   hideTerritoryInfoCard({ immediate: true });
 }
 
+function isTerritoryMapCoveredByLoading() {
+  const loadingEl = getTerritoryMapLoadingElement();
+  return Boolean(
+    loadingEl
+    && !loadingEl.hidden
+    && !loadingEl.classList.contains("is-map-revealed")
+    && !loadingEl.classList.contains("is-hiding")
+  );
+}
+
 function revealTerritoryMapBase() {
   const loadingEl = getTerritoryMapLoadingElement();
   if (!loadingEl) return;
   loadingEl.classList.add("is-map-revealed");
+  const pendingReveal = territoryRevealAfterOverlay;
+  territoryRevealAfterOverlay = null;
+  pendingReveal?.();
 }
 
 function hideTerritoryMapLoading(onHidden) {
   const loadingEl = getTerritoryMapLoadingElement();
+
+  if (loadingEl && !loadingEl.hidden) {
+    loadingEl.classList.add("is-hiding");
+    loadingEl.setAttribute("aria-busy", "false");
+  }
+
+  const resetWillShow = shouldTerritoryMapResetShow();
+  const crossfade = isTerritoryMapBusyVisible() && resetWillShow;
+  const holdBusyForReveal = isTerritoryMapBusyVisible() && (
+    territoryRevealActive
+    || Boolean(territoryRevealWhenListEnters)
+    || Boolean(territoryPendingRevealCenter || territoryPendingRevealRecords)
+  );
+  if (holdBusyForReveal) {
+    territoryBusyHeldForReveal = true;
+  } else {
+    setTerritoryMapBusy(false, { crossfade });
+    if (crossfade) {
+      showTerritoryMapReset({ crossfade: true });
+    }
+  }
+
   if (!loadingEl || loadingEl.hidden) {
+    if (!crossfade) updateTerritoryMapResetVisibility();
     window.territoryBrandPanel?.notifyLoadingHidden?.();
     onHidden?.();
     return;
   }
-
-  loadingEl.classList.add("is-hiding");
-  loadingEl.setAttribute("aria-busy", "false");
 
   window.setTimeout(() => {
     loadingEl.hidden = true;
@@ -730,7 +1093,7 @@ function hideTerritoryMapLoading(onHidden) {
     updateTerritoryMapResetVisibility();
     window.territoryBrandPanel?.notifyLoadingHidden?.();
     onHidden?.();
-  }, TERRITORY_MAP_LOADING_FADE_MS);
+  }, crossfade ? TERRITORY_MAP_PILL_CROSSFADE_MS : TERRITORY_MAP_LOADING_FADE_MS);
 }
 
 function renderTerritoryMapError(message) {
@@ -774,14 +1137,14 @@ function createTerritoryTooltipController(mapInstance) {
 
     if (territoryName) {
       const title = document.createElement("div");
-      title.className = "map-point-tooltip-title";
+      title.className = "map-point-tooltip-title territory-map-tooltip-name";
       title.textContent = territoryName;
       tooltip.append(title);
     }
 
     if (statusSummary) {
       const statusLine = document.createElement("div");
-      statusLine.className = "map-point-tooltip-detail";
+      statusLine.className = "map-point-tooltip-detail territory-map-tooltip-status";
       statusLine.textContent = statusSummary;
       tooltip.append(statusLine);
     }
@@ -812,7 +1175,7 @@ function createTerritoryTooltipController(mapInstance) {
 
     if (territoryName) {
       const territory = document.createElement("div");
-      territory.className = "map-point-tooltip-detail";
+      territory.className = "map-point-tooltip-detail territory-map-tooltip-name";
       territory.textContent = territoryName;
       tooltip.append(territory);
     }
@@ -826,7 +1189,7 @@ function createTerritoryTooltipController(mapInstance) {
 
     if (status) {
       const statusLine = document.createElement("div");
-      statusLine.className = "map-point-tooltip-detail";
+      statusLine.className = "map-point-tooltip-detail territory-map-tooltip-status";
       statusLine.textContent = status;
       tooltip.append(statusLine);
     }
@@ -853,6 +1216,7 @@ function createTerritoryTooltipController(mapInstance) {
     if (!activeCoordinates || !isVisible) return;
 
     const tooltip = getTooltip();
+    window.fitTooltipToContent?.(tooltip);
     const projected = mapInstance.project(activeCoordinates);
     const containerRect = mapInstance.getContainer().getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
@@ -942,6 +1306,143 @@ function clearTerritoryDetailReturn() {
   syncTerritoryInfoBackButton();
 }
 
+function captureTerritoryInfoCardHeight(card) {
+  if (!card || card.hidden || !card.classList.contains("is-visible")) return null;
+  return card.getBoundingClientRect().height;
+}
+
+function beginTerritoryInfoCardResize(card) {
+  const fromHeight = captureTerritoryInfoCardHeight(card);
+  if (fromHeight != null) {
+    card.style.height = `${fromHeight}px`;
+  }
+  return fromHeight;
+}
+
+function clearTerritoryInfoCardHeight(card) {
+  territoryInfoCardResizeCleanup?.();
+  territoryInfoCardResizeCleanup = null;
+  if (!card) return;
+  card.classList.remove("is-resizing");
+  card.style.height = "";
+}
+
+function getTerritoryInfoCardMaxHeight(card) {
+  const maxHeight = parseFloat(getComputedStyle(card).maxHeight);
+  return Number.isFinite(maxHeight) && maxHeight > 0
+    ? maxHeight
+    : TERRITORY_INFO_CARD_FALLBACK_HEIGHT;
+}
+
+function getVisibleTerritoryInfoPane(card) {
+  if (!card || card.id === "territoryInfoCardCompare") return card;
+  return card.classList.contains("is-detail")
+    ? getTerritoryInfoDetailPane()
+    : getTerritoryAreaCardElement();
+}
+
+function measureTerritoryInfoPaneHeight(pane) {
+  let height = 0;
+  for (const child of pane.children) {
+    const styles = getComputedStyle(child);
+    const blockHeight = child.classList.contains("territory-info-card__scroll")
+      ? child.scrollHeight
+      : child.offsetHeight;
+    height += blockHeight
+      + (parseFloat(styles.marginTop) || 0)
+      + (parseFloat(styles.marginBottom) || 0);
+  }
+  return height;
+}
+
+function measureTerritoryInfoCardHeight(card) {
+  const maxHeight = getTerritoryInfoCardMaxHeight(card);
+  const pane = getVisibleTerritoryInfoPane(card);
+  const measureTarget = pane || card;
+  const isNestedPane = measureTarget !== card;
+  const previousCardHeight = card.style.height;
+  const previousPaneHeight = isNestedPane ? measureTarget.style.height : "";
+  const previousPaneMinHeight = isNestedPane ? measureTarget.style.minHeight : "";
+  const previousPaneOverflow = isNestedPane ? measureTarget.style.overflow : "";
+  const previousPaneVisibility = isNestedPane ? measureTarget.style.visibility : "";
+
+  card.style.height = "auto";
+  if (isNestedPane) {
+    measureTarget.style.height = "auto";
+    measureTarget.style.minHeight = "auto";
+    measureTarget.style.overflow = "visible";
+    measureTarget.style.visibility = "visible";
+  }
+
+  const styles = getComputedStyle(card);
+  const borders = (parseFloat(styles.borderTopWidth) || 0)
+    + (parseFloat(styles.borderBottomWidth) || 0);
+  const contentHeight = measureTerritoryInfoPaneHeight(measureTarget);
+
+  card.style.height = previousCardHeight;
+  if (isNestedPane) {
+    measureTarget.style.height = previousPaneHeight;
+    measureTarget.style.minHeight = previousPaneMinHeight;
+    measureTarget.style.overflow = previousPaneOverflow;
+    measureTarget.style.visibility = previousPaneVisibility;
+  }
+
+  return Math.min(Math.ceil(contentHeight + borders), maxHeight);
+}
+
+function syncTerritoryInfoCardHeight(card, { fromHeight = null, animate = false } = {}) {
+  territoryInfoCardResizeCleanup?.();
+  territoryInfoCardResizeCleanup = null;
+
+  if (!card || card.hidden) return;
+
+  const toHeight = measureTerritoryInfoCardHeight(card);
+  if (toHeight <= 0) return;
+
+  const shouldAnimate = Boolean(
+    animate
+    && fromHeight != null
+    && !prefersTerritoryReducedMotion()
+    && Math.abs(toHeight - fromHeight) >= 0.5
+  );
+
+  card.classList.remove("is-resizing");
+
+  if (!shouldAnimate) {
+    card.style.height = `${toHeight}px`;
+    return;
+  }
+
+  card.style.height = `${fromHeight}px`;
+  void card.offsetHeight;
+  card.classList.add("is-resizing");
+  card.style.height = `${toHeight}px`;
+
+  let settled = false;
+  const settle = () => {
+    if (settled) return;
+    settled = true;
+    card.removeEventListener("transitionend", onEnd);
+    window.clearTimeout(timeoutId);
+    if (territoryInfoCardResizeCleanup === cleanup) {
+      territoryInfoCardResizeCleanup = null;
+    }
+    card.classList.remove("is-resizing");
+    card.style.height = `${toHeight}px`;
+  };
+  const onEnd = (event) => {
+    if (event.target === card && event.propertyName === "height") settle();
+  };
+  const cleanup = () => {
+    settled = true;
+    card.removeEventListener("transitionend", onEnd);
+    window.clearTimeout(timeoutId);
+  };
+  const timeoutId = window.setTimeout(settle, TERRITORY_INFO_CARD_SLIDE_MS + 40);
+  card.addEventListener("transitionend", onEnd);
+  territoryInfoCardResizeCleanup = cleanup;
+}
+
 function setTerritoryCardPane(pane, { animate = false } = {}) {
   const card = getTerritoryInfoCardElement();
   const areaPane = getTerritoryAreaCardElement();
@@ -950,8 +1451,11 @@ function setTerritoryCardPane(pane, { animate = false } = {}) {
   if (!card) return;
 
   const showDetail = pane === "detail";
-  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const paneChanges = card.classList.contains("is-detail") !== showDetail;
+  const fromHeight = paneChanges ? beginTerritoryInfoCardResize(card) : null;
+  const reduceMotion = prefersTerritoryReducedMotion();
   const shouldAnimate = Boolean(animate && !reduceMotion && track);
+  const isCardVisible = !card.hidden;
 
   if (!shouldAnimate) {
     card.classList.add("is-jumping");
@@ -960,8 +1464,15 @@ function setTerritoryCardPane(pane, { animate = false } = {}) {
   }
 
   card.classList.toggle("is-detail", showDetail);
+  syncTerritoryAreaMapHighlight();
+  if (!showDetail) {
+    fitTerritoryAreaTitle();
+  }
   if (!shouldAnimate) {
-    void card.offsetWidth;
+    // Reading offsetWidth flushes the pending style change so the pane swap does
+    // not animate, but it forces a full document reflow. A hidden card has no
+    // transition to suppress, so the reflow is pure cost.
+    if (isCardVisible) void card.offsetWidth;
     card.classList.remove("is-jumping");
   }
 
@@ -984,7 +1495,18 @@ function setTerritoryCardPane(pane, { animate = false } = {}) {
     detailPane.toggleAttribute("inert", !showDetail);
   }
 
+  if (card.classList.contains("is-visible")) {
+    syncTerritoryInfoCardHeight(card, {
+      fromHeight,
+      animate: paneChanges && fromHeight != null
+    });
+  }
+
   const finish = () => {
+    // Measuring an off-screen card only reads stale zeroes; showTerritoryAreaCard
+    // and showTerritoryInfoCards re-measure once the card becomes visible.
+    if (card.hidden) return;
+
     if (showDetail) {
       syncTerritoryInfoCardScrollOverflow(detailPane || card);
     } else {
@@ -1021,6 +1543,13 @@ function hideTerritoryInfoCard({ immediate = false } = {}) {
   const compareCard = getTerritoryInfoCardElement({ compare: true });
   if (!stack || !primaryCard) return;
 
+  if (stack.hidden && primaryCard.hidden && !stack.classList.contains("is-visible")) {
+    territoryAreaCardGeoKey = null;
+    syncTerritoryAreaMapHighlight();
+    clearTerritoryDetailReturn();
+    return;
+  }
+
   if (territoryInfoHideTimer) {
     window.clearTimeout(territoryInfoHideTimer);
     territoryInfoHideTimer = null;
@@ -1032,11 +1561,13 @@ function hideTerritoryInfoCard({ immediate = false } = {}) {
   territoryAreaCardGeoKey = null;
   clearTerritoryDetailReturn();
   setTerritoryCardPane("area", { animate: false });
+  updateTerritoryMapResetVisibility();
 
   const finishHide = () => {
     stack.hidden = true;
     primaryCard.hidden = true;
     if (compareCard) compareCard.hidden = true;
+    clearTerritoryInfoCardHeight(primaryCard);
   };
 
   if (immediate) {
@@ -1109,14 +1640,24 @@ function populateTerritoryInfoCard(record, { compare = false } = {}) {
 
   document.getElementById(getTerritoryInfoFieldId("territoryInfoBrand", { compare })).textContent = brandName;
   document.getElementById(getTerritoryInfoFieldId("territoryInfoState", { compare })).textContent = stateName;
+  document.getElementById(getTerritoryInfoFieldId("territoryInfoStatus", { compare })).textContent =
+    formatTerritoryStatus(record.status);
+  document.getElementById(getTerritoryInfoFieldId("territoryInfoGeoLevel", { compare })).textContent =
+    formatTerritoryGeoTypeLabel(record.geoType);
   document.getElementById(getTerritoryInfoFieldId("territoryInfoInvestment", { compare })).textContent =
-    formatTerritoryInfoValue(record.initialInvestment, territoryCurrencyFormatter);
+    formatTerritoryInfoValue(brand?.initialInvestment, territoryCurrencyFormatter);
   document.getElementById(getTerritoryInfoFieldId("territoryInfoPopulation", { compare })).textContent =
     formatTerritoryInfoValue(macrodata?.population, territoryCompactNumberFormatter);
   document.getElementById(getTerritoryInfoFieldId("territoryInfoMedianIncome", { compare })).textContent =
     formatTerritoryInfoValue(macrodata?.medianHouseholdIncome, territoryCurrencyFormatter);
   document.getElementById(getTerritoryInfoFieldId("territoryInfoMarketGrowth", { compare })).textContent =
     formatTerritoryMarketGrowth(macrodata?.marketGrowthPercent);
+
+  const requestButton = document.getElementById(getTerritoryInfoFieldId("territoryInfoRequest", { compare }));
+  if (requestButton) {
+    requestButton.dataset.brandId = record.brandId || "";
+    requestButton.dataset.geoKey = record.geoKey || record.state || "";
+  }
 
   const profileLink = document.getElementById(getTerritoryInfoFieldId("territoryInfoProfile", { compare }));
   const profileUrl = typeof brand?.profileUrl === "string" ? brand.profileUrl.trim() : "";
@@ -1185,12 +1726,17 @@ function showTerritoryInfoCards(primaryRecord, compareRecord = null) {
   setTerritoryCardPane("detail", { animate: animateToDetail });
   syncTerritoryInfoBackButton();
   stack.hidden = false;
+  updateTerritoryMapResetVisibility();
   window.requestAnimationFrame(() => {
     stack.classList.add("is-visible");
     primaryCard.classList.add("is-visible");
+    if (!shellVisible) {
+      syncTerritoryInfoCardHeight(primaryCard);
+    }
     syncTerritoryInfoCardScrollOverflow(detailPane || primaryCard);
     if (isCompare && compareCard) {
       compareCard.classList.add("is-visible");
+      syncTerritoryInfoCardHeight(compareCard);
       syncTerritoryInfoCardScrollOverflow(compareCard);
     }
   });
@@ -1291,7 +1837,7 @@ function populateTerritoryAreaCard(geoKey, properties = {}) {
 
       section.className = "territory-area-card__group";
       heading.className = "territory-area-card__group-title";
-      heading.textContent = TERRITORY_GEO_TYPE_LABELS[geoType] || geoType;
+      heading.textContent = `${TERRITORY_GEO_TYPE_LABELS[geoType] || geoType} (${groupRecords.length})`;
       list.className = "territory-area-card__brands";
 
       groupRecords
@@ -1320,7 +1866,13 @@ function showTerritoryAreaCard(geoKey, properties = {}, { animate = false } = {}
   const stack = getTerritoryInfoStackElement();
   const primaryCard = getTerritoryInfoCardElement();
   const areaCard = getTerritoryAreaCardElement();
-  if (!stack || !primaryCard || !areaCard || !populateTerritoryAreaCard(geoKey, properties)) {
+  if (!stack || !primaryCard || !areaCard) return false;
+
+  const wasVisible = primaryCard.classList.contains("is-visible");
+  const switchingPane = primaryCard.classList.contains("is-detail");
+  const fromHeight = switchingPane ? null : beginTerritoryInfoCardResize(primaryCard);
+  if (!populateTerritoryAreaCard(geoKey, properties)) {
+    if (fromHeight != null) primaryCard.style.height = "";
     return false;
   }
 
@@ -1338,10 +1890,20 @@ function showTerritoryAreaCard(geoKey, properties = {}, { animate = false } = {}
   stack.hidden = false;
   primaryCard.hidden = false;
   setTerritoryCardPane("area", { animate });
+  if (!switchingPane) {
+    syncTerritoryInfoCardHeight(primaryCard, {
+      fromHeight,
+      animate: wasVisible
+    });
+  }
+  updateTerritoryMapResetVisibility();
   window.requestAnimationFrame(() => {
     stack.classList.add("is-visible");
     primaryCard.classList.add("is-visible");
     fitTerritoryAreaTitle();
+    if (!wasVisible) {
+      syncTerritoryInfoCardHeight(primaryCard);
+    }
     syncTerritoryInfoCardScrollOverflow(areaCard);
   });
   return true;
@@ -1364,6 +1926,7 @@ function returnToTerritoryAreaCard() {
 
   territoryAreaCardGeoKey = geoKey;
   setTerritoryCardPane("area", { animate: true });
+  updateTerritoryMapResetVisibility();
 
   window.requestAnimationFrame(() => {
     focusTerritoryMapOnState(window.territoryMap, geoKey, { reserveInfoCard: true });
@@ -1375,22 +1938,27 @@ function hideTerritoryAreaCard({ immediate = false } = {}) {
   const primaryCard = getTerritoryInfoCardElement();
   if (!stack || !primaryCard || !territoryAreaCardGeoKey) {
     territoryAreaCardGeoKey = null;
+    syncTerritoryAreaMapHighlight();
     return;
   }
 
   if (primaryCard.classList.contains("is-detail") || primaryCard.hidden) {
     territoryAreaCardGeoKey = null;
+    syncTerritoryAreaMapHighlight();
     return;
   }
 
   territoryAreaCardGeoKey = null;
+  syncTerritoryAreaMapHighlight();
   primaryCard.classList.remove("is-visible");
   stack.classList.remove("is-visible");
+  updateTerritoryMapResetVisibility();
 
   const finishHide = () => {
     primaryCard.hidden = true;
     stack.hidden = true;
     setTerritoryCardPane("area", { animate: false });
+    clearTerritoryInfoCardHeight(primaryCard);
   };
 
   if (immediate) {
@@ -1457,10 +2025,18 @@ function bindTerritoryInfoCard() {
   if (!bindTerritoryInfoCard.resizeBound) {
     bindTerritoryInfoCard.resizeBound = true;
     window.addEventListener("resize", () => {
-      syncTerritoryInfoCardScrollOverflow(getTerritoryInfoDetailPane() || getTerritoryInfoCardElement());
-      syncTerritoryInfoCardScrollOverflow(getTerritoryInfoCardElement({ compare: true }));
-      syncTerritoryInfoCardScrollOverflow(getTerritoryAreaCardElement());
+      const primaryCard = getTerritoryInfoCardElement();
+      const compareCard = getTerritoryInfoCardElement({ compare: true });
       fitTerritoryAreaTitle();
+      if (primaryCard && !primaryCard.hidden && primaryCard.classList.contains("is-visible")) {
+        syncTerritoryInfoCardHeight(primaryCard);
+      }
+      if (compareCard && !compareCard.hidden && compareCard.classList.contains("is-visible")) {
+        syncTerritoryInfoCardHeight(compareCard);
+      }
+      syncTerritoryInfoCardScrollOverflow(getTerritoryInfoDetailPane() || primaryCard);
+      syncTerritoryInfoCardScrollOverflow(compareCard);
+      syncTerritoryInfoCardScrollOverflow(getTerritoryAreaCardElement());
     });
   }
 }
@@ -1510,7 +2086,10 @@ function doTerritoryGeometriesIntersect(left, right) {
   return intersects;
 }
 
-function rebuildTerritoryIntersectionIndex(matchingRecords) {
+// Only hover uses this, so pairing every visible territory against every other
+// one up front burned seconds on wide searches. The candidate set is captured
+// here and each geoKey is resolved the first time it is actually hovered.
+function setTerritoryIntersectionScope(matchingRecords) {
   const territoriesByGeoKey = new Map();
 
   matchingRecords.forEach((record) => {
@@ -1519,30 +2098,38 @@ function rebuildTerritoryIntersectionIndex(matchingRecords) {
     territoriesByGeoKey.set(geoKey, record);
   });
 
-  const territories = [...territoriesByGeoKey.values()];
-  const nextIndex = new Map();
+  territoryIntersectionScope = territoriesByGeoKey;
+  territoryIntersectionIndex = new Map();
+}
 
-  territories.forEach((territory) => {
-    const geoKey = territory.geoKey || territory.state;
-    const rank = getTerritoryGeoTypeRank(territory.geoType);
-    const largerIntersections = territories
-      .filter((candidate) => (
-        getTerritoryGeoTypeRank(candidate.geoType) < rank
-        && doTerritoryGeometriesIntersect(territory, candidate)
-      ))
-      .map((candidate) => candidate.geoKey || candidate.state);
+function getTerritoryIntersectionsForGeoKey(geoKey) {
+  const cached = territoryIntersectionIndex.get(geoKey);
+  if (cached) return cached;
 
-    nextIndex.set(geoKey, largerIntersections);
+  const territory = territoryIntersectionScope.get(geoKey);
+  if (!territory) return [];
+
+  const rank = getTerritoryGeoTypeRank(territory.geoType);
+  const largerIntersections = [];
+
+  territoryIntersectionScope.forEach((candidate, candidateGeoKey) => {
+    if (candidateGeoKey === geoKey) return;
+    if (getTerritoryGeoTypeRank(candidate.geoType) >= rank) return;
+    if (!territoryBoundsIntersect(territory.geometryBounds, candidate.geometryBounds)) return;
+    if (!doTerritoryGeometriesIntersect(territory, candidate)) return;
+
+    largerIntersections.push(candidateGeoKey);
   });
 
-  territoryIntersectionIndex = nextIndex;
+  territoryIntersectionIndex.set(geoKey, largerIntersections);
+  return largerIntersections;
 }
 
 function getTerritoryRecordsForHover(geoKey) {
   const matchingRecords = territoryLastMatchingRecords || territoryRegistry;
   const includedGeoKeys = new Set([
     geoKey,
-    ...(territoryIntersectionIndex.get(geoKey) || [])
+    ...getTerritoryIntersectionsForGeoKey(geoKey)
   ]);
 
   return matchingRecords.filter((record) => (
@@ -1618,10 +2205,9 @@ function getMatchingRecordsBounds(matchingRecords) {
   let hasBounds = false;
 
   matchingRecords.forEach((record) => {
-    const geometry = record.geometry || territoryStatesByCode.get(record.state)?.geometry;
-    if (!geometry) return;
-
-    const geometryBounds = getGeometryBounds(geometry);
+    // The registry precomputes bounds; only state fallbacks need measuring.
+    const geometryBounds = record.geometryBounds
+      || getGeometryBounds(territoryStatesByCode.get(record.state)?.geometry);
     if (!geometryBounds) return;
 
     hasBounds = true;
@@ -1631,7 +2217,7 @@ function getMatchingRecordsBounds(matchingRecords) {
     if (geometryBounds.north > north) north = geometryBounds.north;
   });
 
-  getTerritoryRadiusFeatureCollection().features.forEach((feature) => {
+  buildTerritoryRadiusCircleCollection().features.forEach((feature) => {
     const circleBounds = getGeometryBounds(feature.geometry);
     if (!circleBounds) return;
 
@@ -1654,7 +2240,7 @@ function getTerritoryRadiusBounds() {
   let north = -Infinity;
   let hasBounds = false;
 
-  getTerritoryRadiusFeatureCollection().features.forEach((feature) => {
+  buildTerritoryRadiusCircleCollection().features.forEach((feature) => {
     const circleBounds = getGeometryBounds(feature.geometry);
     if (!circleBounds) return;
 
@@ -1670,11 +2256,68 @@ function getTerritoryRadiusBounds() {
   return { west, east, south, north };
 }
 
+function mergeFocusBounds(target, bounds) {
+  if (!bounds) return target;
+
+  if (!target) {
+    return {
+      west: bounds.west,
+      east: bounds.east,
+      south: bounds.south,
+      north: bounds.north
+    };
+  }
+
+  if (bounds.west < target.west) target.west = bounds.west;
+  if (bounds.east > target.east) target.east = bounds.east;
+  if (bounds.south < target.south) target.south = bounds.south;
+  if (bounds.north > target.north) target.north = bounds.north;
+  return target;
+}
+
+function getLocationSearchFocusBounds() {
+  const searches = window.territoryFilters?.getState?.()?.locationSearches || [];
+  if (!searches.length) return null;
+
+  let bounds = null;
+  searches.forEach((location) => {
+    const target = resolveLocationMatchTarget(location);
+    if (!target) return;
+
+    if (target.kind === "point") {
+      bounds = mergeFocusBounds(
+        bounds,
+        getTerritoryMapSearchBounds(
+          target.longitude,
+          target.latitude,
+          TERRITORY_LOCATION_POINT_FOCUS_MILES
+        )
+      );
+      return;
+    }
+
+    if (target.kind === "geometry") {
+      bounds = mergeFocusBounds(bounds, target.bounds);
+      return;
+    }
+
+    if (target.kind === "state") {
+      const stateFeature = territoryStatesByCode.get(target.stateCode);
+      bounds = mergeFocusBounds(bounds, getGeometryBounds(stateFeature?.geometry));
+    }
+  });
+
+  return bounds;
+}
+
 function getTerritoryFilterFocusBounds(matchingRecords) {
   // City / radius searches should frame the search circles, not giant CBSA
   // polygons that would keep the camera at a continent overview.
   const radiusBounds = getTerritoryRadiusBounds();
   if (radiusBounds) return radiusBounds;
+
+  const locationBounds = getLocationSearchFocusBounds();
+  if (locationBounds) return locationBounds;
 
   return getMatchingRecordsBounds(matchingRecords);
 }
@@ -1695,6 +2338,7 @@ function focusTerritoryMapOnRecords(territoryMap, matchingRecords) {
 
   territoryMap.once("moveend", () => {
     captureTerritoryFilterDefaultViewFromMap(territoryMap);
+    playPendingTerritoryReveal();
     updateTerritoryMapResetVisibility();
   });
 }
@@ -1728,6 +2372,42 @@ function scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords) {
 
       territoryMap.once("idle", retryFit);
       window.setTimeout(retryFit, 80);
+      return;
+    }
+
+    if (territorySkipNextFilterFit) {
+      territorySkipNextFilterFit = false;
+      if (!territoryMap.isMoving?.()) {
+        captureTerritoryFilterDefaultViewFromMap(territoryMap);
+      }
+      updateTerritoryMapResetVisibility();
+      return;
+    }
+
+    if (window.territoryFilters?.hasImplicitAreaSearch?.()) {
+      const locationBounds = getLocationSearchFocusBounds();
+      if (!territoryViewportFramed && locationBounds && window.mapboxgl) {
+        territoryViewportFramed = true;
+        focusTerritoryMapOnBounds(
+          territoryMap,
+          new mapboxgl.LngLatBounds(
+            [locationBounds.west, locationBounds.south],
+            [locationBounds.east, locationBounds.north]
+          )
+        );
+        territoryMap.once("moveend", () => {
+          captureTerritoryFilterDefaultViewFromMap(territoryMap);
+          window.territoryFilters?.captureViewportFromMap?.();
+          playPendingTerritoryReveal();
+          updateTerritoryMapResetVisibility();
+        });
+        return;
+      }
+
+      if (!territoryMap.isMoving?.()) {
+        captureTerritoryFilterDefaultViewFromMap(territoryMap);
+      }
+      updateTerritoryMapResetVisibility();
       return;
     }
 
@@ -1944,32 +2624,6 @@ function setTerritoryDensityHover(territoryMap, geoKey) {
   return true;
 }
 
-function hideSharedTerritoryStroke(territoryMap, geoKey) {
-  if (!territorySharedConsolidated || !territoryBordersEnabled) return null;
-  if (!territorySharedConsolidated.visibleGeoKeys.includes(geoKey)) return null;
-
-  territorySharedConsolidated.hiddenStrokeGeoKey = geoKey;
-  setTerritoryLayerFilter(
-    territoryMap,
-    TERRITORY_SHARED_ALL_STROKE_LAYER_ID,
-    buildConsolidatedSharedStrokeFilter(territorySharedConsolidated.visibleGeoKeys, geoKey)
-  );
-
-  return { geoKey };
-}
-
-function restoreSharedTerritoryStroke(territoryMap, sharedStroke) {
-  if (!territorySharedConsolidated || !sharedStroke) return;
-  if (territorySharedConsolidated.hiddenStrokeGeoKey !== sharedStroke.geoKey) return;
-
-  territorySharedConsolidated.hiddenStrokeGeoKey = null;
-  setTerritoryLayerFilter(
-    territoryMap,
-    TERRITORY_SHARED_ALL_STROKE_LAYER_ID,
-    buildConsolidatedSharedStrokeFilter(territorySharedConsolidated.visibleGeoKeys, null)
-  );
-}
-
 function isTerritoryMarkerFeature(feature) {
   const layerId = feature?.layer?.id || "";
   return layerId.endsWith("-logo");
@@ -2064,16 +2718,13 @@ function applyBrandTerritoryHoverHighlight(territoryMap, brandId, geoKey) {
     return { layerId, originalFilter };
   });
 
-  // Hide the shared multi-color outline so the brand border reads clearly.
-  const sharedStroke = hideSharedTerritoryStroke(territoryMap, geoKey);
-
   if (geoLayers.lineLayerId && territoryMap.getLayer(geoLayers.lineLayerId) && territoryBordersEnabled) {
     territoryMap.setLayoutProperty(geoLayers.lineLayerId, "visibility", "visible");
   }
 
   territoryMap.setFeatureState(featureState, { hover: true });
 
-  return { featureState, layerFilters, sharedStroke };
+  return { featureState, layerFilters };
 }
 
 function clearBrandTerritoryHoverHighlight(territoryMap, highlight) {
@@ -2085,8 +2736,6 @@ function clearBrandTerritoryHoverHighlight(territoryMap, highlight) {
       territoryMap.setFilter(layerId, originalFilter);
     }
   });
-
-  restoreSharedTerritoryStroke(territoryMap, highlight.sharedStroke);
 }
 
 function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, clickLayerIds = interactiveLayerIds) {
@@ -2175,6 +2824,11 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
   tooltip.bind();
 
   territoryMap.on("mousemove", (event) => {
+    if (territoryRevealActive) {
+      clearHover();
+      return;
+    }
+
     const hoverLayerIds = getTerritoryHoverLayerIds(territoryMap);
     const features = territoryMap.queryRenderedFeatures(event.point, { layers: hoverLayerIds });
     // Prefer density fills, then brand markers, then the topmost territory layer.
@@ -2190,7 +2844,11 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
     tooltip.show(feature, event.lngLat);
   });
 
-  territoryMap.on("mouseleave", clearHover);
+  // Mapbox "mouseleave" without a layer id never fires when the pointer leaves
+  // the canvas. State polygons fill the view, so mousemove also never sees an
+  // empty hit — hide on the real canvas-leave events instead.
+  territoryMap.on("mouseout", clearHover);
+  territoryMap.getCanvas().addEventListener("pointerleave", clearHover);
 
   const crossroad = document.getElementById("territoryCrossroad");
   crossroad?.addEventListener("pointerenter", clearHover);
@@ -2217,6 +2875,13 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
     const feature = pickTerritoryHoverFeature(features) || features[0];
     const geoKey = getStateCodeFromMapFeature(feature);
     if (!geoKey) return;
+
+    const areaRecords = getTerritoryRecordsForHover(geoKey);
+    if (areaRecords.length === 1) {
+      const [record] = areaRecords;
+      window.territoryMapSelection?.select?.(record.brandId, record.geoKey || record.state);
+      return;
+    }
 
     if (selectedTerritoryKey || compareTerritoryKey) {
       clearSelectedTerritory({ refreshMapView: false });
@@ -2331,12 +2996,7 @@ function createTerritoryRadiusCircleFeature(center, radiusMiles, stateCode, poin
   };
 }
 
-function getTerritoryRadiusFeatureCollection() {
-  // Hide the radius overlay while inspecting a selected territory.
-  if (selectedTerritoryKey || compareTerritoryKey) {
-    return { type: "FeatureCollection", features: [] };
-  }
-
+function buildTerritoryRadiusCircleCollection() {
   if (!territoryRadiusFilter.enabled || !territoryRadiusFilter.centers.length) {
     return { type: "FeatureCollection", features: [] };
   }
@@ -2356,10 +3016,35 @@ function getTerritoryRadiusFeatureCollection() {
   return { type: "FeatureCollection", features };
 }
 
+function isTerritoryRadiusOverlayVisible() {
+  return Boolean(
+    territoryRadiusFilter.enabled
+    && territoryRadiusFilter.overlay
+    && !selectedTerritoryKey
+    && !compareTerritoryKey
+  );
+}
+
+function getTerritoryRadiusFeatureCollection() {
+  if (!isTerritoryRadiusOverlayVisible()) {
+    return { type: "FeatureCollection", features: [] };
+  }
+
+  return buildTerritoryRadiusCircleCollection();
+}
+
 function syncTerritoryRadiusOverlay() {
-  window.territoryMap
-    ?.getSource(TERRITORY_RADIUS_SOURCE_ID)
+  const territoryMap = window.territoryMap;
+  const visibility = isTerritoryRadiusOverlayVisible() ? "visible" : "none";
+
+  territoryMap?.getSource(TERRITORY_RADIUS_SOURCE_ID)
     ?.setData(getTerritoryRadiusFeatureCollection());
+
+  [TERRITORY_RADIUS_FILL_LAYER_ID, TERRITORY_RADIUS_OUTLINE_LAYER_ID].forEach((layerId) => {
+    if (territoryMap?.getLayer(layerId)) {
+      territoryMap.setLayoutProperty(layerId, "visibility", visibility);
+    }
+  });
 }
 
 function ensureTerritoryRadiusLayers(territoryMap) {
@@ -2392,10 +3077,16 @@ function ensureTerritoryRadiusLayers(territoryMap) {
   });
 }
 
-function setTerritoryRadiusFilter({ enabled = false, miles = 300, centers = [] } = {}) {
+function setTerritoryRadiusFilter({
+  enabled = false,
+  overlay = false,
+  miles = 300,
+  centers = []
+} = {}) {
   const numericMiles = Number(miles);
   territoryRadiusFilter = {
     enabled: Boolean(enabled),
+    overlay: Boolean(overlay),
     miles: Number.isFinite(numericMiles) ? numericMiles : 300,
     centers: centers
       .map(({ state, center }) => ({
@@ -2407,10 +3098,7 @@ function setTerritoryRadiusFilter({ enabled = false, miles = 300, centers = [] }
       .filter(({ state, center }) => state && center && center.every(Number.isFinite))
   };
 
-  window.territoryMap
-    ?.getSource(TERRITORY_RADIUS_SOURCE_ID)
-    ?.setData(getTerritoryRadiusFeatureCollection());
-
+  syncTerritoryRadiusOverlay();
   syncTerritoryRadiusOutsideFade(window.territoryMap);
 }
 
@@ -2419,6 +3107,7 @@ function isTerritoryRadiusFadeActive() {
     !selectedTerritoryKey
     && !compareTerritoryKey
     && territoryRadiusFilter.enabled
+    && territoryRadiusFilter.overlay
     && territoryRadiusFilter.centers.length
     && typeof turf !== "undefined"
   );
@@ -2793,50 +3482,67 @@ function ensureBrandHatchImage(territoryMap, brand) {
   return imageId;
 }
 
-function getVisibleStatesForBrand(matchingKeys, brandId) {
-  const visibleGeoKeys = [];
-
-  territoryRegistry.forEach((record) => {
-    if (record.brandId !== brandId) return;
-    if (!matchingKeys.has(territoryRecordKey(record))) return;
-
-    const geoKey = record.geoKey || record.state;
-    const occupants = territoryStateOccupancy.get(geoKey) || [];
-    const visibleOccupants = occupants.filter((occupantId) => (
-      matchingKeys.has(`${occupantId}:${geoKey}`)
-    ));
-
-    if (visibleOccupants.length >= 2) return;
-
-    visibleGeoKeys.push(geoKey);
-  });
-
-  return visibleGeoKeys;
-}
-
+// Shared territories are drawn by stacking every occupying brand's fill, so a
+// brand shows all of its matching geo keys regardless of who else occupies them.
 function getLogoOccupants(visibleOccupants) {
   if (!visibleOccupants?.length) return [];
   return visibleOccupants.slice(0, TERRITORY_LOGO_MAX_VISIBLE);
 }
 
-function getVisibleLogoStatesForBrand(matchingKeys, brandId) {
-  const visibleGeoKeys = [];
+// Everything the render pass needs about which territories are visible, derived
+// in a single walk of the matching records. Doing it per brand meant rescanning
+// the whole registry once for the fills and again for the logos.
+function buildTerritoryVisibilityIndex(matchingRecords) {
+  const geoKeysByBrand = new Map();
+  const brandIdsByGeoKey = new Map();
 
-  territoryRegistry.forEach((record) => {
-    if (record.brandId !== brandId) return;
-    if (!matchingKeys.has(territoryRecordKey(record))) return;
-
+  matchingRecords.forEach((record) => {
     const geoKey = record.geoKey || record.state;
-    const occupants = territoryStateOccupancy.get(geoKey) || [];
-    const visibleOccupants = getLogoOccupants(
-      occupants.filter((occupantId) => matchingKeys.has(`${occupantId}:${geoKey}`))
-    );
-    if (!visibleOccupants.includes(brandId)) return;
+    if (!geoKey) return;
 
-    visibleGeoKeys.push(geoKey);
+    const geoKeys = geoKeysByBrand.get(record.brandId);
+    if (geoKeys) {
+      geoKeys.push(geoKey);
+    } else {
+      geoKeysByBrand.set(record.brandId, [geoKey]);
+    }
+
+    const brandIds = brandIdsByGeoKey.get(geoKey);
+    if (brandIds) {
+      brandIds.add(record.brandId);
+    } else {
+      brandIdsByGeoKey.set(geoKey, new Set([record.brandId]));
+    }
   });
 
-  return visibleGeoKeys;
+  // Dataset occupancy order decides which brands get a logo slot, so keep it.
+  const occupantsByGeoKey = new Map();
+  const logoGeoKeysByBrand = new Map();
+
+  brandIdsByGeoKey.forEach((brandIds, geoKey) => {
+    const occupancy = territoryStateOccupancy.get(geoKey);
+    const occupants = occupancy
+      ? occupancy.filter((occupantId) => brandIds.has(occupantId))
+      : [...brandIds];
+
+    occupantsByGeoKey.set(geoKey, occupants);
+
+    getLogoOccupants(occupants).forEach((brandId) => {
+      const geoKeys = logoGeoKeysByBrand.get(brandId);
+      if (geoKeys) {
+        geoKeys.push(geoKey);
+      } else {
+        logoGeoKeysByBrand.set(brandId, [geoKey]);
+      }
+    });
+  });
+
+  return {
+    geoKeysByBrand,
+    occupantsByGeoKey,
+    logoGeoKeysByBrand,
+    visibleGeoKeys: new Set(brandIdsByGeoKey.keys())
+  };
 }
 
 function getVisibleSharedOccupantCount(stateCode) {
@@ -2847,19 +3553,6 @@ function getVisibleSharedOccupantCount(stateCode) {
   const occupants = territoryStateOccupancy.get(stateCode) || [];
 
   return occupants.filter((occupantId) => matchingKeys.has(`${occupantId}:${stateCode}`)).length;
-}
-
-function buildVisibleOccupantsByState(matchingKeys) {
-  const visibleOccupantsByState = new Map();
-
-  territoryStateOccupancy.forEach((occupants, stateCode) => {
-    const visibleOccupants = occupants.filter((occupantId) => (
-      matchingKeys.has(`${occupantId}:${stateCode}`)
-    ));
-    visibleOccupantsByState.set(stateCode, visibleOccupants);
-  });
-
-  return visibleOccupantsByState;
 }
 
 function buildTerritoryDensityFeatureCollection(matchingRecords) {
@@ -2883,17 +3576,10 @@ function buildTerritoryDensityFeatureCollection(matchingRecords) {
     entriesByGeoKey.get(geoKey).brandIds.add(record.brandId);
   });
 
-  const entries = [...entriesByGeoKey.values()];
-  const counts = entries.map((entry) => entry.brandIds.size).filter((count) => count > 0);
-  const lowestCount = counts.length ? Math.min(...counts) : 0;
-  const highestCount = counts.length ? Math.max(...counts) : 0;
-  const countRange = highestCount - lowestCount;
-
   return {
     type: "FeatureCollection",
-    features: entries.map((entry) => {
+    features: [...entriesByGeoKey.values()].map((entry) => {
       const count = entry.brandIds.size;
-      const densityRatio = countRange > 0 ? (count - lowestCount) / countRange : 0;
 
       return {
         type: "Feature",
@@ -2905,25 +3591,38 @@ function buildTerritoryDensityFeatureCollection(matchingRecords) {
           stateName: entry.name,
           geoType: entry.geoType,
           geoRank: getTerritoryGeoTypeRank(entry.geoType),
-          brandCount: count,
-          densityRatio
+          brandCount: count
         }
       };
     })
   };
 }
 
-function updateTerritoryDensityData(territoryMap, matchingRecords) {
+function updateTerritoryDensityData(territoryMap, matchingRecords, visibleGeoKeys) {
+  // Handing Mapbox a new density collection re-tiles every polygon in the
+  // result set, so skip it while the layer is hidden and whenever the visible
+  // territories and their brand counts have not moved.
+  if (!territoryDensityEnabled) {
+    territoryDensityDataStale = true;
+    return;
+  }
+
   const collection = buildTerritoryDensityFeatureCollection(matchingRecords);
-  const visibleGeoKeys = new Set(
-    matchingRecords.map((record) => record.geoKey || record.state).filter(Boolean)
-  );
+  const signature = collection.features
+    .map((feature) => `${feature.properties.geoKey}:${feature.properties.brandCount}`)
+    .join(",")
+    + (isTerritoryRadiusFadeActive() ? `::${territoryRadiusFadeSignature}` : "");
+
+  if (!territoryDensityDataStale && signature === territoryDensitySignature) return;
+
   const fadedCollection = splitTerritoryFeatureCollectionByRadius(
     collection,
     visibleGeoKeys,
     "geoKey"
   );
   territoryMap.getSource(TERRITORY_DENSITY_SOURCE_ID)?.setData(fadedCollection);
+  territoryDensitySignature = signature;
+  territoryDensityDataStale = false;
 }
 
 function updateBrandLogoOffsets(territoryMap, brandId, visibleOccupantsByState) {
@@ -2949,6 +3648,17 @@ function updateBrandLogoOffsets(territoryMap, brandId, visibleOccupantsByState) 
   }
 }
 
+// Every setFilter makes Mapbox re-evaluate the layer's tiles, and a wide search
+// touches hundreds of layers. Most brands keep the same visible territories
+// across a refresh, so their filters are compared by signature and left alone.
+function setCachedTerritoryLayerFilter(territoryMap, layerId, filter, signature) {
+  if (!layerId || territoryLayerFilterSignatures.get(layerId) === signature) return;
+  if (!territoryMap.getLayer(layerId)) return;
+
+  territoryMap.setFilter(layerId, filter);
+  territoryLayerFilterSignatures.set(layerId, signature);
+}
+
 function renderTerritoryRecords(matchingRecords) {
   const territoryMap = window.territoryMap;
   if (!territoryMap || !territoryBrands.length) return;
@@ -2958,49 +3668,52 @@ function renderTerritoryRecords(matchingRecords) {
 
   syncTerritoryRadiusOverlay();
 
-  const matchingKeys = new Set(matchingRecords.map(territoryRecordKey));
-  const visibleOccupantsByState = buildVisibleOccupantsByState(matchingKeys);
+  const visibility = buildTerritoryVisibilityIndex(matchingRecords);
+  const visibleOccupantsByState = visibility.occupantsByGeoKey;
   syncTerritoryRadiusOutsideFade(territoryMap, matchingRecords);
-  updateTerritoryDensityData(territoryMap, matchingRecords);
+  updateTerritoryDensityData(territoryMap, matchingRecords, visibility.visibleGeoKeys);
 
   territoryBrands.forEach((brand) => {
     const layerIds = territoryBrandLayerIds.get(brand.id);
     if (!layerIds) return;
 
-    const visibleGeoKeys = expandGeoKeysForRadiusFade(getVisibleStatesForBrand(matchingKeys, brand.id));
+    const visibleGeoKeys = expandGeoKeysForRadiusFade(visibility.geoKeysByBrand.get(brand.id) || []);
     const geoKeyFilter = buildGeoKeyVisibilityFilter(visibleGeoKeys);
-    const logoFilter = buildGeoKeyVisibilityFilter(getVisibleLogoStatesForBrand(matchingKeys, brand.id));
+    const geoKeySignature = visibleGeoKeys.join(",");
+    const logoGeoKeys = visibility.logoGeoKeysByBrand.get(brand.id) || [];
+    const logoFilter = buildGeoKeyVisibilityFilter(logoGeoKeys);
 
     layerIds.geoLayers.forEach((geoLayers, geoType) => {
       const geoTypeFilter = ["==", ["get", "geoType"], geoType];
-      const solidFilter = combineTerritoryFilters(
-        geoKeyFilter,
-        geoTypeFilter,
-        TERRITORY_STATUS_NON_ESTABLISHED_FILTER
-      );
-      const hatchFilter = combineTerritoryFilters(
-        geoKeyFilter,
-        geoTypeFilter,
-        TERRITORY_STATUS_ESTABLISHED_FILTER
-      );
-      const lineFilter = combineTerritoryFilters(geoKeyFilter, geoTypeFilter);
+      const signature = `${geoType}|${geoKeySignature}`;
 
-      if (geoLayers.fillLayerId && territoryMap.getLayer(geoLayers.fillLayerId)) {
-        territoryMap.setFilter(geoLayers.fillLayerId, solidFilter);
-      }
-      if (geoLayers.hatchLayerId && territoryMap.getLayer(geoLayers.hatchLayerId)) {
-        territoryMap.setFilter(geoLayers.hatchLayerId, hatchFilter);
-      }
-      if (geoLayers.lineLayerId && territoryMap.getLayer(geoLayers.lineLayerId)) {
-        territoryMap.setFilter(geoLayers.lineLayerId, lineFilter);
-      }
+      setCachedTerritoryLayerFilter(
+        territoryMap,
+        geoLayers.fillLayerId,
+        combineTerritoryFilters(geoKeyFilter, geoTypeFilter, TERRITORY_STATUS_NON_ESTABLISHED_FILTER),
+        signature
+      );
+      setCachedTerritoryLayerFilter(
+        territoryMap,
+        geoLayers.hatchLayerId,
+        combineTerritoryFilters(geoKeyFilter, geoTypeFilter, TERRITORY_STATUS_ESTABLISHED_FILTER),
+        signature
+      );
+      setCachedTerritoryLayerFilter(
+        territoryMap,
+        geoLayers.lineLayerId,
+        combineTerritoryFilters(geoKeyFilter, geoTypeFilter),
+        signature
+      );
     });
 
     if (layerIds.logoLayerId && territoryMap.getLayer(layerIds.logoLayerId)) {
-      territoryMap.setFilter(layerIds.logoLayerId, logoFilter);
-    }
-
-    if (layerIds.logoLayerId && territoryMap.getLayer(layerIds.logoLayerId)) {
+      setCachedTerritoryLayerFilter(
+        territoryMap,
+        layerIds.logoLayerId,
+        logoFilter,
+        `logo|${logoGeoKeys.join(",")}`
+      );
       updateBrandLogoOffsets(territoryMap, brand.id, visibleOccupantsByState);
     }
   });
@@ -3024,15 +3737,537 @@ function getSelectedTerritoryRecords(matchingRecords = territoryLastMatchingReco
   return records;
 }
 
-function applyTerritoryFilters(matchingRecords) {
+function getTerritoryOpacityTransition() {
+  return territoryRevealActive
+    ? { duration: TERRITORY_REVEAL_FADE_MS, delay: 0 }
+    : { duration: 0, delay: 0 };
+}
+
+function getTerritoryAreaMapHighlightGeoKey() {
+  const card = getTerritoryInfoCardElement();
+  if (
+    !territoryAreaCardGeoKey
+    || !card
+    || card.hidden
+    || card.classList.contains("is-detail")
+  ) {
+    return null;
+  }
+
+  return territoryAreaCardGeoKey;
+}
+
+function isTerritoryDetailMapHighlightActive() {
+  return Boolean(selectedTerritoryKey || compareTerritoryKey);
+}
+
+function getDensityFillColorExpression() {
+  return TERRITORY_DENSITY_HIGH_COLOR;
+}
+
+function getDensityFillOpacityExpression() {
+  if (isTerritoryDetailMapHighlightActive()) {
+    return withTerritoryLayerOpacity(TERRITORY_FILL_SELECTED_OPACITY);
+  }
+
+  if (getTerritoryAreaMapHighlightGeoKey()) {
+    return withTerritoryLayerOpacity([
+      "case",
+      ["boolean", ["feature-state", "hover"], false],
+      TERRITORY_AREA_CONTEXT_HOVER_OPACITY,
+      TERRITORY_AREA_CONTEXT_OPACITY
+    ]);
+  }
+
+  return withTerritoryLayerOpacity([
+    "case",
+    ["boolean", ["feature-state", "hover"], false],
+    TERRITORY_DENSITY_FILL_HOVER_OPACITY_EXPRESSION,
+    TERRITORY_DENSITY_FILL_OPACITY_EXPRESSION
+  ]);
+}
+
+function getDensityLineColorExpression() {
+  return TERRITORY_DENSITY_HIGH_COLOR;
+}
+
+function getDensityLineOpacityExpression() {
+  if (isTerritoryDetailMapHighlightActive()) {
+    return withTerritoryLayerOpacity(TERRITORY_LINE_SELECTED_OPACITY);
+  }
+
+  if (getTerritoryAreaMapHighlightGeoKey()) {
+    return withTerritoryLayerOpacity([
+      "case",
+      ["boolean", ["feature-state", "hover"], false],
+      TERRITORY_AREA_CONTEXT_LINE_HOVER_OPACITY,
+      TERRITORY_AREA_CONTEXT_LINE_OPACITY
+    ]);
+  }
+
+  return withTerritoryLayerOpacity([
+    "case",
+    ["boolean", ["feature-state", "hover"], false],
+    TERRITORY_DENSITY_LINE_HOVER_OPACITY_EXPRESSION,
+    TERRITORY_DENSITY_LINE_OPACITY_EXPRESSION
+  ]);
+}
+
+function syncTerritoryLayerOpacities() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap) return;
+
+  const transition = getTerritoryOpacityTransition();
+
+  territoryBrands.forEach((brand) => {
+    const layerIds = territoryBrandLayerIds.get(brand.id);
+    if (!layerIds) return;
+
+    layerIds.geoLayers.forEach((geoLayers) => {
+      if (geoLayers.fillLayerId && territoryMap.getLayer(geoLayers.fillLayerId)) {
+        territoryMap.setPaintProperty(
+          geoLayers.fillLayerId,
+          "fill-opacity",
+          territoryDensityEnabled ? 0 : withTerritoryLayerOpacity(TERRITORY_FILL_OPACITY_EXPRESSION)
+        );
+        territoryMap.setPaintProperty(geoLayers.fillLayerId, "fill-opacity-transition", transition);
+      }
+
+      if (geoLayers.hatchLayerId && territoryMap.getLayer(geoLayers.hatchLayerId)) {
+        territoryMap.setPaintProperty(
+          geoLayers.hatchLayerId,
+          "fill-opacity",
+          territoryDensityEnabled ? 0 : withTerritoryLayerOpacity(TERRITORY_HATCH_FILL_OPACITY_EXPRESSION)
+        );
+        territoryMap.setPaintProperty(geoLayers.hatchLayerId, "fill-opacity-transition", transition);
+      }
+
+      if (geoLayers.lineLayerId && territoryMap.getLayer(geoLayers.lineLayerId)) {
+        territoryMap.setPaintProperty(
+          geoLayers.lineLayerId,
+          "line-opacity",
+          withTerritoryLayerOpacity(TERRITORY_LINE_OPACITY_EXPRESSION)
+        );
+        territoryMap.setPaintProperty(geoLayers.lineLayerId, "line-opacity-transition", transition);
+      }
+    });
+
+    if (layerIds.logoLayerId && territoryMap.getLayer(layerIds.logoLayerId)) {
+      territoryMap.setPaintProperty(
+        layerIds.logoLayerId,
+        "icon-opacity",
+        withTerritoryRevealOpacity(1)
+      );
+      territoryMap.setPaintProperty(layerIds.logoLayerId, "icon-opacity-transition", transition);
+    }
+  });
+
+  if (territoryMap.getLayer(TERRITORY_DENSITY_FILL_LAYER_ID)) {
+    territoryMap.setPaintProperty(
+      TERRITORY_DENSITY_FILL_LAYER_ID,
+      "fill-color",
+      getDensityFillColorExpression()
+    );
+    territoryMap.setPaintProperty(
+      TERRITORY_DENSITY_FILL_LAYER_ID,
+      "fill-opacity",
+      getDensityFillOpacityExpression()
+    );
+    territoryMap.setPaintProperty(
+      TERRITORY_DENSITY_FILL_LAYER_ID,
+      "fill-opacity-transition",
+      transition
+    );
+  }
+
+  if (territoryMap.getLayer(TERRITORY_DENSITY_LINE_LAYER_ID)) {
+    territoryMap.setPaintProperty(
+      TERRITORY_DENSITY_LINE_LAYER_ID,
+      "line-color",
+      getDensityLineColorExpression()
+    );
+    territoryMap.setPaintProperty(
+      TERRITORY_DENSITY_LINE_LAYER_ID,
+      "line-opacity",
+      getDensityLineOpacityExpression()
+    );
+    territoryMap.setPaintProperty(
+      TERRITORY_DENSITY_LINE_LAYER_ID,
+      "line-opacity-transition",
+      transition
+    );
+  }
+}
+
+function syncTerritoryAreaMapHighlight() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || typeof territoryMap.getLayer !== "function") return;
+
+  const geoKey = getTerritoryAreaMapHighlightGeoKey();
+  const filter = geoKey
+    ? [
+      "==",
+      ["coalesce", ["get", "sourceGeoKey"], ["get", "geoKey"]],
+      geoKey
+    ]
+    : ["==", ["get", "geoKey"], ""];
+  const fillVisibility = territoryDensityEnabled && geoKey ? "visible" : "none";
+  const lineVisibility = territoryDensityEnabled && territoryBordersEnabled && geoKey
+    ? "visible"
+    : "none";
+
+  if (territoryMap.getLayer(TERRITORY_AREA_FOCUS_FILL_LAYER_ID)) {
+    territoryMap.setFilter(TERRITORY_AREA_FOCUS_FILL_LAYER_ID, filter);
+    territoryMap.setLayoutProperty(
+      TERRITORY_AREA_FOCUS_FILL_LAYER_ID,
+      "visibility",
+      fillVisibility
+    );
+  }
+
+  if (territoryMap.getLayer(TERRITORY_AREA_FOCUS_LINE_LAYER_ID)) {
+    territoryMap.setFilter(TERRITORY_AREA_FOCUS_LINE_LAYER_ID, filter);
+    territoryMap.setLayoutProperty(
+      TERRITORY_AREA_FOCUS_LINE_LAYER_ID,
+      "visibility",
+      lineVisibility
+    );
+  }
+
+  syncTerritoryLayerOpacities();
+}
+
+function getTerritoryFeatureStateId(record) {
+  return getTerritoryPromoteId() === "state"
+    ? record.state
+    : (record.geoKey || record.state);
+}
+
+function setTerritoryFeatureRevealState(sourceId, id, revealed) {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || id == null || !territoryMap.getSource(sourceId)) return;
+
+  try {
+    territoryMap.setFeatureState({ source: sourceId, id }, { reveal: revealed });
+  } catch (error) {
+    // The feature may not exist on this source.
+  }
+}
+
+function setTerritoryRecordRevealState(record, revealed) {
+  const featureId = getTerritoryFeatureStateId(record);
+  const geoKey = record.geoKey || record.state;
+  setTerritoryFeatureRevealState(`territories-${record.brandId}`, featureId, revealed);
+  setTerritoryFeatureRevealState(`territories-${record.brandId}-logos`, featureId, revealed);
+  setTerritoryFeatureRevealState(TERRITORY_DENSITY_SOURCE_ID, geoKey, revealed);
+
+  if (isTerritoryRadiusFadeActive() && geoKey) {
+    setTerritoryFeatureRevealState(
+      `territories-${record.brandId}`,
+      getRadiusOutsideGeoKey(featureId),
+      revealed
+    );
+    setTerritoryFeatureRevealState(
+      TERRITORY_DENSITY_SOURCE_ID,
+      getRadiusOutsideGeoKey(geoKey),
+      revealed
+    );
+  }
+}
+
+function getRecordRevealDistanceMiles(record, center) {
+  const point = Array.isArray(record.center) && record.center.length >= 2
+    ? record.center
+    : record.geometryBounds
+      ? [
+          (record.geometryBounds.west + record.geometryBounds.east) / 2,
+          (record.geometryBounds.south + record.geometryBounds.north) / 2
+        ]
+      : null;
+
+  if (!point) return 0;
+  return getLngLatDistanceMiles(center, point);
+}
+
+function easeOutReveal(value) {
+  return 1 - ((1 - value) ** 2.25);
+}
+
+function cancelTerritoryRevealAnimation() {
+  if (!territoryRevealRaf) return;
+  window.cancelAnimationFrame(territoryRevealRaf);
+  territoryRevealRaf = 0;
+}
+
+function finishTerritoryReveal() {
+  cancelTerritoryRevealAnimation();
+  territoryRevealActive = false;
+  syncTerritoryLayerOpacities();
+  if (!territoryBusyHeldForReveal) return;
+
+  territoryBusyHeldForReveal = false;
+  const resetWillShow = shouldTerritoryMapResetShow();
+  const crossfade = isTerritoryMapBusyVisible() && resetWillShow;
+  setTerritoryMapBusy(false, { crossfade });
+  if (crossfade) {
+    showTerritoryMapReset({ crossfade: true });
+  } else {
+    updateTerritoryMapResetVisibility();
+  }
+}
+
+function isTerritoryStateLevelRecord(record) {
+  return normalizeTerritoryGeoType(record?.geoType) === "region";
+}
+
+function startTerritoryRadialReveal(center, records) {
+  cancelTerritoryRevealAnimation();
+
+  if (!records.length) {
+    finishTerritoryReveal();
+    return;
+  }
+
+  const items = records.map((record) => ({
+    record,
+    distance: getRecordRevealDistanceMiles(record, center),
+    isStateLevel: isTerritoryStateLevelRecord(record)
+  }));
+  const localMaxDistance = items.reduce((maxDistance, item) => (
+    item.isStateLevel ? maxDistance : Math.max(maxDistance, item.distance)
+  ), 0);
+
+  // Keep the radial sweep, but hold state polygons until the last stretch of
+  // the city / county / CBSA reveal so the two waves overlap.
+  if (localMaxDistance > 0) {
+    const stateOffset = localMaxDistance * (1 - TERRITORY_REVEAL_STATE_OVERLAP);
+    items.forEach((item) => {
+      if (item.isStateLevel) item.distance += stateOffset;
+    });
+  }
+
+  items.sort((left, right) => (
+    left.distance - right.distance
+    || Number(left.isStateLevel) - Number(right.isStateLevel)
+  ));
+
+  const maxDistance = Math.max(items[items.length - 1].distance, TERRITORY_REVEAL_MIN_MILES);
+  const startedAt = performance.now();
+  let nextIndex = 0;
+
+  const frame = (now) => {
+    const progress = easeOutReveal(Math.min(1, (now - startedAt) / TERRITORY_REVEAL_DURATION_MS));
+    const radius = progress * maxDistance;
+
+    while (nextIndex < items.length && items[nextIndex].distance <= radius) {
+      setTerritoryRecordRevealState(items[nextIndex].record, true);
+      nextIndex += 1;
+    }
+
+    if (progress < 1) {
+      territoryRevealRaf = window.requestAnimationFrame(frame);
+      return;
+    }
+
+    finishTerritoryReveal();
+  };
+
+  territoryRevealRaf = window.requestAnimationFrame(frame);
+}
+
+function getTerritoryMapRevealCenter() {
+  const center = window.territoryMap?.getCenter?.();
+  if (!center || !Number.isFinite(center.lng) || !Number.isFinite(center.lat)) return null;
+  return [center.lng, center.lat];
+}
+
+function armTerritoryLocationReveal(longitude, latitude, { fromMapCenter = false } = {}) {
+  const lng = Number(longitude);
+  const lat = Number(latitude);
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return false;
+
+  cancelTerritoryRevealAnimation();
+  territoryPendingRevealCenter = [lng, lat];
+  territoryPendingRevealFromMapCenter = fromMapCenter;
+  return true;
+}
+
+function armTerritoryMapCenterReveal() {
+  const center = getTerritoryMapRevealCenter();
+  if (!center) return false;
+  return armTerritoryLocationReveal(center[0], center[1], { fromMapCenter: true });
+}
+
+function getTerritoryStateCenter(stateCode) {
+  const feature = territoryStatesByCode.get(stateCode);
+  if (!feature?.geometry) return null;
+
+  const centroid = getTerritoryCentroid(feature.geometry);
+  if (!Array.isArray(centroid) || centroid.length < 2) return null;
+  if (!Number.isFinite(centroid[0]) || !Number.isFinite(centroid[1])) return null;
+
+  return centroid;
+}
+
+function armTerritoryStateReveal(stateCode) {
+  const center = getTerritoryStateCenter(stateCode);
+  if (!center) return false;
+
+  return armTerritoryLocationReveal(center[0], center[1]);
+}
+
+function armTerritoryStatesReveal(stateCodes) {
+  const codes = [...new Set((stateCodes || []).filter(Boolean))];
+  if (!codes.length) return false;
+  if (codes.length === 1) return armTerritoryStateReveal(codes[0]);
+
+  const centers = codes.map(getTerritoryStateCenter).filter(Boolean);
+  if (!centers.length) return false;
+
+  const longitude = centers.reduce((sum, center) => sum + center[0], 0) / centers.length;
+  const latitude = centers.reduce((sum, center) => sum + center[1], 0) / centers.length;
+  return armTerritoryLocationReveal(longitude, latitude);
+}
+
+function whenTerritoryMapReadyForReveal(territoryMap, callback) {
+  const start = () => {
+    if (!territoryMap) {
+      callback();
+      return;
+    }
+
+    if (!territoryMap.isMoving?.() && territoryMap.areTilesLoaded?.()) {
+      callback();
+      return;
+    }
+
+    territoryMap.once("idle", callback);
+  };
+
+  if (isTerritoryMapCoveredByLoading()) {
+    territoryRevealAfterOverlay = start;
+    return;
+  }
+
+  start();
+}
+
+function playTerritoryRevealAfterFocus(territoryMap) {
+  const isMoving = Boolean(territoryMap?.isMoving?.());
+  const finish = () => {
+    if (territoryMap) {
+      captureTerritoryFilterDefaultViewFromMap(territoryMap);
+    }
+    playPendingTerritoryReveal();
+    updateTerritoryMapResetVisibility();
+  };
+
+  if (isMoving) {
+    territoryMap.once("moveend", finish);
+    return;
+  }
+
+  finish();
+}
+
+function notifyTerritoryListEnterStarted() {
+  const start = territoryRevealWhenListEnters;
+  territoryRevealWhenListEnters = null;
+  start?.();
+}
+
+function getTerritoryRecordIdentity(record) {
+  return `${record.brandId}:${record.geoKey || record.state}`;
+}
+
+function playPendingTerritoryReveal(records = territoryPendingRevealRecords || territoryLastMatchingRecords || []) {
+  if (territoryPendingRevealFromMapCenter) {
+    const mapCenter = getTerritoryMapRevealCenter();
+    if (mapCenter) territoryPendingRevealCenter = mapCenter;
+  }
+
+  const center = territoryPendingRevealCenter;
+  if (!center) return;
+
+  if (prefersTerritoryReducedMotion()) {
+    territoryPendingRevealCenter = null;
+    territoryPendingRevealRecords = null;
+    territoryPendingRevealFromMapCenter = false;
+    if (territoryRevealActive) finishTerritoryReveal();
+    return;
+  }
+
+  territoryPendingRevealCenter = null;
+  territoryPendingRevealFromMapCenter = false;
+  const pendingRecords = records.length ? records : (territoryPendingRevealRecords || []);
+  territoryPendingRevealRecords = null;
+
+  // The sweep waits for the list and for Mapbox to ingest the new density
+  // features. setData clears feature-state, so starting earlier makes the
+  // hide/reveal updates no-ops and the polygons just appear when tiles land.
+  const revealToken = ++territoryRevealCommitToken;
+  const start = () => {
+    if (revealToken !== territoryRevealCommitToken) return;
+    const playRecords = pendingRecords.length ? pendingRecords : (territoryLastMatchingRecords || []);
+    territoryRevealActive = true;
+    syncTerritoryLayerOpacities();
+    playRecords.forEach((record) => setTerritoryRecordRevealState(record, false));
+
+    const beginSweep = () => {
+      if (revealToken !== territoryRevealCommitToken) return;
+      territoryRevealWhenListEnters = null;
+      startTerritoryRadialReveal(center, playRecords);
+    };
+
+    // Hold the sweep until the list enter starts so both panels animate together.
+    if (window.territoryBrandPanel?.isEnterPending?.()) {
+      territoryRevealWhenListEnters = beginSweep;
+      return;
+    }
+
+    beginSweep();
+  };
+
+  const afterCommit = () => {
+    if (revealToken !== territoryRevealCommitToken) return;
+    whenTerritoryMapReadyForReveal(window.territoryMap, start);
+  };
+
+  const commit = territoryResultsCommit;
+  if (!commit) {
+    afterCommit();
+    return;
+  }
+
+  commit.then(afterCommit);
+}
+
+function applyTerritoryFilters(matchingRecords, { isCancelled } = {}) {
   const territoryMap = window.territoryMap;
   if (!territoryMap || !territoryBrands.length) return;
+
+  const previousKeys = new Set((territoryLastMatchingRecords || []).map(getTerritoryRecordIdentity));
+  const hasAddedRecords = matchingRecords.some(
+    (record) => !previousKeys.has(getTerritoryRecordIdentity(record))
+  );
+  if (
+    !territoryPendingRevealCenter
+    && hasAddedRecords
+    && !prefersTerritoryReducedMotion()
+  ) {
+    armTerritoryMapCenterReveal();
+  }
+  const shouldReveal = Boolean(territoryPendingRevealCenter) && !prefersTerritoryReducedMotion();
 
   clearTerritoryMapHover?.();
   hideTerritoryAreaCard({ immediate: true });
   territoryLastMatchingRecords = matchingRecords;
   territoryHoldInitialRender = false;
-  rebuildTerritoryIntersectionIndex(matchingRecords);
+  setTerritoryIntersectionScope(matchingRecords);
+
+  if (shouldReveal) {
+    cancelTerritoryRevealAnimation();
+  }
 
   if (selectedTerritoryKey) {
     const primaryStillVisible = matchingRecords.some(
@@ -3056,16 +4291,59 @@ function applyTerritoryFilters(matchingRecords) {
   }
 
   const selectedRecords = getSelectedTerritoryRecords(matchingRecords);
-  renderTerritoryRecords(selectedRecords.length ? selectedRecords : matchingRecords);
+  const visibleRecords = selectedRecords.length ? selectedRecords : matchingRecords;
+  renderTerritoryRecords(visibleRecords);
   window.territoryFilters?.updateSummary?.(matchingRecords.length, territoryRegistry.length);
-  window.territoryBrandPanel?.update?.(territoryBrands, matchingRecords);
+
+  // The list builds itself in slices, so callers get a promise for the moment
+  // the rendered results are actually on screen.
+  const listCommit = Promise.resolve(
+    window.territoryBrandPanel?.update?.(territoryBrands, matchingRecords, { isCancelled })
+  );
+  territoryResultsCommit = listCommit;
+  listCommit.then(() => {
+    if (territoryResultsCommit === listCommit) territoryResultsCommit = null;
+  });
+
   showTerritoryInfoCards(selectedRecords[0] || null, selectedRecords[1] || null);
+
+  if (shouldReveal) {
+    const addedRecords = visibleRecords.filter(
+      (record) => !previousKeys.has(getTerritoryRecordIdentity(record))
+    );
+    const keptRecords = visibleRecords.filter(
+      (record) => previousKeys.has(getTerritoryRecordIdentity(record))
+    );
+    // setData wipes density feature-state, so restore already-drawn territories
+    // before the reveal gate turns on. Only the newly added shapes hide.
+    keptRecords.forEach((record) => setTerritoryRecordRevealState(record, true));
+    addedRecords.forEach((record) => setTerritoryRecordRevealState(record, false));
+    if (addedRecords.length) {
+      territoryRevealActive = true;
+      territoryPendingRevealRecords = addedRecords;
+      syncTerritoryLayerOpacities();
+      if (territoryViewportFramed && !territoryMap.isMoving?.()) {
+        playPendingTerritoryReveal(addedRecords);
+      }
+    } else {
+      territoryPendingRevealCenter = null;
+      territoryPendingRevealRecords = null;
+      territoryPendingRevealFromMapCenter = false;
+      if (territoryRevealActive) finishTerritoryReveal();
+    }
+  } else if (territoryPendingRevealCenter && prefersTerritoryReducedMotion()) {
+    territoryPendingRevealCenter = null;
+    territoryPendingRevealRecords = null;
+    territoryPendingRevealFromMapCenter = false;
+  }
 
   if (!selectedTerritoryKey) {
     scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords);
   } else if (selectedRecords.length > 1) {
     focusTerritoryMapOnSelectedRecords(territoryMap, selectedRecords);
   }
+
+  return listCommit;
 }
 
 async function fetchTerritoryJson(url) {
@@ -3311,17 +4589,6 @@ async function loadBrandLogoImage(territoryMap, brand) {
   return logoMeta;
 }
 
-function hexToRgba(hex, alpha) {
-  let value = String(hex || "").replace("#", "");
-  if (value.length === 3) {
-    value = value.split("").map((char) => char + char).join("");
-  }
-  const red = parseInt(value.substring(0, 2), 16) || 0;
-  const green = parseInt(value.substring(2, 4), 16) || 0;
-  const blue = parseInt(value.substring(4, 6), 16) || 0;
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
-
 function collectGeometryPolygons(geometry) {
   if (!geometry) return [];
   if (geometry.type === "Polygon") return [geometry.coordinates];
@@ -3375,10 +4642,24 @@ function pointIsInsideGeometryPolygon(point, rings) {
   return !rings.slice(1).some((hole) => pointIsInsideGeometryRing(point, hole));
 }
 
+function getTerritoryStateBounds(stateCode, feature = territoryStatesByCode.get(stateCode)) {
+  if (!stateCode || !feature) return null;
+  if (territoryStateBoundsByCode.has(stateCode)) {
+    return territoryStateBoundsByCode.get(stateCode);
+  }
+
+  const bounds = getGeometryBounds(feature.geometry);
+  territoryStateBoundsByCode.set(stateCode, bounds);
+  return bounds;
+}
+
 function getStateCodeForCoordinates(longitude, latitude) {
   const point = [longitude, latitude];
 
   for (const [stateCode, stateFeature] of territoryStatesByCode) {
+    const bounds = getTerritoryStateBounds(stateCode, stateFeature);
+    if (bounds && !pointIsInsideBounds(longitude, latitude, bounds)) continue;
+
     const polygons = collectGeometryPolygons(stateFeature.geometry);
     if (polygons.some((rings) => pointIsInsideGeometryPolygon(point, rings))) {
       return stateCode;
@@ -3386,6 +4667,577 @@ function getStateCodeForCoordinates(longitude, latitude) {
   }
 
   return null;
+}
+
+function boundsOverlap(left, right) {
+  return Boolean(
+    left
+    && right
+    && left.west <= right.east
+    && left.east >= right.west
+    && left.south <= right.north
+    && left.north >= right.south
+  );
+}
+
+function getTerritoryViewportLandSamplePoints(bounds, center) {
+  const points = [];
+  const width = bounds.east - bounds.west;
+  const height = bounds.north - bounds.south;
+  const rings = [0.18, 0.36, 0.58, 0.8];
+  const directions = 12;
+
+  rings.forEach((radius) => {
+    for (let index = 0; index < directions; index += 1) {
+      const angle = (index / directions) * Math.PI * 2;
+      const longitude = center[0] + (Math.cos(angle) * (width / 2) * radius);
+      const latitude = center[1] + (Math.sin(angle) * (height / 2) * radius);
+      if (pointIsInsideBounds(longitude, latitude, bounds)) {
+        points.push([longitude, latitude]);
+      }
+    }
+  });
+
+  for (let row = 1; row <= 3; row += 1) {
+    for (let column = 1; column <= 3; column += 1) {
+      points.push([
+        bounds.west + ((width * column) / 4),
+        bounds.south + ((height * row) / 4)
+      ]);
+    }
+  }
+
+  return points;
+}
+
+function getNearestStateVertex(feature, target, viewportBounds = null) {
+  const polygons = collectGeometryPolygons(feature?.geometry);
+  let bestPoint = null;
+  let bestDistance = Infinity;
+
+  polygons.forEach((rings) => {
+    const ring = rings[0];
+    if (!ring?.length) return;
+
+    const step = Math.max(1, Math.ceil(ring.length / 64));
+    for (let index = 0; index < ring.length; index += step) {
+      const [longitude, latitude] = ring[index];
+      if (viewportBounds && !pointIsInsideBounds(longitude, latitude, viewportBounds)) {
+        continue;
+      }
+
+      const distance = getLngLatDistanceMiles(target, [longitude, latitude]);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestPoint = [longitude, latitude];
+      }
+    }
+  });
+
+  return bestPoint ? { point: bestPoint, distance: bestDistance } : null;
+}
+
+function resolveTerritorySearchAreaAnchor(territoryMap) {
+  const center = territoryMap?.getCenter?.();
+  if (!center || !Number.isFinite(center.lng) || !Number.isFinite(center.lat)) {
+    return null;
+  }
+
+  const target = [center.lng, center.lat];
+  const centerStateCode = getStateCodeForCoordinates(center.lng, center.lat);
+  if (centerStateCode) {
+    return {
+      longitude: center.lng,
+      latitude: center.lat,
+      stateCode: centerStateCode
+    };
+  }
+
+  const viewportBounds = getTerritoryMapViewportBounds();
+  if (viewportBounds) {
+    for (const [longitude, latitude] of getTerritoryViewportLandSamplePoints(viewportBounds, target)) {
+      const stateCode = getStateCodeForCoordinates(longitude, latitude);
+      if (!stateCode) continue;
+      return { longitude, latitude, stateCode };
+    }
+
+    let bestInView = null;
+    territoryStatesByCode.forEach((feature, stateCode) => {
+      const stateBounds = getTerritoryStateBounds(stateCode, feature);
+      if (!boundsOverlap(viewportBounds, stateBounds)) return;
+
+      const nearest = getNearestStateVertex(feature, target, viewportBounds)
+        || getNearestStateVertex(feature, target);
+      if (!nearest) return;
+      if (!bestInView || nearest.distance < bestInView.distance) {
+        bestInView = { stateCode, ...nearest };
+      }
+    });
+
+    if (bestInView) {
+      return {
+        longitude: bestInView.point[0],
+        latitude: bestInView.point[1],
+        stateCode: bestInView.stateCode
+      };
+    }
+  }
+
+  let nearestLand = null;
+  territoryStatesByCode.forEach((feature, stateCode) => {
+    const nearest = getNearestStateVertex(feature, target);
+    if (!nearest) return;
+    if (!nearestLand || nearest.distance < nearestLand.distance) {
+      nearestLand = { stateCode, ...nearest };
+    }
+  });
+
+  if (!nearestLand) {
+    return { longitude: center.lng, latitude: center.lat, stateCode: null };
+  }
+
+  return {
+    longitude: nearestLand.point[0],
+    latitude: nearestLand.point[1],
+    stateCode: nearestLand.stateCode
+  };
+}
+
+function pointIsInsideGeometry(point, geometry) {
+  return collectGeometryPolygons(geometry).some((rings) => (
+    pointIsInsideGeometryPolygon(point, rings)
+  ));
+}
+
+function pointIsInsideBounds(longitude, latitude, bounds) {
+  return Boolean(
+    bounds
+    && longitude >= bounds.west
+    && longitude <= bounds.east
+    && latitude >= bounds.south
+    && latitude <= bounds.north
+  );
+}
+
+function territoryBoundsContainBounds(outer, inner) {
+  if (!outer || !inner) return false;
+  return outer.west <= inner.west
+    && outer.east >= inner.east
+    && outer.south <= inner.south
+    && outer.north >= inner.north;
+}
+
+// Liang-Barsky: clips the segment against each edge of the rectangle and
+// reports whether anything survives.
+function segmentIntersectsBounds(ax, ay, bx, by, bounds) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  let entry = 0;
+  let exit = 1;
+
+  const clip = (edge, distance) => {
+    if (edge === 0) return distance >= 0;
+
+    const crossing = distance / edge;
+    if (edge < 0) {
+      if (crossing > exit) return false;
+      if (crossing > entry) entry = crossing;
+    } else {
+      if (crossing < entry) return false;
+      if (crossing < exit) exit = crossing;
+    }
+    return true;
+  };
+
+  return clip(-dx, ax - bounds.west)
+    && clip(dx, bounds.east - ax)
+    && clip(-dy, ay - bounds.south)
+    && clip(dy, bounds.north - ay);
+}
+
+// Stands in for turf.booleanIntersects when the other shape is a lat/lng
+// rectangle, which is the hot path for viewport searches. turf allocates
+// feature wrappers and walks every segment pair; this exits on the first hit.
+function geometryIntersectsBounds(geometry, bounds) {
+  if (!geometry || !bounds) return false;
+
+  const polygons = collectGeometryPolygons(geometry);
+  const corners = [
+    [bounds.west, bounds.south],
+    [bounds.east, bounds.south],
+    [bounds.east, bounds.north],
+    [bounds.west, bounds.north]
+  ];
+
+  for (const rings of polygons) {
+    for (const ring of rings) {
+      for (let index = 0; index < ring.length; index += 1) {
+        const [longitude, latitude] = ring[index];
+        if (pointIsInsideBounds(longitude, latitude, bounds)) return true;
+      }
+    }
+
+    // The rectangle may also sit wholly inside the polygon, or cross it without
+    // either shape putting a vertex inside the other.
+    if (corners.some((corner) => pointIsInsideGeometryPolygon(corner, rings))) return true;
+
+    for (const ring of rings) {
+      for (let index = 1; index < ring.length; index += 1) {
+        const [ax, ay] = ring[index - 1];
+        const [bx, by] = ring[index];
+        if (segmentIntersectsBounds(ax, ay, bx, by, bounds)) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function getSquaredDistanceFromOriginToSegment(from, to) {
+  const dx = to[0] - from[0];
+  const dy = to[1] - from[1];
+  const lengthSquared = (dx * dx) + (dy * dy);
+
+  if (lengthSquared === 0) {
+    return (from[0] * from[0]) + (from[1] * from[1]);
+  }
+
+  const projection = Math.max(
+    0,
+    Math.min(1, -((from[0] * dx) + (from[1] * dy)) / lengthSquared)
+  );
+  const closestX = from[0] + (projection * dx);
+  const closestY = from[1] + (projection * dy);
+
+  return (closestX * closestX) + (closestY * closestY);
+}
+
+// Same idea as geometryIntersectsBounds, for the radius filter. Coordinates are
+// flattened to miles around the circle centre so the test is plain arithmetic.
+function geometryIntersectsCircle(geometry, center, radiusMiles) {
+  if (!geometry || !Array.isArray(center) || center.length < 2 || !(radiusMiles > 0)) {
+    return false;
+  }
+
+  const polygons = collectGeometryPolygons(geometry);
+  if (!polygons.length) return false;
+
+  const milesPerDegreeLatitude = (TERRITORY_EARTH_RADIUS_MILES * Math.PI) / 180;
+  const milesPerDegreeLongitude = milesPerDegreeLatitude
+    * Math.max(0.01, Math.cos((center[1] * Math.PI) / 180));
+  const radiusSquared = radiusMiles * radiusMiles;
+
+  for (const rings of polygons) {
+    if (pointIsInsideGeometryPolygon(center, rings)) return true;
+
+    for (const ring of rings) {
+      let previous = null;
+
+      for (let index = 0; index < ring.length; index += 1) {
+        const point = [
+          (ring[index][0] - center[0]) * milesPerDegreeLongitude,
+          (ring[index][1] - center[1]) * milesPerDegreeLatitude
+        ];
+
+        if ((point[0] * point[0]) + (point[1] * point[1]) <= radiusSquared) return true;
+        if (previous && getSquaredDistanceFromOriginToSegment(previous, point) <= radiusSquared) {
+          return true;
+        }
+
+        previous = point;
+      }
+    }
+  }
+
+  return false;
+}
+
+function doRawGeometriesIntersect(leftGeometry, rightGeometry) {
+  if (!leftGeometry || !rightGeometry || typeof turf === "undefined") return false;
+
+  try {
+    return Boolean(
+      turf.booleanIntersects(
+        turf.feature(leftGeometry),
+        turf.feature(rightGeometry)
+      )
+    );
+  } catch (error) {
+    return false;
+  }
+}
+
+function getLngLatDistanceMiles(from, to) {
+  const latitudeDelta = ((to[1] - from[1]) * Math.PI) / 180;
+  const longitudeDelta = ((to[0] - from[0]) * Math.PI) / 180;
+  const fromLatitude = (from[1] * Math.PI) / 180;
+  const toLatitude = (to[1] * Math.PI) / 180;
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(fromLatitude)
+      * Math.cos(toLatitude)
+      * Math.sin(longitudeDelta / 2) ** 2;
+  const normalizedHaversine = Math.min(1, Math.max(0, haversine));
+
+  return TERRITORY_EARTH_RADIUS_MILES * 2 * Math.atan2(
+    Math.sqrt(normalizedHaversine),
+    Math.sqrt(1 - normalizedHaversine)
+  );
+}
+
+function getLocationSearchCoordinates(location) {
+  const longitude = Number(location?.coordinates?.longitude);
+  const latitude = Number(location?.coordinates?.latitude);
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+  return { longitude, latitude };
+}
+
+function isStateOnlyLocationSearch(location) {
+  return location?.geoLevel === "region"
+    && Boolean(location.stateCode)
+    && !location.geoKey
+    && !getLocationSearchCoordinates(location);
+}
+
+function findContainingGeoFeature(longitude, latitude, geoType) {
+  const wantedType = normalizeTerritoryGeoType(geoType);
+  if (!wantedType) return null;
+
+  const point = [longitude, latitude];
+  let bestFeature = null;
+  let bestArea = Infinity;
+
+  const considerFeature = (feature, featureType = normalizeTerritoryGeoType(feature?.properties?.geoType)) => {
+    if (!feature?.geometry || featureType !== wantedType) return;
+
+    const bounds = getGeometryBounds(feature.geometry);
+    if (!pointIsInsideBounds(longitude, latitude, bounds)) return;
+    if (!pointIsInsideGeometry(point, feature.geometry)) return;
+
+    const area = (bounds.east - bounds.west) * (bounds.north - bounds.south);
+    if (area >= bestArea) return;
+
+    bestFeature = feature;
+    bestArea = area;
+  };
+
+  territoryGeoFeaturesByKey.forEach((feature) => considerFeature(feature));
+
+  if (wantedType === "district") {
+    territoryCountiesByFips.forEach((feature) => considerFeature(feature, "district"));
+  }
+
+  if (wantedType === "region") {
+    territoryStatesByCode.forEach((feature) => considerFeature(feature, "region"));
+  }
+
+  return bestFeature;
+}
+
+function resolveLocationMatchTarget(location) {
+  if (!location) return null;
+
+  if (isStateOnlyLocationSearch(location)) {
+    return { kind: "state", stateCode: location.stateCode };
+  }
+
+  if (location.geoKey) {
+    const feature = getTerritoryFeatureByGeoKey(location.geoKey);
+    if (feature?.geometry) {
+      return {
+        kind: "geometry",
+        geometry: feature.geometry,
+        bounds: getGeometryBounds(feature.geometry)
+      };
+    }
+  }
+
+  const coordinates = getLocationSearchCoordinates(location);
+  if (coordinates) {
+    const geoType = normalizeTerritoryGeoType(location.geoLevel);
+    if (TERRITORY_LOCATION_SHAPE_GEO_TYPES.has(geoType)) {
+      const containing = findContainingGeoFeature(
+        coordinates.longitude,
+        coordinates.latitude,
+        geoType
+      );
+      if (containing?.geometry) {
+        return {
+          kind: "geometry",
+          geometry: containing.geometry,
+          bounds: getGeometryBounds(containing.geometry)
+        };
+      }
+    }
+
+    return {
+      kind: "point",
+      longitude: coordinates.longitude,
+      latitude: coordinates.latitude
+    };
+  }
+
+  if (location.stateCode) {
+    return { kind: "state", stateCode: location.stateCode };
+  }
+
+  return null;
+}
+
+function recordMatchesLocationTarget(record, target, cache) {
+  if (!record || !target) return false;
+
+  if (target.kind === "state") {
+    return record.state === target.stateCode;
+  }
+
+  const geoKey = record.geoKey || record.state || "";
+  const targetKey = target.kind === "point"
+    ? `${target.longitude},${target.latitude}`
+    : `${target.bounds?.west},${target.bounds?.south},${target.bounds?.east},${target.bounds?.north}`;
+  const cacheKey = `${target.kind}:${targetKey}:${geoKey}`;
+  if (cache?.has(cacheKey)) return cache.get(cacheKey);
+
+  let matches = false;
+
+  if (target.kind === "point" && record.geometry) {
+    if (
+      !record.geometryBounds
+      || pointIsInsideBounds(target.longitude, target.latitude, record.geometryBounds)
+    ) {
+      matches = pointIsInsideGeometry(
+        [target.longitude, target.latitude],
+        record.geometry
+      );
+    }
+  } else if (target.kind === "geometry" && record.geometry) {
+    if (
+      !record.geometryBounds
+      || !target.bounds
+      || territoryBoundsIntersect(record.geometryBounds, target.bounds)
+    ) {
+      matches = doRawGeometriesIntersect(record.geometry, target.geometry);
+    }
+  }
+
+  cache?.set(cacheKey, matches);
+  return matches;
+}
+
+function createBoundsPolygon(bounds) {
+  return {
+    type: "Polygon",
+    coordinates: [[
+      [bounds.west, bounds.south],
+      [bounds.east, bounds.south],
+      [bounds.east, bounds.north],
+      [bounds.west, bounds.north],
+      [bounds.west, bounds.south]
+    ]]
+  };
+}
+
+function createViewportMatchContext(bounds) {
+  const west = Number(bounds?.west);
+  const east = Number(bounds?.east);
+  const south = Number(bounds?.south);
+  const north = Number(bounds?.north);
+  if (![west, east, south, north].every(Number.isFinite) || !(east > west) || !(north > south)) {
+    return null;
+  }
+
+  const normalized = { west, east, south, north };
+  return {
+    bounds: normalized,
+    geometry: createBoundsPolygon(normalized),
+    cache: new Map()
+  };
+}
+
+function recordIntersectsViewport(record, viewportContext) {
+  if (!record || !viewportContext?.bounds) return false;
+
+  const geoKey = record.geoKey || record.state || "";
+  const cached = viewportContext.cache.get(geoKey);
+  if (cached !== undefined) return cached;
+
+  const bounds = viewportContext.bounds;
+  let matches = false;
+
+  if (record.geometry) {
+    if (!record.geometryBounds) {
+      matches = geometryIntersectsBounds(record.geometry, bounds);
+    } else if (territoryBoundsIntersect(record.geometryBounds, bounds)) {
+      // A wide viewport swallows most territories whole, so the cheap
+      // containment check answers the majority of records outright.
+      matches = territoryBoundsContainBounds(bounds, record.geometryBounds)
+        || geometryIntersectsBounds(record.geometry, bounds);
+    }
+  } else if (Array.isArray(record.center) && record.center.length >= 2) {
+    matches = pointIsInsideBounds(record.center[0], record.center[1], bounds);
+  }
+
+  viewportContext.cache.set(geoKey, matches);
+  return matches;
+}
+
+function createRadiusMatchContext(centers = [], miles) {
+  const numericMiles = Number(miles);
+
+  return {
+    miles: Number.isFinite(numericMiles) ? numericMiles : 0,
+    cache: new Map(),
+    circles: (Array.isArray(centers) ? centers : []).flatMap(({ center, state }) => {
+      if (!Array.isArray(center) || center.length < 2) return [];
+      const feature = createTerritoryRadiusCircleFeature(center, numericMiles, state);
+      return [{
+        center,
+        geometry: feature.geometry,
+        bounds: getGeometryBounds(feature.geometry)
+      }];
+    })
+  };
+}
+
+function recordIntersectsRadius(record, radiusContext) {
+  if (!record || !radiusContext?.circles?.length) return false;
+
+  const geoKey = record.geoKey || record.state || "";
+  const cached = radiusContext.cache.get(geoKey);
+  if (cached !== undefined) return cached;
+
+  let matches = false;
+
+  for (const circle of radiusContext.circles) {
+    if (record.geometry) {
+      if (
+        record.geometryBounds
+        && circle.bounds
+        && !territoryBoundsIntersect(record.geometryBounds, circle.bounds)
+      ) {
+        continue;
+      }
+
+      if (geometryIntersectsCircle(record.geometry, circle.center, radiusContext.miles)) {
+        matches = true;
+        break;
+      }
+
+      continue;
+    }
+
+    if (
+      Array.isArray(record.center)
+      && record.center.length >= 2
+      && getLngLatDistanceMiles(record.center, circle.center) <= radiusContext.miles
+    ) {
+      matches = true;
+      break;
+    }
+  }
+
+  radiusContext.cache.set(geoKey, matches);
+  return matches;
 }
 
 function applyTerritoryGeolocationCoordinates(coords) {
@@ -3433,156 +5285,14 @@ function parseHexColor(hex) {
   };
 }
 
-function lerpHexColor(colorA, colorB, t) {
-  const start = parseHexColor(colorA);
-  const end = parseHexColor(colorB);
-  const ratio = Math.min(1, Math.max(0, t));
-  const r = Math.round(start.r + ((end.r - start.r) * ratio));
-  const g = Math.round(start.g + ((end.g - start.g) * ratio));
-  const b = Math.round(start.b + ((end.b - start.b) * ratio));
-
-  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-}
-
-function lerpColorList(colors, t) {
-  if (!colors.length) return "#000000";
-  if (colors.length === 1) return colors[0];
-
-  const clamped = Math.min(1, Math.max(0, t));
-  const scaled = clamped * (colors.length - 1);
-  const index = Math.min(colors.length - 2, Math.floor(scaled));
-
-  return lerpHexColor(colors[index], colors[index + 1], scaled - index);
-}
-
-// Builds the outline for a shared (multi-brand) territory as continuous
-// polylines rather than one feature per edge. Coloring the border west->east to
-// match the fill gradient requires per-position color, but emitting a separate
-// 2-point line per edge makes the outline look blurry and incomplete when zoomed
-// out: each tiny feature is simplified/dropped independently and the overlapping
-// round end-caps compound at partial opacity. Instead we quantize the
-// gradient into a limited number of longitude buckets and merge consecutive
-// same-bucket edges into a single connected LineString, so each run renders as a
-// crisp, gap-free line with proper joins while still approximating the gradient.
-function buildSharedTerritoryOutlineFeatureCollection(geometry, colors) {
-  const bounds = getGeometryBounds(geometry);
-  if (!bounds) return { type: "FeatureCollection", features: [] };
-
-  const { west, east, polygons } = bounds;
-  const lngSpan = east - west;
+function buildConsolidatedSharedHitCollection(entries, occupantsByGeoKey) {
   const features = [];
-
-  const bucketForLng = (lng) => {
-    const t = lngSpan > 0 ? (lng - west) / lngSpan : 0.5;
-    return Math.min(
-      TERRITORY_SHARED_OUTLINE_STEPS - 1,
-      Math.max(0, Math.floor(t * TERRITORY_SHARED_OUTLINE_STEPS))
-    );
-  };
-  const colorForBucket = (bucket) => lerpColorList(
-    colors,
-    (bucket + 0.5) / TERRITORY_SHARED_OUTLINE_STEPS
-  );
-
-  polygons.forEach((rings) => rings.forEach((ring) => {
-    if (ring.length < 2) return;
-
-    let runCoordinates = [ring[0]];
-    let runBucket = bucketForLng((ring[0][0] + ring[1][0]) / 2);
-
-    const flushRun = () => {
-      if (runCoordinates.length < 2) return;
-      features.push({
-        type: "Feature",
-        geometry: { type: "LineString", coordinates: runCoordinates },
-        properties: { color: colorForBucket(runBucket) }
-      });
-    };
-
-    for (let index = 1; index < ring.length; index += 1) {
-      const previous = ring[index - 1];
-      const current = ring[index];
-      const bucket = bucketForLng((previous[0] + current[0]) / 2);
-
-      if (bucket === runBucket) {
-        runCoordinates.push(current);
-      } else {
-        // The old run already ends at `previous`; start the new run there too so
-        // the runs share a vertex and leave no visible gap at the color change.
-        flushRun();
-        runCoordinates = [previous, current];
-        runBucket = bucket;
-      }
-    }
-
-    flushRun();
-  }));
-
-  return { type: "FeatureCollection", features };
-}
-
-function getOccupantColors(occupants, brandsById) {
-  return occupants
-    .map((occupantId) => brandsById.get(occupantId)?.color)
-    .filter(Boolean);
-}
-
-function getSharedGradientPatternWidth() {
-  return TERRITORY_SHARED_PATTERN_WIDTH_BY_LEVEL[territoryGeoLevel]
-    || TERRITORY_SHARED_PATTERN_WIDTH_BY_LEVEL.state;
-}
-
-function createSharedGradientPatternImage(colors) {
-  const width = getSharedGradientPatternWidth() * TERRITORY_SHARED_PATTERN_PIXEL_RATIO;
-  const height = TERRITORY_SHARED_PATTERN_HEIGHT * TERRITORY_SHARED_PATTERN_PIXEL_RATIO;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
-
-  // Fill patterns repeat, so a one-way ramp would leave a hard seam wherever it
-  // wraps. Mirroring the ramp (A→B→A) keeps the wrap invisible on territories
-  // wider than the pattern while still reading as a mix of the brand colors.
-  const stops = colors.length > 1
-    ? [...colors, ...colors.slice(0, -1).reverse()]
-    : [colors[0], colors[0]];
-  const gradient = context.createLinearGradient(0, 0, width, 0);
-  stops.forEach((color, index) => {
-    gradient.addColorStop(index / (stops.length - 1), hexToRgba(color, TERRITORY_SHARED_FILL_OPACITY));
-  });
-
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, width, height);
-
-  return context.getImageData(0, 0, width, height);
-}
-
-function ensureSharedGradientPatternImage(territoryMap, colors) {
-  const patternKey = `${getSharedGradientPatternWidth()}:${colors.join(",")}`;
-  const cachedPatternId = territorySharedPatternIdsByColors.get(patternKey);
-  if (cachedPatternId) return cachedPatternId;
-
-  const patternId = `territory-shared-pattern-${territorySharedPatternIdsByColors.size}`;
-  territoryMap.addImage(patternId, createSharedGradientPatternImage(colors), {
-    pixelRatio: TERRITORY_SHARED_PATTERN_PIXEL_RATIO
-  });
-  territorySharedPatternIdsByColors.set(patternKey, patternId);
-
-  return patternId;
-}
-
-function buildConsolidatedSharedCollections(territoryMap, entries, occupantsByGeoKey, brandsById) {
-  const fillFeatures = [];
-  const strokeFeatures = [];
 
   entries.forEach((entry) => {
     const occupants = occupantsByGeoKey.get(entry.geoKey) || [];
     if (occupants.length < 2) return;
 
-    const colors = getOccupantColors(occupants, brandsById);
-    if (colors.length < 2) return;
-
-    fillFeatures.push({
+    features.push({
       type: "Feature",
       id: entry.geoKey,
       geometry: entry.geometry,
@@ -3591,28 +5301,12 @@ function buildConsolidatedSharedCollections(territoryMap, entries, occupantsByGe
         state: entry.state,
         stateName: entry.name,
         geoType: entry.geoType,
-        geoRank: getTerritoryGeoTypeRank(entry.geoType),
-        pattern: ensureSharedGradientPatternImage(territoryMap, colors)
+        geoRank: getTerritoryGeoTypeRank(entry.geoType)
       }
-    });
-
-    buildSharedTerritoryOutlineFeatureCollection(entry.geometry, colors).features.forEach((feature) => {
-      feature.properties.geoKey = entry.geoKey;
-      strokeFeatures.push(feature);
     });
   });
 
-  return {
-    fill: { type: "FeatureCollection", features: fillFeatures },
-    stroke: { type: "FeatureCollection", features: strokeFeatures }
-  };
-}
-
-function buildConsolidatedSharedStrokeFilter(visibleGeoKeys, hiddenGeoKey) {
-  const visibilityFilter = buildGeoKeyVisibilityFilter(visibleGeoKeys);
-  if (!hiddenGeoKey) return visibilityFilter;
-
-  return ["all", visibilityFilter, ["!=", ["get", "geoKey"], hiddenGeoKey]];
+  return { type: "FeatureCollection", features };
 }
 
 function setTerritoryLayerFilter(territoryMap, layerId, filter) {
@@ -3620,70 +5314,31 @@ function setTerritoryLayerFilter(territoryMap, layerId, filter) {
   territoryMap.setFilter(layerId, filter);
 }
 
-function addConsolidatedSharedTerritoryLayers(territoryMap, entries, occupantsByGeoKey, brandsById, beforeLayerId) {
-  const collections = buildConsolidatedSharedCollections(territoryMap, entries, occupantsByGeoKey, brandsById);
-  const emptyFilter = buildGeoKeyVisibilityFilter([]);
-
+function addConsolidatedSharedTerritoryLayers(territoryMap, entries, occupantsByGeoKey, beforeLayerId) {
   territoryMap.addSource(TERRITORY_SHARED_ALL_SOURCE_ID, {
     type: "geojson",
-    data: collections.fill,
+    data: buildConsolidatedSharedHitCollection(entries, occupantsByGeoKey),
     promoteId: "geoKey",
     maxzoom: TERRITORY_SOURCE_MAX_ZOOM
   });
 
-  territoryMap.addSource(TERRITORY_SHARED_ALL_STROKE_SOURCE_ID, {
-    type: "geojson",
-    data: collections.stroke,
-    maxzoom: TERRITORY_SOURCE_MAX_ZOOM
-  });
-
-  territoryMap.addLayer({
-    id: TERRITORY_SHARED_ALL_FILL_LAYER_ID,
-    type: "fill",
-    source: TERRITORY_SHARED_ALL_SOURCE_ID,
-    filter: emptyFilter,
-    paint: {
-      "fill-pattern": ["get", "pattern"],
-      "fill-opacity": withTerritoryRadiusOutsideOpacity(1)
-    }
-  }, beforeLayerId || undefined);
-
-  territoryMap.addLayer({
-    id: TERRITORY_SHARED_ALL_STROKE_LAYER_ID,
-    type: "line",
-    source: TERRITORY_SHARED_ALL_STROKE_SOURCE_ID,
-    filter: emptyFilter,
-    layout: {
-      visibility: territoryBordersEnabled && !territoryDensityEnabled ? "visible" : "none",
-      "line-join": "round",
-      "line-cap": "round"
-    },
-    paint: {
-      "line-color": ["get", "color"],
-      "line-opacity": withTerritoryRadiusOutsideOpacity(TERRITORY_LINE_OPACITY),
-      "line-width": TERRITORY_LINE_WIDTH
-    }
-  }, beforeLayerId || undefined);
-
-  // Shares the fill source so hit testing costs no extra tile work.
+  // Invisible, but it sits above the stacked brand fills so hovering or clicking
+  // a shared territory resolves to the territory rather than one of its brands.
   territoryMap.addLayer({
     id: TERRITORY_SHARED_ALL_HIT_LAYER_ID,
     type: "fill",
     source: TERRITORY_SHARED_ALL_SOURCE_ID,
-    filter: emptyFilter,
+    filter: buildGeoKeyVisibilityFilter([]),
     paint: {
       "fill-color": "#000000",
       "fill-opacity": 0
     }
   }, beforeLayerId || undefined);
 
-  territoryLineLayerIds.push(TERRITORY_SHARED_ALL_STROKE_LAYER_ID);
   territorySharedConsolidated = {
     entries,
-    brandsById,
     signature: null,
-    visibleGeoKeys: [],
-    hiddenStrokeGeoKey: null
+    visibleGeoKeys: []
   };
 
   return [TERRITORY_SHARED_ALL_HIT_LAYER_ID];
@@ -3703,67 +5358,33 @@ function updateConsolidatedSharedTerritories(territoryMap, occupantsByGeoKey) {
     signatureParts.push(`${entry.geoKey}:${occupants.join("+")}`);
   });
 
-  // Which brands share a territory decides its gradient, so the geometry only
-  // needs rebuilding when that set changes for at least one territory.
+  // Only the set of shared territories decides the hit geometry, so it only
+  // needs rebuilding when that set (or the radius clip) changes.
   const signature = signatureParts.join("|");
-  const radiusFadeActive = isTerritoryRadiusFadeActive();
-  const nextSignature = radiusFadeActive
+  const nextSignature = isTerritoryRadiusFadeActive()
     ? `${signature}::${territoryRadiusFadeSignature}`
     : signature;
   if (nextSignature !== territorySharedConsolidated.signature) {
-    const collections = buildConsolidatedSharedCollections(
-      territoryMap,
+    const collection = buildConsolidatedSharedHitCollection(
       territorySharedConsolidated.entries,
-      occupantsByGeoKey,
-      territorySharedConsolidated.brandsById
+      occupantsByGeoKey
     );
-    const fadeKeys = new Set(visibleGeoKeys);
-    const fadedFill = splitTerritoryFeatureCollectionByRadius(collections.fill, fadeKeys, "geoKey");
-    const strokeFromFill = {
-      type: "FeatureCollection",
-      features: fadedFill.features.flatMap((feature) => {
-        const sourceGeoKey = feature.properties.sourceGeoKey
-          || String(feature.properties.geoKey || "").replace(TERRITORY_RADIUS_OUTSIDE_GEOKEY_SUFFIX, "");
-        const colors = getOccupantColors(
-          occupantsByGeoKey.get(sourceGeoKey) || [],
-          territorySharedConsolidated.brandsById
-        );
-        if (colors.length < 2) return [];
 
-        return buildSharedTerritoryOutlineFeatureCollection(feature.geometry, colors).features.map(
-          (strokeFeature) => ({
-            ...strokeFeature,
-            properties: {
-              ...strokeFeature.properties,
-              geoKey: feature.properties.geoKey,
-              sourceGeoKey,
-              radiusZone: feature.properties.radiusZone || "inside"
-            }
-          })
-        );
-      })
-    };
-
-    territoryMap.getSource(TERRITORY_SHARED_ALL_SOURCE_ID)?.setData(fadedFill);
-    territoryMap.getSource(TERRITORY_SHARED_ALL_STROKE_SOURCE_ID)?.setData(
-      radiusFadeActive ? strokeFromFill : collections.stroke
+    territoryMap.getSource(TERRITORY_SHARED_ALL_SOURCE_ID)?.setData(
+      splitTerritoryFeatureCollectionByRadius(collection, new Set(visibleGeoKeys), "geoKey")
     );
     territorySharedConsolidated.signature = nextSignature;
   }
 
   territorySharedConsolidated.visibleGeoKeys = visibleGeoKeys;
-  territorySharedConsolidated.hiddenStrokeGeoKey = null;
 
-  // Brand territories stack per-brand layers for shared geo keys; keep the
-  // consolidated gradient sources hidden so they never paint over the stack.
-  const hiddenSharedFilter = buildGeoKeyVisibilityFilter([]);
-  const sharedHitFilter = territoryDensityEnabled
-    ? hiddenSharedFilter
-    : buildGeoKeyVisibilityFilter(visibleGeoKeys);
-
-  setTerritoryLayerFilter(territoryMap, TERRITORY_SHARED_ALL_FILL_LAYER_ID, hiddenSharedFilter);
-  setTerritoryLayerFilter(territoryMap, TERRITORY_SHARED_ALL_HIT_LAYER_ID, sharedHitFilter);
-  setTerritoryLayerFilter(territoryMap, TERRITORY_SHARED_ALL_STROKE_LAYER_ID, hiddenSharedFilter);
+  // Density colors the whole map on its own, so the shared hit target only
+  // applies while the stacked brand fills are the ones being shown.
+  setTerritoryLayerFilter(
+    territoryMap,
+    TERRITORY_SHARED_ALL_HIT_LAYER_ID,
+    buildGeoKeyVisibilityFilter(territoryDensityEnabled ? [] : visibleGeoKeys)
+  );
 }
 
 function addTerritoryDensityLayers(territoryMap, beforeLayerId) {
@@ -3783,50 +5404,8 @@ function addTerritoryDensityLayers(territoryMap, beforeLayerId) {
       "fill-sort-key": ["get", "geoRank"]
     },
     paint: {
-      "fill-color": [
-        "case",
-        ["boolean", ["feature-state", "hover"], false],
-        [
-          "interpolate",
-          ["linear"],
-          ["get", "densityRatio"],
-          0,
-          TERRITORY_DENSITY_HOVER_LOW_COLOR,
-          1,
-          TERRITORY_DENSITY_HOVER_HIGH_COLOR
-        ],
-        [
-          "interpolate",
-          ["linear"],
-          ["get", "densityRatio"],
-          0,
-          TERRITORY_DENSITY_LOW_COLOR,
-          1,
-          TERRITORY_DENSITY_HIGH_COLOR
-        ]
-      ],
-      "fill-opacity": withTerritoryRadiusOutsideOpacity([
-        "case",
-        ["boolean", ["feature-state", "hover"], false],
-        [
-          "interpolate",
-          ["linear"],
-          ["get", "densityRatio"],
-          0,
-          TERRITORY_DENSITY_HOVER_LOW_OPACITY,
-          1,
-          TERRITORY_DENSITY_HOVER_HIGH_OPACITY
-        ],
-        [
-          "interpolate",
-          ["linear"],
-          ["get", "densityRatio"],
-          0,
-          TERRITORY_DENSITY_LOW_OPACITY,
-          1,
-          TERRITORY_DENSITY_HIGH_OPACITY
-        ]
-      ])
+      "fill-color": getDensityFillColorExpression(),
+      "fill-opacity": getDensityFillOpacityExpression()
     }
   }, beforeLayerId || undefined);
 
@@ -3841,24 +5420,45 @@ function addTerritoryDensityLayers(territoryMap, beforeLayerId) {
       "line-sort-key": ["get", "geoRank"]
     },
     paint: {
-      "line-color": [
-        "case",
-        ["boolean", ["feature-state", "hover"], false],
-        TERRITORY_DENSITY_HOVER_HIGH_COLOR,
-        TERRITORY_DENSITY_HIGH_COLOR
-      ],
-      "line-opacity": withTerritoryRadiusOutsideOpacity([
-        "case",
-        ["boolean", ["feature-state", "hover"], false],
-        0.68,
-        0.42
-      ]),
+      "line-color": getDensityLineColorExpression(),
+      "line-opacity": getDensityLineOpacityExpression(),
+      "line-width": TERRITORY_LINE_WIDTH
+    }
+  }, beforeLayerId || undefined);
+
+  territoryMap.addLayer({
+    id: TERRITORY_AREA_FOCUS_FILL_LAYER_ID,
+    type: "fill",
+    source: TERRITORY_DENSITY_SOURCE_ID,
+    filter: ["==", ["get", "geoKey"], ""],
+    layout: {
+      visibility: "none"
+    },
+    paint: {
+      "fill-color": TERRITORY_DENSITY_HIGH_COLOR,
+      "fill-opacity": TERRITORY_AREA_FOCUS_OPACITY
+    }
+  }, beforeLayerId || undefined);
+
+  territoryMap.addLayer({
+    id: TERRITORY_AREA_FOCUS_LINE_LAYER_ID,
+    type: "line",
+    source: TERRITORY_DENSITY_SOURCE_ID,
+    filter: ["==", ["get", "geoKey"], ""],
+    layout: {
+      visibility: "none",
+      "line-join": "round",
+      "line-cap": "round"
+    },
+    paint: {
+      "line-color": TERRITORY_DENSITY_HIGH_COLOR,
+      "line-opacity": TERRITORY_AREA_FOCUS_LINE_OPACITY,
       "line-width": TERRITORY_LINE_WIDTH
     }
   }, beforeLayerId || undefined);
 }
 
-function addSharedTerritoryLayers(territoryMap, sharedGeoKeys, geoOccupancy, brandsById, geoIndex, beforeLayerId) {
+function addSharedTerritoryLayers(territoryMap, sharedGeoKeys, geoOccupancy, geoIndex, beforeLayerId) {
   const entries = sharedGeoKeys.map((geoKey) => {
     const featureRecord = resolveSharedTerritoryFeatureRecord(geoKey, geoIndex);
     if (!featureRecord) return null;
@@ -3878,7 +5478,6 @@ function addSharedTerritoryLayers(territoryMap, sharedGeoKeys, geoOccupancy, bra
     territoryMap,
     entries,
     geoOccupancy,
-    brandsById,
     beforeLayerId
   );
 }
@@ -3919,7 +5518,7 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
         "fill-color": ["get", "color"],
         "fill-opacity": territoryDensityEnabled
           ? 0
-          : withTerritoryRadiusOutsideOpacity(TERRITORY_FILL_OPACITY_EXPRESSION)
+          : withTerritoryLayerOpacity(TERRITORY_FILL_OPACITY_EXPRESSION)
       }
     };
     const hatchLayer = {
@@ -3930,7 +5529,7 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
         "fill-pattern": hatchImageId,
         "fill-opacity": territoryDensityEnabled
           ? 0
-          : withTerritoryRadiusOutsideOpacity(TERRITORY_HATCH_FILL_OPACITY_EXPRESSION)
+          : withTerritoryLayerOpacity(TERRITORY_HATCH_FILL_OPACITY_EXPRESSION)
       }
     };
     const lineLayer = {
@@ -3939,7 +5538,7 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
       source: sourceId,
       paint: {
         "line-color": ["get", "color"],
-        "line-opacity": withTerritoryRadiusOutsideOpacity(TERRITORY_LINE_OPACITY),
+        "line-opacity": withTerritoryLayerOpacity(TERRITORY_LINE_OPACITY_EXPRESSION),
         "line-width": TERRITORY_LINE_WIDTH
       }
     };
@@ -4006,6 +5605,9 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
           "icon-offset": ["coalesce", ["get", "iconOffset"], ["literal", [0, 0]]],
           "icon-allow-overlap": true,
           "icon-ignore-placement": true
+        },
+        paint: {
+          "icon-opacity": withTerritoryRevealOpacity(1)
         }
       };
 
@@ -4083,6 +5685,9 @@ async function loadTerritoryData(territoryMap) {
 
     territoryIntersectionCache.clear();
     territoryIntersectionIndex = new Map();
+    territoryIntersectionScope = new Map();
+    territoryLayerFilterSignatures.clear();
+    territoryStateBoundsByCode.clear();
     territoryStatesByCode = statesByCode;
     territoryCountiesByFips = countiesByFips;
     territoryGeoFeaturesByKey = geoFeaturesByKey;
@@ -4147,7 +5752,6 @@ async function loadTerritoryData(territoryMap) {
       territoryMap,
       sharedGeoKeys,
       geoOccupancy,
-      brandsById,
       geoIndex,
       firstLogoLayerId
     );
@@ -4182,13 +5786,15 @@ async function loadTerritoryData(territoryMap) {
     }
 
     if (territoryPendingFocusCoordinates) {
-      const { longitude, latitude, radiusMiles } = territoryPendingFocusCoordinates;
+      const { longitude, latitude, radiusMiles, skipReveal = false } = territoryPendingFocusCoordinates;
       territoryPendingFocusCoordinates = null;
-      focusTerritoryCoordinates(longitude, latitude, radiusMiles);
+      focusTerritoryCoordinates(longitude, latitude, radiusMiles, { skipReveal });
     } else if (territoryPendingFocusStateCode) {
       const stateCode = territoryPendingFocusStateCode;
+      const skipReveal = territoryPendingFocusSkipReveal;
       territoryPendingFocusStateCode = null;
-      focusTerritoryMapOnState(territoryMap, stateCode);
+      territoryPendingFocusSkipReveal = false;
+      focusTerritoryState(stateCode, { skipReveal });
     }
 
     scheduleInitialTerritoryMapReveal(territoryMap);
@@ -4319,6 +5925,18 @@ function syncTerritoryBorderVisibility() {
       territoryBordersEnabled && territoryDensityEnabled ? "visible" : "none"
     );
   }
+
+  if (territoryMap.getLayer(TERRITORY_AREA_FOCUS_LINE_LAYER_ID)) {
+    territoryMap.setLayoutProperty(
+      TERRITORY_AREA_FOCUS_LINE_LAYER_ID,
+      "visibility",
+      territoryBordersEnabled
+        && territoryDensityEnabled
+        && getTerritoryAreaMapHighlightGeoKey()
+        ? "visible"
+        : "none"
+    );
+  }
 }
 
 function setTerritoryBordersVisible(isVisible) {
@@ -4341,32 +5959,7 @@ function syncTerritoryVisualizationLayers({ reapplyFilters = true } = {}) {
     clearTerritoryDensityHover(territoryMap);
   }
 
-  territoryBrands.forEach((brand) => {
-    const layerIds = territoryBrandLayerIds.get(brand.id);
-    if (!layerIds) return;
-
-    layerIds.geoLayers.forEach((geoLayers) => {
-      if (geoLayers.fillLayerId && territoryMap.getLayer(geoLayers.fillLayerId)) {
-        territoryMap.setPaintProperty(
-          geoLayers.fillLayerId,
-          "fill-opacity",
-          territoryDensityEnabled
-            ? 0
-            : withTerritoryRadiusOutsideOpacity(TERRITORY_FILL_OPACITY_EXPRESSION)
-        );
-      }
-
-      if (geoLayers.hatchLayerId && territoryMap.getLayer(geoLayers.hatchLayerId)) {
-        territoryMap.setPaintProperty(
-          geoLayers.hatchLayerId,
-          "fill-opacity",
-          territoryDensityEnabled
-            ? 0
-            : withTerritoryRadiusOutsideOpacity(TERRITORY_HATCH_FILL_OPACITY_EXPRESSION)
-        );
-      }
-    });
-  });
+  syncTerritoryAreaMapHighlight();
 
   if (territoryMap.getLayer(TERRITORY_DENSITY_FILL_LAYER_ID)) {
     territoryMap.setLayoutProperty(
@@ -4378,9 +5971,8 @@ function syncTerritoryVisualizationLayers({ reapplyFilters = true } = {}) {
 
   if (territorySharedConsolidated && territoryRegistry.length) {
     const matchingRecords = territoryLastMatchingRecords || territoryRegistry;
-    const matchingKeys = new Set(matchingRecords.map(territoryRecordKey));
-    const visibleOccupantsByState = buildVisibleOccupantsByState(matchingKeys);
-    updateConsolidatedSharedTerritories(territoryMap, visibleOccupantsByState);
+    const visibility = buildTerritoryVisibilityIndex(matchingRecords);
+    updateConsolidatedSharedTerritories(territoryMap, visibility.occupantsByGeoKey);
   }
 
   syncTerritoryBorderVisibility();
@@ -4512,6 +6104,7 @@ function syncSelectedTerritoryMap({ refreshMapView = true, skipInfoCard = false 
   clearSelectedTerritoryFeatureStates();
   renderTerritoryRecords(selectedRecords.length ? selectedRecords : matchingRecords);
   setSelectedTerritoryFeatureStates(selectedRecords);
+  syncTerritoryLayerOpacities();
   window.territoryBrandPanel?.setSelectedTerritory?.(selectedTerritoryKey, compareTerritoryKey);
   if (!skipInfoCard) {
     showTerritoryInfoCards(selectedRecords[0] || null, selectedRecords[1] || null);
@@ -4630,20 +6223,67 @@ function triggerTerritoryGeolocation() {
   return territoryGeolocateControl?.trigger?.() ?? false;
 }
 
-function focusTerritoryState(stateCode) {
+function finishTerritoryMapFocus(territoryMap, { skipReveal = false } = {}) {
+  const finish = () => {
+    if (territoryMap) {
+      captureTerritoryFilterDefaultViewFromMap(territoryMap);
+      if (!skipReveal) {
+        window.territoryFilters?.captureViewportFromMap?.();
+      }
+    }
+    if (!skipReveal) {
+      playPendingTerritoryReveal();
+    }
+    updateTerritoryMapResetVisibility();
+  };
+
+  if (territoryMap?.isMoving?.()) {
+    territoryMap.once("moveend", finish);
+    return;
+  }
+
+  finish();
+}
+
+function focusTerritoryState(stateCode, { skipReveal = false } = {}) {
   if (!stateCode) return false;
 
   const territoryMap = window.territoryMap;
   if (!territoryMap || !territoryStatesByCode.has(stateCode)) {
     territoryPendingFocusStateCode = stateCode;
     territoryPendingFocusCoordinates = null;
+    territoryPendingFocusSkipReveal = skipReveal;
     return true;
   }
 
   territoryPendingFocusStateCode = null;
   territoryPendingFocusCoordinates = null;
+  territoryPendingFocusSkipReveal = false;
+  if (!skipReveal && !territoryPendingRevealCenter) {
+    armTerritoryStateReveal(stateCode);
+  }
+  territoryViewportFramed = true;
   focusTerritoryMapOnState(territoryMap, stateCode);
+  finishTerritoryMapFocus(territoryMap, { skipReveal });
   return true;
+}
+
+function getTerritoryMapViewportBounds() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || typeof territoryMap.getBounds !== "function") return null;
+
+  const bounds = territoryMap.getBounds();
+  if (!bounds) return null;
+
+  const west = bounds.getWest();
+  const east = bounds.getEast();
+  const south = bounds.getSouth();
+  const north = bounds.getNorth();
+  if (![west, east, south, north].every(Number.isFinite) || !(east > west) || !(north > south)) {
+    return null;
+  }
+
+  return { west, east, south, north };
 }
 
 function getTerritoryMapSearchBounds(longitude, latitude, radiusMiles = TERRITORY_MAP_SEARCH_RADIUS_MILES) {
@@ -4660,32 +6300,52 @@ function getTerritoryMapSearchBounds(longitude, latitude, radiusMiles = TERRITOR
   };
 }
 
-function focusTerritoryMapOnSearchArea(longitude, latitude, radiusMiles = TERRITORY_MAP_SEARCH_RADIUS_MILES) {
+function focusTerritoryMapOnSearchArea(
+  longitude,
+  latitude,
+  radiusMiles = TERRITORY_MAP_SEARCH_RADIUS_MILES,
+  { skipReveal = false } = {}
+) {
   if (!Number.isFinite(longitude) || !Number.isFinite(latitude) || !window.mapboxgl) return;
 
   const territoryMap = window.territoryMap;
   if (!territoryMap) return;
 
   const { west, east, south, north } = getTerritoryMapSearchBounds(longitude, latitude, radiusMiles);
+  territoryViewportFramed = true;
   focusTerritoryMapOnBounds(
     territoryMap,
     new mapboxgl.LngLatBounds([west, south], [east, north])
   );
+  territoryMap.once("moveend", () => {
+    captureTerritoryFilterDefaultViewFromMap(territoryMap);
+    if (!skipReveal) {
+      window.territoryFilters?.captureViewportFromMap?.();
+      playPendingTerritoryReveal();
+    }
+    updateTerritoryMapResetVisibility();
+  });
 }
 
-function focusTerritoryCoordinates(longitude, latitude, radiusMiles = TERRITORY_MAP_SEARCH_RADIUS_MILES) {
+function focusTerritoryCoordinates(
+  longitude,
+  latitude,
+  radiusMiles = TERRITORY_MAP_SEARCH_RADIUS_MILES,
+  { skipReveal = false } = {}
+) {
   if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return false;
 
   const territoryMap = window.territoryMap;
   if (!territoryMap || !territoryMapHasLoaded) {
-    territoryPendingFocusCoordinates = { longitude, latitude, radiusMiles };
+    territoryPendingFocusCoordinates = { longitude, latitude, radiusMiles, skipReveal };
     territoryPendingFocusStateCode = null;
     return true;
   }
 
   territoryPendingFocusCoordinates = null;
   territoryPendingFocusStateCode = null;
-  focusTerritoryMapOnSearchArea(longitude, latitude, radiusMiles);
+  territoryPendingFocusSkipReveal = false;
+  focusTerritoryMapOnSearchArea(longitude, latitude, radiusMiles, { skipReveal });
   return true;
 }
 
@@ -4701,8 +6361,25 @@ window.territoryMapControls = {
   focusTerritoryState,
   focusTerritoryCoordinates,
   getStateCodeForCoordinates,
+  getViewportBounds: getTerritoryMapViewportBounds,
+  getSearchViewportBounds: getTerritoryMapSearchBounds,
+  armLocationReveal: armTerritoryLocationReveal,
+  armStateReveal: armTerritoryStateReveal,
+  armStatesReveal: armTerritoryStatesReveal,
+  skipNextFilterFit: () => {
+    territorySkipNextFilterFit = true;
+  },
+  markViewportFramed: () => {
+    territoryViewportFramed = true;
+  },
+  markViewportUnframed: () => {
+    territoryViewportFramed = false;
+  },
   updateResetVisibility: updateTerritoryMapResetVisibility,
-  clearHover: () => clearTerritoryMapHover?.()
+  clearHover: () => clearTerritoryMapHover?.(),
+  beginResultsLoading: beginTerritoryResultsLoading,
+  endResultsLoading: endTerritoryResultsLoading,
+  notifyListEnterStarted: notifyTerritoryListEnterStarted
 };
 
 window.territoryMapPanel = {
@@ -4716,7 +6393,13 @@ window.territoryMapFilters = {
   applyTerritoryFilters,
   hideTerritoryRecords,
   scheduleFilteredReveal: scheduleTerritoryMapFilteredReveal,
-  getTerritoryRegistry: () => territoryRegistry
+  getTerritoryRegistry: () => territoryRegistry,
+  resolveLocationTarget: resolveLocationMatchTarget,
+  recordMatchesLocationTarget,
+  createRadiusMatchContext,
+  recordIntersectsRadius,
+  createViewportMatchContext,
+  recordIntersectsViewport
 };
 
 window.territoryMapSelection = {

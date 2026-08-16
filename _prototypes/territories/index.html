@@ -351,19 +351,19 @@
                   aria-haspopup="listbox"
                   aria-expanded="false"
                   aria-controls="territoryCrossroadSearchSuggestions"
-                  placeholder="Search by street, city, county, CBSA, or state..."
-                  aria-label="Search territories by location"
+                  placeholder="Search by brand, city, county, CBSA, or state..."
+                  aria-label="Search territories by brand or location"
                   aria-describedby="territoryCrossroadSearchFeedback"
                 >
                 <div
                   class="territory-crossroad__search-suggestions"
                   id="territoryCrossroadSearchSuggestions"
                   role="listbox"
-                  aria-label="Location suggestions"
+                  aria-label="Brand and location suggestions"
                   aria-hidden="true"
                 ></div>
-                <button class="territory-crossroad__search-clear" id="territoryCrossroadSearchClear" type="button" aria-label="Clear location search" hidden></button>
-                <button class="territory-crossroad__locate" id="territoryCrossroadLocate" type="button" aria-label="Find territories near my location" title="Find my location">
+                <button class="territory-crossroad__search-clear" id="territoryCrossroadSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
+                <button class="territory-crossroad__locate" id="territoryCrossroadLocate" type="button" aria-label="Find territories near my location" data-tooltip="Find my location">
                   <img src="assets/target-me.svg" alt="" aria-hidden="true">
                 </button>
               </form>
@@ -398,7 +398,7 @@
                 id="territorySaveSearch"
                 type="button"
                 aria-label="Add alert"
-                data-tooltip="Get notified when these results change"
+                data-tooltip="Get notified when these&#10;results change"
               >
                 <img src="assets/add-alert.svg" alt="" aria-hidden="true">
                 <span class="territory-brand-panel__alert-label">Add alert</span>
@@ -408,7 +408,7 @@
                 id="territoryBrandExpandToggle"
                 type="button"
                 aria-label="Collapse all rows"
-                title="Collapse all rows"
+                data-tooltip="Collapse all rows"
                 hidden
               >
                 <img src="assets/collapse.svg" alt="" aria-hidden="true">
@@ -427,6 +427,12 @@
       <aside class="territory-map-panel" id="territoryMapPanel" aria-label="Territories map" aria-hidden="true">
       <div class="map-container territory-map-frame">
         <div class="territory-map" id="territoryMap"></div>
+        <div class="territory-map-busy" id="territoryMapBusy" role="status" aria-live="polite" aria-label="Updating territories" hidden>
+          <div class="territory-map-busy__pill">
+            <span class="territory-map-busy__spinner" aria-hidden="true"></span>
+            <span class="territory-map-busy__label">Updating territories</span>
+          </div>
+        </div>
         <div class="territory-info-stack" id="territoryInfoStack" hidden>
         <article class="territory-info-card" id="territoryInfoCard" aria-labelledby="territoryAreaTitle" hidden>
           <div class="territory-info-card__controls">
@@ -457,11 +463,19 @@
                 </header>
 
                 <div class="territory-info-card__scroll">
-                  <section class="territory-info-card__section" aria-labelledby="territoryInfoFinance">
-                    <h4 class="territory-info-card__section-title" id="territoryInfoFinance">Finance</h4>
+                  <section class="territory-info-card__section" aria-labelledby="territoryInfoOverview">
+                    <h4 class="territory-info-card__section-title" id="territoryInfoOverview">Territory Overview</h4>
                     <dl class="territory-info-card__rows">
                       <div class="territory-info-card__row">
-                        <dt>Initial investment</dt>
+                        <dt>Geographic Level</dt>
+                        <dd id="territoryInfoGeoLevel"></dd>
+                      </div>
+                      <div class="territory-info-card__row">
+                        <dt>Status</dt>
+                        <dd id="territoryInfoStatus"></dd>
+                      </div>
+                      <div class="territory-info-card__row">
+                        <dt>Initial Investment</dt>
                         <dd id="territoryInfoInvestment"></dd>
                       </div>
                     </dl>
@@ -488,7 +502,7 @@
 
                 <div class="territory-info-card__actions">
                   <a class="ui-control ui-button ui-button-secondary territory-info-card__action" id="territoryInfoProfile" href="#" target="_blank" rel="noopener noreferrer">Franchise Profile</a>
-                  <button class="ui-control ui-button ui-button-primary territory-info-card__action" type="button">Request Information</button>
+                  <button class="ui-control ui-button ui-button-primary territory-info-card__action" id="territoryInfoRequest" type="button">Request Information</button>
                 </div>
               </section>
             </div>
@@ -506,11 +520,19 @@
           </header>
 
           <div class="territory-info-card__scroll">
-            <section class="territory-info-card__section" aria-labelledby="territoryInfoFinanceCompare">
-              <h4 class="territory-info-card__section-title" id="territoryInfoFinanceCompare">Finance</h4>
+            <section class="territory-info-card__section" aria-labelledby="territoryInfoOverviewCompare">
+              <h4 class="territory-info-card__section-title" id="territoryInfoOverviewCompare">Territory Overview</h4>
               <dl class="territory-info-card__rows">
                 <div class="territory-info-card__row">
-                  <dt>Initial investment</dt>
+                  <dt>Geographic Level</dt>
+                  <dd id="territoryInfoGeoLevelCompare"></dd>
+                </div>
+                <div class="territory-info-card__row">
+                  <dt>Status</dt>
+                  <dd id="territoryInfoStatusCompare"></dd>
+                </div>
+                <div class="territory-info-card__row">
+                  <dt>Initial Investment</dt>
                   <dd id="territoryInfoInvestmentCompare"></dd>
                 </div>
               </dl>
@@ -537,7 +559,7 @@
 
           <div class="territory-info-card__actions">
             <a class="ui-control ui-button ui-button-secondary territory-info-card__action" id="territoryInfoProfileCompare" href="#" target="_blank" rel="noopener noreferrer">Franchise Profile</a>
-            <button class="ui-control ui-button ui-button-primary territory-info-card__action" type="button">Request Information</button>
+            <button class="ui-control ui-button ui-button-primary territory-info-card__action" id="territoryInfoRequestCompare" type="button">Request Information</button>
           </div>
         </article>
 
@@ -547,7 +569,10 @@
     </div>
   </main>
 
-  <button class="territory-map-pill territory-map-reset" id="territoryMapReset" type="button" hidden>Reset map view</button>
+  <button class="territory-map-pill territory-map-reset" id="territoryMapReset" type="button" hidden>
+    <img class="territory-map-reset__icon" src="../cst/assets/search.svg" alt="" aria-hidden="true">
+    <span class="territory-map-reset__label">Search this area</span>
+  </button>
 
   <div class="profile-modal-overlay target-modal-overlay save-search-modal-overlay" id="saveSearchModal" hidden>
     <section class="profile-modal target-modal save-search-modal" role="dialog" aria-modal="true" aria-labelledby="saveSearchModalTitle">
@@ -609,10 +634,83 @@
     </section>
   </div>
 
+  <div class="profile-modal-overlay target-modal-overlay save-search-modal-overlay" id="requestInfoModal" hidden>
+    <section class="profile-modal target-modal save-search-modal request-info-modal" role="dialog" aria-modal="true" aria-labelledby="requestInfoModalTitle">
+      <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close request-info-modal-close" type="button" aria-label="Close request information">
+        <img src="assets/close.svg" alt="" aria-hidden="true">
+      </button>
+
+      <form class="target-modal-form request-info-modal-form" id="requestInfoModalForm">
+        <div class="save-search-view save-search-view--form" id="requestInfoFormView">
+          <h2 class="target-modal-title request-info-modal-title" id="requestInfoModalTitle">Request information</h2>
+          <p class="save-search-description request-info-description" id="requestInfoDescription">Send your inquiry to the brand owner.</p>
+
+          <div class="request-info-name-row">
+            <label class="target-modal-field" for="requestInfoFirstName">
+              <span>First name</span>
+              <input class="target-modal-control target-modal-input" id="requestInfoFirstName" name="firstName" type="text" autocomplete="given-name" required>
+            </label>
+            <label class="target-modal-field" for="requestInfoLastName">
+              <span>Last name</span>
+              <input class="target-modal-control target-modal-input" id="requestInfoLastName" name="lastName" type="text" autocomplete="family-name" required>
+            </label>
+          </div>
+
+          <label class="target-modal-field" for="requestInfoEmail">
+            <span>Email</span>
+            <input class="target-modal-control target-modal-input" id="requestInfoEmail" name="email" type="email" autocomplete="email" required>
+          </label>
+
+          <label class="target-modal-field" for="requestInfoPhone">
+            <span>Phone</span>
+            <input class="target-modal-control target-modal-input" id="requestInfoPhone" name="phone" type="tel" autocomplete="tel" required>
+          </label>
+
+          <label class="target-modal-field" for="requestInfoTerritory">
+            <span>Territory</span>
+            <span class="request-info-territory-field" id="requestInfoTerritoryField">
+              <span class="request-info-territory-display" aria-hidden="true">
+                <img class="request-info-territory-logo" id="requestInfoTerritoryLogo" alt="" hidden>
+                <span class="request-info-territory-copy">
+                  <span class="request-info-territory-brand" id="requestInfoTerritoryBrand"></span>
+                  <span class="request-info-territory-name" id="requestInfoTerritoryName"></span>
+                </span>
+                <img class="request-info-territory-chevron" src="assets/chevron.svg" alt="">
+              </span>
+              <select class="request-info-territory-select" id="requestInfoTerritory" name="territory" required></select>
+            </span>
+          </label>
+
+          <label class="target-modal-field" for="requestInfoMessage">
+            <span>Message</span>
+            <textarea class="target-modal-control target-modal-textarea" id="requestInfoMessage" name="message" placeholder="What would you like to know about this territory?"></textarea>
+          </label>
+
+          <div class="target-modal-actions save-search-modal-actions">
+            <button class="ui-control ui-button target-modal-cancel request-info-modal-cancel" type="button">Cancel</button>
+            <button class="ui-control ui-button ui-button-primary target-modal-save request-info-modal-save" type="submit">Send inquiry</button>
+          </div>
+        </div>
+
+        <div class="save-search-view save-search-view--success" id="requestInfoSuccessView" hidden>
+          <div class="save-search-success">
+            <span class="save-search-success__icon" aria-hidden="true">
+              <img src="assets/check.svg" alt="">
+            </span>
+            <h2 class="target-modal-title save-search-success__title" id="requestInfoSuccessTitle">Inquiry sent</h2>
+            <p class="save-search-success__copy" id="requestInfoSuccessCopy">The brand owner will follow up with you shortly.</p>
+            <button class="ui-control ui-button ui-button-primary save-search-success__done" type="button">Done</button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </div>
+
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
   <script src="../../scripts/cst-env.js"></script>
   <script src="../shared/radius-control.js"></script>
+  <script src="../shared/fit-tooltip.js"></script>
   <script src="scripts/datasets.js"></script>
   <script src="scripts/categories.js"></script>
   <script src="scripts/location-search.js"></script>
@@ -622,5 +720,6 @@
   <script src="scripts/crossroad.js"></script>
   <script src="scripts/dataset-selector.js"></script>
   <script src="scripts/save-search-modal.js"></script>
+  <script src="scripts/request-info-modal.js"></script>
 </body>
 </html>

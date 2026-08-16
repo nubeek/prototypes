@@ -1050,8 +1050,8 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
 .target-modal-field {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 0 0 28px;
+  gap: 8px;
+  margin: 0 0 16px;
   color: #050505;
   font-size: 16px;
   font-weight: 400;

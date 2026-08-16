@@ -994,6 +994,8 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
       document.body.append(tooltip);
     }
 
+    window.fitTooltipToContent?.(tooltip);
+
     const targetRect = target.getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
     const viewportPadding = 8;

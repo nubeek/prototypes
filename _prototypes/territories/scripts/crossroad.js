@@ -20,6 +20,10 @@ const CROSSROAD_REGIONAL_ZOOM_OUT = 0.2;
 const CROSSROAD_MAX_REGIONAL_LOCATION_COUNT = 35;
 const CROSSROAD_MIN_REGIONAL_ZOOM = 3;
 const CROSSROAD_MAX_REGIONAL_ZOOM = 6.5;
+const CROSSROAD_SEARCH_SUGGESTION_GROUP_LIMIT = 3;
+const CROSSROAD_SEARCH_SUGGESTION_LIMIT = 9;
+
+let crossroadTerritoryBrands = [];
 
 // Territory preview overlays for splash preset cards: density fills plus crisp
 // borders.
@@ -775,11 +779,7 @@ window.showTerritoryCrossroadAfterClearAll = showTerritoryCrossroadAfterClearAll
 window.dismissTerritoryCrossroad = dismissTerritoryCrossroad;
 
 function beginTerritoryMapLoad() {
-  const loadingEl = document.getElementById("territoryMapLoading");
-  if (loadingEl) {
-    loadingEl.hidden = false;
-  }
-
+  window.territoryMapControls?.beginResultsLoading?.();
   window.startTerritoryMap?.();
 }
 
@@ -793,9 +793,12 @@ function chooseCrossroadOption(choice) {
       window.territoryFilters?.applyCrossroadPreset?.(choice.filters || {});
     } else {
       window.territoryFilters?.resetFilterSelections?.({ refreshMap: false });
+      if (choice.filters && Object.keys(choice.filters).length) {
+        window.territoryFilters?.applyCrossroadPreset?.(choice.filters);
+      }
       if (choice.locationSearch) {
         window.territoryFilters?.applyLocationSearchSelection?.(choice.locationSearch, {
-          autoRadius: window.territoryFilters?.shouldAutoEnableRadiusForLocation?.(choice.locationSearch)
+          autoRadius: false
         });
       }
     }
@@ -886,6 +889,170 @@ function setCrossroadSearchFeedback(message = "") {
   feedback.hidden = !message;
 }
 
+function getCrossroadBrandInitials(name) {
+  return String(name || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
+function getCrossroadBrandSuggestions(query) {
+  const normalizedQuery = normalizeCrossroadLocationQuery(query);
+  if (normalizedQuery.length < 2) return [];
+
+  return crossroadTerritoryBrands
+    .map((brand) => ({
+      brandId: brand.id,
+      filters: { franchises: [brand.id] },
+      group: "Brands",
+      label: brand.brand,
+      logoFallback: getCrossroadBrandInitials(brand.brand),
+      logoSrc: brand.logo || "",
+      type: "brand"
+    }))
+    .map((item) => ({
+      ...item,
+      matchIndex: normalizeCrossroadLocationQuery(item.label).indexOf(normalizedQuery)
+    }))
+    .filter((item) => item.matchIndex !== -1)
+    .sort((left, right) => left.matchIndex - right.matchIndex || left.label.localeCompare(right.label))
+    .slice(0, CROSSROAD_SEARCH_SUGGESTION_GROUP_LIMIT);
+}
+
+function toCrossroadLocationSuggestion(result) {
+  if (!result?.label) return null;
+
+  return {
+    group: "Locations",
+    label: result.label,
+    locationResult: result,
+    type: "location"
+  };
+}
+
+async function getCrossroadSearchSuggestions(query, { signal } = {}) {
+  const brandSuggestions = getCrossroadBrandSuggestions(query);
+  const remainingSlots = Math.max(0, CROSSROAD_SEARCH_SUGGESTION_LIMIT - brandSuggestions.length);
+  if (!remainingSlots) return brandSuggestions;
+
+  let locationResults = [];
+  try {
+    locationResults = await fetchCrossroadLocationSuggestions(query, { signal });
+  } catch (error) {
+    if (error?.name === "AbortError") throw error;
+    locationResults = [];
+  }
+
+  const locationSuggestions = locationResults
+    .map(toCrossroadLocationSuggestion)
+    .filter(Boolean)
+    .slice(0, Math.min(CROSSROAD_SEARCH_SUGGESTION_GROUP_LIMIT, remainingSlots));
+
+  return [...brandSuggestions, ...locationSuggestions].slice(0, CROSSROAD_SEARCH_SUGGESTION_LIMIT);
+}
+
+const CROSSROAD_SEARCH_SUGGESTION_ICONS = {
+  location: `<svg viewBox="0 0 16 20" focusable="false"><path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/></svg>`
+};
+
+function createCrossroadSuggestionIcon(item) {
+  const icon = document.createElement("span");
+  icon.className = "territory-crossroad__search-suggestion-icon";
+  icon.setAttribute("aria-hidden", "true");
+
+  if (item.logoSrc) {
+    icon.classList.add("has-logo");
+
+    const fallback = document.createElement("span");
+    fallback.className = "territory-crossroad__search-suggestion-logo-fallback";
+    fallback.textContent = item.logoFallback || "";
+
+    const image = document.createElement("img");
+    image.src = item.logoSrc;
+    image.alt = "";
+    image.loading = "lazy";
+    image.addEventListener("error", () => {
+      image.remove();
+      icon.classList.add("is-logo-missing");
+    });
+
+    icon.append(fallback, image);
+    return icon;
+  }
+
+  icon.innerHTML = CROSSROAD_SEARCH_SUGGESTION_ICONS[item.type] || CROSSROAD_SEARCH_SUGGESTION_ICONS.location;
+  return icon;
+}
+
+function startCrossroadBrandSearch(item) {
+  if (!item?.brandId) return;
+
+  chooseCrossroadOption({
+    type: "new",
+    filters: item.filters || { franchises: [item.brandId] }
+  });
+}
+
+let crossroadSearchFloatingTooltip = null;
+
+function getCrossroadSearchFloatingTooltip() {
+  if (!crossroadSearchFloatingTooltip) {
+    crossroadSearchFloatingTooltip = document.createElement("div");
+    crossroadSearchFloatingTooltip.className = "filter-combobox-floating-tooltip";
+  }
+
+  return crossroadSearchFloatingTooltip;
+}
+
+function positionCrossroadSearchFloatingTooltip(target) {
+  const tooltipText = target.dataset.tooltip;
+  if (!tooltipText) return;
+
+  const tooltip = getCrossroadSearchFloatingTooltip();
+  tooltip.textContent = tooltipText;
+
+  if (!tooltip.isConnected) {
+    document.body.append(tooltip);
+  }
+
+  window.fitTooltipToContent?.(tooltip);
+
+  const targetRect = target.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const viewportPadding = 8;
+  const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+  const left = Math.min(
+    Math.max(viewportPadding, centeredLeft),
+    window.innerWidth - tooltipRect.width - viewportPadding
+  );
+  const top = Math.max(viewportPadding, targetRect.top - tooltipRect.height - 6);
+
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function showCrossroadSearchFloatingTooltip(event) {
+  positionCrossroadSearchFloatingTooltip(event.currentTarget);
+  getCrossroadSearchFloatingTooltip().classList.add("is-visible");
+}
+
+function hideCrossroadSearchFloatingTooltip() {
+  crossroadSearchFloatingTooltip?.classList.remove("is-visible");
+}
+
+function bindCrossroadSearchFloatingTooltip(button) {
+  if (!button?.dataset.tooltip) return;
+
+  button.addEventListener("mouseenter", showCrossroadSearchFloatingTooltip);
+  button.addEventListener("mouseleave", hideCrossroadSearchFloatingTooltip);
+  button.addEventListener("focus", showCrossroadSearchFloatingTooltip);
+  button.addEventListener("blur", hideCrossroadSearchFloatingTooltip);
+  button.addEventListener("click", hideCrossroadSearchFloatingTooltip);
+}
+
 function bindCrossroadLocationSearch() {
   const form = document.getElementById("territoryCrossroadSearch");
   const input = document.getElementById("territoryCrossroadSearchInput");
@@ -915,10 +1082,10 @@ function bindCrossroadLocationSearch() {
     setSuggestionsOpen(false);
   }
 
-  function appendSuggestionHeading() {
+  function appendSuggestionHeading(label) {
     const heading = document.createElement("div");
     heading.className = "territory-crossroad__search-suggestion-heading";
-    heading.textContent = "Locations";
+    heading.textContent = label;
     suggestions.append(heading);
   }
 
@@ -928,17 +1095,44 @@ function bindCrossroadLocationSearch() {
     if (locateButton) locateButton.hidden = hasQuery;
   }
 
-  function renderSuggestionStatus(message) {
-    renderedSuggestions = [];
-    activeSuggestionIndex = -1;
-    suggestions.replaceChildren();
-    appendSuggestionHeading();
+  function appendSuggestionButton(item, index) {
+    const button = document.createElement("button");
+    const icon = createCrossroadSuggestionIcon(item);
+    const label = document.createElement("span");
+    const action = document.createElement("span");
+    const actionLabel = document.createElement("span");
+    const actionKey = document.createElement("img");
 
-    const status = document.createElement("div");
-    status.className = "territory-crossroad__search-suggestion-status";
-    status.textContent = message;
-    suggestions.append(status);
-    setSuggestionsOpen(true);
+    button.type = "button";
+    button.className = "territory-crossroad__search-suggestion";
+    button.id = `territoryCrossroadSearchSuggestion-${index}`;
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", "false");
+    button.setAttribute("aria-label", `Select ${item.label}`);
+
+    label.className = "territory-crossroad__search-suggestion-label";
+    label.textContent = item.label;
+
+    action.className = "territory-crossroad__search-suggestion-action";
+    action.setAttribute("aria-hidden", "true");
+    actionLabel.textContent = "Select";
+    actionKey.className = "territory-crossroad__search-suggestion-key";
+    actionKey.src = "assets/enter.svg";
+    actionKey.alt = "";
+    action.append(actionLabel, actionKey);
+
+    button.append(icon, label, action);
+    button.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+    });
+    button.addEventListener("mouseenter", () => {
+      activeSuggestionIndex = index;
+      syncActiveSuggestion();
+    });
+    button.addEventListener("click", () => {
+      selectSuggestion(item, { submit: true });
+    });
+    suggestions.append(button);
   }
 
   function renderSuggestions(items) {
@@ -947,62 +1141,47 @@ function bindCrossroadLocationSearch() {
     suggestions.replaceChildren();
 
     if (!items.length) {
-      renderSuggestionStatus("No matching locations.");
+      appendSuggestionHeading("Suggestions");
+      const status = document.createElement("div");
+      status.className = "territory-crossroad__search-suggestion-status";
+      status.textContent = "No brands or locations match.";
+      suggestions.append(status);
+      setSuggestionsOpen(true);
       return;
     }
 
-    appendSuggestionHeading();
-
+    let currentGroup = "";
     items.forEach((item, index) => {
-      const button = document.createElement("button");
-      const icon = document.createElement("span");
-      const label = document.createElement("span");
-      const action = document.createElement("span");
-      const actionLabel = document.createElement("span");
-      const actionKey = document.createElement("img");
-
-      button.type = "button";
-      button.className = "territory-crossroad__search-suggestion";
-      button.id = `territoryCrossroadSearchSuggestion-${index}`;
-      button.setAttribute("role", "option");
-      button.setAttribute("aria-selected", "false");
-      button.setAttribute("aria-label", `Select ${item.label}`);
-
-      icon.className = "territory-crossroad__search-suggestion-icon";
-      icon.setAttribute("aria-hidden", "true");
-      icon.innerHTML = `
-        <svg viewBox="0 0 16 20" focusable="false">
-          <path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/>
-        </svg>
-      `;
-
-      label.className = "territory-crossroad__search-suggestion-label";
-      label.textContent = item.label;
-
-      action.className = "territory-crossroad__search-suggestion-action";
-      action.setAttribute("aria-hidden", "true");
-      actionLabel.textContent = "Select";
-      actionKey.className = "territory-crossroad__search-suggestion-key";
-      actionKey.src = "assets/enter.svg";
-      actionKey.alt = "";
-      action.append(actionLabel, actionKey);
-
-      button.append(icon, label, action);
-      button.addEventListener("mousedown", (event) => {
-        event.preventDefault();
-      });
-      button.addEventListener("mouseenter", () => {
-        activeSuggestionIndex = index;
-        syncActiveSuggestion();
-      });
-      button.addEventListener("click", () => {
-        selectSuggestion(item, { submit: true });
-      });
-      suggestions.append(button);
+      if (item.group !== currentGroup) {
+        currentGroup = item.group;
+        appendSuggestionHeading(currentGroup);
+      }
+      appendSuggestionButton(item, index);
     });
 
     setSuggestionsOpen(true);
     syncActiveSuggestion();
+  }
+
+  function renderSearchingSuggestions(query) {
+    const brandSuggestions = getCrossroadBrandSuggestions(query);
+    if (brandSuggestions.length) {
+      renderSuggestions(brandSuggestions);
+      appendSuggestionHeading("Locations");
+      const status = document.createElement("div");
+      status.className = "territory-crossroad__search-suggestion-status";
+      status.textContent = "Searching…";
+      suggestions.append(status);
+      return;
+    }
+
+    suggestions.replaceChildren();
+    appendSuggestionHeading("Locations");
+    const status = document.createElement("div");
+    status.className = "territory-crossroad__search-suggestion-status";
+    status.textContent = "Searching…";
+    suggestions.append(status);
+    setSuggestionsOpen(true);
   }
 
   function syncActiveSuggestion() {
@@ -1028,9 +1207,14 @@ function bindCrossroadLocationSearch() {
     closeSuggestions();
     setCrossroadSearchFeedback();
 
-    if (submit) {
-      void submitCrossroadLocationSearch(item);
+    if (!submit) return;
+
+    if (item.type === "brand") {
+      startCrossroadBrandSearch(item);
+      return;
     }
+
+    void submitCrossroadLocationSearch(item.locationResult || item);
   }
 
   async function requestSuggestions(query) {
@@ -1043,10 +1227,10 @@ function bindCrossroadLocationSearch() {
       return;
     }
 
-    renderSuggestionStatus("Searching…");
+    renderSearchingSuggestions(trimmedQuery);
 
     try {
-      const items = await fetchCrossroadLocationSuggestions(trimmedQuery, {
+      const items = await getCrossroadSearchSuggestions(trimmedQuery, {
         signal: fetchController.signal
       });
       if (input.value.trim() !== trimmedQuery) return;
@@ -1079,14 +1263,15 @@ function bindCrossroadLocationSearch() {
     try {
       const query = input.value;
       if (!query.trim()) {
-        setCrossroadSearchFeedback("Enter a street, city, county, CBSA, or state to begin.");
+        setCrossroadSearchFeedback("Enter a brand, city, county, CBSA, or state to begin.");
         input.focus();
         return;
       }
 
-      const result = await resolveCrossroadLocationSearch(query, forcedResult || selectedSuggestion);
+      const locationResult = forcedResult?.locationResult || forcedResult;
+      const result = await resolveCrossroadLocationSearch(query, locationResult || selectedSuggestion?.locationResult);
       if (!result) {
-        setCrossroadSearchFeedback("Choose a matching U.S. location from the suggestions.");
+        setCrossroadSearchFeedback("Choose a matching brand or U.S. location from the suggestions.");
         input.focus();
         return;
       }
@@ -1094,12 +1279,41 @@ function bindCrossroadLocationSearch() {
       setCrossroadSearchFeedback();
       input.value = result.label;
       syncSearchActions();
-      selectedSuggestion = result;
+      selectedSuggestion = toCrossroadLocationSuggestion(result);
       closeSuggestions();
       startCrossroadLocationSearch(result);
     } finally {
       isSubmitting = false;
     }
+  }
+
+  async function submitCrossroadSearch() {
+    const query = input.value.trim();
+    if (!query) {
+      setCrossroadSearchFeedback("Enter a brand, city, county, CBSA, or state to begin.");
+      input.focus();
+      return;
+    }
+
+    const brandMatch = getCrossroadBrandSuggestions(query)[0];
+    if (brandMatch && normalizeCrossroadLocationQuery(brandMatch.label) === normalizeCrossroadLocationQuery(query)) {
+      selectSuggestion(brandMatch, { submit: true });
+      return;
+    }
+
+    const locationResult = await resolveCrossroadLocationSearch(query);
+    if (locationResult) {
+      selectSuggestion(toCrossroadLocationSuggestion(locationResult), { submit: true });
+      return;
+    }
+
+    if (brandMatch) {
+      selectSuggestion(brandMatch, { submit: true });
+      return;
+    }
+
+    setCrossroadSearchFeedback("Choose a matching brand or U.S. location from the suggestions.");
+    input.focus();
   }
 
   input.addEventListener("input", () => {
@@ -1155,7 +1369,7 @@ function bindCrossroadLocationSearch() {
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    void submitCrossroadLocationSearch();
+    void submitCrossroadSearch();
   });
 
   document.addEventListener("mousedown", (event) => {
@@ -1194,6 +1408,9 @@ function bindCrossroadLocationSearch() {
 
   syncSearchActions();
 
+  bindCrossroadSearchFloatingTooltip(clearButton);
+  bindCrossroadSearchFloatingTooltip(locateButton);
+
   window.resetCrossroadLocationSuggestions = () => {
     selectedSuggestion = null;
     closeSuggestions();
@@ -1229,7 +1446,9 @@ async function fetchCrossroadJson(url) {
 
 async function loadCrossroadTerritoryData() {
   if (window.territoryDataCache?.load) {
-    return window.territoryDataCache.load();
+    const data = await window.territoryDataCache.load();
+    crossroadTerritoryBrands = data?.brands || [];
+    return data;
   }
 
   const activeDataset = window.territoryDatasets.getActive();
@@ -1244,6 +1463,7 @@ async function loadCrossroadTerritoryData() {
     needsGeoFeatures ? fetchCrossroadJson(CROSSROAD_GEO_FEATURES_URL) : null
   ]);
 
+  crossroadTerritoryBrands = brands;
   return { statesGeojson, countiesGeojson, geoFeaturesGeojson, brands };
 }
 

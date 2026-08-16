@@ -18,7 +18,13 @@ const LOCATION_AUTO_RADIUS_MILES = {
   address: 10,
   place: 30
 };
+const LOCATION_VIEWPORT_RADIUS_MILES = 50;
+const TERRITORY_FILTER_COALESCE_MS = 60;
+const TERRITORY_FILTER_SLICE_BUDGET_MS = 12;
+const TERRITORY_FILTER_SLICE_CHECK_MASK = 255;
 const filterComboboxes = new Map();
+let territoryFilterRunToken = 0;
+let territoryFilterCoalesceTimer = 0;
 let territorySettingsReadyToPersist = false;
 let isRestoringTerritorySettings = false;
 let radiusFilterEnabled = false;
@@ -26,6 +32,7 @@ let selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
 let selectedLocationSearches = [];
 let locationIncludedStates = [];
 let locationExcludedStates = [];
+let implicitViewportBounds = null;
 let filterLocationSearchControl = null;
 const savedTerritorySettings = readSavedTerritorySettings();
 
@@ -273,6 +280,7 @@ function syncFilterLocationSearchUI() {
       key: `search:${locationKey}`,
       label: location.label,
       excluded: false,
+      onRecenter: () => recenterTerritoryMapToLocation(location),
       onRemove: () => {
         selectedLocationSearches = selectedLocationSearches.filter(
           (candidate) => getLocationSearchKey(candidate) !== locationKey
@@ -287,6 +295,7 @@ function syncFilterLocationSearchUI() {
       key: `include:${stateCode}`,
       label: window.territoryLocationSearch?.getStateLabel?.(stateCode) || stateCode,
       excluded: false,
+      onRecenter: () => recenterTerritoryMapToLocation({ stateCode }),
       onRemove: () => {
         locationIncludedStates = locationIncludedStates.filter((code) => code !== stateCode);
         syncLocationFilterAfterRemoval();
@@ -315,13 +324,16 @@ function syncFilterLocationSearchUI() {
   if (chipsContainer) {
     chipsContainer.replaceChildren();
 
-    chipEntries.forEach(({ key, label, excluded, onRemove, onToggleExclude }) => {
+    chipEntries.forEach(({ key, label, excluded, onRemove, onToggleExclude, onRecenter }) => {
       const chip = document.createElement("span");
       const chipLabel = document.createElement("span");
       const chipRemove = document.createElement("button");
 
       chip.className = "filter-combobox-chip";
       chip.classList.toggle("is-excluded", excluded);
+      if (onRecenter) {
+        chip.classList.add("is-recenterable");
+      }
 
       if (onToggleExclude) {
         const chipToggle = document.createElement("button");
@@ -343,6 +355,25 @@ function syncFilterLocationSearchUI() {
 
       chipLabel.className = "filter-combobox-chip-label";
       chipLabel.textContent = label;
+      if (onRecenter) {
+        chipLabel.setAttribute("role", "button");
+        chipLabel.tabIndex = 0;
+        chipLabel.setAttribute("aria-label", `Recenter map on ${label}`);
+        const handleRecenter = (event) => {
+          event.stopPropagation();
+          onRecenter();
+        };
+        chipLabel.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+        chipLabel.addEventListener("click", handleRecenter);
+        chipLabel.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          handleRecenter(event);
+        });
+      }
 
       chipRemove.className = "filter-combobox-chip-remove";
       chipRemove.type = "button";
@@ -451,6 +482,21 @@ function applyLocationSearchSelection(result, { autoRadius = false, replace = tr
     radiusFilterEnabled = false;
   }
 
+  if (nextLocation.coordinates) {
+    window.territoryMapControls?.armLocationReveal?.(
+      nextLocation.coordinates.longitude,
+      nextLocation.coordinates.latitude
+    );
+  } else if (nextLocation.stateCode) {
+    window.territoryMapControls?.armStateReveal?.(nextLocation.stateCode);
+  }
+
+  if (radiusFilterEnabled || !nextLocation.coordinates) {
+    clearImplicitViewportBounds();
+  } else {
+    syncImplicitViewportBounds({ framed: false });
+  }
+
   syncFilterLocationSearchUI();
   return true;
 }
@@ -460,10 +506,18 @@ function applyLocationInclude(result) {
 
   ensureTerritoryMapStartedFromLocationFilter();
   applyLocationSearchSelection(result, {
-    autoRadius: shouldAutoEnableRadiusForLocation(result),
+    autoRadius: false,
     replace: false
   });
-  focusTerritoryLocationSearchResult(result);
+  if (!radiusFilterEnabled) {
+    syncImplicitViewportBounds({ framed: false });
+  }
+  const hasMultipleSearchAreas = selectedLocationSearches.length > 1
+    || (radiusFilterEnabled && getTerritoryRadiusCentersForFilter().length > 1);
+  if (!hasMultipleSearchAreas) {
+    focusTerritoryLocationSearchResult(result);
+    window.territoryMapControls?.skipNextFilterFit?.();
+  }
   refreshTerritoryFilters();
 }
 
@@ -486,6 +540,7 @@ function clearLocationFilterState() {
   selectedLocationSearches = [];
   locationIncludedStates = [];
   locationExcludedStates = [];
+  clearImplicitViewportBounds();
   syncFilterLocationSearchUI();
 }
 
@@ -540,6 +595,11 @@ function setSelectedLocationSearch(result, { refresh = true } = {}) {
     locationIncludedStates = [];
     locationExcludedStates = locationExcludedStates.filter((code) => code !== result.stateCode);
   }
+  if (radiusFilterEnabled || !result?.coordinates) {
+    clearImplicitViewportBounds();
+  } else {
+    syncImplicitViewportBounds({ framed: false });
+  }
   syncFilterLocationSearchUI();
 
   if (refresh) {
@@ -551,6 +611,10 @@ function setLocationStateFilters(includedStates = [], excludedStates = [], { ref
   selectedLocationSearches = [];
   locationIncludedStates = getSavedStringArray(includedStates);
   locationExcludedStates = getSavedStringArray(excludedStates);
+  clearImplicitViewportBounds();
+  if (locationIncludedStates.length) {
+    window.territoryMapControls?.armStatesReveal?.(locationIncludedStates);
+  }
   syncFilterLocationSearchUI();
 
   if (refresh) {
@@ -569,21 +633,151 @@ function focusTerritoryLocationSearchResult(result) {
     return;
   }
 
-  if (result.coordinates) {
+  recenterTerritoryMapToLocation(result);
+}
+
+function recenterTerritoryMapToLocation(location) {
+  if (!location) return;
+
+  ensureTerritoryMapStartedFromLocationFilter();
+
+  if (location.coordinates) {
     const radiusMiles = radiusFilterEnabled
       ? selectedRadiusMiles
-      : undefined;
+      : LOCATION_VIEWPORT_RADIUS_MILES;
     window.territoryMapControls?.focusTerritoryCoordinates?.(
-      result.coordinates.longitude,
-      result.coordinates.latitude,
-      radiusMiles
+      location.coordinates.longitude,
+      location.coordinates.latitude,
+      radiusMiles,
+      { skipReveal: true }
     );
     return;
   }
 
-  if (result.stateCode) {
-    window.territoryMapControls?.focusTerritoryState?.(result.stateCode);
+  if (location.stateCode) {
+    window.territoryMapControls?.focusTerritoryState?.(location.stateCode, { skipReveal: true });
   }
+}
+
+function getCoordinateLocationCenters() {
+  return selectedLocationSearches
+    .filter((location) => location.coordinates)
+    .map((location) => ({
+      state: location.stateCode,
+      center: [
+        location.coordinates.longitude,
+        location.coordinates.latitude
+      ]
+    }));
+}
+
+function hasImplicitAreaSearch() {
+  return !radiusFilterEnabled && getCoordinateLocationCenters().length > 0;
+}
+
+function normalizeViewportBounds(bounds) {
+  const west = Number(bounds?.west);
+  const east = Number(bounds?.east);
+  const south = Number(bounds?.south);
+  const north = Number(bounds?.north);
+  if (![west, east, south, north].every(Number.isFinite)) return null;
+  if (!(east > west) || !(north > south)) return null;
+  return { west, east, south, north };
+}
+
+function viewportBoundsEqual(left, right) {
+  if (!left || !right) return false;
+  const epsilon = 1e-6;
+  return Math.abs(left.west - right.west) < epsilon
+    && Math.abs(left.east - right.east) < epsilon
+    && Math.abs(left.south - right.south) < epsilon
+    && Math.abs(left.north - right.north) < epsilon;
+}
+
+function mergeViewportBounds(target, bounds) {
+  const nextBounds = normalizeViewportBounds(bounds);
+  if (!nextBounds) return target;
+  if (!target) return nextBounds;
+
+  return {
+    west: Math.min(target.west, nextBounds.west),
+    east: Math.max(target.east, nextBounds.east),
+    south: Math.min(target.south, nextBounds.south),
+    north: Math.max(target.north, nextBounds.north)
+  };
+}
+
+function deriveViewportBoundsFromLocation(location) {
+  const longitude = Number(location?.coordinates?.longitude);
+  const latitude = Number(location?.coordinates?.latitude);
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+
+  return normalizeViewportBounds(
+    window.territoryMapControls?.getSearchViewportBounds?.(
+      longitude,
+      latitude,
+      LOCATION_VIEWPORT_RADIUS_MILES
+    )
+  );
+}
+
+function deriveViewportBoundsFromLocationSearches() {
+  return selectedLocationSearches.reduce(
+    (bounds, location) => mergeViewportBounds(bounds, deriveViewportBoundsFromLocation(location)),
+    null
+  );
+}
+
+function clearImplicitViewportBounds() {
+  implicitViewportBounds = null;
+  window.territoryMapControls?.markViewportUnframed?.();
+}
+
+function setImplicitViewportBounds(bounds, { framed = false } = {}) {
+  implicitViewportBounds = normalizeViewportBounds(bounds);
+  if (framed) {
+    window.territoryMapControls?.markViewportFramed?.();
+  } else {
+    window.territoryMapControls?.markViewportUnframed?.();
+  }
+  return implicitViewportBounds;
+}
+
+function syncImplicitViewportBounds({ preferMap = false, framed = false } = {}) {
+  if (!hasImplicitAreaSearch()) {
+    clearImplicitViewportBounds();
+    return null;
+  }
+
+  const mapBounds = preferMap
+    ? window.territoryMapControls?.getViewportBounds?.()
+    : null;
+  const nextBounds = normalizeViewportBounds(mapBounds)
+    || deriveViewportBoundsFromLocationSearches()
+    || implicitViewportBounds
+    || window.territoryMapControls?.getViewportBounds?.();
+
+  return setImplicitViewportBounds(nextBounds, { framed });
+}
+
+function getImplicitViewportBounds() {
+  if (!hasImplicitAreaSearch()) return null;
+  return implicitViewportBounds
+    || window.territoryMapControls?.getViewportBounds?.()
+    || deriveViewportBoundsFromLocationSearches();
+}
+
+function captureViewportFromMap() {
+  if (!hasImplicitAreaSearch()) return false;
+
+  const bounds = normalizeViewportBounds(window.territoryMapControls?.getViewportBounds?.());
+  if (!bounds || viewportBoundsEqual(implicitViewportBounds, bounds)) return false;
+
+  implicitViewportBounds = bounds;
+  window.territoryMapControls?.markViewportFramed?.();
+  window.territoryMapControls?.skipNextFilterFit?.();
+  refreshTerritoryFilters();
+  return true;
 }
 
 function getTerritoryRadiusCentersForFilter(registry = window.territoryMapFilters?.getTerritoryRegistry?.() || []) {
@@ -832,6 +1026,12 @@ function restoreSavedFilterSelections(settings) {
 
   restoreFilterSectionState(filters.sections);
   syncFilterComboboxes();
+
+  if (radiusFilterEnabled) {
+    clearImplicitViewportBounds();
+  } else {
+    syncImplicitViewportBounds({ framed: false });
+  }
 }
 
 function restoreSelectFiltersFromSaved(settings) {
@@ -989,6 +1189,7 @@ function initRadiusFilterControls() {
 function resetRadiusFilter() {
   radiusFilterEnabled = false;
   selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
+  clearImplicitViewportBounds();
   syncRadiusFilterControls();
 }
 
@@ -1034,11 +1235,23 @@ function getCoordinateDistanceMiles([fromLongitude, fromLatitude], [toLongitude,
 }
 
 function syncTerritoryRadiusMap() {
-  const centers = getTerritoryRadiusCentersForFilter();
+  const explicitCenters = getTerritoryRadiusCentersForFilter();
+
+  if (radiusFilterEnabled && explicitCenters.length > 0) {
+    window.territoryMapControls?.setTerritoryRadiusFilter?.({
+      enabled: true,
+      overlay: true,
+      miles: selectedRadiusMiles,
+      centers: explicitCenters
+    });
+    return;
+  }
+
   window.territoryMapControls?.setTerritoryRadiusFilter?.({
-    enabled: radiusFilterEnabled && centers.length > 0,
+    enabled: false,
+    overlay: false,
     miles: selectedRadiusMiles,
-    centers
+    centers: []
   });
 }
 
@@ -1182,6 +1395,8 @@ function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
     if (!tooltip.isConnected) {
       document.body.append(tooltip);
     }
+
+    window.fitTooltipToContent?.(tooltip);
 
     const targetRect = target.getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
@@ -2022,6 +2237,12 @@ function initTerritoryFilters() {
   radiusToggle?.addEventListener("change", () => {
     radiusFilterEnabled = radiusToggle.checked;
     syncRadiusFilterControls();
+    if (radiusFilterEnabled) {
+      clearImplicitViewportBounds();
+    } else {
+      syncImplicitViewportBounds({ preferMap: true, framed: true });
+      window.territoryMapControls?.skipNextFilterFit?.();
+    }
     refreshTerritoryFilters();
   });
 
@@ -2364,13 +2585,42 @@ function getTerritoryFilterState() {
   };
 }
 
-function territoryMatchesFilters(record, filters) {
-  if (filters.locations.excluded.includes(record.state)) {
+function resolveLocationMatchTargets(locationSearches = []) {
+  return locationSearches
+    .map((location) => {
+      if (window.territoryMapFilters?.resolveLocationTarget) {
+        return window.territoryMapFilters.resolveLocationTarget(location);
+      }
+
+      return location?.stateCode
+        ? { kind: "state", stateCode: location.stateCode }
+        : null;
+    })
+    .filter(Boolean);
+}
+
+function recordMatchesLocationTarget(record, target, cache) {
+  if (window.territoryMapFilters?.recordMatchesLocationTarget) {
+    return window.territoryMapFilters.recordMatchesLocationTarget(record, target, cache);
+  }
+
+  return target?.kind === "state" && record.state === target.stateCode;
+}
+
+function territoryMatchesFilters(record, filters, context) {
+  if (context.excludedStates.has(record.state)) {
     return false;
   }
 
-  const radiusIsActive = filters.radius.enabled && filters.radius.centers.length > 0;
-  if (radiusIsActive) {
+  if (context.viewportContext) {
+    if (!window.territoryMapFilters?.recordIntersectsViewport?.(record, context.viewportContext)) {
+      return false;
+    }
+  } else if (context.radiusContext) {
+    if (!window.territoryMapFilters?.recordIntersectsRadius?.(record, context.radiusContext)) {
+      return false;
+    }
+  } else if (context.radiusIsActive) {
     if (
       !Array.isArray(record.center)
       || !filters.radius.centers.some(
@@ -2379,40 +2629,38 @@ function territoryMatchesFilters(record, filters) {
     ) {
       return false;
     }
-  } else {
-    const includedLocationStates = new Set([
-      ...filters.locations.included,
-      ...(filters.locationSearches || [])
-        .map((location) => location.stateCode)
-        .filter(Boolean)
-    ]);
+  } else if (context.hasLocationConstraint) {
+    const matchesLocation = context.includedStates.has(record.state)
+      || context.locationTargets.some((target) => (
+        recordMatchesLocationTarget(record, target, context.locationCache)
+      ));
 
-    if (includedLocationStates.size && !includedLocationStates.has(record.state)) {
+    if (!matchesLocation) {
       return false;
     }
   }
 
-  if (filters.categories.included.length && !filters.categories.included.includes(record.category)) {
+  if (context.includedCategories && !context.includedCategories.has(record.category)) {
     return false;
   }
 
-  if (filters.categories.excluded.includes(record.category)) {
+  if (context.excludedCategories.has(record.category)) {
     return false;
   }
 
-  if (filters.franchises.included.length && !filters.franchises.included.includes(record.brandId)) {
+  if (context.includedFranchises && !context.includedFranchises.has(record.brandId)) {
     return false;
   }
 
-  if (filters.franchises.excluded.includes(record.brandId)) {
+  if (context.excludedFranchises.has(record.brandId)) {
     return false;
   }
 
-  if (filters.statuses.length && !filters.statuses.includes(record.status)) {
+  if (context.statuses && !context.statuses.has(record.status)) {
     return false;
   }
 
-  if (filters.geoLevels.length && !filters.geoLevels.includes(record.geoType)) {
+  if (context.geoLevels && !context.geoLevels.has(record.geoType)) {
     return false;
   }
 
@@ -2425,8 +2673,10 @@ function territoryMatchesFilters(record, filters) {
   }
 
   if (filters.search) {
-    const haystack = `${record.brand} ${record.name} ${record.state}`.toLocaleLowerCase();
-    if (!haystack.includes(filters.search)) {
+    if (record.searchHaystack === undefined) {
+      record.searchHaystack = `${record.brand} ${record.name} ${record.state}`.toLocaleLowerCase();
+    }
+    if (!record.searchHaystack.includes(filters.search)) {
       return false;
     }
   }
@@ -2434,9 +2684,102 @@ function territoryMatchesFilters(record, filters) {
   return true;
 }
 
+function getActiveLocationRadius(filters) {
+  if (filters.radius.enabled && filters.radius.centers.length > 0) {
+    return {
+      centers: filters.radius.centers,
+      miles: filters.radius.miles
+    };
+  }
+
+  return null;
+}
+
+function applySearchThisArea(result) {
+  if (!applyLocationSearchSelection(result, { autoRadius: false, replace: true })) {
+    return false;
+  }
+
+  syncImplicitViewportBounds({ preferMap: true, framed: true });
+  refreshTerritoryFilters();
+  return true;
+}
+
+function createTerritoryMatchContext(filters) {
+  const activeRadius = getActiveLocationRadius(filters);
+  const viewportBounds = activeRadius ? null : getImplicitViewportBounds();
+  const locationTargets = resolveLocationMatchTargets(filters.locationSearches);
+  const includedStates = new Set(filters.locations.included);
+
+  return {
+    excludedStates: new Set(filters.locations.excluded),
+    includedStates,
+    locationTargets,
+    locationCache: new Map(),
+    hasLocationConstraint: includedStates.size > 0 || locationTargets.length > 0,
+    radiusIsActive: Boolean(activeRadius),
+    includedCategories: filters.categories.included.length
+      ? new Set(filters.categories.included)
+      : null,
+    excludedCategories: new Set(filters.categories.excluded),
+    includedFranchises: filters.franchises.included.length
+      ? new Set(filters.franchises.included)
+      : null,
+    excludedFranchises: new Set(filters.franchises.excluded),
+    statuses: filters.statuses.length ? new Set(filters.statuses) : null,
+    geoLevels: filters.geoLevels.length ? new Set(filters.geoLevels) : null,
+    radiusContext: activeRadius
+      ? window.territoryMapFilters?.createRadiusMatchContext?.(
+          activeRadius.centers,
+          activeRadius.miles
+        )
+      : null,
+    viewportContext: viewportBounds
+      ? window.territoryMapFilters?.createViewportMatchContext?.(viewportBounds)
+      : null
+  };
+}
+
 function getFilteredTerritoryRecords(registry = window.territoryMapFilters?.getTerritoryRegistry?.() || []) {
   const filters = getTerritoryFilterState();
-  return registry.filter((record) => territoryMatchesFilters(record, filters));
+  const context = createTerritoryMatchContext(filters);
+
+  return registry.filter((record) => territoryMatchesFilters(record, filters, context));
+}
+
+function yieldToTerritoryFilterFrame() {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
+
+// Matching 15k records against viewport geometry can take far longer than one
+// frame, so the scan runs in time-sliced chunks and bails out as soon as a newer
+// filter run supersedes it.
+async function collectFilteredTerritoryRecords(registry, isCancelled) {
+  const filters = getTerritoryFilterState();
+  const context = createTerritoryMatchContext(filters);
+  const matchingRecords = [];
+  const total = registry.length;
+  let index = 0;
+  let deadline = performance.now() + TERRITORY_FILTER_SLICE_BUDGET_MS;
+
+  while (index < total) {
+    const record = registry[index];
+    index += 1;
+
+    if (territoryMatchesFilters(record, filters, context)) {
+      matchingRecords.push(record);
+    }
+
+    if ((index & TERRITORY_FILTER_SLICE_CHECK_MASK) === 0 && performance.now() >= deadline) {
+      await yieldToTerritoryFilterFrame();
+      if (isCancelled()) return null;
+      deadline = performance.now() + TERRITORY_FILTER_SLICE_BUDGET_MS;
+    }
+  }
+
+  return matchingRecords;
 }
 
 function maybeStartTerritoryMapFromFilters() {
@@ -2455,16 +2798,59 @@ function maybeStartTerritoryMapFromFilters() {
   }
 }
 
-function refreshTerritoryFilters() {
+function cancelPendingTerritoryFilterRun() {
+  if (territoryFilterCoalesceTimer) {
+    clearTimeout(territoryFilterCoalesceTimer);
+    territoryFilterCoalesceTimer = 0;
+  }
+}
+
+async function runTerritoryFilterPipeline(token) {
+  const isCancelled = () => token !== territoryFilterRunToken;
+  const registry = window.territoryMapFilters?.getTerritoryRegistry?.() || [];
+
+  try {
+    const matchingRecords = await collectFilteredTerritoryRecords(registry, isCancelled);
+    if (matchingRecords === null || isCancelled()) return;
+
+    await window.territoryMapFilters?.applyTerritoryFilters?.(matchingRecords, {
+      isCancelled
+    });
+  } finally {
+    if (!isCancelled()) {
+      window.territoryMapControls?.endResultsLoading?.();
+    }
+  }
+}
+
+function scheduleTerritoryFilterRun({ immediate = false } = {}) {
+  territoryFilterRunToken += 1;
+  const token = territoryFilterRunToken;
+
+  cancelPendingTerritoryFilterRun();
+  window.territoryMapControls?.beginResultsLoading?.();
+
+  if (immediate) {
+    return runTerritoryFilterPipeline(token);
+  }
+
+  return new Promise((resolve) => {
+    territoryFilterCoalesceTimer = setTimeout(() => {
+      territoryFilterCoalesceTimer = 0;
+      resolve(runTerritoryFilterPipeline(token));
+    }, TERRITORY_FILTER_COALESCE_MS);
+  });
+}
+
+function refreshTerritoryFilters({ immediate = false } = {}) {
   maybeStartTerritoryMapFromFilters();
 
-  const registry = window.territoryMapFilters?.getTerritoryRegistry?.() || [];
   syncTerritoryRadiusMap();
-  const matchingRecords = getFilteredTerritoryRecords(registry);
-  window.territoryMapFilters?.applyTerritoryFilters?.(matchingRecords);
   updateClearFiltersButton();
   updateFilterSectionClearButtons();
   persistTerritorySettings();
+
+  return scheduleTerritoryFilterRun({ immediate });
 }
 
 function updateTerritoryFilterSummary(visibleCount, totalCount) {
@@ -2769,10 +3155,10 @@ function initTerritoryFilterData(brands, registry) {
     if (crossroadChoice?.type === "preset") {
       applyCrossroadPresetSelections(crossroadChoice.filters || {});
     } else if (crossroadChoice?.type === "new") {
-      applyCrossroadPresetSelections({});
+      applyCrossroadPresetSelections(crossroadChoice.filters || {});
       if (crossroadChoice.locationSearch) {
         applyLocationSearchSelection(crossroadChoice.locationSearch, {
-          autoRadius: shouldAutoEnableRadiusForLocation(crossroadChoice.locationSearch)
+          autoRadius: false
         });
       }
     } else if (crossroadChoice?.type === "filters") {
@@ -2786,7 +3172,7 @@ function initTerritoryFilterData(brands, registry) {
 
   bindTerritoryFilterControls();
   applySavedMapSettings();
-  refreshTerritoryFilters();
+  refreshTerritoryFilters({ immediate: true });
   territorySettingsReadyToPersist = true;
   persistTerritorySettings();
 }
@@ -2804,6 +3190,10 @@ window.territoryFilters = {
   resetFilterSelections,
   applyCrossroadPreset: applyCrossroadPresetSelections,
   applyLocationSearchSelection,
+  applySearchThisArea,
+  hasImplicitAreaSearch,
+  getImplicitViewportBounds,
+  captureViewportFromMap,
   applyLocationInclude,
   isFilterDataReady: () => territorySettingsReadyToPersist,
   shouldAutoEnableRadiusForLocation,

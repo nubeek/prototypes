@@ -461,6 +461,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   color: #17171c;
   line-height: 1.25;
   text-align: center;
+  text-wrap: balance;
   overflow: hidden;
   pointer-events: none;
   opacity: 0;
@@ -477,7 +478,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 
 .map-point-tooltip-title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -492,7 +493,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 
 .map-point-tooltip-detail {
   font-size: 13px;
-  font-weight: 400;
+  font-weight: 500;
   color: #4a4a52;
   max-width: 100%;
   overflow: hidden;
@@ -1077,8 +1078,8 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 .target-modal-field {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 0 0 28px;
+  gap: 8px;
+  margin: 0 0 16px;
   color: #050505;
   font-size: 16px;
   font-weight: 400;
@@ -2597,9 +2598,10 @@ body.reduce-motion .save-lead-note {
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
   color: #17171c;
   font-size: 14px;
-  font-weight: 400;
-  line-height: 1.15;
+  font-weight: 500;
+  line-height: 1.25;
   text-align: center;
+  text-wrap: balance;
   white-space: pre-line;
   opacity: 0;
   visibility: hidden;
@@ -2618,9 +2620,10 @@ body.reduce-motion .save-lead-note {
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
   color: #17171c;
   font-size: 14px;
-  font-weight: 400;
-  line-height: 1.15;
+  font-weight: 500;
+  line-height: 1.25;
   text-align: center;
+  text-wrap: balance;
   white-space: pre-line;
   opacity: 0;
   visibility: hidden;
@@ -2636,8 +2639,8 @@ body.reduce-motion .save-lead-note {
 }
 
 .contact-action-floating-tooltip {
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 500;
+  line-height: 1.25;
   white-space: nowrap;
 }
 
@@ -5337,8 +5340,8 @@ tbody tr.is-selected:hover td:first-child {
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
   color: #17171c;
   font-size: 14px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 500;
+  line-height: 1.25;
   text-align: center;
   white-space: nowrap;
   opacity: 0;
@@ -5537,8 +5540,8 @@ tbody tr.is-selected:hover td:first-child {
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
   color: #17171c;
   font-size: 14px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 500;
+  line-height: 1.25;
   text-align: center;
   white-space: nowrap;
   opacity: 0;
@@ -5758,8 +5761,8 @@ tbody tr.is-selected:hover td:first-child {
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
   color: #17171c;
   font-size: 14px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 500;
+  line-height: 1.25;
   text-align: center;
   white-space: nowrap;
   opacity: 0;
@@ -6761,6 +6764,9 @@ tbody tr.is-selected:hover td:first-child {
 }
 
 .cst-splash__search-suggestion-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: #aaaab0;
   font-size: 15px;
   opacity: 0;
@@ -6769,6 +6775,13 @@ tbody tr.is-selected:hover td:first-child {
 
 .cst-splash__search-suggestion.is-active .cst-splash__search-suggestion-action {
   opacity: 1;
+}
+
+.cst-splash__search-suggestion-key {
+  display: block;
+  width: 20px;
+  height: 20px;
+  opacity: 0.3;
 }
 
 .cst-splash__search-suggestion-status {

@@ -617,6 +617,7 @@ function bindCstLocationSearch({
         optionIcon: "cst-splash__search-suggestion-icon",
         optionLabel: "cst-splash__search-suggestion-label",
         optionAction: "cst-splash__search-suggestion-action",
+        optionActionKey: "cst-splash__search-suggestion-key",
         empty: "cst-splash__search-suggestion-status"
       };
 
@@ -669,6 +670,8 @@ function bindCstLocationSearch({
     if (!tooltip.isConnected) {
       document.body.append(tooltip);
     }
+
+    window.fitTooltipToContent?.(tooltip);
 
     const targetRect = target.getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
@@ -786,6 +789,8 @@ function bindCstLocationSearch({
       } else {
         const icon = document.createElement("span");
         const action = document.createElement("span");
+        const actionLabel = document.createElement("span");
+        const actionKey = document.createElement("img");
 
         icon.className = ui.optionIcon;
         icon.setAttribute("aria-hidden", "true");
@@ -800,7 +805,11 @@ function bindCstLocationSearch({
 
         action.className = ui.optionAction;
         action.setAttribute("aria-hidden", "true");
-        action.textContent = "Open";
+        actionLabel.textContent = "Select";
+        actionKey.className = ui.optionActionKey;
+        actionKey.src = "assets/enter.svg";
+        actionKey.alt = "";
+        action.append(actionLabel, actionKey);
         optionElement.append(icon, label, action);
       }
 

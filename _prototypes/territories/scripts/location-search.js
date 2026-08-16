@@ -352,18 +352,29 @@ async function resolveTerritoryLocationFromCoordinates(longitude, latitude, stat
 
   const resolvedStateCode = stateCode
     || window.territoryMapControls?.getStateCodeForCoordinates?.(longitude, latitude);
-  if (!resolvedStateCode) return null;
 
   const geocoded = await reverseGeocodeTerritoryCoordinates(longitude, latitude, { types: "address" })
-    || await reverseGeocodeTerritoryCoordinates(longitude, latitude, { types: "place" });
+    || await reverseGeocodeTerritoryCoordinates(longitude, latitude, { types: "place" })
+    || await reverseGeocodeTerritoryCoordinates(longitude, latitude, { types: "region" });
 
-  if (!geocoded?.label) return null;
+  if (geocoded?.label && (geocoded.stateCode || resolvedStateCode)) {
+    return createTerritoryLocationResult({
+      label: geocoded.label,
+      stateCode: geocoded.stateCode || resolvedStateCode,
+      coordinates: geocoded.coordinates || { longitude, latitude },
+      geoLevel: geocoded.geoLevel === "place" || geocoded.geoLevel === "region"
+        ? geocoded.geoLevel
+        : "address"
+    });
+  }
+
+  if (!resolvedStateCode) return null;
 
   return createTerritoryLocationResult({
-    label: geocoded.label,
-    stateCode: geocoded.stateCode || resolvedStateCode,
+    label: `Map area, ${getTerritoryStateLabel(resolvedStateCode)}`,
+    stateCode: resolvedStateCode,
     coordinates: { longitude, latitude },
-    geoLevel: geocoded.geoLevel === "place" ? "place" : "address"
+    geoLevel: "address"
   });
 }
 
@@ -505,6 +516,8 @@ function bindTerritoryLocationSearch({
     if (!tooltip.isConnected) {
       document.body.append(tooltip);
     }
+
+    window.fitTooltipToContent?.(tooltip);
 
     const targetRect = target.getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();

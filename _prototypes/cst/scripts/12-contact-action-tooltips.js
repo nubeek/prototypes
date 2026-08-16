@@ -28,6 +28,7 @@ function positionFloatingTooltip(target, tooltipText) {
   }
 
   tooltip.classList.add("is-visible");
+  window.fitTooltipToContent?.(tooltip);
 
   const targetRect = target.getBoundingClientRect();
   const tooltipRect = tooltip.getBoundingClientRect();

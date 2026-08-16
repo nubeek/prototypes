@@ -471,6 +471,7 @@ function createMapPointTooltipController(mapInstance) {
     if (!activeCoordinates || !isVisible) return;
 
     const tooltip = getTooltip();
+    window.fitTooltipToContent?.(tooltip);
     const projected = mapInstance.project(activeCoordinates);
     const containerRect = mapInstance.getContainer().getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();

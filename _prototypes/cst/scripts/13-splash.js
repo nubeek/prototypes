@@ -862,20 +862,26 @@ function bindCstSplashSearch() {
     const icon = createCstSplashSuggestionIcon(item);
     const label = document.createElement("span");
     const action = document.createElement("span");
+    const actionLabel = document.createElement("span");
+    const actionKey = document.createElement("img");
 
     button.type = "button";
     button.className = "cst-splash__search-suggestion";
     button.id = `cstSplashSearchSuggestion-${index}`;
     button.setAttribute("role", "option");
     button.setAttribute("aria-selected", "false");
-    button.setAttribute("aria-label", `Open ${item.label}`);
+    button.setAttribute("aria-label", `Select ${item.label}`);
 
     label.className = "cst-splash__search-suggestion-label";
     label.textContent = item.label;
 
     action.className = "cst-splash__search-suggestion-action";
     action.setAttribute("aria-hidden", "true");
-    action.textContent = "Open";
+    actionLabel.textContent = "Select";
+    actionKey.className = "cst-splash__search-suggestion-key";
+    actionKey.src = "assets/enter.svg";
+    actionKey.alt = "";
+    action.append(actionLabel, actionKey);
 
     button.append(icon, label, action);
     button.addEventListener("mousedown", (event) => event.preventDefault());

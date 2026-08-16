@@ -8,15 +8,26 @@ const TERRITORY_STATUS_SORT_ORDER = {
   sold: 2
 };
 
+// Passing options to localeCompare builds a collator per call, which dominated
+// list rendering once a search returned thousands of rows. One shared collator
+// plus a memoised sort key keeps the comparison to a string compare.
+const territoryNameCollator = new Intl.Collator(undefined, { sensitivity: "base" });
+
+function getTerritorySortName(territory) {
+  if (territory.panelSortName === undefined) {
+    territory.panelSortName = String(territory.name || territory.state || "");
+  }
+  return territory.panelSortName;
+}
+
 function compareTerritoriesByStatusThenName(left, right) {
   const statusDiff = (TERRITORY_STATUS_SORT_ORDER[left.status] ?? 99)
     - (TERRITORY_STATUS_SORT_ORDER[right.status] ?? 99);
   if (statusDiff !== 0) return statusDiff;
 
-  return String(left.name || left.state || "").localeCompare(
-    String(right.name || right.state || ""),
-    undefined,
-    { sensitivity: "base" }
+  return territoryNameCollator.compare(
+    getTerritorySortName(left),
+    getTerritorySortName(right)
   );
 }
 
@@ -45,6 +56,9 @@ const TERRITORY_SHAPE_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const TERRITORY_SHAPE_WIDTH = 34;
 const TERRITORY_SHAPE_HEIGHT = 24;
 const TERRITORY_SHAPE_PADDING = 2;
+// The thumbnail is 34x24px, so past this many points per ring the extra
+// vertices cost projection time without changing a single pixel.
+const TERRITORY_SHAPE_MAX_RING_POINTS = 96;
 const TERRITORY_PANEL_DENSITY_MID_COLOR = "#a98abc";
 const TERRITORY_PANEL_DENSITY_MID_OPACITY = 0.51;
 const BRAND_LIST_ENTER_DURATION_MS = 280;
@@ -53,6 +67,7 @@ const BRAND_LIST_ENTER_MIN_STAGGER_MS = 14;
 const BRAND_LIST_ENTER_MAX_STAGGER_MS = 48;
 const BRAND_LIST_ENTER_MAX_TARGETS = 120;
 const BRAND_LIST_ENTER_WAIT_MS = 50;
+const BRAND_LIST_BUILD_SLICE_MS = 8;
 
 function getTerritoryShapePolygons(geometry) {
   if (geometry?.type === "Polygon") return [geometry.coordinates];
@@ -66,47 +81,96 @@ function projectTerritoryShapeLatitude(latitude) {
   return Math.log(Math.tan((Math.PI / 4) + (radians / 2)));
 }
 
-let territoryShapeHatchId = 0;
+const territoryShapePathCache = new Map();
+const territoryShapeElementCache = new Map();
+const territoryShapeHatchPatternIds = new Map();
+let territoryShapeDefs = null;
 
-function buildTerritoryPanelDensityStyles(records) {
-  return new Map(
-    records.map((record) => [
-      record.geoKey || record.state,
-      {
-        color: TERRITORY_PANEL_DENSITY_MID_COLOR,
-        fillOpacity: TERRITORY_PANEL_DENSITY_MID_OPACITY
-      }
-    ])
-  );
+const TERRITORY_PANEL_DENSITY_STYLE = {
+  color: TERRITORY_PANEL_DENSITY_MID_COLOR,
+  fillOpacity: TERRITORY_PANEL_DENSITY_MID_OPACITY
+};
+
+// Hatch patterns live in one shared defs block so identical thumbnails can be
+// cloned instead of each row carrying its own <pattern>.
+function getTerritoryShapeHatchPatternId(color, fillOpacity) {
+  const cacheKey = `${color}|${fillOpacity}`;
+  const existingId = territoryShapeHatchPatternIds.get(cacheKey);
+  if (existingId) return existingId;
+
+  if (!territoryShapeDefs) {
+    territoryShapeDefs = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "svg");
+    territoryShapeDefs.setAttribute("aria-hidden", "true");
+    territoryShapeDefs.setAttribute("width", "0");
+    territoryShapeDefs.setAttribute("height", "0");
+    territoryShapeDefs.style.position = "absolute";
+    territoryShapeDefs.append(
+      document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "defs")
+    );
+    document.body.append(territoryShapeDefs);
+  }
+
+  const patternId = `territory-shape-hatch-${territoryShapeHatchPatternIds.size + 1}`;
+  const pattern = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "pattern");
+  const stripe = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "rect");
+
+  pattern.setAttribute("id", patternId);
+  pattern.setAttribute("patternUnits", "userSpaceOnUse");
+  pattern.setAttribute("width", "4");
+  pattern.setAttribute("height", "4");
+  pattern.setAttribute("patternTransform", "rotate(45)");
+  stripe.setAttribute("width", "2");
+  stripe.setAttribute("height", "4");
+  stripe.setAttribute("fill", color);
+  pattern.append(stripe);
+  territoryShapeDefs.firstElementChild.append(pattern);
+  territoryShapeHatchPatternIds.set(cacheKey, patternId);
+
+  return patternId;
 }
 
-function createTerritoryShape(geometry, color, { status, fillOpacity } = {}) {
+function sampleTerritoryShapeRing(ring) {
+  if (ring.length <= TERRITORY_SHAPE_MAX_RING_POINTS) return ring;
+
+  const step = Math.ceil(ring.length / TERRITORY_SHAPE_MAX_RING_POINTS);
+  const sampled = [];
+  for (let index = 0; index < ring.length - 1; index += step) {
+    sampled.push(ring[index]);
+  }
+  sampled.push(ring[ring.length - 1]);
+
+  return sampled;
+}
+
+function buildTerritoryShapePathData(geometry) {
   const polygons = getTerritoryShapePolygons(geometry);
   if (!polygons.length) return null;
 
   const referenceLongitude = polygons[0]?.[0]?.[0]?.[0] ?? 0;
-  const projectCoordinate = ([longitude, latitude]) => {
-    let wrappedLongitude = longitude;
-    while (wrappedLongitude - referenceLongitude > 180) wrappedLongitude -= 360;
-    while (wrappedLongitude - referenceLongitude < -180) wrappedLongitude += 360;
-    return [
-      (wrappedLongitude * Math.PI) / 180,
-      projectTerritoryShapeLatitude(latitude)
-    ];
-  };
-  const projectedPolygons = polygons.map((rings) => (
-    rings.map((ring) => ring.map(projectCoordinate))
-  ));
-  const coordinates = projectedPolygons.flat(2);
-  const xValues = coordinates.map(([x]) => x);
-  const yValues = coordinates.map(([, y]) => y);
-  const minX = Math.min(...xValues);
-  const maxX = Math.max(...xValues);
-  const minY = Math.min(...yValues);
-  const maxY = Math.max(...yValues);
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+
+  const projectedPolygons = polygons.map((rings) => rings.map((ring) => (
+    sampleTerritoryShapeRing(ring).map(([longitude, latitude]) => {
+      let wrappedLongitude = longitude;
+      while (wrappedLongitude - referenceLongitude > 180) wrappedLongitude -= 360;
+      while (wrappedLongitude - referenceLongitude < -180) wrappedLongitude += 360;
+
+      const x = (wrappedLongitude * Math.PI) / 180;
+      const y = projectTerritoryShapeLatitude(latitude);
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+
+      return [x, y];
+    })
+  )));
+
   const shapeWidth = maxX - minX;
   const shapeHeight = maxY - minY;
-
   if (!shapeWidth || !shapeHeight) return null;
 
   const availableWidth = TERRITORY_SHAPE_WIDTH - (TERRITORY_SHAPE_PADDING * 2);
@@ -114,7 +178,8 @@ function createTerritoryShape(geometry, color, { status, fillOpacity } = {}) {
   const scale = Math.min(availableWidth / shapeWidth, availableHeight / shapeHeight);
   const offsetX = (TERRITORY_SHAPE_WIDTH - (shapeWidth * scale)) / 2;
   const offsetY = (TERRITORY_SHAPE_HEIGHT - (shapeHeight * scale)) / 2;
-  const pathData = projectedPolygons.map((rings) => (
+
+  return projectedPolygons.map((rings) => (
     rings.map((ring) => (
       ring.map(([x, y], index) => {
         const projectedX = offsetX + ((x - minX) * scale);
@@ -123,7 +188,21 @@ function createTerritoryShape(geometry, color, { status, fillOpacity } = {}) {
       }).join(" ") + " Z"
     )).join(" ")
   )).join(" ");
+}
 
+function getTerritoryShapePathData(geometry, cacheKey) {
+  if (!cacheKey) return buildTerritoryShapePathData(geometry);
+
+  if (territoryShapePathCache.has(cacheKey)) {
+    return territoryShapePathCache.get(cacheKey);
+  }
+
+  const pathData = buildTerritoryShapePathData(geometry);
+  territoryShapePathCache.set(cacheKey, pathData);
+  return pathData;
+}
+
+function buildTerritoryShapeElement(pathData, color, status, fillOpacity) {
   const svg = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "svg");
   const path = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "path");
   const isEstablished = status === "established";
@@ -140,33 +219,37 @@ function createTerritoryShape(geometry, color, { status, fillOpacity } = {}) {
   path.setAttribute("vector-effect", "non-scaling-stroke");
   path.setAttribute("fill-rule", "evenodd");
 
-  if (isEstablished) {
-    territoryShapeHatchId += 1;
-    const patternId = `territory-shape-hatch-${territoryShapeHatchId}`;
-    const defs = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "defs");
-    const pattern = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "pattern");
-    const stripe = document.createElementNS(TERRITORY_SHAPE_SVG_NAMESPACE, "rect");
-
-    pattern.setAttribute("id", patternId);
-    pattern.setAttribute("patternUnits", "userSpaceOnUse");
-    pattern.setAttribute("width", "4");
-    pattern.setAttribute("height", "4");
-    pattern.setAttribute("patternTransform", "rotate(45)");
-    stripe.setAttribute("width", "2");
-    stripe.setAttribute("height", "4");
-    stripe.setAttribute("fill", color);
-    pattern.append(stripe);
-    defs.append(pattern);
-    svg.append(defs);
-    path.setAttribute("fill", `url(#${patternId})`);
-    path.setAttribute("fill-opacity", String(fillOpacity ?? 0.55));
-  } else {
-    path.setAttribute("fill", color);
-    path.setAttribute("fill-opacity", String(fillOpacity ?? 0.25));
-  }
+  const resolvedOpacity = fillOpacity ?? (isEstablished ? 0.55 : 0.25);
+  path.setAttribute("fill-opacity", String(resolvedOpacity));
+  path.setAttribute(
+    "fill",
+    isEstablished
+      ? `url(#${getTerritoryShapeHatchPatternId(color, resolvedOpacity)})`
+      : color
+  );
 
   svg.append(path);
   return svg;
+}
+
+// The same geometry shows up once per brand holding that territory, so both the
+// projected path and the finished node are cached and handed out as clones.
+function createTerritoryShape(geometry, color, { status, fillOpacity, cacheKey } = {}) {
+  const pathData = getTerritoryShapePathData(geometry, cacheKey);
+  if (!pathData) return null;
+
+  if (!cacheKey) {
+    return buildTerritoryShapeElement(pathData, color, status, fillOpacity);
+  }
+
+  const elementKey = `${cacheKey}|${color}|${status || ""}|${fillOpacity ?? ""}`;
+  let template = territoryShapeElementCache.get(elementKey);
+  if (!template) {
+    template = buildTerritoryShapeElement(pathData, color, status, fillOpacity);
+    territoryShapeElementCache.set(elementKey, template);
+  }
+
+  return template.cloneNode(true);
 }
 
 const collapsedTerritoryBrandIds = new Set();
@@ -188,11 +271,13 @@ function positionBrandPanelFloatingTooltip(target) {
   const tooltip = getBrandPanelFloatingTooltip();
   tooltip.textContent = tooltipText;
 
-  if (!tooltip.isConnected) {
-    document.body.append(tooltip);
-  }
+    if (!tooltip.isConnected) {
+      document.body.append(tooltip);
+    }
 
-  const targetRect = target.getBoundingClientRect();
+    window.fitTooltipToContent?.(tooltip);
+
+    const targetRect = target.getBoundingClientRect();
   const tooltipRect = tooltip.getBoundingClientRect();
   const viewportPadding = 8;
   const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
@@ -224,10 +309,12 @@ function bindBrandPanelFloatingTooltip(button) {
 }
 let selectedBrandPanelTerritoryKey = null;
 let selectedBrandPanelCompareKey = null;
+let territoryBrandListBuildToken = 0;
 let brandListEnterAnimationToken = 0;
 let brandListEnterFinishTimer = null;
 let brandListEnterWaitTimer = null;
 let brandListEnterPendingList = null;
+let brandListEnterArmed = false;
 let brandListEnterActiveTargets = [];
 
 function isTerritoryBrandListLoadingVisible() {
@@ -235,10 +322,14 @@ function isTerritoryBrandListLoadingVisible() {
   return Boolean(loadingEl && !loadingEl.hidden);
 }
 
+// Only the rows near the top of the scroll container are ever seen entering, so
+// collection stops at the animation cap. Staggering all 6k+ rows of a wide search
+// would mutate inline styles on every one of them and pull the whole list into
+// the render tree, which is exactly the cost content-visibility avoids.
 function collectTerritoryBrandListEnterTargets(list) {
   const targets = [];
 
-  list.querySelectorAll(".territory-brand-item").forEach((item) => {
+  for (const item of list.querySelectorAll(".territory-brand-item")) {
     const header = item.querySelector(".territory-brand-item__header");
     if (header) {
       targets.push(header);
@@ -246,16 +337,19 @@ function collectTerritoryBrandListEnterTargets(list) {
 
     const territoryList = item.querySelector(".territory-brand-territories");
     if (!territoryList?.hidden) {
-      territoryList.querySelectorAll(".territory-brand-territory, .territory-brand-territory-divider").forEach((target) => {
+      for (const target of territoryList.children) {
         targets.push(target);
-      });
+        if (targets.length >= BRAND_LIST_ENTER_MAX_TARGETS) return targets;
+      }
     }
 
     const brandDivider = item.querySelector(".territory-brand-item__divider");
     if (brandDivider) {
       targets.push(brandDivider);
     }
-  });
+
+    if (targets.length >= BRAND_LIST_ENTER_MAX_TARGETS) return targets;
+  }
 
   return targets;
 }
@@ -278,6 +372,7 @@ function finishTerritoryBrandListEnterAnimation(list, targets = brandListEnterAc
 function cancelTerritoryBrandListEnterAnimation(list = brandListEnterPendingList) {
   brandListEnterAnimationToken += 1;
   brandListEnterPendingList = null;
+  brandListEnterArmed = false;
 
   if (brandListEnterWaitTimer) {
     window.clearTimeout(brandListEnterWaitTimer);
@@ -287,12 +382,25 @@ function cancelTerritoryBrandListEnterAnimation(list = brandListEnterPendingList
   finishTerritoryBrandListEnterAnimation(list, brandListEnterActiveTargets);
 }
 
+function isTerritoryBrandListEnterPending() {
+  return Boolean(brandListEnterPendingList) || brandListEnterArmed;
+}
+
+function startTerritoryBrandListEnterWithMap() {
+  brandListEnterArmed = false;
+  window.territoryMapControls?.notifyListEnterStarted?.();
+}
+
 function playTerritoryBrandListEnterAnimation(list, token = brandListEnterAnimationToken) {
   if (!list || token !== brandListEnterAnimationToken) return;
 
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const targets = collectTerritoryBrandListEnterTargets(list);
-  if (!targets.length) return;
+  brandListEnterArmed = true;
+  if (!targets.length) {
+    startTerritoryBrandListEnterWithMap();
+    return;
+  }
 
   finishTerritoryBrandListEnterAnimation(list, brandListEnterActiveTargets);
   brandListEnterActiveTargets = targets;
@@ -318,6 +426,7 @@ function playTerritoryBrandListEnterAnimation(list, token = brandListEnterAnimat
 
   if (motionQuery.matches) {
     list.classList.add("is-entering-active");
+    startTerritoryBrandListEnterWithMap();
     brandListEnterFinishTimer = window.setTimeout(
       () => finishTerritoryBrandListEnterAnimation(list, targets),
       0
@@ -327,7 +436,9 @@ function playTerritoryBrandListEnterAnimation(list, token = brandListEnterAnimat
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
+      if (token !== brandListEnterAnimationToken) return;
       list.classList.add("is-entering-active");
+      startTerritoryBrandListEnterWithMap();
     });
   });
 
@@ -401,7 +512,7 @@ function setTerritoryBrandItemExpanded(
   }
 }
 
-function createTerritoryBrandItem(brand, territories, densityStylesByGeoKey) {
+function createTerritoryBrandItem(brand, territories, densityStyle) {
   const item = document.createElement("li");
   const header = document.createElement("div");
   const toggle = document.createElement("button");
@@ -446,6 +557,8 @@ function createTerritoryBrandItem(brand, territories, densityStylesByGeoKey) {
   logo.className = "territory-brand-item__logo";
   logo.src = brand.logo;
   logo.alt = "";
+  logo.loading = "lazy";
+  logo.decoding = "async";
   logo.setAttribute("aria-hidden", "true");
 
   details.className = "territory-brand-item__details";
@@ -476,10 +589,10 @@ function createTerritoryBrandItem(brand, territories, densityStylesByGeoKey) {
     const territoryInfoButton = document.createElement("button");
     const territoryInfoIcon = document.createElement("img");
     const territoryGeoKey = territory.geoKey || territory.state;
-    const densityStyle = densityStylesByGeoKey.get(territoryGeoKey);
     const territoryShape = createTerritoryShape(territory.geometry, densityStyle?.color || brand.color, {
       status: territory.status,
-      fillOpacity: densityStyle?.fillOpacity
+      fillOpacity: densityStyle?.fillOpacity,
+      cacheKey: territoryGeoKey
     });
     const territoryKey = `${territory.brandId}:${territoryGeoKey}`;
     const isSelected = territoryKey === selectedBrandPanelTerritoryKey;
@@ -489,6 +602,8 @@ function createTerritoryBrandItem(brand, territories, densityStylesByGeoKey) {
     territoryRow.className = "territory-brand-territory__row";
     territoryRow.classList.toggle("is-selected", isSelected);
     territoryRow.classList.toggle("is-compare", isCompare && !isSelected);
+    territoryRow.dataset.brandId = territory.brandId;
+    territoryRow.dataset.geoKey = territoryGeoKey;
     territoryButton.className = "ui-control territory-brand-territory__button";
     territoryButton.classList.toggle("is-selected", isSelected);
     territoryButton.classList.toggle("is-compare", isCompare);
@@ -508,6 +623,8 @@ function createTerritoryBrandItem(brand, territories, densityStylesByGeoKey) {
     territoryInfoIcon.className = "territory-brand-territory__info-icon";
     territoryInfoIcon.src = "assets/info.svg";
     territoryInfoIcon.alt = "";
+    territoryInfoIcon.loading = "lazy";
+    territoryInfoIcon.decoding = "async";
     territoryInfoIcon.setAttribute("aria-hidden", "true");
 
     if (territoryShape) {
@@ -517,34 +634,6 @@ function createTerritoryBrandItem(brand, territories, densityStylesByGeoKey) {
     territoryInfoButton.append(territoryInfoIcon);
     territoryMeta.append(territoryGeoLevel, territoryStatus, territoryInfoButton);
     territoryRow.append(territoryButton, territoryMeta);
-
-    territoryButton.addEventListener("click", (event) => {
-      window.territoryMapSelection?.toggle?.(territory.brandId, territory.geoKey || territory.state, {
-        compare: Boolean(event.metaKey || event.ctrlKey)
-      });
-    });
-    territoryInfoButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      window.territoryMapSelection?.select?.(territory.brandId, territory.geoKey || territory.state);
-    });
-    territoryRow.addEventListener("mouseenter", () => {
-      window.territoryMapHover?.set?.(territory.brandId, territory.geoKey || territory.state);
-    });
-    territoryRow.addEventListener("mouseleave", () => {
-      window.territoryMapHover?.clear?.();
-    });
-    territoryButton.addEventListener("focus", () => {
-      window.territoryMapHover?.set?.(territory.brandId, territory.geoKey || territory.state);
-    });
-    territoryButton.addEventListener("blur", () => {
-      window.territoryMapHover?.clear?.();
-    });
-    territoryInfoButton.addEventListener("focus", () => {
-      window.territoryMapHover?.set?.(territory.brandId, territory.geoKey || territory.state);
-    });
-    territoryInfoButton.addEventListener("blur", () => {
-      window.territoryMapHover?.clear?.();
-    });
 
     territoryItem.append(territoryRow);
     territoryList.append(territoryItem);
@@ -569,21 +658,109 @@ function createTerritoryBrandItem(brand, territories, densityStylesByGeoKey) {
 
   item.append(header, territoryList, brandDivider);
 
-  const handleExpandToggle = () => {
-    const nextExpanded = toggle.getAttribute("aria-expanded") !== "true";
-    setTerritoryBrandItemExpanded(toggle, expandToggle, territoryList, brand.id, nextExpanded);
-  };
-
-  toggle.addEventListener("click", handleExpandToggle);
-  expandToggle.addEventListener("click", handleExpandToggle);
-
-  filterButton.addEventListener("click", (event) => {
-    event.stopPropagation();
-    window.territoryFilters?.addFranchise?.(brand.id);
-  });
-  bindBrandPanelFloatingTooltip(filterButton);
-
   return item;
+}
+
+function toggleTerritoryBrandItemFromElement(element) {
+  const item = element.closest(".territory-brand-item");
+  const toggle = item?.querySelector(".territory-brand-item__toggle");
+  const expandToggle = item?.querySelector(".territory-brand-item__expand");
+  const territoryList = item?.querySelector(".territory-brand-territories");
+  if (!item || !toggle || !expandToggle || !territoryList) return;
+
+  setTerritoryBrandItemExpanded(
+    toggle,
+    expandToggle,
+    territoryList,
+    item.dataset.brandId,
+    toggle.getAttribute("aria-expanded") !== "true"
+  );
+}
+
+// One listener per event type on the list root. Binding them per row meant tens
+// of thousands of listeners were attached and thrown away on every refresh.
+function bindTerritoryBrandListDelegates(list) {
+  list.addEventListener("click", (event) => {
+    const infoButton = event.target.closest(".territory-brand-territory__info");
+    if (infoButton) {
+      const row = infoButton.closest(".territory-brand-territory__row");
+      event.stopPropagation();
+      window.territoryMapSelection?.select?.(row?.dataset.brandId, row?.dataset.geoKey);
+      return;
+    }
+
+    const territoryButton = event.target.closest(".territory-brand-territory__button");
+    if (territoryButton) {
+      const row = territoryButton.closest(".territory-brand-territory__row");
+      window.territoryMapSelection?.toggle?.(row?.dataset.brandId, row?.dataset.geoKey, {
+        compare: Boolean(event.metaKey || event.ctrlKey)
+      });
+      return;
+    }
+
+    const filterButton = event.target.closest(".territory-brand-item__filter");
+    if (filterButton) {
+      event.stopPropagation();
+      hideBrandPanelFloatingTooltip();
+      window.territoryFilters?.addFranchise?.(
+        filterButton.closest(".territory-brand-item")?.dataset.brandId
+      );
+      return;
+    }
+
+    const brandToggle = event.target.closest(
+      ".territory-brand-item__toggle, .territory-brand-item__expand"
+    );
+    if (brandToggle) {
+      toggleTerritoryBrandItemFromElement(brandToggle);
+    }
+  });
+
+  list.addEventListener("mouseover", (event) => {
+    const filterButton = event.target.closest(".territory-brand-item__filter");
+    if (filterButton && !filterButton.contains(event.relatedTarget)) {
+      positionBrandPanelFloatingTooltip(filterButton);
+      getBrandPanelFloatingTooltip().classList.add("is-visible");
+    }
+
+    const row = event.target.closest(".territory-brand-territory__row");
+    if (!row || row.contains(event.relatedTarget)) return;
+
+    window.territoryMapHover?.set?.(row.dataset.brandId, row.dataset.geoKey);
+  });
+
+  list.addEventListener("mouseout", (event) => {
+    if (event.target.closest(".territory-brand-item__filter")) {
+      hideBrandPanelFloatingTooltip();
+    }
+
+    const row = event.target.closest(".territory-brand-territory__row");
+    if (!row || row.contains(event.relatedTarget)) return;
+
+    window.territoryMapHover?.clear?.();
+  });
+
+  list.addEventListener("focusin", (event) => {
+    if (event.target.closest(".territory-brand-item__filter")) {
+      positionBrandPanelFloatingTooltip(event.target.closest(".territory-brand-item__filter"));
+      getBrandPanelFloatingTooltip().classList.add("is-visible");
+    }
+
+    const row = event.target.closest(".territory-brand-territory__row");
+    if (!row) return;
+
+    window.territoryMapHover?.set?.(row.dataset.brandId, row.dataset.geoKey);
+  });
+
+  list.addEventListener("focusout", (event) => {
+    if (event.target.closest(".territory-brand-item__filter")) {
+      hideBrandPanelFloatingTooltip();
+    }
+
+    if (event.target.closest(".territory-brand-territory__row")) {
+      window.territoryMapHover?.clear?.();
+    }
+  });
 }
 
 function getTerritoryBrandListItems() {
@@ -611,7 +788,7 @@ function syncTerritoryBrandPanelExpandToggle() {
 
   button.hidden = items.length === 0;
   button.setAttribute("aria-label", label);
-  button.title = label;
+  button.dataset.tooltip = label;
 
   if (icon) {
     icon.src = allCollapsed ? "assets/expand.svg" : "assets/collapse.svg";
@@ -637,9 +814,18 @@ function setAllTerritoryBrandRowsExpanded(expanded) {
 function initTerritoryBrandPanel() {
   const alertToggle = document.getElementById("territorySaveSearch");
   const expandToggle = document.getElementById("territoryBrandExpandToggle");
+  const list = document.getElementById("territoryBrandList");
 
   if (alertToggle) {
     bindBrandPanelFloatingTooltip(alertToggle);
+  }
+
+  if (expandToggle) {
+    bindBrandPanelFloatingTooltip(expandToggle);
+  }
+
+  if (list) {
+    bindTerritoryBrandListDelegates(list);
   }
 
   expandToggle?.addEventListener("click", () => {
@@ -650,41 +836,81 @@ function initTerritoryBrandPanel() {
   window.addEventListener("resize", hideBrandPanelFloatingTooltip);
 }
 
-function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
+function yieldToTerritoryBrandListFrame() {
+  return new Promise((resolve) => {
+    // A timeout rather than rAF: the list is built detached and invisible, so
+    // there is nothing to sync with paint, and timeouts keep running when the
+    // tab is in the background.
+    window.setTimeout(resolve, 0);
+  });
+}
+
+// Building thousands of rows in one go froze the tab for about a second. The
+// work is sliced across tasks into a detached fragment, then swapped in once, so
+// the page stays responsive and the layout cost is paid a single time.
+async function buildTerritoryBrandListContent(
+  visibleBrands,
+  territoriesByBrand,
+  densityStyle,
+  isStale
+) {
+  const fragment = document.createDocumentFragment();
+  let sliceStartedAt = performance.now();
+
+  for (const brand of visibleBrands) {
+    const territories = (territoriesByBrand.get(brand.id) || [])
+      .slice()
+      .sort(compareTerritoriesByStatusThenName);
+
+    fragment.append(createTerritoryBrandItem(brand, territories, densityStyle));
+
+    if (performance.now() - sliceStartedAt < BRAND_LIST_BUILD_SLICE_MS) continue;
+
+    await yieldToTerritoryBrandListFrame();
+    if (isStale()) return null;
+    sliceStartedAt = performance.now();
+  }
+
+  return fragment;
+}
+
+async function updateTerritoryBrandPanel(brands = [], matchingRecords = [], { isCancelled } = {}) {
   const summary = document.getElementById("territoryBrandSummary");
   const list = document.getElementById("territoryBrandList");
   if (!summary || !list) return;
 
+  const token = ++territoryBrandListBuildToken;
+  const isStale = () => token !== territoryBrandListBuildToken || Boolean(isCancelled?.());
+
   selectedBrandPanelTerritoryKey = window.territoryMapSelection?.getSelectedKey?.() || null;
   selectedBrandPanelCompareKey = window.territoryMapSelection?.getCompareKey?.() || null;
 
-  const territoryCountsByBrand = matchingRecords.reduce((counts, record) => {
-    counts.set(record.brandId, (counts.get(record.brandId) || 0) + 1);
-    return counts;
-  }, new Map());
-  const territoriesByBrand = matchingRecords.reduce((territories, record) => {
-    if (!territories.has(record.brandId)) {
-      territories.set(record.brandId, []);
+  const territoriesByBrand = new Map();
+  matchingRecords.forEach((record) => {
+    const territories = territoriesByBrand.get(record.brandId);
+    if (territories) {
+      territories.push(record);
+    } else {
+      territoriesByBrand.set(record.brandId, [record]);
     }
-    territories.get(record.brandId).push(record);
-    return territories;
-  }, new Map());
+  });
 
-  const visibleBrands = brands.filter((brand) => territoryCountsByBrand.has(brand.id));
-  const densityStylesByGeoKey = window.territoryMapControls?.getTerritoryDensityEnabled?.()
-    ? buildTerritoryPanelDensityStyles(matchingRecords)
-    : new Map();
+  const visibleBrands = brands.filter((brand) => territoriesByBrand.has(brand.id));
+  const densityStyle = window.territoryMapControls?.getTerritoryDensityEnabled?.()
+    ? TERRITORY_PANEL_DENSITY_STYLE
+    : null;
 
   summary.textContent = `Showing ${matchingRecords.length} territories`;
-  list.replaceChildren(
-    ...visibleBrands.map((brand) => (
-      createTerritoryBrandItem(
-        brand,
-        (territoriesByBrand.get(brand.id) || []).slice().sort(compareTerritoriesByStatusThenName),
-        densityStylesByGeoKey
-      )
-    ))
+
+  const content = await buildTerritoryBrandListContent(
+    visibleBrands,
+    territoriesByBrand,
+    densityStyle,
+    isStale
   );
+  if (!content || isStale()) return;
+
+  list.replaceChildren(content);
   syncTerritoryBrandPanelExpandToggle();
 
   if (matchingRecords.length > 0) {
@@ -695,11 +921,26 @@ function updateTerritoryBrandPanel(brands = [], matchingRecords = []) {
 }
 
 function setSelectedTerritory(territoryKey, compareKey = null) {
+  const list = document.getElementById("territoryBrandList");
+  // Only the rows losing or gaining selection need touching; sweeping every row
+  // was a full-list walk on each click.
+  const affectedKeys = new Set([
+    selectedBrandPanelTerritoryKey,
+    selectedBrandPanelCompareKey,
+    territoryKey,
+    compareKey
+  ].filter(Boolean));
+
   selectedBrandPanelTerritoryKey = territoryKey || null;
   selectedBrandPanelCompareKey = compareKey || null;
+  if (!list) return;
 
-  document.querySelectorAll(".territory-brand-territory__button").forEach((button) => {
-    const key = button.dataset.territoryKey;
+  affectedKeys.forEach((key) => {
+    const button = list.querySelector(
+      `.territory-brand-territory__button[data-territory-key="${CSS.escape(key)}"]`
+    );
+    if (!button) return;
+
     const isSelected = key === selectedBrandPanelTerritoryKey;
     const isCompare = key === selectedBrandPanelCompareKey;
     const row = button.closest(".territory-brand-territory__row");
@@ -712,6 +953,7 @@ function setSelectedTerritory(territoryKey, compareKey = null) {
 }
 
 function closeTerritoryBrandPanel() {
+  territoryBrandListBuildToken += 1;
   cancelTerritoryBrandListEnterAnimation();
   document.getElementById("territoryBrandList")?.replaceChildren();
   const summary = document.getElementById("territoryBrandSummary");
@@ -726,6 +968,7 @@ window.territoryBrandPanel = {
   setSelectedTerritory,
   close: closeTerritoryBrandPanel,
   notifyLoadingHidden: notifyTerritoryBrandListLoadingHidden,
+  isEnterPending: isTerritoryBrandListEnterPending,
   createShape: createTerritoryShape
 };
 
