@@ -807,11 +807,69 @@ function createCstSplashSuggestionIcon(item) {
 
 let cstSplashSearchController = null;
 
+let cstSplashSearchFloatingTooltip = null;
+
+function getCstSplashSearchFloatingTooltip() {
+  if (!cstSplashSearchFloatingTooltip) {
+    cstSplashSearchFloatingTooltip = document.createElement("div");
+    cstSplashSearchFloatingTooltip.className = "filter-combobox-floating-tooltip";
+  }
+
+  return cstSplashSearchFloatingTooltip;
+}
+
+function positionCstSplashSearchFloatingTooltip(target) {
+  const tooltipText = target.dataset.tooltip;
+  if (!tooltipText) return;
+
+  const tooltip = getCstSplashSearchFloatingTooltip();
+  tooltip.textContent = tooltipText;
+
+  if (!tooltip.isConnected) {
+    document.body.append(tooltip);
+  }
+
+  window.fitTooltipToContent?.(tooltip);
+
+  const targetRect = target.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const viewportPadding = 8;
+  const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+  const left = Math.min(
+    Math.max(viewportPadding, centeredLeft),
+    window.innerWidth - tooltipRect.width - viewportPadding
+  );
+  const top = Math.max(viewportPadding, targetRect.top - tooltipRect.height - 6);
+
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function showCstSplashSearchFloatingTooltip(event) {
+  positionCstSplashSearchFloatingTooltip(event.currentTarget);
+  getCstSplashSearchFloatingTooltip().classList.add("is-visible");
+}
+
+function hideCstSplashSearchFloatingTooltip() {
+  cstSplashSearchFloatingTooltip?.classList.remove("is-visible");
+}
+
+function bindCstSplashSearchFloatingTooltip(button) {
+  if (!button?.dataset.tooltip) return;
+
+  button.addEventListener("mouseenter", showCstSplashSearchFloatingTooltip);
+  button.addEventListener("mouseleave", hideCstSplashSearchFloatingTooltip);
+  button.addEventListener("focus", showCstSplashSearchFloatingTooltip);
+  button.addEventListener("blur", hideCstSplashSearchFloatingTooltip);
+  button.addEventListener("click", hideCstSplashSearchFloatingTooltip);
+}
+
 function bindCstSplashSearch() {
   const form = document.getElementById("cstSplashSearch");
   const input = document.getElementById("cstSplashSearchInput");
   const suggestions = document.getElementById("cstSplashSearchSuggestions");
   const clearButton = document.getElementById("cstSplashSearchClear");
+  const locateButton = document.getElementById("cstSplashLocate");
   if (!form || !input || !suggestions) return;
 
   let activeSuggestionIndex = -1;
@@ -922,9 +980,9 @@ function bindCstSplashSearch() {
   }
 
   function syncSearchActions() {
-    if (clearButton) {
-      clearButton.hidden = input.value.trim().length === 0;
-    }
+    const hasQuery = input.value.trim().length > 0;
+    if (clearButton) clearButton.hidden = !hasQuery;
+    if (locateButton) locateButton.hidden = hasQuery;
   }
 
   function selectSuggestion(item) {
@@ -1086,6 +1144,18 @@ function bindCstSplashSearch() {
     input.focus();
   });
 
+  locateButton?.addEventListener("click", () => {
+    closeSuggestions();
+    setCstSplashSearchFeedback();
+
+    if (!navigator.geolocation) {
+      setCstSplashSearchFeedback("Location access is unavailable in this browser.");
+      return;
+    }
+
+    locateUserFromFilters();
+  });
+
   document.addEventListener("mousedown", (event) => {
     if (!form.contains(event.target)) {
       closeSuggestions();
@@ -1093,6 +1163,8 @@ function bindCstSplashSearch() {
   });
 
   syncSearchActions();
+
+  bindCstSplashSearchFloatingTooltip(locateButton);
 
   cstSplashSearchController = {
     reset() {
@@ -1130,7 +1202,6 @@ function bindCstSplashEntryPoints() {
   toolbarSearchInput?.addEventListener("input", dismissOpenCstSplash);
   datasetSelectorInput?.addEventListener("focus", dismissOpenCstSplash);
   [
-    filterToggle,
     mapToggle,
     orgChartToggle,
     contactsToggle,

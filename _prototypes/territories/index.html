@@ -112,7 +112,7 @@
       <div class="filter-scroll">
         <div class="filter-header">
           <h2>Filter</h2>
-          <p id="territoryFilterSummary">Showing 0-0 of 0 records<span class="filter-summary-sort">sorted by relevancy</span></p>
+          <p id="territoryFilterSummary">Showing 0-0 of 0 records <span class="filter-summary-sort">sorted by relevancy</span></p>
         </div>
 
         <section class="filter-section">
@@ -332,7 +332,8 @@
       </div>
       </aside>
 
-      <section class="filter-panel territory-brand-panel" id="territoryBrandPanel" aria-label="Territories">
+      <div class="territory-workspace-main">
+      <section class="territory-brand-panel" id="territoryBrandPanel" aria-label="Territories">
         <div class="territory-crossroad is-preparing-enter" id="territoryCrossroad" data-territory-crossroad role="group" aria-label="Choose how to start">
           <div class="territory-crossroad__inner">
             <div class="territory-crossroad__search-intro">
@@ -389,8 +390,8 @@
             </section>
           </div>
         </div>
-        <div class="filter-scroll territory-brand-panel__scroll">
-          <div class="filter-header territory-brand-panel__header">
+        <div class="territory-brand-panel__scroll">
+          <div class="territory-brand-panel__header">
             <div class="territory-brand-panel__heading">
               <h2>Territories</h2>
               <div class="territory-brand-panel__heading-actions">
@@ -439,7 +440,7 @@
                 <img src="assets/collapse.svg" alt="" aria-hidden="true">
               </button>
             </div>
-            <p id="territoryBrandSummary" aria-live="polite">Showing 0 territories</p>
+            <p class="territory-brand-panel__summary" id="territoryBrandSummary" aria-live="polite">Showing 0 territories</p>
           </div>
           <div class="territory-list-loading" id="territoryMapLoading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading territories" hidden>
             <div class="territory-list-loading__spinner" aria-hidden="true"></div>
@@ -591,6 +592,7 @@
         </div>
       </div>
       </aside>
+      </div>
     </div>
   </main>
 

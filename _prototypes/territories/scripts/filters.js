@@ -792,7 +792,8 @@ function syncImplicitViewportBounds({ preferMap = false, framed = false } = {}) 
   }
 
   const mapBounds = preferMap
-    ? window.territoryMapControls?.getViewportBounds?.()
+    ? window.territoryMapControls?.getSearchAreaBounds?.()
+      || window.territoryMapControls?.getViewportBounds?.()
     : null;
   const nextBounds = normalizeViewportBounds(mapBounds)
     || deriveViewportBoundsFromLocationSearches()
@@ -2967,7 +2968,7 @@ function updateTerritoryFilterSummary(visibleCount, totalCount) {
   if (!filterSummary) return;
 
   const visibleRange = visibleCount > 0 ? `1-${visibleCount}` : "0";
-  filterSummary.innerHTML = `Showing ${visibleRange} of ${totalCount} records<span class="filter-summary-sort">sorted by relevancy</span>`;
+  filterSummary.innerHTML = `Showing ${visibleRange} of ${totalCount} records <span class="filter-summary-sort">sorted by relevancy</span>`;
 }
 
 function clearTerritoryDatasetFilterOptions() {

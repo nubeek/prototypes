@@ -52,7 +52,7 @@
               <span class="view-btn-label">Franchisees</span>
             </button>
           </div>
-          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" data-splash-workspace-control aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
             <img class="toolbar-asset-icon filter-toggle-icon" src="assets/filters.svg" alt="" aria-hidden="true">
             <span id="filterToggleLabel">Filters</span>
           </button>
@@ -268,6 +268,9 @@
               aria-hidden="true"
             ></div>
             <button class="cst-splash__search-clear" id="cstSplashSearchClear" type="button" aria-label="Clear search" hidden></button>
+            <button class="cst-splash__locate" id="cstSplashLocate" type="button" aria-label="Find prospects near my location" data-tooltip="Find my location">
+              <img src="assets/target-me.svg" alt="" aria-hidden="true">
+            </button>
           </form>
           <p class="cst-splash__search-feedback" id="cstSplashSearchFeedback" role="status" aria-live="polite" hidden></p>
         </div>
@@ -295,7 +298,7 @@
       <div class="filter-scroll">
         <div class="filter-header">
           <h2>Filter</h2>
-          <p id="filterSummary">Showing 0 of 0 records</p>
+          <p id="filterSummary">Showing 0 of 0 records <span class="filter-summary-sort">sorted by relevancy</span></p>
         </div>
 
         <section class="filter-section" data-filter-section="location">
@@ -543,8 +546,45 @@
       <div class="workspace-main">
         <div class="table-column">
           <header class="table-heading">
-            <h2 id="tableHeadingTitle">Operators</h2>
-            <p id="tableHeadingSummary" aria-live="polite">Showing 0 operators, 0 contacts and 0 units</p>
+            <div class="table-heading__row">
+              <h2 id="tableHeadingTitle">Operators</h2>
+              <details class="toolbar-dropdown table-heading__sort" id="tableHeadingSort">
+                <summary
+                  class="ui-control ui-button-ghost table-heading__sort-toggle"
+                  aria-label="Sort by Most units"
+                >
+                  <span class="table-heading__sort-label">Sort by</span>
+                  <img class="table-heading__sort-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </summary>
+                <div class="ui-menu toolbar-dropdown-menu table-heading__sort-menu" role="menu" aria-label="Sort table">
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="relevancy">
+                    <img class="table-heading__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Relevancy</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="ownerName">
+                    <img class="table-heading__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Name A–Z</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="contactName">
+                    <img class="table-heading__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Contact A–Z</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="contacts">
+                    <img class="table-heading__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Most contacts</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="true" data-sort="locations">
+                    <img class="table-heading__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Most units</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="franchise">
+                    <img class="table-heading__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Most franchises</span>
+                  </button>
+                </div>
+              </details>
+            </div>
+            <p id="tableHeadingSummary" aria-live="polite">Showing 0 operators.</p>
           </header>
           <div class="table-wrap" id="tableWrap">
         <table>

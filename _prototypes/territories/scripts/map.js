@@ -26,8 +26,9 @@ const TERRITORY_MOCK_USER_COORDS = window.CST_ENV?.MOCK_USER_COORDS ?? {
 };
 const TERRITORY_GEOLOCATE_ZOOM = window.CST_ENV?.GEOLOCATE_ZOOM ?? 6.5;
 const TERRITORY_MAP_SEARCH_RADIUS_MILES = window.CST_ENV?.MAP_SEARCH_RADIUS_MILES ?? 50;
-// Search this area is limited to a regional viewport. Wider than this and the
-// visible map would swallow most territories, so the pill becomes a zoom hint.
+// Search this area uses the inscribed square of the map viewport, not the full
+// tall/wide camera rectangle. Wider than this and the square would swallow most
+// territories, so the pill becomes a zoom hint.
 const TERRITORY_MAP_SEARCH_MAX_SPAN_MILES = window.CST_ENV?.MAP_SEARCH_MAX_SPAN_MILES ?? 1000;
 const TERRITORY_MAP_SEARCH_FIT_SPAN_MILES = TERRITORY_MAP_SEARCH_MAX_SPAN_MILES * 0.92;
 const TERRITORY_MAP_RESET_LABEL = "Reset map view";
@@ -736,7 +737,7 @@ function isTerritoryMapSearchAreaMode() {
 }
 
 function getTerritoryMapViewportSpanMiles() {
-  const bounds = getTerritoryMapViewportBounds();
+  const bounds = getTerritoryMapSearchAreaBounds();
   if (!bounds) return Infinity;
 
   const midLat = (bounds.south + bounds.north) / 2;
@@ -4837,7 +4838,7 @@ function resolveTerritorySearchAreaAnchor(territoryMap) {
     };
   }
 
-  const viewportBounds = getTerritoryMapViewportBounds();
+  const viewportBounds = getTerritoryMapSearchAreaBounds();
   if (viewportBounds) {
     for (const [longitude, latitude] of getTerritoryViewportLandSamplePoints(viewportBounds, target)) {
       const stateCode = getStateCodeForCoordinates(longitude, latitude);
@@ -6370,6 +6371,44 @@ function getTerritoryMapViewportBounds() {
   return { west, east, south, north };
 }
 
+function getTerritoryMapSearchAreaBounds() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || typeof territoryMap.unproject !== "function") {
+    return getTerritoryMapViewportBounds();
+  }
+
+  const container = territoryMap.getContainer?.();
+  const width = container?.clientWidth;
+  const height = container?.clientHeight;
+  if (!(width > 0) || !(height > 0)) {
+    return getTerritoryMapViewportBounds();
+  }
+
+  const size = Math.min(width, height);
+  const left = (width - size) / 2;
+  const top = (height - size) / 2;
+  const right = left + size;
+  const bottom = top + size;
+  const corners = [
+    territoryMap.unproject([left, top]),
+    territoryMap.unproject([right, top]),
+    territoryMap.unproject([left, bottom]),
+    territoryMap.unproject([right, bottom])
+  ];
+  const lngs = corners.map((corner) => corner.lng);
+  const lats = corners.map((corner) => corner.lat);
+  const west = Math.min(...lngs);
+  const east = Math.max(...lngs);
+  const south = Math.min(...lats);
+  const north = Math.max(...lats);
+
+  if (![west, east, south, north].every(Number.isFinite) || !(east > west) || !(north > south)) {
+    return getTerritoryMapViewportBounds();
+  }
+
+  return { west, east, south, north };
+}
+
 function getTerritoryMapSearchBounds(longitude, latitude, radiusMiles = TERRITORY_MAP_SEARCH_RADIUS_MILES) {
   const latDelta = radiusMiles / TERRITORY_MILES_PER_LATITUDE_DEGREE;
   const lngDelta = radiusMiles / (
@@ -6446,6 +6485,7 @@ window.territoryMapControls = {
   focusTerritoryCoordinates,
   getStateCodeForCoordinates,
   getViewportBounds: getTerritoryMapViewportBounds,
+  getSearchAreaBounds: getTerritoryMapSearchAreaBounds,
   getSearchViewportBounds: getTerritoryMapSearchBounds,
   armLocationReveal: armTerritoryLocationReveal,
   armStateReveal: armTerritoryStateReveal,
