@@ -2064,6 +2064,61 @@ function toggleFilterSectionCollapsed(section) {
   persistTerritorySettings();
 }
 
+let filterSectionClearTooltip = null;
+
+function getFilterSectionClearTooltip() {
+  if (!filterSectionClearTooltip) {
+    filterSectionClearTooltip = document.createElement("div");
+    filterSectionClearTooltip.className = "filter-combobox-floating-tooltip";
+  }
+
+  return filterSectionClearTooltip;
+}
+
+function positionFilterSectionClearTooltip(target) {
+  const tooltipText = target.dataset.tooltip;
+  if (!tooltipText) return;
+
+  const tooltip = getFilterSectionClearTooltip();
+  tooltip.textContent = tooltipText;
+
+  if (!tooltip.isConnected) {
+    document.body.append(tooltip);
+  }
+
+  window.fitTooltipToContent?.(tooltip);
+
+  const targetRect = target.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const viewportPadding = 8;
+  const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+  const left = Math.min(
+    Math.max(viewportPadding, centeredLeft),
+    window.innerWidth - tooltipRect.width - viewportPadding
+  );
+  const top = Math.max(viewportPadding, targetRect.top - tooltipRect.height - 6);
+
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function showFilterSectionClearTooltip(event) {
+  positionFilterSectionClearTooltip(event.currentTarget);
+  getFilterSectionClearTooltip().classList.add("is-visible");
+}
+
+function hideFilterSectionClearTooltip() {
+  filterSectionClearTooltip?.classList.remove("is-visible");
+}
+
+function bindFilterSectionClearTooltip(button) {
+  button.addEventListener("mouseenter", showFilterSectionClearTooltip);
+  button.addEventListener("mouseleave", hideFilterSectionClearTooltip);
+  button.addEventListener("focus", showFilterSectionClearTooltip);
+  button.addEventListener("blur", hideFilterSectionClearTooltip);
+  button.addEventListener("click", hideFilterSectionClearTooltip);
+}
+
 function enhanceFilterSectionHeaders() {
   const filterPanel = document.querySelector(".territory-filter-panel");
   if (!filterPanel) return;
@@ -2080,9 +2135,16 @@ function enhanceFilterSectionHeaders() {
     const clearButton = document.createElement("button");
     clearButton.type = "button";
     clearButton.className = "ui-control ui-button-ghost filter-section-clear";
-    clearButton.textContent = "Clear";
-    clearButton.setAttribute("aria-label", `Clear ${label}`);
+    clearButton.setAttribute("aria-label", "Clear filter");
+    clearButton.dataset.tooltip = "Clear filter";
     clearButton.hidden = true;
+
+    const clearIcon = document.createElement("img");
+    clearIcon.src = "assets/remove.svg";
+    clearIcon.alt = "";
+    clearIcon.setAttribute("aria-hidden", "true");
+    clearButton.append(clearIcon);
+    bindFilterSectionClearTooltip(clearButton);
 
     const toggleButton = document.createElement("button");
     toggleButton.type = "button";
@@ -2162,7 +2224,9 @@ function updateFilterSectionClearButtons() {
   filterPanel.querySelectorAll(".filter-section").forEach((section) => {
     const clearButton = section.querySelector(".filter-section-clear");
     if (!clearButton) return;
-    clearButton.hidden = !filterSectionHasAppliedFilters(section);
+    const shouldShow = filterSectionHasAppliedFilters(section);
+    clearButton.hidden = !shouldShow;
+    if (!shouldShow) hideFilterSectionClearTooltip();
   });
 }
 
