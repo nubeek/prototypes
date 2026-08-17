@@ -26,9 +26,8 @@ const TERRITORY_MOCK_USER_COORDS = window.CST_ENV?.MOCK_USER_COORDS ?? {
 };
 const TERRITORY_GEOLOCATE_ZOOM = window.CST_ENV?.GEOLOCATE_ZOOM ?? 6.5;
 const TERRITORY_MAP_SEARCH_RADIUS_MILES = window.CST_ENV?.MAP_SEARCH_RADIUS_MILES ?? 50;
-// Search this area uses the inscribed square of the map viewport, not the full
-// tall/wide camera rectangle. Wider than this and the square would swallow most
-// territories, so the pill becomes a zoom hint.
+// Search this area is limited to a regional viewport. Wider than this and the
+// visible map would swallow most territories, so the pill becomes a zoom hint.
 const TERRITORY_MAP_SEARCH_MAX_SPAN_MILES = window.CST_ENV?.MAP_SEARCH_MAX_SPAN_MILES ?? 1000;
 const TERRITORY_MAP_SEARCH_FIT_SPAN_MILES = TERRITORY_MAP_SEARCH_MAX_SPAN_MILES * 0.92;
 const TERRITORY_MAP_RESET_LABEL = "Reset map view";
@@ -101,28 +100,13 @@ const TERRITORY_COUNTY_LOGO_MIN_ZOOM = 8;
 // State-level territories are large enough for logos at mid zoom.
 const TERRITORY_STATE_LOGO_MIN_ZOOM = 5;
 const TERRITORY_DENSITY_HIGH_COLOR = "#81599a";
-const TERRITORY_DENSITY_FILL_OPACITY_EXPRESSION = [
-  "step",
-  ["get", "brandCount"],
-  0.06,
-  2, 0.14,
-  4, 0.24,
-  8, 0.38,
-  15, 0.54,
-  25, 0.7,
-  40, 0.84
-];
-const TERRITORY_DENSITY_LINE_OPACITY_EXPRESSION = [
-  "step",
-  ["get", "brandCount"],
-  0.22,
-  2, 0.3,
-  4, 0.4,
-  8, 0.52,
-  15, 0.66,
-  25, 0.8,
-  40, 0.92
-];
+const TERRITORY_DENSITY_FILL_OPACITY_MIN = 0.06;
+const TERRITORY_DENSITY_FILL_OPACITY_MAX = 0.84;
+const TERRITORY_DENSITY_LINE_OPACITY_MIN = 0.22;
+const TERRITORY_DENSITY_LINE_OPACITY_MAX = 0.92;
+const TERRITORY_DENSITY_OPACITY_CURVE = 0.7;
+const TERRITORY_DENSITY_FILL_OPACITY_EXPRESSION = ["get", "fillOpacity"];
+const TERRITORY_DENSITY_LINE_OPACITY_EXPRESSION = ["get", "lineOpacity"];
 const TERRITORY_DENSITY_FILL_HOVER_OPACITY_EXPRESSION = [
   "min",
   1,
@@ -737,7 +721,7 @@ function isTerritoryMapSearchAreaMode() {
 }
 
 function getTerritoryMapViewportSpanMiles() {
-  const bounds = getTerritoryMapSearchAreaBounds();
+  const bounds = getTerritoryMapViewportBounds();
   if (!bounds) return Infinity;
 
   const midLat = (bounds.south + bounds.north) / 2;
@@ -3640,6 +3624,31 @@ function getVisibleSharedOccupantCount(stateCode) {
   return occupants.filter((occupantId) => matchingKeys.has(`${occupantId}:${stateCode}`)).length;
 }
 
+function getTerritoryDensityCountRange(counts) {
+  if (!counts.length) return { minCount: 0, maxCount: 0 };
+
+  return counts.reduce((range, count) => ({
+    minCount: Math.min(range.minCount, count),
+    maxCount: Math.max(range.maxCount, count)
+  }), { minCount: counts[0], maxCount: counts[0] });
+}
+
+function getTerritoryDensityAdjustedRatio(count, minCount, maxCount) {
+  const normalized = (count - minCount) / (maxCount - minCount || 1);
+  return Math.pow(Math.max(0, Math.min(1, normalized)), TERRITORY_DENSITY_OPACITY_CURVE);
+}
+
+function getTerritoryDensityOpacities(count, minCount, maxCount) {
+  const adjusted = getTerritoryDensityAdjustedRatio(count, minCount, maxCount);
+
+  return {
+    fillOpacity: TERRITORY_DENSITY_FILL_OPACITY_MIN
+      + adjusted * (TERRITORY_DENSITY_FILL_OPACITY_MAX - TERRITORY_DENSITY_FILL_OPACITY_MIN),
+    lineOpacity: TERRITORY_DENSITY_LINE_OPACITY_MIN
+      + adjusted * (TERRITORY_DENSITY_LINE_OPACITY_MAX - TERRITORY_DENSITY_LINE_OPACITY_MIN)
+  };
+}
+
 function buildTerritoryDensityFeatureCollection(matchingRecords) {
   const entriesByGeoKey = new Map();
 
@@ -3661,10 +3670,18 @@ function buildTerritoryDensityFeatureCollection(matchingRecords) {
     entriesByGeoKey.get(geoKey).brandIds.add(record.brandId);
   });
 
+  const entries = [...entriesByGeoKey.values()].map((entry) => ({
+    ...entry,
+    brandCount: entry.brandIds.size
+  }));
+  const { minCount, maxCount } = getTerritoryDensityCountRange(
+    entries.map((entry) => entry.brandCount)
+  );
+
   return {
     type: "FeatureCollection",
-    features: [...entriesByGeoKey.values()].map((entry) => {
-      const count = entry.brandIds.size;
+    features: entries.map((entry) => {
+      const opacities = getTerritoryDensityOpacities(entry.brandCount, minCount, maxCount);
 
       return {
         type: "Feature",
@@ -3676,7 +3693,9 @@ function buildTerritoryDensityFeatureCollection(matchingRecords) {
           stateName: entry.name,
           geoType: entry.geoType,
           geoRank: getTerritoryGeoTypeRank(entry.geoType),
-          brandCount: count
+          brandCount: entry.brandCount,
+          fillOpacity: opacities.fillOpacity,
+          lineOpacity: opacities.lineOpacity
         }
       };
     })
@@ -4838,7 +4857,7 @@ function resolveTerritorySearchAreaAnchor(territoryMap) {
     };
   }
 
-  const viewportBounds = getTerritoryMapSearchAreaBounds();
+  const viewportBounds = getTerritoryMapViewportBounds();
   if (viewportBounds) {
     for (const [longitude, latitude] of getTerritoryViewportLandSamplePoints(viewportBounds, target)) {
       const stateCode = getStateCodeForCoordinates(longitude, latitude);
@@ -6371,44 +6390,6 @@ function getTerritoryMapViewportBounds() {
   return { west, east, south, north };
 }
 
-function getTerritoryMapSearchAreaBounds() {
-  const territoryMap = window.territoryMap;
-  if (!territoryMap || typeof territoryMap.unproject !== "function") {
-    return getTerritoryMapViewportBounds();
-  }
-
-  const container = territoryMap.getContainer?.();
-  const width = container?.clientWidth;
-  const height = container?.clientHeight;
-  if (!(width > 0) || !(height > 0)) {
-    return getTerritoryMapViewportBounds();
-  }
-
-  const size = Math.min(width, height);
-  const left = (width - size) / 2;
-  const top = (height - size) / 2;
-  const right = left + size;
-  const bottom = top + size;
-  const corners = [
-    territoryMap.unproject([left, top]),
-    territoryMap.unproject([right, top]),
-    territoryMap.unproject([left, bottom]),
-    territoryMap.unproject([right, bottom])
-  ];
-  const lngs = corners.map((corner) => corner.lng);
-  const lats = corners.map((corner) => corner.lat);
-  const west = Math.min(...lngs);
-  const east = Math.max(...lngs);
-  const south = Math.min(...lats);
-  const north = Math.max(...lats);
-
-  if (![west, east, south, north].every(Number.isFinite) || !(east > west) || !(north > south)) {
-    return getTerritoryMapViewportBounds();
-  }
-
-  return { west, east, south, north };
-}
-
 function getTerritoryMapSearchBounds(longitude, latitude, radiusMiles = TERRITORY_MAP_SEARCH_RADIUS_MILES) {
   const latDelta = radiusMiles / TERRITORY_MILES_PER_LATITUDE_DEGREE;
   const lngDelta = radiusMiles / (
@@ -6485,7 +6466,6 @@ window.territoryMapControls = {
   focusTerritoryCoordinates,
   getStateCodeForCoordinates,
   getViewportBounds: getTerritoryMapViewportBounds,
-  getSearchAreaBounds: getTerritoryMapSearchAreaBounds,
   getSearchViewportBounds: getTerritoryMapSearchBounds,
   armLocationReveal: armTerritoryLocationReveal,
   armStateReveal: armTerritoryStateReveal,

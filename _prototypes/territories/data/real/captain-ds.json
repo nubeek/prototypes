@@ -1,0 +1,287 @@
+{
+  "id": "captain-ds",
+  "brand": "Captain D's",
+  "category": "Food and Beverage",
+  "color": "#02A6E4",
+  "logo": "assets/logos/captain-ds.png",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 1126400,
+  "franchiseeRating": 0,
+  "profileUrl": "",
+  "territories": [
+    {
+      "geoKey": "region:01",
+      "geoType": "region",
+      "state": "AL",
+      "name": "Alabama",
+      "status": "sold"
+    },
+    {
+      "geoKey": "region:05",
+      "geoType": "region",
+      "state": "AR",
+      "name": "Arkansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:04",
+      "geoType": "region",
+      "state": "AZ",
+      "name": "Arizona",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:08",
+      "geoType": "region",
+      "state": "CO",
+      "name": "Colorado",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:09",
+      "geoType": "region",
+      "state": "CT",
+      "name": "Connecticut",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:10",
+      "geoType": "region",
+      "state": "DE",
+      "name": "Delaware",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:12",
+      "geoType": "region",
+      "state": "FL",
+      "name": "Florida",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:13",
+      "geoType": "region",
+      "state": "GA",
+      "name": "Georgia",
+      "status": "sold"
+    },
+    {
+      "geoKey": "region:19",
+      "geoType": "region",
+      "state": "IA",
+      "name": "Iowa",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:16",
+      "geoType": "region",
+      "state": "ID",
+      "name": "Idaho",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:17",
+      "geoType": "region",
+      "state": "IL",
+      "name": "Illinois",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:18",
+      "geoType": "region",
+      "state": "IN",
+      "name": "Indiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:20",
+      "geoType": "region",
+      "state": "KS",
+      "name": "Kansas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:21",
+      "geoType": "region",
+      "state": "KY",
+      "name": "Kentucky",
+      "status": "sold"
+    },
+    {
+      "geoKey": "region:22",
+      "geoType": "region",
+      "state": "LA",
+      "name": "Louisiana",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:24",
+      "geoType": "region",
+      "state": "MD",
+      "name": "Maryland",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:26",
+      "geoType": "region",
+      "state": "MI",
+      "name": "Michigan",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:27",
+      "geoType": "region",
+      "state": "MN",
+      "name": "Minnesota",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:29",
+      "geoType": "region",
+      "state": "MO",
+      "name": "Missouri",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:28",
+      "geoType": "region",
+      "state": "MS",
+      "name": "Mississippi",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:37",
+      "geoType": "region",
+      "state": "NC",
+      "name": "North Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:31",
+      "geoType": "region",
+      "state": "NE",
+      "name": "Nebraska",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:34",
+      "geoType": "region",
+      "state": "NJ",
+      "name": "New Jersey",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:35",
+      "geoType": "region",
+      "state": "NM",
+      "name": "New Mexico",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:32",
+      "geoType": "region",
+      "state": "NV",
+      "name": "Nevada",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:36",
+      "geoType": "region",
+      "state": "NY",
+      "name": "New York",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:39",
+      "geoType": "region",
+      "state": "OH",
+      "name": "Ohio",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:40",
+      "geoType": "region",
+      "state": "OK",
+      "name": "Oklahoma",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:42",
+      "geoType": "region",
+      "state": "PA",
+      "name": "Pennsylvania",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:44",
+      "geoType": "region",
+      "state": "RI",
+      "name": "Rhode Island",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:45",
+      "geoType": "region",
+      "state": "SC",
+      "name": "South Carolina",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:46",
+      "geoType": "region",
+      "state": "SD",
+      "name": "South Dakota",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:47",
+      "geoType": "region",
+      "state": "TN",
+      "name": "Tennessee",
+      "status": "sold"
+    },
+    {
+      "geoKey": "region:48",
+      "geoType": "region",
+      "state": "TX",
+      "name": "Texas",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:49",
+      "geoType": "region",
+      "state": "UT",
+      "name": "Utah",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:51",
+      "geoType": "region",
+      "state": "VA",
+      "name": "Virginia",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:55",
+      "geoType": "region",
+      "state": "WI",
+      "name": "Wisconsin",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:54",
+      "geoType": "region",
+      "state": "WV",
+      "name": "West Virginia",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:56",
+      "geoType": "region",
+      "state": "WY",
+      "name": "Wyoming",
+      "status": "available"
+    }
+  ]
+}

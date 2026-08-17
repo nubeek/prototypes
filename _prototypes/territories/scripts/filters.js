@@ -792,8 +792,7 @@ function syncImplicitViewportBounds({ preferMap = false, framed = false } = {}) 
   }
 
   const mapBounds = preferMap
-    ? window.territoryMapControls?.getSearchAreaBounds?.()
-      || window.territoryMapControls?.getViewportBounds?.()
+    ? window.territoryMapControls?.getViewportBounds?.()
     : null;
   const nextBounds = normalizeViewportBounds(mapBounds)
     || deriveViewportBoundsFromLocationSearches()
