@@ -3,6 +3,7 @@
   const STORAGE_KEY = "wefranch:prototype-access";
   const REMEMBERED_PASSWORD_KEY = "wefranch:prototype-remembered-password";
   const ACCESS_GRANTED_CLASS = "access-granted";
+  const ACCESS_RESOLVING_CLASS = "access-resolving";
 
   const readStoredAccess = () => {
     try {
@@ -36,10 +37,44 @@
     }
   };
 
-  const bootstrapAccess = readStoredAccess();
+  const persistGrantedAccess = () => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, "granted");
+    } catch (storageError) {
+      // Continue and unlock even if session storage is unavailable.
+    }
+  };
 
-  if (bootstrapAccess === "granted") {
+  const finishResolving = () => {
+    document.documentElement.classList.remove(ACCESS_RESOLVING_CLASS);
+  };
+
+  const installBootstrapStyles = () => {
+    if (document.getElementById("access-gate-bootstrap-style")) {
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "access-gate-bootstrap-style";
+    style.textContent = [
+      "html.access-resolving .access-gate__panel{opacity:0;pointer-events:none}",
+      "html.access-granted .access-gate{display:none!important}",
+    ].join("");
+    (document.head || document.documentElement).appendChild(style);
+  };
+
+  const bootstrapStoredAccess = readStoredAccess();
+  const bootstrapRememberedPassword = readRememberedPassword();
+
+  installBootstrapStyles();
+
+  if (bootstrapStoredAccess === "granted" || bootstrapRememberedPassword === PASSWORD) {
+    if (bootstrapRememberedPassword === PASSWORD && bootstrapStoredAccess !== "granted") {
+      persistGrantedAccess();
+    }
     document.documentElement.classList.add(ACCESS_GRANTED_CLASS);
+  } else {
+    document.documentElement.classList.add(ACCESS_RESOLVING_CLASS);
   }
 
   // Remove the credentials that the GET submission appends to the URL so they
@@ -54,6 +89,7 @@
 
       url.searchParams.delete("password");
       url.searchParams.delete("username");
+      url.searchParams.delete("accessKey");
       const search = url.searchParams.toString();
       const cleaned = url.pathname + (search ? `?${search}` : "") + url.hash;
       window.history.replaceState(null, "", cleaned);
@@ -64,8 +100,32 @@
 
   const unlock = () => {
     document.documentElement.classList.add(ACCESS_GRANTED_CLASS);
-    document.body.classList.remove("access-locked");
+    finishResolving();
+    document.body?.classList.remove("access-locked");
     stripCredentialsFromUrl();
+  };
+
+  const suppressBrowserPasswordUI = (form, input) => {
+    form.setAttribute("autocomplete", "off");
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("data-lpignore", "true");
+    input.setAttribute("data-1p-ignore", "true");
+    input.setAttribute("data-form-type", "other");
+    input.removeAttribute("autofocus");
+    input.setAttribute("readonly", "readonly");
+    input.setAttribute("type", "text");
+    input.setAttribute("name", "accessKey");
+
+    form.querySelectorAll('input[autocomplete="username"]').forEach((username) => {
+      username.remove();
+    });
+
+    const enableTyping = () => {
+      input.removeAttribute("readonly");
+    };
+
+    input.addEventListener("pointerdown", enableTyping);
+    input.addEventListener("keydown", enableTyping);
   };
 
   const ensureRememberPasswordControl = (form) => {
@@ -107,16 +167,42 @@
     return rememberLabel;
   };
 
+  const ensurePasswordVisibilityControl = (input) => {
+    const existingField = input.closest("[data-access-field]");
+
+    if (existingField) {
+      return existingField.querySelector("[data-access-visibility]");
+    }
+
+    const field = document.createElement("div");
+    field.className = "access-gate__field";
+    field.setAttribute("data-access-field", "");
+    input.parentNode.insertBefore(field, input);
+    field.appendChild(input);
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "access-gate__visibility";
+    toggle.setAttribute("data-access-visibility", "");
+    toggle.hidden = true;
+    toggle.setAttribute("aria-label", "Show password");
+    toggle.setAttribute("aria-pressed", "false");
+
+    const icon = document.createElement("span");
+    icon.className = "access-gate__visibility-icon";
+    icon.setAttribute("aria-hidden", "true");
+    toggle.append(icon);
+    field.append(toggle);
+
+    return toggle;
+  };
+
   const initGate = () => {
     const storedAccess = readStoredAccess();
     const rememberedPassword = readRememberedPassword();
 
     if (rememberedPassword === PASSWORD) {
-      try {
-        sessionStorage.setItem(STORAGE_KEY, "granted");
-      } catch (storageError) {
-        // Continue and unlock even if session storage is unavailable.
-      }
+      persistGrantedAccess();
       unlock();
       return;
     }
@@ -126,6 +212,7 @@
       return;
     }
 
+    const gate = document.querySelector("[data-access-gate]");
     const form = document.querySelector("[data-access-form]");
     const input = document.querySelector("[data-access-password]");
     const error = document.querySelector("[data-access-error]");
@@ -139,18 +226,42 @@
     // POST) and simply reloads the current page, where stored access unlocks
     // it without showing the form again.
     form.setAttribute("method", "get");
+    suppressBrowserPasswordUI(form, input);
 
     const rememberControl = ensureRememberPasswordControl(form);
     const rememberInput = rememberControl.querySelector("[data-access-remember]");
+    const visibilityToggle = ensurePasswordVisibilityControl(input);
+    let userEditedPassword = false;
+    let passwordRevealed = false;
 
-    if (rememberedPassword) {
-      input.value = rememberedPassword;
-    }
+    const syncPasswordVisibility = () => {
+      const hasPassword = Boolean(input.value);
+      const isFocused = document.activeElement === input;
 
-    if (rememberInput && rememberedPassword === PASSWORD) {
-      rememberInput.checked = true;
-      rememberControl.classList.add("is-checked");
-    }
+      visibilityToggle.hidden = !hasPassword && !isFocused;
+
+      if (!hasPassword && passwordRevealed) {
+        passwordRevealed = false;
+      }
+
+      input.classList.toggle("is-revealed", passwordRevealed);
+      visibilityToggle.classList.toggle("is-revealed", passwordRevealed);
+      visibilityToggle.setAttribute("aria-pressed", passwordRevealed ? "true" : "false");
+      visibilityToggle.setAttribute("aria-label", passwordRevealed ? "Hide password" : "Show password");
+    };
+
+    visibilityToggle.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+    });
+
+    visibilityToggle.addEventListener("click", () => {
+      if (!input.value) {
+        return;
+      }
+
+      passwordRevealed = !passwordRevealed;
+      syncPasswordVisibility();
+    });
 
     if (rememberInput) {
       rememberInput.addEventListener("change", () => {
@@ -158,7 +269,43 @@
       });
     }
 
-    input.focus();
+    const revealPasswordForm = () => {
+      if (rememberedPassword && !input.value) {
+        input.value = rememberedPassword;
+      }
+
+      finishResolving();
+      gate?.removeAttribute("aria-busy");
+      syncPasswordVisibility();
+      input.focus();
+    };
+
+    const unlockFromSavedPassword = () => {
+      persistGrantedAccess();
+      unlock();
+    };
+
+    const tryUnlockFromField = () => {
+      if (userEditedPassword || input.value !== PASSWORD) {
+        return false;
+      }
+
+      unlockFromSavedPassword();
+      return true;
+    };
+
+    input.addEventListener("focus", syncPasswordVisibility);
+    input.addEventListener("blur", syncPasswordVisibility);
+    input.addEventListener("keydown", () => {
+      userEditedPassword = true;
+    });
+    input.addEventListener("paste", () => {
+      userEditedPassword = true;
+    });
+    input.addEventListener("input", () => {
+      syncPasswordVisibility();
+      tryUnlockFromField();
+    });
 
     form.addEventListener("submit", (event) => {
       const passwordMatches = input.value === PASSWORD;
@@ -178,16 +325,17 @@
         clearRememberedPassword();
       }
 
-      // Persist access before navigation so the reloaded page unlocks, then
-      // let the form submit normally. The real submission is what prompts
-      // every browser (Chrome, Edge, Firefox, Safari) to offer saving the
-      // password to its password manager.
-      try {
-        sessionStorage.setItem(STORAGE_KEY, "granted");
-      } catch (storageError) {
-        // Continue submitting if storage is unavailable for this context.
-      }
+      persistGrantedAccess();
     });
+
+    gate?.setAttribute("aria-busy", "true");
+
+    if (input.value === PASSWORD) {
+      unlockFromSavedPassword();
+      return;
+    }
+
+    revealPasswordForm();
   };
 
   if (document.readyState === "loading") {

@@ -37,6 +37,55 @@ body:not(.access-locked) .access-gate {
   display: none;
 }
 
+html.access-resolving .access-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px 12px;
+}
+
+html.access-resolving .access-gate__panel {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.access-resolving .access-gate::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e4e4e4;
+  border-top-color: var(--access-color-text);
+  border-radius: 50%;
+  animation: access-gate-spin 720ms linear infinite;
+}
+
+html.access-resolving .access-gate::after {
+  content: "Checking access";
+  margin: 0;
+  color: #ababab;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: center;
+}
+
+@keyframes access-gate-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.access-resolving .access-gate::before {
+    animation: none;
+    border-color: var(--access-color-text);
+  }
+}
+
 .access-gate {
   position: fixed;
   inset: 0;
@@ -64,6 +113,10 @@ body:not(.access-locked) .access-gate {
   line-height: 1.35;
 }
 
+.access-gate__field {
+  position: relative;
+}
+
 .access-gate__input {
   width: 100%;
   height: var(--access-control-height);
@@ -75,13 +128,73 @@ body:not(.access-locked) .access-gate {
   font: inherit;
   font-size: 16px;
   line-height: 1;
-  padding: 0 14px;
+  padding: 0 50px 0 14px;
+  -webkit-text-security: disc;
   transition: background-color var(--access-transition-fast), box-shadow var(--access-transition-fast);
+}
+
+.access-gate__input.is-revealed {
+  -webkit-text-security: none;
+}
+
+.access-gate__input[readonly] {
+  cursor: text;
 }
 
 .access-gate__input:focus {
   background: var(--access-color-surface);
   box-shadow: 0 0 0 2px var(--access-color-brand-primary);
+}
+
+.access-gate__visibility {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color var(--access-transition-fast);
+}
+
+.access-gate__visibility[hidden] {
+  display: none;
+}
+
+.access-gate__visibility:hover,
+.access-gate__visibility:focus-visible {
+  background: var(--access-color-surface-control);
+}
+
+.access-gate__visibility:focus-visible {
+  outline: none;
+}
+
+.access-gate__visibility-icon {
+  width: 16px;
+  height: 16px;
+  background-color: #ababab;
+  mask: url("../assets/show.svg") center / contain no-repeat;
+  -webkit-mask: url("../assets/show.svg") center / contain no-repeat;
+  transition: background-color var(--access-transition-fast);
+}
+
+.access-gate__visibility.is-revealed .access-gate__visibility-icon {
+  mask-image: url("../assets/hide.svg");
+  -webkit-mask-image: url("../assets/hide.svg");
+}
+
+.access-gate__visibility:hover .access-gate__visibility-icon,
+.access-gate__visibility:focus-visible .access-gate__visibility-icon {
+  background-color: var(--access-color-text);
 }
 
 .access-gate .filter-check {
