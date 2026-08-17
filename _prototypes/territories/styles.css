@@ -1331,7 +1331,15 @@
   display: none;
   width: 14px;
   height: 14px;
+}
+
+.territory-map-reset__icon--search {
   filter: brightness(0) invert(1);
+}
+
+.territory-map-reset__icon--zoom {
+  width: 18px;
+  height: 18px;
 }
 
 .territory-map-reset.is-search-area {
@@ -1339,7 +1347,16 @@
   color: #fff;
 }
 
-.territory-map-reset.is-search-area .territory-map-reset__icon {
+.territory-map-reset.is-search-area .territory-map-reset__icon--search {
+  display: block;
+}
+
+.territory-map-reset.is-area-too-large {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.territory-map-reset.is-area-too-large .territory-map-reset__icon--zoom {
   display: block;
 }
 

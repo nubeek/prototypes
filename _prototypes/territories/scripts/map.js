@@ -26,6 +26,13 @@ const TERRITORY_MOCK_USER_COORDS = window.CST_ENV?.MOCK_USER_COORDS ?? {
 };
 const TERRITORY_GEOLOCATE_ZOOM = window.CST_ENV?.GEOLOCATE_ZOOM ?? 6.5;
 const TERRITORY_MAP_SEARCH_RADIUS_MILES = window.CST_ENV?.MAP_SEARCH_RADIUS_MILES ?? 50;
+// Search this area is limited to a regional viewport. Wider than this and the
+// visible map would swallow most territories, so the pill becomes a zoom hint.
+const TERRITORY_MAP_SEARCH_MAX_SPAN_MILES = window.CST_ENV?.MAP_SEARCH_MAX_SPAN_MILES ?? 1000;
+const TERRITORY_MAP_SEARCH_FIT_SPAN_MILES = TERRITORY_MAP_SEARCH_MAX_SPAN_MILES * 0.92;
+const TERRITORY_MAP_RESET_LABEL = "Reset map view";
+const TERRITORY_MAP_SEARCH_AREA_LABEL = "Search this area";
+const TERRITORY_MAP_SEARCH_TOO_LARGE_LABEL = "Area too large to search - zoom in";
 const TERRITORY_MILES_PER_LATITUDE_DEGREE = 69;
 const TERRITORY_FOCUS_PADDING = 100;
 const TERRITORY_FOCUS_MAX_ZOOM = 5.00;
@@ -728,15 +735,71 @@ function isTerritoryMapSearchAreaMode() {
   return !isTerritoryMapInspectionOpen();
 }
 
+function getTerritoryMapViewportSpanMiles() {
+  const bounds = getTerritoryMapViewportBounds();
+  if (!bounds) return Infinity;
+
+  const midLat = (bounds.south + bounds.north) / 2;
+  const midLng = (bounds.west + bounds.east) / 2;
+
+  return Math.max(
+    getLngLatDistanceMiles([bounds.west, midLat], [bounds.east, midLat]),
+    getLngLatDistanceMiles([midLng, bounds.south], [midLng, bounds.north])
+  );
+}
+
+function isTerritoryMapSearchAreaTooLarge() {
+  return getTerritoryMapViewportSpanMiles() > TERRITORY_MAP_SEARCH_MAX_SPAN_MILES;
+}
+
+function getTerritoryMapSearchableZoom(territoryMap) {
+  const currentZoom = territoryMap?.getZoom?.();
+  const currentSpan = getTerritoryMapViewportSpanMiles();
+  if (!Number.isFinite(currentZoom) || !Number.isFinite(currentSpan) || currentSpan <= 0) {
+    return null;
+  }
+  if (currentSpan <= TERRITORY_MAP_SEARCH_MAX_SPAN_MILES) {
+    return currentZoom;
+  }
+
+  return currentZoom + Math.log2(currentSpan / TERRITORY_MAP_SEARCH_FIT_SPAN_MILES);
+}
+
+function zoomTerritoryMapToSearchableArea() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap || !isTerritoryMapSearchAreaTooLarge()) return;
+
+  const center = territoryMap.getCenter();
+  const zoom = getTerritoryMapSearchableZoom(territoryMap);
+  if (!center || !Number.isFinite(zoom)) return;
+
+  territoryMap.flyTo({
+    center: [center.lng, center.lat],
+    zoom,
+    duration: TERRITORY_FOCUS_DURATION,
+    curve: TERRITORY_FOCUS_FLY_CURVE,
+    essential: true
+  });
+  territoryMap.once("moveend", () => {
+    updateTerritoryMapResetVisibility();
+  });
+}
+
 function syncTerritoryMapResetLabel() {
   const resetEl = getTerritoryMapResetElement();
   if (!resetEl) return;
 
   const isSearchArea = isTerritoryMapSearchAreaMode();
-  const label = isSearchArea ? "Search this area" : "Reset map view";
+  const isTooLarge = isSearchArea && isTerritoryMapSearchAreaTooLarge();
+  const label = isTooLarge
+    ? TERRITORY_MAP_SEARCH_TOO_LARGE_LABEL
+    : isSearchArea
+      ? TERRITORY_MAP_SEARCH_AREA_LABEL
+      : TERRITORY_MAP_RESET_LABEL;
   const labelEl = resetEl.querySelector(".territory-map-reset__label");
 
-  resetEl.classList.toggle("is-search-area", isSearchArea);
+  resetEl.classList.toggle("is-search-area", isSearchArea && !isTooLarge);
+  resetEl.classList.toggle("is-area-too-large", isTooLarge);
   if (labelEl) {
     labelEl.textContent = label;
   } else {
@@ -814,6 +877,10 @@ function resetTerritoryMapView() {
 async function searchTerritoryMapThisArea() {
   const territoryMap = window.territoryMap;
   if (!territoryMap || territorySearchAreaInFlight) return;
+  if (isTerritoryMapSearchAreaTooLarge()) {
+    updateTerritoryMapResetVisibility();
+    return;
+  }
 
   const anchor = resolveTerritorySearchAreaAnchor(territoryMap);
   if (!anchor) {
@@ -851,6 +918,10 @@ async function searchTerritoryMapThisArea() {
 
 function handleTerritoryMapResetClick() {
   if (isTerritoryMapSearchAreaMode()) {
+    if (isTerritoryMapSearchAreaTooLarge()) {
+      zoomTerritoryMapToSearchableArea();
+      return;
+    }
     void searchTerritoryMapThisArea();
     return;
   }

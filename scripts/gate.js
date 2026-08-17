@@ -1,4 +1,5 @@
 (() => {
+  const GATE_SCRIPT_SRC = document.currentScript?.src || "";
   const PASSWORD = "Showmethemoney$1";
   const STORAGE_KEY = "wefranch:prototype-access";
   const REMEMBERED_PASSWORD_KEY = "wefranch:prototype-remembered-password";
@@ -343,4 +344,17 @@
   } else {
     initGate();
   }
+
+  const bootProtoNav = () => {
+    if (!GATE_SCRIPT_SRC || document.querySelector("script[data-proto-nav-script]")) {
+      return;
+    }
+
+    const navScript = document.createElement("script");
+    navScript.src = new URL("proto-nav.js", GATE_SCRIPT_SRC).href;
+    navScript.setAttribute("data-proto-nav-script", "");
+    document.head.appendChild(navScript);
+  };
+
+  bootProtoNav();
 })();
