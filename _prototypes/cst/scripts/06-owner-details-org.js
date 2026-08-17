@@ -544,6 +544,7 @@ function initializeOwnerDetailsMap(ownerIndex) {
     style: MAPBOX_STYLE,
     center: MAP_INITIAL_CENTER,
     zoom: 3,
+    projection: "mercator",
     bounds: bounds || undefined,
     fitBoundsOptions: {
       padding: 30,

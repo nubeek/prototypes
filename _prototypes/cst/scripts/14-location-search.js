@@ -224,10 +224,121 @@ const CST_REGION_CENTERS = {
   ZAC: { latitude: 22.7709, longitude: -102.5832 }
 };
 
+const CST_REGION_BOUNDS = {
+  AL: [-88.47, 30.14, -84.89, 35.01],
+  AK: [-179.15, 51.21, -129.99, 71.35],
+  AZ: [-114.82, 31.33, -109.05, 37.0],
+  AR: [-94.62, 33.0, -89.64, 36.5],
+  CA: [-124.41, 32.53, -114.13, 42.01],
+  CO: [-109.06, 36.99, -102.04, 41.0],
+  CT: [-73.73, 40.98, -71.79, 42.05],
+  DE: [-75.79, 38.45, -75.05, 39.84],
+  FL: [-87.63, 24.52, -80.03, 31.0],
+  GA: [-85.61, 30.36, -80.84, 35.0],
+  HI: [-160.25, 18.91, -154.81, 22.24],
+  ID: [-117.24, 41.99, -111.04, 49.0],
+  IL: [-91.51, 36.97, -87.02, 42.51],
+  IN: [-88.1, 37.77, -84.78, 41.76],
+  IA: [-96.64, 40.38, -90.14, 43.5],
+  KS: [-102.05, 36.99, -94.59, 40.0],
+  KY: [-89.57, 36.5, -81.96, 39.15],
+  LA: [-94.04, 28.93, -88.82, 33.02],
+  ME: [-71.08, 42.98, -66.95, 47.46],
+  MD: [-79.49, 37.91, -75.05, 39.72],
+  MA: [-73.51, 41.24, -69.93, 42.89],
+  MI: [-90.42, 41.7, -82.12, 48.19],
+  MN: [-97.24, 43.5, -89.53, 49.38],
+  MS: [-91.66, 30.17, -88.1, 35.0],
+  MO: [-95.77, 35.99, -89.1, 40.61],
+  MT: [-116.05, 44.36, -104.04, 49.0],
+  NE: [-104.05, 39.99, -95.31, 43.0],
+  NV: [-120.01, 35.0, -114.04, 42.0],
+  NH: [-72.56, 42.7, -70.7, 45.31],
+  NJ: [-75.56, 38.93, -73.89, 41.36],
+  NM: [-109.05, 31.33, -103.0, 37.0],
+  NY: [-79.76, 40.5, -71.86, 45.02],
+  NC: [-84.32, 33.84, -75.46, 36.59],
+  ND: [-104.05, 45.94, -96.55, 49.0],
+  OH: [-84.82, 38.4, -80.52, 42.0],
+  OK: [-103.0, 33.62, -94.43, 37.0],
+  OR: [-124.57, 41.99, -116.46, 46.29],
+  PA: [-80.52, 39.72, -74.69, 42.27],
+  RI: [-71.86, 41.15, -71.12, 42.02],
+  SC: [-83.35, 32.05, -78.54, 35.22],
+  SD: [-104.06, 42.48, -96.44, 45.94],
+  TN: [-90.31, 34.98, -81.65, 36.68],
+  TX: [-106.65, 25.84, -93.51, 36.5],
+  UT: [-114.05, 36.99, -109.04, 42.0],
+  VT: [-73.44, 42.73, -71.46, 45.02],
+  VA: [-83.68, 36.54, -75.24, 39.47],
+  WA: [-124.76, 45.54, -116.92, 49.0],
+  WV: [-82.64, 37.2, -77.72, 40.64],
+  WI: [-92.89, 42.49, -86.25, 47.08],
+  WY: [-111.06, 40.99, -104.05, 45.01],
+  AB: [-120.0, 48.99, -110.0, 60.0],
+  BC: [-139.06, 48.3, -114.03, 60.0],
+  MB: [-102.0, 48.99, -88.97, 60.0],
+  NB: [-69.06, 44.59, -63.77, 48.07],
+  NL: [-67.82, 46.61, -52.62, 60.37],
+  NS: [-66.39, 43.39, -59.68, 47.03],
+  NT: [-136.5, 60.0, -102.0, 78.8],
+  NU: [-120.8, 51.6, -61.2, 83.1],
+  ON: [-95.16, 41.68, -74.34, 56.86],
+  PE: [-64.42, 45.95, -61.97, 47.06],
+  QC: [-79.76, 44.99, -57.1, 62.58],
+  SK: [-110.0, 49.0, -101.36, 60.0],
+  YT: [-141.0, 60.0, -123.8, 69.65],
+  AGU: [-102.95, 21.46, -101.78, 22.5],
+  BCN: [-118.41, 28.0, -112.79, 32.72],
+  BCS: [-115.22, 22.87, -109.21, 28.0],
+  CAM: [-92.47, 17.82, -89.12, 20.85],
+  CHP: [-94.14, 14.53, -90.37, 17.98],
+  CHH: [-109.07, 25.58, -103.31, 31.78],
+  CMX: [-99.37, 19.05, -98.94, 19.59],
+  COA: [-103.96, 24.54, -99.84, 29.88],
+  COL: [-104.78, 18.68, -103.49, 19.52],
+  DUR: [-107.21, 22.34, -102.47, 26.85],
+  GUA: [-102.18, 19.91, -99.67, 21.84],
+  GRO: [-102.18, 16.32, -98.0, 18.89],
+  HID: [-99.86, 19.6, -97.98, 21.4],
+  JAL: [-105.7, 18.92, -101.51, 22.75],
+  MEX: [-100.61, 18.37, -98.6, 20.12],
+  MIC: [-103.74, 17.91, -100.08, 20.39],
+  MOR: [-99.49, 18.33, -98.63, 19.13],
+  NAY: [-106.69, 20.6, -103.72, 23.08],
+  NLE: [-101.2, 23.16, -98.85, 27.81],
+  OAX: [-98.55, 15.65, -93.87, 18.67],
+  PUE: [-98.65, 17.86, -96.72, 20.84],
+  QUE: [-100.6, 20.01, -99.04, 21.67],
+  ROO: [-89.3, 17.89, -86.71, 21.6],
+  SLP: [-102.3, 21.16, -98.33, 24.49],
+  SIN: [-109.45, 22.47, -105.39, 26.93],
+  SON: [-115.05, 26.3, -108.4, 32.48],
+  TAB: [-94.14, 17.25, -90.99, 18.65],
+  TAM: [-99.9, 22.21, -97.14, 27.67],
+  TLA: [-98.74, 19.11, -97.63, 19.73],
+  VER: [-98.67, 17.14, -93.61, 22.47],
+  YUC: [-90.4, 19.55, -87.53, 21.63],
+  ZAC: [-104.35, 21.04, -101.48, 25.12]
+};
+
 function getCstRegionCenter(regionCode) {
   const center = CST_REGION_CENTERS[String(regionCode || "").toUpperCase()];
   if (!center) return null;
   return { longitude: center.longitude, latitude: center.latitude };
+}
+
+function getCstRegionBounds(regionCode) {
+  const bounds = CST_REGION_BOUNDS[String(regionCode || "").toUpperCase()];
+  if (!Array.isArray(bounds) || bounds.length !== 4) return null;
+  return bounds;
+}
+
+function isCstRegionSearch(location) {
+  return Boolean(location?.stateCode)
+    && (location.geoLevel === "region" || !location.geoLevel)
+    && !location.geoKey
+    && !location.coordinates;
 }
 
 function normalizeCstLocationQuery(value) {
@@ -245,6 +356,17 @@ function stripCstLocationCountrySuffix(label) {
 
 function getCstRegionLabel(regionCode) {
   return CST_REGION_OPTIONS.find(({ code }) => code === regionCode)?.label || regionCode;
+}
+
+function getCstRegionCountry(regionCode) {
+  if (CST_US_STATE_OPTIONS.some(({ code }) => code === regionCode)) return "United States";
+  if (CST_CA_PROVINCE_OPTIONS.some(({ code }) => code === regionCode)) return "Canada";
+  if (CST_MX_STATE_OPTIONS.some(({ code }) => code === regionCode)) return "Mexico";
+  return "";
+}
+
+function getCstLocationSuggestionLabel(item) {
+  return item?.suggestionLabel || item?.label || "";
 }
 
 function getCstRegionCodeFromLabel(label) {
@@ -287,20 +409,39 @@ function createCstLocationResult({
   stateCode,
   coordinates = null,
   geoLevel = null,
-  geoKey = null
+  geoKey = null,
+  suggestionLabel = null
 } = {}) {
   const resolvedLabel = stripCstLocationCountrySuffix(label);
   const resolvedStateCode = stateCode || getCstRegionCodeFromLabel(resolvedLabel);
   if (!resolvedLabel) return null;
 
+  const resolvedCoordinates = geoLevel === "region"
+    ? (coordinates || null)
+    : (coordinates || getCstRegionCenter(resolvedStateCode));
+
   return {
     label: resolvedLabel,
+    suggestionLabel: suggestionLabel || resolvedLabel,
     stateCode: resolvedStateCode || "",
-    coordinates: coordinates || getCstRegionCenter(resolvedStateCode),
+    coordinates: resolvedCoordinates,
     geoLevel,
     geoKey,
     placeTypes: geoLevel ? [geoLevel] : []
   };
+}
+
+function createCstRegionLocationResult(stateCode) {
+  const label = getCstRegionLabel(stateCode);
+  if (!stateCode || !label) return null;
+
+  const country = getCstRegionCountry(stateCode);
+  return createCstLocationResult({
+    label,
+    suggestionLabel: country ? `${label}, ${country}` : label,
+    stateCode,
+    geoLevel: "region"
+  });
 }
 
 function searchCstRegionSuggestions(query, limit = CST_GEOCODING_LIMIT) {
@@ -313,17 +454,16 @@ function searchCstRegionSuggestions(query, limit = CST_GEOCODING_LIMIT) {
       || normalizeCstLocationQuery(code).startsWith(normalizedQuery)
     ))
     .slice(0, limit)
-    .map(({ code, label }) => createCstLocationResult({
-      label,
-      stateCode: code,
-      geoLevel: "region"
-    }))
+    .map(({ code }) => createCstRegionLocationResult(code))
     .filter(Boolean);
 }
 
 function getLocationSearchKey(location) {
   if (!location?.label && !location?.stateCode) return "";
   if (location.geoKey) return `${location.geoLevel || "location"}:${location.geoKey}`;
+  if (location.geoLevel === "region" && location.stateCode) {
+    return `region:${location.stateCode}`;
+  }
   if (location.coordinates) {
     return [
       location.stateCode || "",
@@ -378,6 +518,10 @@ function parseMapboxGeocodingFeature(feature) {
   const [longitude, latitude] = feature?.center || [];
   const geoLevel = getPrimaryMapboxPlaceType(feature);
   const stateCode = getStateCodeFromMapboxFeature(feature);
+
+  if (geoLevel === "region") {
+    return createCstRegionLocationResult(stateCode);
+  }
 
   return createCstLocationResult({
     label: feature.place_name || feature.text || "",
@@ -475,9 +619,7 @@ async function resolveCstLocationFromCoordinates(longitude, latitude, stateCode 
 }
 
 function createCstLocationResultFromRegionCode(stateCode, label = getCstRegionLabel(stateCode)) {
-  if (!stateCode && !label) return null;
-
-  return createCstLocationResult({
+  return createCstRegionLocationResult(stateCode) || createCstLocationResult({
     label,
     stateCode,
     geoLevel: "region"
@@ -532,6 +674,65 @@ function getAutoRadiusMilesForLocation(result) {
   return CST_LOCATION_AUTO_RADIUS_MILES[result?.geoLevel] || null;
 }
 
+function getLocationRecordCoordinates(location) {
+  const latitude = Number(location?.lat ?? location?.coordinates?.latitude);
+  const longitude = Number(location?.lng ?? location?.coordinates?.longitude);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return { latitude, longitude };
+}
+
+function getLocationRecordRegionCode(location) {
+  if (location?.stateCode) {
+    const fromStateCode = getCstRegionCodeFromLabel(location.stateCode) || String(location.stateCode).toUpperCase();
+    if (CST_REGION_CENTERS[fromStateCode] || CST_REGION_BOUNDS[fromStateCode]) return fromStateCode;
+  }
+
+  if (location?.state) {
+    const fromState = getCstRegionCodeFromLabel(location.state) || String(location.state).toUpperCase();
+    if (CST_REGION_CENTERS[fromState] || CST_REGION_BOUNDS[fromState]) return fromState;
+  }
+
+  const locationLabel = stripCstLocationCountrySuffix(location?.label || location?.location || "");
+  const parts = locationLabel.split(",").map((part) => part.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    return getCstRegionCodeFromLabel(parts[parts.length - 1]);
+  }
+
+  return getCstRegionCodeFromLabel(locationLabel);
+}
+
+function locationRecordMatchesRegionLabel(location, regionCode, searchLabel = "") {
+  const locationLabel = stripCstLocationCountrySuffix(location?.label || location?.location || "");
+  const normalizedLocation = normalizeCstLocationQuery(locationLabel);
+  const regionLabel = normalizeCstLocationQuery(getCstRegionLabel(regionCode) || searchLabel);
+  const normalizedRegionCode = normalizeCstLocationQuery(regionCode);
+
+  return Boolean(normalizedLocation && regionLabel && (
+    normalizedLocation.endsWith(` ${regionLabel}`)
+    || normalizedLocation === regionLabel
+    || (normalizedRegionCode && normalizedLocation.endsWith(` ${normalizedRegionCode}`))
+  ));
+}
+
+function locationRecordIsInRegion(location, regionCode) {
+  if (!regionCode) return false;
+
+  const coordinates = getLocationRecordCoordinates(location);
+  const bounds = getCstRegionBounds(regionCode);
+  if (coordinates && bounds) {
+    const [west, south, east, north] = bounds;
+    return coordinates.longitude >= west
+      && coordinates.longitude <= east
+      && coordinates.latitude >= south
+      && coordinates.latitude <= north;
+  }
+
+  const locationRegionCode = getLocationRecordRegionCode(location);
+  if (locationRegionCode) return locationRegionCode === regionCode;
+
+  return locationRecordMatchesRegionLabel(location, regionCode);
+}
+
 function locationRecordMatchesSearch(location, search) {
   if (!search) return false;
 
@@ -540,17 +741,11 @@ function locationRecordMatchesSearch(location, search) {
   const normalizedLocation = normalizeCstLocationQuery(locationLabel);
   const normalizedSearch = normalizeCstLocationQuery(searchLabel);
 
-  if (normalizedLocation && normalizedLocation === normalizedSearch) return true;
-
-  if (search.geoLevel === "region") {
-    const regionLabel = normalizeCstLocationQuery(getCstRegionLabel(search.stateCode) || searchLabel);
-    const regionCode = normalizeCstLocationQuery(search.stateCode);
-    return Boolean(regionLabel && (
-      normalizedLocation.endsWith(` ${regionLabel}`)
-      || normalizedLocation === regionLabel
-      || (regionCode && normalizedLocation.endsWith(` ${regionCode}`))
-    ));
+  if (search.geoLevel === "region" && search.stateCode) {
+    return locationRecordIsInRegion(location, search.stateCode);
   }
+
+  if (normalizedLocation && normalizedLocation === normalizedSearch) return true;
 
   if (search.geoLevel === "place" || search.geoLevel === "district") {
     const [searchCity, searchRegion] = searchLabel.split(",").map((part) => part.trim());
@@ -741,11 +936,11 @@ function bindCstLocationSearch({
       optionElement.id = `${suggestionPrefix}-${index}`;
       optionElement.setAttribute("role", "option");
       optionElement.setAttribute("aria-selected", "false");
-      optionElement.setAttribute("aria-label", `Select ${item.label}`);
+      optionElement.setAttribute("aria-label", `Select ${getCstLocationSuggestionLabel(item)}`);
 
       if (isFilterVariant) {
         label.className = ui.optionLabel;
-        label.textContent = item.label;
+        label.textContent = getCstLocationSuggestionLabel(item);
 
         const optionActions = document.createElement("span");
         const includeAction = document.createElement("button");
@@ -755,12 +950,12 @@ function bindCstLocationSearch({
         includeAction.className = `${ui.optionAction} is-include`;
         includeAction.type = "button";
         includeAction.tabIndex = -1;
-        includeAction.setAttribute("aria-label", `Include ${item.label} in results`);
+        includeAction.setAttribute("aria-label", `Include ${getCstLocationSuggestionLabel(item)} in results`);
         includeAction.dataset.tooltip = "Include\nin results";
         excludeAction.className = `${ui.optionAction} is-exclude`;
         excludeAction.type = "button";
         excludeAction.tabIndex = -1;
-        excludeAction.setAttribute("aria-label", `Exclude ${item.label} from results`);
+        excludeAction.setAttribute("aria-label", `Exclude ${getCstLocationSuggestionLabel(item)} from results`);
         excludeAction.dataset.tooltip = "Exclude\nfrom results";
 
         [includeAction, excludeAction].forEach((actionButton) => {
@@ -801,7 +996,7 @@ function bindCstLocationSearch({
         `;
 
         label.className = ui.optionLabel;
-        label.textContent = item.label;
+        label.textContent = getCstLocationSuggestionLabel(item);
 
         action.className = ui.optionAction;
         action.setAttribute("aria-hidden", "true");
@@ -1070,8 +1265,12 @@ window.cstLocationSearch = {
   stripCountrySuffix: stripCstLocationCountrySuffix,
   resolveRegionQuery: resolveCstRegionQuery,
   getRegionLabel: getCstRegionLabel,
+  getSuggestionLabel: getCstLocationSuggestionLabel,
   getRegionCodeFromLabel: getCstRegionCodeFromLabel,
   getRegionCenter: getCstRegionCenter,
+  getRegionBounds: getCstRegionBounds,
+  isRegionSearch: isCstRegionSearch,
+  locationIsInRegion: locationRecordIsInRegion,
   getSearchKey: getLocationSearchKey,
   fetchSuggestions: fetchCstGeocodingSuggestions,
   resolveSearch: resolveCstLocationSearch,

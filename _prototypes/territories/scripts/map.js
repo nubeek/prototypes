@@ -100,10 +100,10 @@ const TERRITORY_COUNTY_LOGO_MIN_ZOOM = 8;
 // State-level territories are large enough for logos at mid zoom.
 const TERRITORY_STATE_LOGO_MIN_ZOOM = 5;
 const TERRITORY_DENSITY_HIGH_COLOR = "#81599a";
-const TERRITORY_DENSITY_FILL_OPACITY_MIN = 0.06;
-const TERRITORY_DENSITY_FILL_OPACITY_MAX = 0.84;
-const TERRITORY_DENSITY_LINE_OPACITY_MIN = 0.22;
-const TERRITORY_DENSITY_LINE_OPACITY_MAX = 0.92;
+const TERRITORY_DENSITY_FILL_OPACITY_MIN = 0.05;
+const TERRITORY_DENSITY_FILL_OPACITY_MAX = 0.72;
+const TERRITORY_DENSITY_LINE_OPACITY_MIN = 0.2;
+const TERRITORY_DENSITY_LINE_OPACITY_MAX = 0.8;
 const TERRITORY_DENSITY_OPACITY_CURVE = 0.7;
 const TERRITORY_DENSITY_FILL_OPACITY_EXPRESSION = ["get", "fillOpacity"];
 const TERRITORY_DENSITY_LINE_OPACITY_EXPRESSION = ["get", "lineOpacity"];
@@ -384,18 +384,18 @@ function resolveTerritoryTooltipName(geoKey, properties = {}) {
   );
 }
 
-const TERRITORY_MAP_LOADING_FADE_MS = 240;
+const TERRITORY_MAP_LOADING_FADE_MS = window.WefranchMapPills?.FADE_MS ?? 240;
 const TERRITORY_FILTERED_REVEAL_SETTLE_MS = 250;
 const TERRITORY_FILTERED_REVEAL_TIMEOUT_MS = 5000;
-const TERRITORY_MAP_RESET_FADE_MS = 240;
-const TERRITORY_MAP_PILL_CROSSFADE_MS = 180;
+const TERRITORY_MAP_PILL_CROSSFADE_MS = window.WefranchMapPills?.CROSSFADE_MS ?? 180;
 const TERRITORY_MAP_VIEW_RESET_ZOOM_TOLERANCE = 0.05;
 const TERRITORY_MAP_VIEW_RESET_CENTER_TOLERANCE = 0.05;
-const TERRITORY_MAP_RESET_TOP_OFFSET = 32;
-let territoryMapResetHideTimer = null;
-let territoryMapBusyHideTimer = null;
 let territoryBusyHeldForReveal = false;
-let territoryMapResetPositionObserver = null;
+let territoryMapBusyPills = null;
+let territoryMapResetPills = null;
+let territoryMapResizeObserver = null;
+let territoryMapResizeFrame = null;
+let territoryMapPanelAnimateRevision = 0;
 let territoryFilterDefaultView = {
   center: [...TERRITORY_MAP_CENTER],
   zoom: TERRITORY_MAP_ZOOM
@@ -423,6 +423,27 @@ function syncTerritoryMapToggleAvailability() {
   }
 }
 
+function scheduleTerritoryMapResize() {
+  if (!window.territoryMap || territoryMapResizeFrame !== null) return;
+
+  territoryMapResizeFrame = window.requestAnimationFrame(() => {
+    territoryMapResizeFrame = null;
+    window.territoryMap?.resize?.();
+  });
+}
+
+function ensureTerritoryMapResizeObserver() {
+  if (territoryMapResizeObserver || typeof ResizeObserver !== "function") return;
+
+  const mapContainer = document.getElementById("territoryMap");
+  if (!mapContainer) return;
+
+  territoryMapResizeObserver = new ResizeObserver(() => {
+    scheduleTerritoryMapResize();
+  });
+  territoryMapResizeObserver.observe(mapContainer);
+}
+
 function setTerritoryMapPanelOpen(isOpen, { persist = true, animate = true } = {}) {
   const shell = document.querySelector(".territory-shell");
   const panel = document.getElementById("territoryMapPanel");
@@ -431,6 +452,18 @@ function setTerritoryMapPanelOpen(isOpen, { persist = true, animate = true } = {
 
   const nextOpen = Boolean(isOpen) && !isTerritoryCrossroadOpen();
   const changed = shell.classList.contains("is-map-panel-open") !== nextOpen;
+  const shouldAnimate = changed
+    && animate
+    && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (shouldAnimate) {
+    territoryMapPanelAnimateRevision += 1;
+    shell.classList.add("is-map-panel-animating");
+  } else if (changed) {
+    territoryMapPanelAnimateRevision += 1;
+    shell.classList.remove("is-map-panel-animating");
+  }
+
   shell.classList.toggle("is-map-panel-open", nextOpen);
   panel.setAttribute("aria-hidden", String(!nextOpen));
   toggle.classList.toggle("is-active", nextOpen);
@@ -460,13 +493,14 @@ function setTerritoryMapPanelOpen(isOpen, { persist = true, animate = true } = {
     scheduleTerritoryMapViewForFilters(window.territoryMap, matchingRecords);
   };
 
-  if (!changed || !animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (!shouldAnimate) {
     window.territoryMap?.resize?.();
     territoryMapPanelLayoutPromise = Promise.resolve();
     scheduleFilterFitAfterOpen();
     return territoryMapPanelLayoutPromise;
   }
 
+  const animateRevision = territoryMapPanelAnimateRevision;
   territoryMapPanelLayoutPromise = new Promise((resolve) => {
     let settled = false;
     let fallbackTimer = null;
@@ -476,6 +510,9 @@ function setTerritoryMapPanelOpen(isOpen, { persist = true, animate = true } = {
       panel.removeEventListener("transitionend", handleTransitionEnd);
       panel.removeEventListener("transitioncancel", finish);
       if (fallbackTimer) window.clearTimeout(fallbackTimer);
+      if (animateRevision === territoryMapPanelAnimateRevision) {
+        shell.classList.remove("is-map-panel-animating");
+      }
       window.territoryMap?.resize?.();
       syncTerritoryMapResetPosition();
       updateTerritoryMapResetVisibility();
@@ -510,35 +547,41 @@ function initTerritoryMapPanelToggle() {
   });
 }
 
-function syncTerritoryMapResetPosition() {
-  const resetEl = getTerritoryMapResetElement();
-  const mapContainer = getTerritoryMapContainerElement();
-  if (!resetEl || !mapContainer) return;
-
-  const rect = mapContainer.getBoundingClientRect();
-  resetEl.style.top = `${rect.top + TERRITORY_MAP_RESET_TOP_OFFSET}px`;
-  resetEl.style.left = `${rect.left + (rect.width / 2)}px`;
-}
-
-function bindTerritoryMapResetPositionSync() {
-  syncTerritoryMapResetPosition();
-
-  window.addEventListener("resize", syncTerritoryMapResetPosition);
-
-  const mapContainer = getTerritoryMapContainerElement();
-  if (!mapContainer || typeof ResizeObserver === "undefined") return;
-
-  territoryMapResetPositionObserver?.disconnect();
-  territoryMapResetPositionObserver = new ResizeObserver(syncTerritoryMapResetPosition);
-  territoryMapResetPositionObserver.observe(mapContainer);
-}
-
 function getTerritoryMapLoadingElement() {
   return document.getElementById("territoryMapLoading");
 }
 
 function getTerritoryMapResetElement() {
   return document.getElementById("territoryMapReset");
+}
+
+function getTerritoryMapBusyPills() {
+  if (!territoryMapBusyPills) {
+    territoryMapBusyPills = window.WefranchMapPills?.createBusyController?.(
+      getTerritoryMapBusyElement()
+    );
+  }
+
+  return territoryMapBusyPills;
+}
+
+function getTerritoryMapResetPills() {
+  if (!territoryMapResetPills) {
+    territoryMapResetPills = window.WefranchMapPills?.createResetController?.(
+      getTerritoryMapResetElement(),
+      { getMapContainer: getTerritoryMapContainerElement }
+    );
+  }
+
+  return territoryMapResetPills;
+}
+
+function syncTerritoryMapResetPosition() {
+  getTerritoryMapResetPills()?.syncPosition?.();
+}
+
+function bindTerritoryMapResetPositionSync() {
+  getTerritoryMapResetPills()?.bindPositionSync?.();
 }
 
 function isTerritoryMapLoadingVisible() {
@@ -646,70 +689,19 @@ function isTerritoryMapAtDefaultView(territoryMap) {
 }
 
 function isTerritoryMapResetVisible() {
-  const resetEl = getTerritoryMapResetElement();
-  return Boolean(
-    resetEl
-    && !resetEl.hidden
-    && resetEl.classList.contains("is-visible")
-    && !resetEl.classList.contains("is-hiding")
-  );
+  return Boolean(getTerritoryMapResetPills()?.isVisible?.());
 }
 
 function isTerritoryMapBusyVisible() {
-  const busyEl = getTerritoryMapBusyElement();
-  return Boolean(busyEl && !busyEl.hidden && busyEl.classList.contains("is-visible"));
+  return Boolean(getTerritoryMapBusyPills()?.isVisible?.());
 }
 
 function showTerritoryMapReset({ crossfade = false } = {}) {
-  const resetEl = getTerritoryMapResetElement();
-  if (!resetEl) return;
-
-  if (territoryMapResetHideTimer) {
-    window.clearTimeout(territoryMapResetHideTimer);
-    territoryMapResetHideTimer = null;
-  }
-
-  if (resetEl.classList.contains("is-visible") && !resetEl.classList.contains("is-hiding")) {
-    return;
-  }
-
-  resetEl.hidden = false;
-  syncTerritoryMapResetPosition();
-  resetEl.classList.remove("is-hiding", "is-visible");
-  resetEl.classList.toggle("is-crossfade", crossfade);
-  void resetEl.offsetWidth;
-  resetEl.classList.add("is-visible");
+  getTerritoryMapResetPills()?.show?.({ crossfade });
 }
 
 function hideTerritoryMapReset({ immediate = false, crossfade = false } = {}) {
-  const resetEl = getTerritoryMapResetElement();
-  if (!resetEl) {
-    return;
-  }
-
-  if (immediate) {
-    if (territoryMapResetHideTimer) {
-      window.clearTimeout(territoryMapResetHideTimer);
-      territoryMapResetHideTimer = null;
-    }
-    resetEl.hidden = true;
-    resetEl.classList.remove("is-visible", "is-hiding", "is-crossfade");
-    return;
-  }
-
-  if (resetEl.hidden || !resetEl.classList.contains("is-visible")) {
-    return;
-  }
-
-  resetEl.classList.toggle("is-crossfade", crossfade);
-  resetEl.classList.remove("is-visible");
-  resetEl.classList.add("is-hiding");
-
-  territoryMapResetHideTimer = window.setTimeout(() => {
-    resetEl.hidden = true;
-    resetEl.classList.remove("is-hiding", "is-crossfade");
-    territoryMapResetHideTimer = null;
-  }, crossfade ? TERRITORY_MAP_PILL_CROSSFADE_MS : TERRITORY_MAP_RESET_FADE_MS);
+  getTerritoryMapResetPills()?.hide?.({ immediate, crossfade });
 }
 
 function isTerritoryMapInspectionOpen() {
@@ -781,7 +773,7 @@ function syncTerritoryMapResetLabel() {
     : isSearchArea
       ? TERRITORY_MAP_SEARCH_AREA_LABEL
       : TERRITORY_MAP_RESET_LABEL;
-  const labelEl = resetEl.querySelector(".territory-map-reset__label");
+  const labelEl = resetEl.querySelector(".map-pill-reset__label");
 
   resetEl.classList.toggle("is-search-area", isSearchArea && !isTooLarge);
   resetEl.classList.toggle("is-area-too-large", isTooLarge);
@@ -942,40 +934,17 @@ function getTerritoryMapBusyElement() {
 }
 
 function setTerritoryMapBusy(isBusy, { crossfade = false } = {}) {
-  const busyEl = getTerritoryMapBusyElement();
-  if (!busyEl) return;
-
-  if (territoryMapBusyHideTimer) {
-    window.clearTimeout(territoryMapBusyHideTimer);
-    territoryMapBusyHideTimer = null;
-  }
+  const busyPills = getTerritoryMapBusyPills();
+  if (!busyPills) return;
 
   if (isBusy) {
-    if (busyEl.classList.contains("is-visible")) return;
-
     const swap = crossfade || isTerritoryMapResetVisible();
     if (swap) hideTerritoryMapReset({ crossfade: true });
-
-    busyEl.hidden = false;
-    busyEl.classList.remove("is-visible");
-    busyEl.classList.toggle("is-crossfade", swap);
-    void busyEl.offsetWidth;
-    busyEl.classList.add("is-visible");
+    busyPills.setBusy(true, { crossfade: swap });
     return;
   }
 
-  if (busyEl.hidden && !busyEl.classList.contains("is-visible")) return;
-
-  busyEl.classList.toggle("is-crossfade", crossfade);
-  busyEl.classList.remove("is-visible");
-
-  territoryMapBusyHideTimer = window.setTimeout(() => {
-    if (!busyEl.classList.contains("is-visible")) {
-      busyEl.hidden = true;
-      busyEl.classList.remove("is-crossfade");
-    }
-    territoryMapBusyHideTimer = null;
-  }, crossfade ? TERRITORY_MAP_PILL_CROSSFADE_MS : TERRITORY_MAP_LOADING_FADE_MS);
+  busyPills.setBusy(false, { crossfade });
 }
 
 function showTerritoryListLoading() {
@@ -6007,6 +5976,7 @@ function initializeTerritoryMap() {
       });
 
       window.territoryMap = territoryMap;
+      ensureTerritoryMapResizeObserver();
     });
 }
 

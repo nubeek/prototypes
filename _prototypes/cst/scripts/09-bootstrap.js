@@ -202,103 +202,18 @@ if (ownersTable) {
   });
 }
 
-function enhanceFilterSectionHeaders() {
-  if (!filterPanel) return;
-
-  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
-    const title = section.querySelector(":scope > .filter-section-title");
-    if (!title || section.querySelector(".filter-section-header")) return;
-
-    const label = title.querySelector("span")?.textContent?.trim() || "filters";
-    const chevron = title.querySelector("img");
-    const header = document.createElement("div");
-    header.className = "filter-section-header";
-
-    const clearButton = document.createElement("button");
-    clearButton.type = "button";
-    clearButton.className = "ui-control ui-button-ghost filter-section-clear";
-    clearButton.textContent = "Clear";
-    clearButton.setAttribute("aria-label", `Clear ${label}`);
-    clearButton.hidden = true;
-
-    const toggleButton = document.createElement("button");
-    toggleButton.type = "button";
-    toggleButton.className = "ui-control ui-button-ghost filter-section-toggle";
-    toggleButton.setAttribute("aria-label", `Toggle ${label}`);
-    toggleButton.setAttribute("aria-expanded", title.getAttribute("aria-expanded") || "false");
-    if (chevron) toggleButton.appendChild(chevron);
-
-    const labelNode = title.querySelector("span");
-    title.replaceChildren(labelNode || document.createTextNode(label));
-
-    section.insertBefore(header, title);
-    header.append(title, clearButton, toggleButton);
-
-    const selectionKey = section.dataset.filterSection;
-    if (["units", "contacts", "status", "net-worth"].includes(selectionKey)
-      && !section.querySelector(".filter-section-selection")) {
-      const selection = document.createElement("div");
-      selection.className = "filter-section-selection";
-      selection.hidden = true;
-      header.after(selection);
-    }
-
-    clearButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      clearFilterSection(section);
-    });
-  });
-}
-
-function toggleFilterSectionCollapsed(section) {
-  const title = section.querySelector(".filter-section-title");
-  const toggle = section.querySelector(".filter-section-toggle");
-  const isCollapsed = section.classList.toggle("filter-section-collapsed");
-  const isExpanded = !isCollapsed;
-
-  title?.setAttribute("aria-expanded", String(isExpanded));
-  toggle?.setAttribute("aria-expanded", String(isExpanded));
-  persistViewSettings();
-
-  if (isCollapsed) {
-    section.querySelectorAll(".filter-field-select").forEach((select) => {
-      filterComboboxes.get(select)?.close();
-    });
-  }
-}
-
 if (filterPanel) {
-  enhanceFilterSectionHeaders();
-
-  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
-    const isExpanded = !section.classList.contains("filter-section-collapsed");
-    section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(isExpanded));
-    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(isExpanded));
+  window.WefranchFilterSections.enhanceHeaders(filterPanel, {
+    iconSrc: "../shared/filter/assets/remove.svg",
+    onClear: clearFilterSection,
+    selectionSectionKeys: ["units", "contacts", "status", "net-worth"]
   });
-
-  filterPanel.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element)) return;
-    if (event.target.closest(".filter-section-clear")) return;
-
-    const title = event.target.closest(".filter-section-title");
-    const toggle = event.target.closest(".filter-section-toggle");
-    if (!title && !toggle) return;
-    if (!filterPanel.contains(title || toggle)) return;
-
-    const section = (title || toggle)?.closest(".filter-section");
-    if (!section) return;
-
-    toggleFilterSectionCollapsed(section);
+  window.WefranchFilterSections.bindCollapseToggle(filterPanel, {
+    onToggle: () => persistViewSettings()
   });
 }
-document.addEventListener("mousedown", (event) => {
-  filterComboboxes.forEach((combobox, select) => {
-    const field = select.closest(".filter-select-field");
-    if (!field?.contains(event.target)) {
-      combobox.close();
-    }
-  });
 
+window.WefranchFilterCombobox.bindOutsideClick((event) => {
   if (datasetSelectorField && !datasetSelectorField.contains(event.target)) {
     datasetSelectorApi?.close();
   }

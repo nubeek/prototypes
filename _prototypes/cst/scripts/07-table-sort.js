@@ -1935,6 +1935,7 @@ function applySort() {
   syncSortHeaders();
   syncTableHeadingSortUI();
   updateFilterSummary();
+  maybeScheduleCstTableEnterAnimation();
 }
 
 function syncStickyNameColumnDivider() {
@@ -1946,6 +1947,150 @@ function syncStickyNameColumnDivider() {
   tableWrap.classList.toggle("is-name-column-overlap", hasHorizontalOverflow && hasLeftOverlap);
   tableWrap.classList.toggle("is-header-row-overlap", hasVerticalOverflow && hasTopOverlap);
 }
+
+const CST_TABLE_ENTER_DURATION_MS = 280;
+const CST_TABLE_ENTER_MAX_MS = 2000;
+const CST_TABLE_ENTER_MIN_STAGGER_MS = 14;
+const CST_TABLE_ENTER_MAX_STAGGER_MS = 48;
+const CST_TABLE_ENTER_MAX_TARGETS = 120;
+
+let cstTableEnterPending = false;
+let cstTableEnterAnimationToken = 0;
+let cstTableEnterFinishTimer = null;
+let cstTableEnterActiveTargets = [];
+
+function markCstTableEnterPending() {
+  cstTableEnterPending = true;
+}
+
+function collectCstTableEnterRows() {
+  if (!tableBody) return [];
+
+  return [...tableBody.querySelectorAll("tr")].slice(0, CST_TABLE_ENTER_MAX_TARGETS);
+}
+
+function finishCstTableEnterAnimation(targets = cstTableEnterActiveTargets) {
+  if (cstTableEnterFinishTimer) {
+    window.clearTimeout(cstTableEnterFinishTimer);
+    cstTableEnterFinishTimer = null;
+  }
+
+  tableWrap?.classList.remove("is-entering", "is-entering-active");
+  targets.forEach((target) => {
+    target.classList.remove("table-wrap__enter-item");
+    target.style.removeProperty("--enter-index");
+    target.style.removeProperty("--enter-stagger");
+  });
+  cstTableEnterActiveTargets = [];
+}
+
+function cancelCstTableEnterAnimation() {
+  cstTableEnterPending = false;
+  cstTableEnterAnimationToken += 1;
+  finishCstTableEnterAnimation(cstTableEnterActiveTargets);
+}
+
+function getCstTableEnterStagger(rowCount) {
+  return Math.min(
+    CST_TABLE_ENTER_MAX_STAGGER_MS,
+    Math.max(
+      CST_TABLE_ENTER_MIN_STAGGER_MS,
+      CST_TABLE_ENTER_MAX_MS / Math.max(rowCount, 1)
+    )
+  );
+}
+
+function armCstTableEnterAnimation() {
+  if (!tableWrap) return [];
+
+  finishCstTableEnterAnimation(cstTableEnterActiveTargets);
+
+  const rows = collectCstTableEnterRows();
+  if (!rows.length) return [];
+
+  const staggerMs = getCstTableEnterStagger(rows.length);
+  const targets = [];
+
+  rows.forEach((row, index) => {
+    [...row.children].forEach((cell) => {
+      cell.classList.add("table-wrap__enter-item");
+      cell.style.setProperty("--enter-index", String(index));
+      cell.style.setProperty("--enter-stagger", `${staggerMs}ms`);
+      targets.push(cell);
+    });
+  });
+
+  cstTableEnterActiveTargets = targets;
+  tableWrap.classList.remove("is-entering-active");
+  tableWrap.classList.add("is-entering");
+  return targets;
+}
+
+function playCstTableEnterAnimation(token = cstTableEnterAnimationToken) {
+  if (!tableWrap || token !== cstTableEnterAnimationToken) return;
+
+  const alreadyArmed = tableWrap.classList.contains("is-entering") && cstTableEnterActiveTargets.length > 0;
+  const targets = alreadyArmed ? cstTableEnterActiveTargets : armCstTableEnterAnimation();
+  if (!targets.length) {
+    cstTableEnterPending = false;
+    return;
+  }
+
+  cstTableEnterPending = false;
+
+  if (usesReducedMotion?.() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    tableWrap.classList.add("is-entering-active");
+    cstTableEnterFinishTimer = window.setTimeout(
+      () => finishCstTableEnterAnimation(targets),
+      0
+    );
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (token !== cstTableEnterAnimationToken) return;
+      tableWrap.classList.add("is-entering-active");
+    });
+  });
+
+  const rowCount = collectCstTableEnterRows().length;
+  const staggerMs = getCstTableEnterStagger(rowCount);
+  const totalMs = CST_TABLE_ENTER_DURATION_MS + Math.max(0, rowCount - 1) * staggerMs;
+  cstTableEnterFinishTimer = window.setTimeout(
+    () => finishCstTableEnterAnimation(targets),
+    totalMs + 40
+  );
+}
+
+function scheduleCstTableEnterAnimation() {
+  if (!cstTableEnterPending || !tableWrap) return;
+  if (card?.classList.contains("is-splash-hiding-workspace")) {
+    armCstTableEnterAnimation();
+    return;
+  }
+
+  const token = ++cstTableEnterAnimationToken;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (token !== cstTableEnterAnimationToken) return;
+      playCstTableEnterAnimation(token);
+    });
+  });
+}
+
+function maybeScheduleCstTableEnterAnimation() {
+  if (!cstTableEnterPending) return;
+  if (card?.classList.contains("is-splash-hiding-workspace")) {
+    armCstTableEnterAnimation();
+    return;
+  }
+  scheduleCstTableEnterAnimation();
+}
+
+window.markCstTableEnterPending = markCstTableEnterPending;
+window.scheduleCstTableEnterAnimation = scheduleCstTableEnterAnimation;
+window.cancelCstTableEnterAnimation = cancelCstTableEnterAnimation;
 
 initTableHeadingSort();
 

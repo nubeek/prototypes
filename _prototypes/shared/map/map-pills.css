@@ -1,0 +1,216 @@
+/* Shared map overlay pills: updating/busy status and reset / search-this-area. */
+
+.map-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.map-pill-busy {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 32px;
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+
+.map-pill-busy[hidden] {
+  display: none;
+}
+
+.map-pill-busy__pill {
+  opacity: 0;
+  transform: translateY(-24px);
+  filter: blur(2px);
+  transition: opacity 240ms ease, transform 240ms ease, filter 240ms ease;
+}
+
+.map-pill-busy.is-visible .map-pill-busy__pill {
+  animation: map-pill-enter 420ms ease-out forwards;
+}
+
+.map-pill-busy.is-visible.is-crossfade .map-pill-busy__pill {
+  animation: map-pill-crossfade-in 180ms ease-out forwards;
+}
+
+.map-pill-busy.is-crossfade:not(.is-visible) .map-pill-busy__pill {
+  animation: none;
+  opacity: 0;
+  transform: translateY(0);
+  filter: blur(2px);
+  transition: opacity 180ms ease, filter 180ms ease;
+}
+
+.map-pill-busy__spinner {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e4e4e4;
+  border-top-color: var(--color-text);
+  border-radius: 50%;
+  animation: map-pill-spin 720ms linear infinite;
+}
+
+.map-pill-reset {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1001;
+  gap: 8px;
+  transform: translateX(-50%) translateY(-24px);
+  opacity: 0.5;
+  filter: blur(2px);
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 240ms ease, visibility 240ms ease, filter 240ms ease, box-shadow 160ms ease;
+}
+
+.map-pill-reset__icon {
+  display: none;
+  width: 14px;
+  height: 14px;
+}
+
+.map-pill-reset__icon--search {
+  filter: brightness(0) invert(1);
+}
+
+.map-pill-reset__icon--zoom {
+  width: 18px;
+  height: 18px;
+}
+
+.map-pill-reset.is-search-area {
+  background: #111;
+  color: #fff;
+}
+
+.map-pill-reset.is-search-area .map-pill-reset__icon--search {
+  display: block;
+}
+
+.map-pill-reset.is-area-too-large {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.map-pill-reset.is-area-too-large .map-pill-reset__icon--zoom {
+  display: block;
+}
+
+.map-pill-reset.is-visible {
+  visibility: visible;
+  pointer-events: auto;
+  animation: map-pill-reset-enter 420ms ease-out forwards;
+}
+
+.map-pill-reset.is-visible.is-crossfade {
+  animation: map-pill-reset-crossfade-in 180ms ease-out forwards;
+}
+
+.map-pill-reset.is-hiding {
+  opacity: 0;
+  filter: blur(2px);
+  visibility: hidden;
+  pointer-events: none;
+  animation: none;
+}
+
+.map-pill-reset.is-hiding.is-crossfade {
+  filter: blur(2px);
+  transform: translateX(-50%) translateY(0);
+  transition: opacity 180ms ease, visibility 180ms ease, filter 180ms ease;
+}
+
+.map-pill-reset:hover {
+  box-shadow: 0 6px 18px rgba(17, 17, 17, 0.14);
+}
+
+.map-pill-reset:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.map-pill-reset[hidden] {
+  display: none;
+}
+
+@keyframes map-pill-reset-enter {
+  from {
+    opacity: 0.5;
+    transform: translateX(-50%) translateY(-24px);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes map-pill-reset-crossfade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(0);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes map-pill-crossfade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes map-pill-enter {
+  from {
+    opacity: 0.5;
+    transform: translateY(-24px);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes map-pill-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -29,6 +29,7 @@ const CST_SPLASH_POINT_OPACITY = 0.78;
 const CST_SPLASH_ENTER_STAGGER_MS = 65;
 const CST_SPLASH_ENTER_DURATION_MS = 320;
 const CST_SPLASH_LEAVE_DURATION_MS = 300;
+const CST_SPLASH_WORKSPACE_HIDE_MS = 240;
 const CST_SPLASH_SUGGESTION_GROUP_LIMIT = 3;
 const CST_SPLASH_SUGGESTION_LIMIT = 9;
 
@@ -630,11 +631,29 @@ function openCstSplashToolbarView(viewKey) {
   dismissCstSplash();
 }
 
+function syncCstSplashMapPanelForSplash(isSplashOpen) {
+  if (!card || !mapToggle) return;
+
+  if (isSplashOpen && card.classList.contains("is-map-open")) {
+    card.classList.remove("is-map-open");
+    mapToggle.setAttribute("aria-expanded", "false");
+    cancelOwnersMapReveal?.({ hideBusy: true });
+    return;
+  }
+
+  if (!isSplashOpen && !card.classList.contains("is-map-open")) {
+    openMapPanel("map");
+  }
+}
+
 function showCstSplash({ animate = false } = {}) {
   const splash = getCstSplashElement();
   if (!splash) return;
 
   cstSplashSearchController?.reset();
+  cancelCstTableEnterAnimation?.();
+  card?.classList.remove("is-splash-hiding-workspace");
+  syncCstSplashMapPanelForSplash(true);
   setFilterPanelOpen(false);
   setCstSplashWorkspaceInert(true);
   card?.classList.add("is-splash-open");
@@ -650,28 +669,52 @@ function showCstSplash({ animate = false } = {}) {
   requestAnimationFrame(() => focusCstSplashSearchInput());
 }
 
+function revealCstSplashWorkspace() {
+  card?.classList.remove("is-splash-hiding-workspace");
+  scheduleCstTableEnterAnimation?.();
+}
+
 function dismissCstSplash() {
   const splash = getCstSplashElement();
   card?.classList.remove("is-splash-open");
+  card?.classList.add("is-splash-hiding-workspace");
   setCstSplashWorkspaceInert(false);
   setFilterPanelOpen(true);
+  syncCstSplashMapPanelForSplash(false);
   syncToolbarViewState();
+  markCstTableEnterPending?.();
 
-  if (!splash || splash.hidden) return;
+  if (!splash || splash.hidden) {
+    revealCstSplashWorkspace();
+    return;
+  }
 
   splash.classList.remove("is-entering", "is-entering-active", "is-preparing-enter");
   splash.classList.add("is-leaving");
+
+  const leaveDurationMs = getMotionDelay(CST_SPLASH_LEAVE_DURATION_MS);
+  const revealDelayMs = Math.max(
+    getMotionDelay(CST_SPLASH_WORKSPACE_HIDE_MS),
+    leaveDurationMs - getMotionDelay(40)
+  );
+
+  window.setTimeout(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(revealCstSplashWorkspace);
+    });
+  }, revealDelayMs);
 
   window.setTimeout(() => {
     if (splash.classList.contains("is-leaving")) {
       splash.hidden = true;
     }
-  }, getMotionDelay(CST_SPLASH_LEAVE_DURATION_MS));
+  }, leaveDurationMs);
 }
 
 function hideCstSplashImmediately() {
   const splash = getCstSplashElement();
-  card?.classList.remove("is-splash-open");
+  card?.classList.remove("is-splash-open", "is-splash-hiding-workspace");
+  cancelCstTableEnterAnimation?.();
   setCstSplashWorkspaceInert(false);
   syncToolbarViewState();
 
@@ -745,7 +788,7 @@ function toCstSplashLocationSuggestion(result) {
       locations: [result.label]
     },
     group: "Locations",
-    label: result.label,
+    label: result.suggestionLabel || result.label,
     locationResult: result,
     type: "location"
   };

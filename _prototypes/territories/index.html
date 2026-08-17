@@ -11,7 +11,7 @@
       window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
     }
   </script>
-  <title>Territories — Wefranch Prototype</title>
+  <title>Territories</title>
   <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="../../assets/x32.png" />
@@ -23,7 +23,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="../cst/styles.css">
+  <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
+  <link rel="stylesheet" href="../shared/map/map-pills.css">
   <link rel="stylesheet" href="styles.css">
+  <script src="../shared/ui/thumbnail-edge-border.js"></script>
   <script src="../../scripts/gate.js"></script>
   <script src="../../scripts/proto-nav.js"></script>
   <link rel="stylesheet" href="../../styles/gate.css">
@@ -143,7 +146,7 @@
                 aria-haspopup="listbox"
                 aria-expanded="false"
                 aria-controls="locationFilterSearchSuggestions"
-                placeholder="Search by location"
+                placeholder="Select location"
                 aria-label="Search territories by location"
                 aria-describedby="locationFilterSearchFeedback"
               >
@@ -453,10 +456,10 @@
       <aside class="territory-map-panel" id="territoryMapPanel" aria-label="Territories map" aria-hidden="true">
       <div class="map-container territory-map-frame">
         <div class="territory-map" id="territoryMap"></div>
-        <div class="territory-map-busy" id="territoryMapBusy" role="status" aria-live="polite" aria-label="Updating territories" hidden>
-          <div class="territory-map-busy__pill">
-            <span class="territory-map-busy__spinner" aria-hidden="true"></span>
-            <span class="territory-map-busy__label">Updating territories</span>
+        <div class="map-pill-busy" id="territoryMapBusy" role="status" aria-live="polite" aria-label="Updating territories" hidden>
+          <div class="map-pill map-pill-busy__pill">
+            <span class="map-pill-busy__spinner" aria-hidden="true"></span>
+            <span class="map-pill-busy__label">Updating territories</span>
           </div>
         </div>
         <div class="territory-info-stack" id="territoryInfoStack" hidden>
@@ -596,10 +599,10 @@
     </div>
   </main>
 
-  <button class="territory-map-pill territory-map-reset" id="territoryMapReset" type="button" hidden>
-    <img class="territory-map-reset__icon territory-map-reset__icon--search" src="../cst/assets/search.svg" alt="" aria-hidden="true">
-    <img class="territory-map-reset__icon territory-map-reset__icon--zoom" src="assets/zoom-in.svg" alt="" aria-hidden="true" width="18" height="18">
-    <span class="territory-map-reset__label">Search this area</span>
+  <button class="map-pill map-pill-reset" id="territoryMapReset" type="button" hidden>
+    <img class="map-pill-reset__icon map-pill-reset__icon--search" src="../cst/assets/search.svg" alt="" aria-hidden="true">
+    <img class="map-pill-reset__icon map-pill-reset__icon--zoom" src="assets/zoom-in.svg" alt="" aria-hidden="true" width="18" height="18">
+    <span class="map-pill-reset__label">Search this area</span>
   </button>
 
   <div class="profile-modal-overlay target-modal-overlay save-search-modal-overlay" id="saveSearchModal" hidden>
@@ -737,8 +740,12 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
   <script src="../../scripts/cst-env.js"></script>
-  <script src="../shared/radius-control.js"></script>
-  <script src="../shared/fit-tooltip.js"></script>
+  <script src="../shared/filter/radius-control.js"></script>
+  <script src="../shared/ui/fit-tooltip.js"></script>
+  <script src="../shared/filter/filter-combobox.js"></script>
+  <script src="../shared/filter/filter-sections.js"></script>
+  <script src="../shared/filter/filter-range.js"></script>
+  <script src="../shared/map/map-pills.js"></script>
   <script src="scripts/datasets.js"></script>
   <script src="scripts/categories.js"></script>
   <script src="scripts/location-search.js"></script>
