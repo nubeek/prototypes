@@ -180,6 +180,19 @@ function getCstSplashSavedSearches() {
   return Array.isArray(window.cstSavedSearchesData) ? window.cstSavedSearchesData : [];
 }
 
+let cstSplashSavedActiveScope = "all";
+let cstSplashSavedSearchTerm = "";
+
+function getVisibleCstSplashSavedSearches() {
+  const term = cstSplashSavedSearchTerm.trim().toLowerCase();
+
+  return getCstSplashSavedSearches().filter((savedSearch) => {
+    const matchesScope = cstSplashSavedActiveScope === "all" || savedSearch.scope === cstSplashSavedActiveScope;
+    const matchesSearch = !term || savedSearch.title.toLowerCase().includes(term);
+    return matchesScope && matchesSearch;
+  });
+}
+
 function normalizeCstSplashRange(range, defaults) {
   return {
     max: Number.isFinite(Number(range?.max)) ? Number(range.max) : defaults.max,
@@ -208,6 +221,7 @@ function withCstSplashFilterScope(filters, read) {
     selectedOwnerIndexes,
     selectedNetWorthMax,
     selectedNetWorthMin,
+    selectedFranchiseeRatingMin,
     selectedUnitsMax,
     selectedUnitsMin,
     userLocationCenter
@@ -235,6 +249,7 @@ function withCstSplashFilterScope(filters, read) {
     selectedContactsMax = restore.selectedContactsMax;
     selectedNetWorthMin = restore.selectedNetWorthMin;
     selectedNetWorthMax = restore.selectedNetWorthMax;
+    selectedFranchiseeRatingMin = restore.selectedFranchiseeRatingMin;
     userLocationCenter = restore.userLocationCenter;
     radiusFilterEnabled = restore.radiusFilterEnabled;
   }
@@ -276,6 +291,7 @@ function applyCstSplashFilterState(filters = {}) {
   selectedContactsMax = contacts.max;
   selectedNetWorthMin = netWorth.min;
   selectedNetWorthMax = netWorth.max;
+  selectedFranchiseeRatingMin = normalizeFranchiseeRatingMin(filters.rating?.min);
   userLocationCenter = null;
   radiusFilterEnabled = false;
 }
@@ -435,6 +451,7 @@ function renderCstSplashGenerateTiles() {
 
 function renderCstSplashTiles() {
   const grid = document.getElementById("cstSplashGrid");
+  const emptyState = document.getElementById("cstSplashSavedEmpty");
   if (!grid) return;
 
   grid.replaceChildren();
@@ -444,7 +461,9 @@ function renderCstSplashTiles() {
     return;
   }
 
-  getCstSplashSavedSearches().forEach((savedSearch) => {
+  const visibleSearches = getVisibleCstSplashSavedSearches();
+
+  visibleSearches.forEach((savedSearch) => {
     const matches = getCstSplashMatchCounts(savedSearch.filters || {});
 
     grid.append(createCstSplashTile(savedSearch, {
@@ -452,6 +471,10 @@ function renderCstSplashTiles() {
       metric: getCstSplashTileMetric(savedSearch, matches)
     }));
   });
+
+  if (emptyState) {
+    emptyState.hidden = visibleSearches.length > 0;
+  }
 }
 
 /* Applying a query ------------------------------------------------------ */
@@ -471,6 +494,7 @@ function expandCstSplashFilterSections() {
   markActive(unitsMinRange, unitsFilterIsActive());
   markActive(contactsMinRange, contactsFilterIsActive());
   markActive(netWorthMinRange, netWorthFilterIsActive());
+  markActive(document.getElementById("franchiseeRatingFilterSection"), franchiseeRatingFilterIsActive());
 
   activeSections.forEach((section) => {
     section.classList.remove("filter-section-collapsed");
@@ -518,6 +542,7 @@ function applyCstSplashQuery(filters = {}, { view = "owners" } = {}) {
   syncUnitsFilterControls();
   syncContactsFilterControls();
   syncNetWorthFilterControls();
+  setFranchiseeRatingMin(selectedFranchiseeRatingMin);
   syncRadiusFilterControls();
   syncCstSplashToolbarSearch();
   expandCstSplashFilterSections();
@@ -638,6 +663,7 @@ function syncCstSplashMapPanelForSplash(isSplashOpen) {
     card.classList.remove("is-map-open");
     mapToggle.setAttribute("aria-expanded", "false");
     cancelOwnersMapReveal?.({ hideBusy: true });
+    updateOwnersMapResetVisibility?.();
     return;
   }
 
@@ -1221,16 +1247,39 @@ function bindCstSplashSearch() {
   };
 }
 
-function bindCstSplashSavedToggle() {
-  const toggle = document.getElementById("cstSplashSavedToggle");
-  const content = document.getElementById("cstSplashSavedContent");
-  if (!toggle || !content) return;
+function bindCstSplashSavedTabs() {
+  const tabs = Array.from(document.querySelectorAll(".cst-splash__saved .scope-tab"));
+  const searchInput = document.getElementById("cstSplashSavedSearch");
+  const searchClear = document.getElementById("cstSplashSavedSearchClear");
 
-  toggle.addEventListener("click", () => {
-    const isExpanded = toggle.getAttribute("aria-expanded") === "true";
-    toggle.setAttribute("aria-expanded", String(!isExpanded));
-    content.hidden = isExpanded;
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((other) => other.classList.toggle("is-active", other === tab));
+      cstSplashSavedActiveScope = tab.dataset.scope || "all";
+      renderCstSplashTiles();
+    });
   });
+
+  if (searchInput) {
+    const searchField = searchInput.closest(".scope-search");
+
+    searchInput.addEventListener("input", () => {
+      cstSplashSavedSearchTerm = searchInput.value;
+      searchField?.classList.toggle("is-active-search", Boolean(cstSplashSavedSearchTerm.trim()));
+      if (searchClear) {
+        searchClear.hidden = !cstSplashSavedSearchTerm.trim();
+      }
+      renderCstSplashTiles();
+    });
+
+    if (searchClear) {
+      searchClear.addEventListener("click", () => {
+        searchInput.value = "";
+        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+        searchInput.focus();
+      });
+    }
+  }
 }
 
 function bindCstSplashEntryPoints() {
@@ -1275,7 +1324,7 @@ function initCstSplash() {
   if (!splash) return;
 
   bindCstSplashSearch();
-  bindCstSplashSavedToggle();
+  bindCstSplashSavedTabs();
   bindCstSplashEntryPoints();
 
   if (isCstSplashSnapshotGenerateMode()) {

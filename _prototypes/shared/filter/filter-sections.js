@@ -54,6 +54,71 @@
     button.addEventListener("click", hideClearTooltip);
   }
 
+  function sectionShouldShowSelectionPreview(section) {
+    if (section.querySelector(".filter-range-slider:not(.filter-radius-slider)")) {
+      return true;
+    }
+
+    return Boolean(section.querySelector(
+      ".filter-check:not(.filter-radius-toggle) :is(input[type='checkbox'], input[type='radio'])"
+    ));
+  }
+
+  function getDefaultSelectionLabel(section) {
+    const checkboxLabels = Array.from(
+      section.querySelectorAll(".filter-check:not(.filter-radius-toggle) :is(input[type='checkbox'], input[type='radio']):checked")
+    ).map((input) => {
+      const check = input.closest(".filter-check");
+      return check?.querySelector(".filter-rating-label")?.textContent?.trim()
+        || check?.querySelector("span:last-child")?.textContent?.trim();
+    }).filter(Boolean);
+
+    if (checkboxLabels.length) {
+      return checkboxLabels.join(", ");
+    }
+
+    const numberInputs = Array.from(section.querySelectorAll(".filter-number-input"));
+    if (numberInputs.length < 2) return "";
+
+    const minInput = numberInputs[0];
+    const maxInput = numberInputs[1];
+    const minText = minInput.value?.trim();
+    const maxText = maxInput.value?.trim();
+    if (!minText || !maxText) return "";
+
+    const prefix = minInput.classList.contains("filter-number-input--currency") ? "$" : "";
+    return `${prefix}${minText} – ${prefix}${maxText}`;
+  }
+
+  function renderSelectionPreview(selection, section, label) {
+    const filledCount = section
+      .querySelector(".filter-check.is-checked .filter-rating-stars")
+      ?.querySelectorAll(".filter-rating-star.is-filled").length ?? 0;
+
+    selection.replaceChildren();
+
+    if (filledCount > 0) {
+      const stars = document.createElement("span");
+      stars.className = "filter-rating-stars";
+      stars.setAttribute("aria-hidden", "true");
+
+      for (let index = 0; index < filledCount; index += 1) {
+        const star = document.createElement("span");
+        star.className = "filter-rating-star is-filled";
+        stars.append(star);
+      }
+
+      selection.append(stars);
+    }
+
+    if (label) {
+      const text = document.createElement("span");
+      text.className = "filter-section-selection-label";
+      text.textContent = label;
+      selection.append(text);
+    }
+  }
+
   function enhanceHeaders(panel, {
     iconSrc = "../shared/filter/assets/remove.svg",
     onClear,
@@ -98,8 +163,9 @@
       header.append(title, clearButton, toggleButton);
 
       const selectionKey = section.dataset.filterSection;
-      if (selectionSectionKeys.includes(selectionKey)
-        && !section.querySelector(".filter-section-selection")) {
+      const wantsSelection = selectionSectionKeys.includes(selectionKey)
+        || (!selectionSectionKeys.length && sectionShouldShowSelectionPreview(section));
+      if (wantsSelection && !section.querySelector(".filter-section-selection")) {
         const selection = document.createElement("div");
         selection.className = "filter-section-selection";
         selection.hidden = true;
@@ -120,6 +186,45 @@
       const isExpanded = !section.classList.contains("filter-section-collapsed");
       section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(isExpanded));
       section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(isExpanded));
+    });
+  }
+
+  function scrollExpandedFilterSectionIntoView(panel, section) {
+    if (!panel || !section) return;
+
+    const scrollContainer = panel.querySelector(".filter-scroll");
+    if (!scrollContainer) return;
+
+    const scrollBehavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "auto"
+      : "smooth";
+
+    window.requestAnimationFrame(() => {
+      const padding = 12;
+      const actions = panel.querySelector(".filter-actions");
+      const obstructionTop = actions?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY;
+      const headerBottom = scrollContainer
+        .querySelector(".filter-header")
+        ?.getBoundingClientRect().bottom ?? scrollContainer.getBoundingClientRect().top;
+      const sectionRect = section.getBoundingClientRect();
+      let targetScrollTop = scrollContainer.scrollTop;
+
+      if (sectionRect.bottom > obstructionTop - padding) {
+        targetScrollTop += sectionRect.bottom - (obstructionTop - padding);
+      }
+
+      const scrollDelta = targetScrollTop - scrollContainer.scrollTop;
+      const adjustedTop = sectionRect.top - scrollDelta;
+
+      if (adjustedTop < headerBottom + padding) {
+        targetScrollTop += adjustedTop - (headerBottom + padding);
+      }
+
+      targetScrollTop = Math.max(0, targetScrollTop);
+
+      if (targetScrollTop !== scrollContainer.scrollTop) {
+        scrollContainer.scrollTo({ top: targetScrollTop, behavior: scrollBehavior });
+      }
     });
   }
 
@@ -153,6 +258,8 @@
 
       if (isCollapsed) {
         window.WefranchFilterCombobox?.closeComboboxesInSection?.(section);
+      } else {
+        scrollExpandedFilterSectionIntoView(panel, section);
       }
 
       onToggle?.(section, { isCollapsed, isExpanded });
@@ -174,10 +281,12 @@
         if (!hasFilters) hideClearTooltip();
       }
 
-      if (selection && typeof getSelectionLabel === "function") {
-        const label = getSelectionLabel(section);
-        selection.textContent = label;
-        selection.hidden = !label;
+      if (selection) {
+        const label = typeof getSelectionLabel === "function"
+          ? getSelectionLabel(section)
+          : getDefaultSelectionLabel(section);
+        renderSelectionPreview(selection, section, label);
+        selection.hidden = !hasFilters || !label;
       }
 
       section.classList.toggle("has-selection", hasFilters);
@@ -188,6 +297,7 @@
     enhanceHeaders,
     syncExpandedState,
     bindCollapseToggle,
+    scrollExpandedSectionIntoView: scrollExpandedFilterSectionIntoView,
     updateClearButtons,
     hideClearTooltip
   };

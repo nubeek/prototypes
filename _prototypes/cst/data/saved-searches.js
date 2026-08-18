@@ -10,6 +10,7 @@
 //   owners        owner indexes (matches the Owners filter)
 //   units         { min, max } unit count range; omit a bound to keep the default
 //   contacts      { min, max } contact count range
+// scope: "private" | "team" — used by All / Private / Team tabs
 // snapshot: pre-rendered map image. Regenerate with:
 //   node _prototypes/cst/scripts/generate-splash-snapshots.js
 // view: which table the search opens in ("owners" | "locations")
@@ -66,6 +67,7 @@ window.cstSavedSearchesData = [
   {
     id: "planet-fitness-at-scale",
     title: "Planet Fitness at scale",
+    scope: "team",
     snapshot: "assets/snapshots/planet-fitness-at-scale.jpg",
     filters: {
       franchises: ["Planet Fitness"],
@@ -75,6 +77,7 @@ window.cstSavedSearchesData = [
   {
     id: "midwest-operator-groups",
     title: "Midwest operator groups",
+    scope: "private",
     snapshot: "assets/snapshots/midwest-operator-groups.jpg",
     filters: {
       locations: CST_SAVED_SEARCH_MIDWEST_LOCATIONS
@@ -83,6 +86,7 @@ window.cstSavedSearchesData = [
   {
     id: "southeast-expansion",
     title: "Southeast expansion targets",
+    scope: "team",
     snapshot: "assets/snapshots/southeast-expansion.jpg",
     filters: {
       locations: CST_SAVED_SEARCH_SOUTHEAST_LOCATIONS
@@ -91,6 +95,7 @@ window.cstSavedSearchesData = [
   {
     id: "boutique-studio-operators",
     title: "Boutique studio operators",
+    scope: "private",
     snapshot: "assets/snapshots/boutique-studio-operators.jpg",
     filters: {
       franchises: ["Club Pilates", "F45 Training", "Orangetheory", "Anytime Fitness"]
@@ -99,6 +104,7 @@ window.cstSavedSearchesData = [
   {
     id: "deep-contact-rosters",
     title: "Deep contact rosters",
+    scope: "team",
     snapshot: "assets/snapshots/deep-contact-rosters.jpg",
     filters: {
       contacts: { min: 9 }
@@ -107,6 +113,7 @@ window.cstSavedSearchesData = [
   {
     id: "canada-and-mexico-units",
     title: "Canada & Mexico units",
+    scope: "private",
     snapshot: "assets/snapshots/canada-and-mexico-units.jpg",
     view: "locations",
     filters: {

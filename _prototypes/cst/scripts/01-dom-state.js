@@ -189,6 +189,14 @@ function getOwnerNetWorth(owner) {
   return Math.round((t ** 0.65) * netWorthFilterDefaults.max);
 }
 
+function getOwnerFranchiseeRating(owner) {
+  const explicitRating = Number(owner.franchiseeRating);
+  if (Number.isFinite(explicitRating)) return explicitRating;
+
+  const ratingSteps = [4.2, 3.1, 4.8, 2.4, 3.7, 4.0, 2.9, 3.5];
+  return ratingSteps[owner.originalIndex % ratingSteps.length];
+}
+
 let currentTableView = "owners";
 let displayedOwners = [...owners];
 let displayedLocations = [];
@@ -214,6 +222,7 @@ let selectedContactsMin = contactsFilterDefaults.min;
 let selectedContactsMax = contactsFilterDefaults.max;
 let selectedNetWorthMin = netWorthFilterDefaults.min;
 let selectedNetWorthMax = netWorthFilterDefaults.max;
+let selectedFranchiseeRatingMin = 0;
 let userLocationCenter = null;
 let radiusFilterEnabled = false;
 let selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
@@ -247,6 +256,9 @@ let ownersMapResizeObserver = null;
 let ownersMapResizeFrame = null;
 let ownersMapPointHover = null;
 let ownersMapBusyPills = null;
+let ownersMapResetPills = null;
+let ownersMapQueryView = null;
+let ownersMapCaptureQueryViewOnSettle = false;
 let ownersMapRevealActive = false;
 let ownersMapRevealRaf = 0;
 let ownersMapRevealToken = 0;
@@ -255,6 +267,7 @@ let ownersMapBusyHeldForReveal = false;
 let ownersMapRevealScheduleFrame = null;
 let ownersMapPendingRevealCollection = null;
 let ownersMapPendingPointTransition = "radial";
+let ownersMapPendingLocationFocus = null;
 let screenshotInProgress = false;
 let screenshotToastTimeout;
 let viewSettingsReadyToPersist = false;

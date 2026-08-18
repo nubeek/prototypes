@@ -3,6 +3,42 @@ function setFilterCheckboxState(checkbox, isChecked) {
   label?.classList.toggle("is-checked", isChecked);
 }
 
+function getFranchiseeRatingRadios() {
+  return Array.from(document.querySelectorAll("#filterPanel .filter-rating-radio"));
+}
+
+function normalizeFranchiseeRatingMin(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+  return [1, 2, 3, 4].reduce((closest, option) => (
+    Math.abs(option - numeric) < Math.abs(closest - numeric) ? option : closest
+  ));
+}
+
+function getFranchiseeRatingMin() {
+  return normalizeFranchiseeRatingMin(selectedFranchiseeRatingMin);
+}
+
+function franchiseeRatingFilterIsActive() {
+  return getFranchiseeRatingMin() > 0;
+}
+
+function setFranchiseeRatingMin(value, { refresh = false } = {}) {
+  const nextValue = normalizeFranchiseeRatingMin(value);
+  selectedFranchiseeRatingMin = nextValue;
+  getFranchiseeRatingRadios().forEach((radio) => {
+    radio.checked = Number(radio.value) === nextValue;
+    setFilterCheckboxState(radio, radio.checked);
+  });
+
+  if (refresh) {
+    updateClearFiltersButton();
+    refreshRangeFilterResults();
+  } else {
+    updateClearFiltersButton();
+  }
+}
+
 const {
   isCurrencyNumberInput,
   formatCurrencyInputValue,
@@ -316,6 +352,7 @@ function syncFilterLocationSearchUI() {
       key,
       label: search.label,
       excluded,
+      onRecenter: excluded ? null : () => focusOwnersMapOnLocationSearch(search),
       onToggleExclude: excluded
         ? () => applyLocationInclude(search)
         : () => applyLocationExclude(search),
@@ -337,14 +374,15 @@ function syncFilterLocationSearchUI() {
   if (chipsContainer) {
     chipsContainer.replaceChildren();
 
-    chipEntries.forEach(({ key, label, excluded, onRemove, onToggleExclude }) => {
+    chipEntries.forEach(({ key, label, excluded, onRemove, onToggleExclude, onRecenter }) => {
       chipsContainer.append(renderFilterChip({
         label,
         excluded,
         allowToggle: true,
-        chipClickable: true,
+        chipClickable: false,
         onToggleExclude,
         onRemove,
+        onRecenter,
         datasetKey: key
       }));
     });
@@ -499,6 +537,7 @@ function clearAllFilterSelections() {
   selectedContactsMax = contactsFilterDefaults.max;
   selectedNetWorthMin = netWorthFilterDefaults.min;
   selectedNetWorthMax = netWorthFilterDefaults.max;
+  setFranchiseeRatingMin(0);
   userLocationCenter = null;
   radiusFilterEnabled = false;
   selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
@@ -560,36 +599,15 @@ function filterSectionHasAppliedFilters(section) {
       return statusFilterInputs.some((checkbox) => checkbox.checked);
     case "net-worth":
       return netWorthFilterIsActive();
+    case "rating":
+      return franchiseeRatingFilterIsActive();
     default:
       return false;
   }
 }
 
-function getFilterSectionSelectionLabel(section) {
-  switch (getFilterSectionKey(section)) {
-    case "units":
-      return unitsFilterIsActive() ? `${selectedUnitsMin} – ${selectedUnitsMax}` : "";
-    case "contacts":
-      return contactsFilterIsActive() ? `${selectedContactsMin} – ${selectedContactsMax}` : "";
-    case "status":
-      return statusFilterInputs
-        .filter((checkbox) => checkbox.checked)
-        .map((checkbox) => checkbox.closest(".filter-check")?.querySelector("span:last-child")?.textContent?.trim())
-        .filter(Boolean)
-        .join(", ");
-    case "net-worth":
-      return netWorthFilterIsActive()
-        ? `$${formatCurrencyInputValue(selectedNetWorthMin)} – $${formatCurrencyInputValue(selectedNetWorthMax)}`
-        : "";
-    default:
-      return "";
-  }
-}
-
 function updateFilterSectionClearButtons() {
-  window.WefranchFilterSections.updateClearButtons(filterPanel, filterSectionHasAppliedFilters, {
-    getSelectionLabel: getFilterSectionSelectionLabel
-  });
+  window.WefranchFilterSections.updateClearButtons(filterPanel, filterSectionHasAppliedFilters);
 }
 
 function refreshAfterSectionClear() {
@@ -645,6 +663,9 @@ function clearFilterSection(section) {
     case "net-worth":
       selectedNetWorthMin = netWorthFilterDefaults.min;
       selectedNetWorthMax = netWorthFilterDefaults.max;
+      break;
+    case "rating":
+      setFranchiseeRatingMin(0);
       break;
     default:
       return;

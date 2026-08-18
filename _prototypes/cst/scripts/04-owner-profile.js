@@ -256,6 +256,7 @@ function syncOwnerMapHeader(mode = getCurrentPanelMode()) {
       })
     : "";
   getOwnersMapBusyPills()?.syncTopOffset?.();
+  syncOwnersMapResetPosition();
 }
 
 function isRawDataAvailable(owner) {

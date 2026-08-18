@@ -703,6 +703,7 @@ function ownerMatchesLocationTableFilters(owner) {
   if (!ownerMatchesOwnerFilter(owner)) return false;
   if (!ownerMatchesUnitsFilter(owner)) return false;
   if (!ownerMatchesContactsFilter(owner)) return false;
+  if (!ownerMatchesRatingFilter(owner)) return false;
   return true;
 }
 
@@ -1266,6 +1267,12 @@ function ownerMatchesNetWorthFilter(owner) {
   return Number.isFinite(netWorth) && netWorth >= selectedNetWorthMin && netWorth <= selectedNetWorthMax;
 }
 
+function ownerMatchesRatingFilter(owner) {
+  if (!franchiseeRatingFilterIsActive()) return true;
+  const rating = getOwnerFranchiseeRating(owner);
+  return Number.isFinite(rating) && rating >= getFranchiseeRatingMin();
+}
+
 function getOwnerSearchIndex(owner) {
   const cachedValue = ownerSearchIndexById.get(owner.originalIndex);
   if (cachedValue) return cachedValue;
@@ -1331,6 +1338,7 @@ function getFilteredOwners() {
     if (!ownerMatchesUnitsFilter(owner)) return false;
     if (!ownerMatchesContactsFilter(owner)) return false;
     if (!ownerMatchesNetWorthFilter(owner)) return false;
+    if (!ownerMatchesRatingFilter(owner)) return false;
     return ownerMatchesOwnerFilter(owner);
   });
 }
@@ -1395,6 +1403,7 @@ const TABLE_HEADING_SUMMARY_PRIORITY = [
   "units",
   "contacts",
   "netWorth",
+  "rating",
   "search"
 ];
 const TABLE_HEADING_SUMMARY_STATE_NAMES = new Set([
@@ -1695,6 +1704,12 @@ function buildHeadingSummaryNetWorthConcept() {
   };
 }
 
+function buildHeadingSummaryRatingConcept() {
+  if (!franchiseeRatingFilterIsActive()) return null;
+  const min = getFranchiseeRatingMin();
+  return { id: "rating", phrase: `rated ${min.toFixed(1)}+` };
+}
+
 function buildHeadingSummarySearchConcept() {
   const query = toolbarSearchInput?.value.trim() || searchQuery;
   if (!query) return null;
@@ -1711,6 +1726,7 @@ function collectTableHeadingSummaryConcepts() {
     units: buildHeadingSummaryUnitsConcept,
     contacts: buildHeadingSummaryContactsConcept,
     netWorth: buildHeadingSummaryNetWorthConcept,
+    rating: buildHeadingSummaryRatingConcept,
     search: buildHeadingSummarySearchConcept
   };
 
@@ -1757,6 +1773,7 @@ function formatTableHeadingSummary(count, singular, plural) {
     byId.units?.phrase,
     byId.contacts?.phrase,
     byId.netWorth?.phrase,
+    byId.rating?.phrase,
     byId.search?.phrase,
     byId.category?.phrase
   ].filter(Boolean);
@@ -1845,6 +1862,7 @@ function getAppliedFilterCount() {
   const selectedUnitsCount = unitsFilterIsActive() ? 1 : 0;
   const selectedContactsCount = contactsFilterIsActive() ? 1 : 0;
   const selectedNetWorthCount = netWorthFilterIsActive() ? 1 : 0;
+  const selectedRatingCount = franchiseeRatingFilterIsActive() ? 1 : 0;
   const selectedUserLocationCount = userLocationCenter || radiusFilterEnabled ? 1 : 0;
 
   return selectedFilterCount
@@ -1853,6 +1871,7 @@ function getAppliedFilterCount() {
     + selectedUnitsCount
     + selectedContactsCount
     + selectedNetWorthCount
+    + selectedRatingCount
     + selectedUserLocationCount;
 }
 

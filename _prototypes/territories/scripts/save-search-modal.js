@@ -21,109 +21,8 @@ function syncSaveSearchCheckboxes() {
   saveSearchNotifyCheckboxes.forEach(syncSaveSearchCheckbox);
 }
 
-function getSelectOptionLabels(select, values) {
-  if (!select || !values?.length) return [];
-
-  const valueSet = new Set(values.map(String));
-  return Array.from(select.options)
-    .filter((option) => option.value && valueSet.has(option.value))
-    .map((option) => option.textContent.trim())
-    .filter(Boolean);
-}
-
-function formatCompactInvestment(value) {
-  if (!Number.isFinite(value)) return "";
-
-  if (value >= 1_000_000) {
-    const millions = value / 1_000_000;
-    const text = Number.isInteger(millions)
-      ? String(millions)
-      : millions.toFixed(1).replace(/\.0$/, "");
-    return `$${text}M`;
-  }
-
-  if (value >= 1_000) {
-    return `$${Math.round(value / 1000)}K`;
-  }
-
-  return `$${Math.round(value)}`;
-}
-
-function getInvestmentDefaultMax() {
-  const investmentSection = document
-    .querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
-    ?.closest(".filter-section");
-  const maxRange = investmentSection?.querySelector(".range-input-max");
-  return Number(maxRange?.max ?? 5_500_000);
-}
-
-function buildSaveSearchAlertName(snapshot) {
-  const hasNarrowInvestment = snapshot.investmentMax < snapshot.investmentDefaultMax;
-  const singleLocation = snapshot.locationLabels.length === 1
-    ? snapshot.locationLabels[0]
-    : "";
-  const shortLocations = snapshot.locationLabels.length > 1 && snapshot.locationLabels.length <= 3
-    ? snapshot.locationLabels.join(", ")
-    : "";
-  const locationPart = singleLocation || shortLocations;
-
-  if (locationPart && hasNarrowInvestment) {
-    let topic = "";
-
-    if (snapshot.brandLabels.length === 1) {
-      topic = snapshot.brandLabels[0];
-    } else if (snapshot.categoryLabels.includes("Food & Beverage")) {
-      topic = "QSR";
-    } else if (snapshot.categoryLabels[0]) {
-      topic = snapshot.categoryLabels[0];
-    } else if (snapshot.brandLabels.length) {
-      topic = snapshot.brandLabels.slice(0, 2).join(" / ");
-    } else {
-      topic = "territories";
-    }
-
-    return `${locationPart} ${topic} under ${formatCompactInvestment(snapshot.investmentMax)}`;
-  }
-
-  const parts = [...snapshot.categoryLabels, ...snapshot.brandLabels];
-  if (parts.length) {
-    return parts.join(" • ");
-  }
-
-  if (snapshot.locationLabels.length) {
-    return snapshot.locationLabels.join(" • ");
-  }
-
-  if (hasNarrowInvestment) {
-    return `Territories under ${formatCompactInvestment(snapshot.investmentMax)}`;
-  }
-
-  return "Territory search";
-}
-
-function getSaveSearchSnapshot() {
-  const filters = window.territoryFilters?.getState?.() || {
-    locations: { included: [] },
-    categories: { included: [] },
-    franchises: { included: [] },
-    statuses: [],
-    investmentMax: getInvestmentDefaultMax()
-  };
-
-  const categoryFilterSelect = document.getElementById("categoryFilterSelect");
-  const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
-  const investmentDefaultMax = getInvestmentDefaultMax();
-
-  return {
-    categoryLabels: getSelectOptionLabels(categoryFilterSelect, filters.categories?.included || []),
-    brandLabels: getSelectOptionLabels(franchiseFilterSelect, filters.franchises?.included || []),
-    locationLabels: window.territoryFilters?.getLocationLabels?.() || [],
-    statuses: filters.statuses || [],
-    investmentMax: Number.isFinite(filters.investmentMax)
-      ? filters.investmentMax
-      : investmentDefaultMax,
-    investmentDefaultMax
-  };
+function buildSaveSearchAlertName() {
+  return window.territoryBrandPanel?.formatAlertName?.() || "Territories";
 }
 
 function showSaveSearchFormView() {
@@ -194,7 +93,7 @@ function openSaveSearchModal(trigger = null) {
   resetSaveSearchModalForm();
 
   if (saveSearchAlertName) {
-    saveSearchAlertName.value = buildSaveSearchAlertName(getSaveSearchSnapshot());
+    saveSearchAlertName.value = buildSaveSearchAlertName();
   }
 
   saveSearchModal.classList.remove("is-closing");

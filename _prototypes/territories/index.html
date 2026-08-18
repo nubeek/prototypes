@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="../cst/styles.css">
   <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
   <link rel="stylesheet" href="../shared/map/map-pills.css">
+  <link rel="stylesheet" href="../shared/ui/scope-tabs.css">
   <link rel="stylesheet" href="styles.css">
   <script src="../shared/ui/thumbnail-edge-border.js"></script>
   <script src="../../scripts/gate.js"></script>
@@ -112,11 +113,11 @@
 
     <div class="territory-workspace">
       <aside class="filter-panel territory-filter-panel" id="territoryFilterPanel" aria-label="Territory filters" aria-hidden="true">
+      <div class="filter-header">
+        <h2>Filter</h2>
+        <p id="territoryFilterSummary">Showing 0-0 of 0 records <span class="filter-summary-sort">sorted by relevancy</span></p>
+      </div>
       <div class="filter-scroll">
-        <div class="filter-header">
-          <h2>Filter</h2>
-          <p id="territoryFilterSummary">Showing 0-0 of 0 records <span class="filter-summary-sort">sorted by relevancy</span></p>
-        </div>
 
         <section class="filter-section">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="true">
@@ -308,25 +309,73 @@
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed">
+        <section class="filter-section filter-section-collapsed" id="franchiseeRatingFilterSection">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Franchisee rating</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
-          <div class="range-track filter-range-slider" aria-label="Franchisee rating range">
-            <span class="range-line"></span>
-            <span class="range-fill"></span>
-            <input class="range-input range-input-min" type="range" min="0" max="5" step="0.5" value="0" aria-label="Minimum franchisee rating">
-            <input class="range-input range-input-max" type="range" min="0" max="5" step="0.5" value="5" aria-label="Maximum franchisee rating">
-          </div>
-          <div class="filter-range-labels">
-            <span>Minimum</span>
-            <span>Maximum</span>
-          </div>
-          <div class="filter-input-row">
-            <input class="filter-value filter-number-input" type="number" inputmode="decimal" min="0" max="5" step="0.5" value="0" aria-label="Minimum franchisee rating value">
-            <span class="filter-range-separator">-</span>
-            <input class="filter-value filter-number-input" type="number" inputmode="decimal" min="0" max="5" step="0.5" value="5" aria-label="Maximum franchisee rating value">
+          <div class="filter-check-group filter-rating-group" role="radiogroup" aria-label="Franchisee rating">
+            <label class="filter-check is-checked">
+              <input class="territory-rating-radio" type="radio" name="franchiseeRating" value="0" checked>
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span class="filter-rating-label">Any</span>
+            </label>
+            <label class="filter-check">
+              <input class="territory-rating-radio" type="radio" name="franchiseeRating" value="1">
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span class="filter-rating-option">
+                <span class="filter-rating-stars" aria-hidden="true">
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star"></span>
+                  <span class="filter-rating-star"></span>
+                  <span class="filter-rating-star"></span>
+                  <span class="filter-rating-star"></span>
+                </span>
+                <span class="filter-rating-label">1.0 and up</span>
+              </span>
+            </label>
+            <label class="filter-check">
+              <input class="territory-rating-radio" type="radio" name="franchiseeRating" value="2">
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span class="filter-rating-option">
+                <span class="filter-rating-stars" aria-hidden="true">
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star"></span>
+                  <span class="filter-rating-star"></span>
+                  <span class="filter-rating-star"></span>
+                </span>
+                <span class="filter-rating-label">2.0 and up</span>
+              </span>
+            </label>
+            <label class="filter-check">
+              <input class="territory-rating-radio" type="radio" name="franchiseeRating" value="3">
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span class="filter-rating-option">
+                <span class="filter-rating-stars" aria-hidden="true">
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star"></span>
+                  <span class="filter-rating-star"></span>
+                </span>
+                <span class="filter-rating-label">3.0 and up</span>
+              </span>
+            </label>
+            <label class="filter-check">
+              <input class="territory-rating-radio" type="radio" name="franchiseeRating" value="4">
+              <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
+              <span class="filter-rating-option">
+                <span class="filter-rating-stars" aria-hidden="true">
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star is-filled"></span>
+                  <span class="filter-rating-star"></span>
+                </span>
+                <span class="filter-rating-label">4.0 and up</span>
+              </span>
+            </label>
           </div>
         </section>
       </div>
@@ -374,77 +423,86 @@
               <p class="territory-crossroad__search-feedback" id="territoryCrossroadSearchFeedback" role="status" aria-live="polite" hidden></p>
             </div>
 
-            <section class="territory-crossroad__popular" aria-labelledby="territoryCrossroadPopularToggle">
+            <section class="territory-crossroad__popular" aria-label="Popular searches">
+              <div class="scope-toolbar">
+                <nav class="scope-tabs" aria-label="Popular search type">
+                  <button class="scope-tab is-active" type="button" data-scope="all">All</button>
+                  <button class="scope-tab" type="button" data-scope="private">Private</button>
+                  <button class="scope-tab" type="button" data-scope="team">Team</button>
+                </nav>
+                <label class="scope-search" for="territoryCrossroadPresetSearch" role="search">
+                  <img class="scope-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+                  <input
+                    class="scope-search-input"
+                    id="territoryCrossroadPresetSearch"
+                    type="search"
+                    inputmode="search"
+                    autocomplete="off"
+                    placeholder="Search popular searches..."
+                    aria-label="Search popular searches"
+                  >
+                  <button class="scope-search-clear" id="territoryCrossroadPresetSearchClear" type="button" aria-label="Clear search" hidden></button>
+                </label>
+              </div>
               <div class="territory-crossroad__popular-scroll">
-                <button
-                  class="territory-crossroad__popular-toggle"
-                  id="territoryCrossroadPopularToggle"
-                  type="button"
-                  aria-expanded="true"
-                  aria-controls="territoryCrossroadPopularContent"
-                >
-                  <span>Popular searches</span>
-                  <img src="assets/chevron.svg" alt="" aria-hidden="true">
-                </button>
-                <div class="territory-crossroad__popular-content" id="territoryCrossroadPopularContent">
-                  <div class="territory-crossroad__grid" id="territoryCrossroadGrid" data-crossroad-grid></div>
-                </div>
+                <div class="territory-crossroad__grid" id="territoryCrossroadGrid" data-crossroad-grid></div>
+                <p class="territory-crossroad__popular-empty" id="territoryCrossroadPopularEmpty" hidden>No popular searches match your search.</p>
               </div>
             </section>
           </div>
         </div>
-        <div class="territory-brand-panel__scroll">
-          <div class="territory-brand-panel__header">
-            <div class="territory-brand-panel__heading">
-              <h2>Territories</h2>
-              <div class="territory-brand-panel__heading-actions">
-                <details class="toolbar-dropdown territory-brand-panel__sort" id="territoryBrandSort">
-                  <summary
-                    class="ui-control ui-button-ghost territory-brand-panel__sort-toggle"
-                    aria-label="Sort by Nearest first"
-                  >
-                    <span class="territory-brand-panel__sort-label">Sort by</span>
-                    <img class="territory-brand-panel__sort-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-                  </summary>
-                  <div class="ui-menu toolbar-dropdown-menu territory-brand-panel__sort-menu" role="menu" aria-label="Sort territories">
-                    <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="true" data-sort="proximity">
-                      <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
-                      <span class="toolbar-dropdown-label">Nearest first</span>
-                    </button>
-                    <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="alphabetical">
-                      <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
-                      <span class="toolbar-dropdown-label">Name A–Z</span>
-                    </button>
-                    <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="count">
-                      <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
-                      <span class="toolbar-dropdown-label">Most territories</span>
-                    </button>
-                  </div>
-                </details>
-                <span class="territory-brand-panel__heading-divider" aria-hidden="true"></span>
-                <button
-                  class="ui-control ui-button-ghost territory-brand-panel__alert-toggle territory-save-search-btn"
-                  id="territorySaveSearch"
-                  type="button"
-                  aria-label="Add alert"
-                  data-tooltip="Get notified when these&#10;results change"
+        <div class="territory-brand-panel__header">
+          <div class="territory-brand-panel__heading">
+            <h2>Territories</h2>
+            <div class="territory-brand-panel__heading-actions">
+              <details class="toolbar-dropdown territory-brand-panel__sort" id="territoryBrandSort">
+                <summary
+                  class="ui-control ui-button-ghost territory-brand-panel__sort-toggle"
+                  aria-label="Sort by Nearest first"
                 >
-                  <img src="assets/alert.svg" alt="" aria-hidden="true">
-                </button>
-              </div>
+                  <span class="territory-brand-panel__sort-label">Sort by</span>
+                  <img class="territory-brand-panel__sort-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </summary>
+                <div class="ui-menu toolbar-dropdown-menu territory-brand-panel__sort-menu" role="menu" aria-label="Sort territories">
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="true" data-sort="proximity">
+                    <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Nearest first</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="alphabetical">
+                    <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Name A–Z</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="count">
+                    <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Most territories</span>
+                  </button>
+                </div>
+              </details>
+              <span class="territory-brand-panel__heading-divider" aria-hidden="true"></span>
               <button
-                class="ui-control ui-button-ghost territory-brand-panel__expand-toggle"
-                id="territoryBrandExpandToggle"
+                class="ui-control ui-button-ghost territory-brand-panel__alert-toggle territory-save-search-btn"
+                id="territorySaveSearch"
                 type="button"
-                aria-label="Collapse all rows"
-                data-tooltip="Collapse all rows"
-                hidden
+                aria-label="Add alert"
+                data-tooltip="Get notified when these&#10;results change"
               >
-                <img src="assets/collapse.svg" alt="" aria-hidden="true">
+                <img src="assets/alert.svg" alt="" aria-hidden="true">
               </button>
             </div>
-            <p class="territory-brand-panel__summary" id="territoryBrandSummary" aria-live="polite">Showing 0 territories</p>
+            <button
+              class="ui-control ui-button-ghost territory-brand-panel__expand-toggle"
+              id="territoryBrandExpandToggle"
+              type="button"
+              aria-label="Collapse all rows"
+              data-tooltip="Collapse all rows"
+              hidden
+            >
+              <img src="assets/collapse.svg" alt="" aria-hidden="true">
+            </button>
           </div>
+          <p class="territory-brand-panel__summary" id="territoryBrandSummary" aria-live="polite">Showing 0 territories</p>
+        </div>
+        <div class="territory-brand-panel__scroll">
           <div class="territory-list-loading" id="territoryMapLoading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading territories" hidden>
             <div class="territory-list-loading__spinner" aria-hidden="true"></div>
             <p class="territory-list-loading__label">Loading territories...</p>

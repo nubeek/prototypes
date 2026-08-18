@@ -1,0 +1,198 @@
+/* Shared All / Private / Team tabs + expandable search (targets-style). */
+
+.scope-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 10px 8px 0;
+  background: var(--color-surface, #fff);
+}
+
+.scope-toolbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: #e6e6ea;
+  z-index: 0;
+}
+
+.scope-tabs,
+.scope-search {
+  position: relative;
+  z-index: 1;
+}
+
+.scope-tabs {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.scope-tab {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 0 0 23px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  color: #9a9aa2;
+  cursor: pointer;
+  transition: color .18s ease;
+}
+
+.scope-tab:hover {
+  color: #555;
+}
+
+.scope-tab.is-active {
+  color: #111;
+  font-weight: 500;
+}
+
+.scope-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1px;
+  height: 3px;
+  border-radius: 2px;
+  background: #111;
+}
+
+.scope-search {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  border: 1px solid #ececf0;
+  border-radius: 12px;
+  background: #fff;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 0 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: width .18s ease, border-color .18s ease, background-color .18s ease;
+}
+
+.scope-search:hover {
+  background: #f3f3f4;
+}
+
+.scope-search:active {
+  background: #ececec;
+}
+
+.scope-search-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  cursor: pointer;
+  transition: filter .18s ease;
+}
+
+.scope-search-input {
+  width: 0;
+  min-width: 0;
+  max-height: 48px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #111;
+  font: inherit;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  outline: 0;
+  transition: width .18s ease, opacity .12s ease;
+}
+
+.scope-search-input::placeholder {
+  color: #8c8c95;
+}
+
+.scope-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.scope-search:focus-within,
+.scope-search.is-active-search {
+  width: 305px;
+  border-width: 2px;
+  background: #fff;
+  border-color: #7a63dd;
+}
+
+.scope-search:focus-within .scope-search-input,
+.scope-search.is-active-search .scope-search-input {
+  width: 100%;
+  opacity: 1;
+  pointer-events: auto;
+  padding-right: 40px;
+}
+
+.scope-search:focus-within .scope-search-icon,
+.scope-search.is-active-search .scope-search-icon {
+  filter: brightness(0) saturate(100%) invert(45%) sepia(26%) saturate(1666%) hue-rotate(213deg) brightness(91%) contrast(91%);
+}
+
+.scope-search-clear {
+  border: 0;
+  background: transparent;
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #8f8f98;
+  font-size: 0;
+  line-height: 0;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: color .18s ease;
+}
+
+.scope-search-clear:not([hidden]) {
+  display: inline-flex;
+}
+
+.scope-search-clear::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9'%3E%3Cpath fill-rule='evenodd' d='M5.921%2C4.500 L8.711%2C7.266 C9.102%2C7.656 9.102%2C8.290 8.711%2C8.680 C8.321%2C9.071 7.688%2C9.071 7.297%2C8.680 L4.500%2C5.908 L1.703%2C8.680 C1.312%2C9.071 0.679%2C9.071 0.289%2C8.680 C-0.102%2C8.290 -0.102%2C7.656 0.289%2C7.266 L3.079%2C4.500 L0.289%2C1.734 C-0.102%2C1.344 -0.102%2C0.710 0.289%2C0.320 C0.679%2C-0.071 1.312%2C-0.071 1.703%2C0.320 L4.500%2C3.092 L7.297%2C0.320 C7.688%2C-0.071 8.321%2C-0.071 8.711%2C0.320 C9.102%2C0.710 9.102%2C1.344 8.711%2C1.734 L5.921%2C4.500 Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9'%3E%3Cpath fill-rule='evenodd' d='M5.921%2C4.500 L8.711%2C7.266 C9.102%2C7.656 9.102%2C8.290 8.711%2C8.680 C8.321%2C9.071 7.688%2C9.071 7.297%2C8.680 L4.500%2C5.908 L1.703%2C8.680 C1.312%2C9.071 0.679%2C9.071 0.289%2C8.680 C-0.102%2C8.290 -0.102%2C7.656 0.289%2C7.266 L3.079%2C4.500 L0.289%2C1.734 C-0.102%2C1.344 -0.102%2C0.710 0.289%2C0.320 C0.679%2C-0.071 1.312%2C-0.071 1.703%2C0.320 L4.500%2C3.092 L7.297%2C0.320 C7.688%2C-0.071 8.321%2C-0.071 8.711%2C0.320 C9.102%2C0.710 9.102%2C1.344 8.711%2C1.734 L5.921%2C4.500 Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.scope-search-clear:hover {
+  color: #111;
+}
+
+@media (max-width: 800px) {
+  .scope-tabs {
+    gap: 20px;
+  }
+
+  .scope-search:focus-within,
+  .scope-search.is-active-search {
+    width: min(260px, 48vw);
+  }
+}

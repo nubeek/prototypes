@@ -1,7 +1,27 @@
 (function () {
   const RADIUS_SLIDER_INPUT_STEP = 1;
   const RADIUS_SLIDER_ANIMATION_MS = 320;
+  const LOCATION_VIEWPORT_RADIUS_MILES = 50;
+  const MILES_PER_LATITUDE_DEGREE = 69;
   let radiusSliderAnimationFrame = null;
+
+  function getCoordinateRadiusBounds(longitude, latitude, radiusMiles = LOCATION_VIEWPORT_RADIUS_MILES) {
+    if (!Number.isFinite(longitude) || !Number.isFinite(latitude) || !Number.isFinite(radiusMiles)) {
+      return null;
+    }
+
+    const latDelta = radiusMiles / MILES_PER_LATITUDE_DEGREE;
+    const lngDelta = radiusMiles / (
+      MILES_PER_LATITUDE_DEGREE * Math.cos((latitude * Math.PI) / 180)
+    );
+
+    return {
+      west: longitude - lngDelta,
+      east: longitude + lngDelta,
+      south: latitude - latDelta,
+      north: latitude + latDelta
+    };
+  }
 
   function clampRadiusValue(value, defaults) {
     const numericValue = Number(value);
@@ -269,6 +289,9 @@
 
   window.WefranchRadiusControl = {
     RADIUS_SLIDER_INPUT_STEP,
+    LOCATION_VIEWPORT_RADIUS_MILES,
+    MILES_PER_LATITUDE_DEGREE,
+    getCoordinateRadiusBounds,
     clampRadiusValue,
     formatRadiusMiles,
     getRadiusFillPercent,

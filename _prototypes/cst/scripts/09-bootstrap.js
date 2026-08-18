@@ -205,8 +205,7 @@ if (ownersTable) {
 if (filterPanel) {
   window.WefranchFilterSections.enhanceHeaders(filterPanel, {
     iconSrc: "../shared/filter/assets/remove.svg",
-    onClear: clearFilterSection,
-    selectionSectionKeys: ["units", "contacts", "status", "net-worth"]
+    onClear: clearFilterSection
   });
   window.WefranchFilterSections.bindCollapseToggle(filterPanel, {
     onToggle: () => persistViewSettings()
@@ -312,6 +311,12 @@ statusFilterInputs.forEach((checkbox) => {
   });
 });
 
+getFranchiseeRatingRadios().forEach((radio) => {
+  radio.addEventListener("change", () => {
+    setFranchiseeRatingMin(radio.value, { refresh: true });
+  });
+});
+
 if (unitsMinRange) {
   unitsMinRange.addEventListener("input", () => {
     setUnitsFilterRange(unitsMinRange.value, selectedUnitsMax, { changed: "min", refresh: true });
@@ -396,6 +401,7 @@ syncStatusFilterStates();
 syncUnitsFilterControls();
 syncContactsFilterControls();
 syncNetWorthFilterControls();
+setFranchiseeRatingMin(selectedFranchiseeRatingMin);
 syncRadiusFilterControls();
 renderFilterHistograms();
 updateFilterSectionClearButtons();

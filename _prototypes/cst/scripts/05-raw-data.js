@@ -25,7 +25,8 @@ function getRawDataOwnerScope() {
     ownerMatchesCategoryFilter(owner) &&
     ownerMatchesFranchiseFilter(owner) &&
     ownerMatchesUnitsFilter(owner) &&
-    ownerMatchesContactsFilter(owner)
+    ownerMatchesContactsFilter(owner) &&
+    ownerMatchesRatingFilter(owner)
   ));
 }
 

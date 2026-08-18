@@ -157,6 +157,27 @@ function getFilterSectionSettings() {
     }, {});
 }
 
+function getFranchiseeRatingRadios() {
+  return Array.from(document.querySelectorAll(".territory-rating-radio"));
+}
+
+function normalizeFranchiseeRatingMin(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+  return [1, 2, 3, 4].reduce((closest, option) => (
+    Math.abs(option - numeric) < Math.abs(closest - numeric) ? option : closest
+  ));
+}
+
+function getFranchiseeRatingMin() {
+  const selected = document.querySelector(".territory-rating-radio:checked");
+  return normalizeFranchiseeRatingMin(selected?.value ?? 0);
+}
+
+function franchiseeRatingFilterIsActive() {
+  return getFranchiseeRatingMin() > 0;
+}
+
 function getCurrentTerritorySettings() {
   const shell = document.querySelector(".territory-shell");
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
@@ -165,11 +186,8 @@ function getCurrentTerritorySettings() {
     .filter((checkbox) => checkbox.value);
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
     ?.closest(".filter-section");
-  const ratingSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Franchisee rating range']")
-    ?.closest(".filter-section");
   const searchInput = document.getElementById("territorySearchInput");
   const investmentRange = getTerritoryFilterRangeValues(investmentSection);
-  const ratingRange = getTerritoryFilterRangeValues(ratingSection);
 
   return {
     version: TERRITORY_SETTINGS_VERSION,
@@ -201,8 +219,8 @@ function getCurrentTerritorySettings() {
         max: Math.max(investmentRange.min, investmentRange.max)
       },
       rating: {
-        min: Math.min(ratingRange.min, ratingRange.max),
-        max: Math.max(ratingRange.min, ratingRange.max)
+        min: getFranchiseeRatingMin(),
+        max: 5
       },
       search: searchInput?.value.trim() || ""
     },
@@ -599,7 +617,7 @@ function returnToSplashAfterLocationCleared() {
   returnToTerritorySplash();
 }
 
-function syncAfterPrimaryFilterChange({ syncExpansion = false } = {}) {
+function syncAfterPrimaryFilterChange({ syncExpansion = false, keepLocationFilterActive = false } = {}) {
   if (hasPrimaryTerritoryFilters()) {
     if (syncExpansion) {
       syncFilterSectionExpansion();
@@ -608,12 +626,26 @@ function syncAfterPrimaryFilterChange({ syncExpansion = false } = {}) {
     return;
   }
 
+  if (keepLocationFilterActive) {
+    if (syncExpansion) {
+      syncFilterSectionExpansion();
+    }
+    ensureLocationFilterSectionExpanded();
+    syncTerritoryRadiusMap();
+    refreshTerritoryFilters();
+    updateClearFiltersButton();
+    updateFilterSectionClearButtons();
+    persistTerritorySettings();
+    document.getElementById("locationFilterSearchInput")?.focus({ preventScroll: true });
+    return;
+  }
+
   returnToSplashAfterLocationCleared();
 }
 
 function syncLocationFilterAfterRemoval() {
   syncFilterLocationSearchUI();
-  syncAfterPrimaryFilterChange({ syncExpansion: true });
+  syncAfterPrimaryFilterChange({ syncExpansion: true, keepLocationFilterActive: true });
 }
 
 function setSelectedLocationSearch(result, { refresh = true } = {}) {
@@ -903,8 +935,6 @@ function restoreSavedFilterSelections(settings) {
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
     ?.closest(".filter-section");
-  const ratingSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Franchisee rating range']")
-    ?.closest(".filter-section");
   const searchInput = document.getElementById("territorySearchInput");
   const savedStatuses = Array.isArray(filters.statuses)
     ? getSavedStringArray(filters.statuses)
@@ -940,16 +970,7 @@ function restoreSavedFilterSelections(settings) {
     );
   }
 
-  if (ratingSection) {
-    const ratingTrack = ratingSection.querySelector(".filter-range-slider");
-    const ratingMinRange = ratingTrack?.querySelector(".range-input-min");
-    const ratingMaxRange = ratingTrack?.querySelector(".range-input-max");
-    setTerritoryFilterRangeValues(
-      ratingSection,
-      filters.rating?.min ?? Number(ratingMinRange?.min ?? 0),
-      filters.rating?.max ?? Number(ratingMaxRange?.max ?? 0)
-    );
-  }
+  setFranchiseeRatingMin(filters.rating?.min);
 
   if (searchInput && typeof filters.search === "string") {
     searchInput.value = filters.search;
@@ -1037,6 +1058,14 @@ function restoreSavedTerritorySettings() {
 function setFilterCheckboxState(checkbox, isChecked) {
   const label = checkbox?.closest(".filter-check");
   label?.classList.toggle("is-checked", isChecked);
+}
+
+function setFranchiseeRatingMin(value) {
+  const nextValue = String(normalizeFranchiseeRatingMin(value));
+  getFranchiseeRatingRadios().forEach((radio) => {
+    radio.checked = radio.value === nextValue;
+    setFilterCheckboxState(radio, radio.checked);
+  });
 }
 
 function clampRadiusValue(value) {
@@ -1235,7 +1264,7 @@ function clearFilterSection(section) {
 
   if (locationFilterSearch) {
     clearLocationFilterState();
-    syncAfterPrimaryFilterChange({ syncExpansion: true });
+    syncAfterPrimaryFilterChange({ syncExpansion: true, keepLocationFilterActive: true });
     return;
   } else if (categoryFilterSelect) {
     setFilterSelectIncludedExcludedValues(categoryFilterSelect, [], []);
@@ -1257,15 +1286,8 @@ function clearFilterSection(section) {
       Number(minRange?.min ?? 0),
       Number(maxRange?.max ?? 0)
     );
-  } else if (section.querySelector("[aria-label='Franchisee rating range']")) {
-    const track = section.querySelector(".filter-range-slider");
-    const minRange = track?.querySelector(".range-input-min");
-    const maxRange = track?.querySelector(".range-input-max");
-    setTerritoryFilterRangeValues(
-      section,
-      Number(minRange?.min ?? 0),
-      Number(maxRange?.max ?? 0)
-    );
+  } else if (section.querySelector(".territory-rating-radio")) {
+    setFranchiseeRatingMin(0);
   } else {
     return;
   }
@@ -1303,6 +1325,9 @@ function initTerritoryFilters() {
 
   document.querySelectorAll(".territory-filter-checkbox").forEach((checkbox) => {
     setFilterCheckboxState(checkbox, checkbox.checked);
+  });
+  getFranchiseeRatingRadios().forEach((radio) => {
+    setFilterCheckboxState(radio, radio.checked);
   });
 
   document.querySelectorAll(".filter-range-slider").forEach(bindRangeTrack);
@@ -1359,7 +1384,7 @@ function initTerritoryFilters() {
     ),
     onClear: () => {
       clearLocationFilterState();
-      syncAfterPrimaryFilterChange({ syncExpansion: true });
+      syncAfterPrimaryFilterChange({ syncExpansion: true, keepLocationFilterActive: true });
     }
   });
 
@@ -1555,15 +1580,13 @@ function hasNarrowingTerritoryFilters() {
   const searchInput = document.getElementById("territorySearchInput");
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
     ?.closest(".filter-section");
-  const ratingSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Franchisee rating range']")
-    ?.closest(".filter-section");
 
   return hasAppliedLocationFilters()
     || hasAppliedCategoryOrFranchiseFilters()
     || getTerritoryGeoLevelFilters().length > 0
     || Boolean(searchInput?.value.trim())
     || territoryRangeFilterIsActive(investmentSection)
-    || territoryRangeFilterIsActive(ratingSection);
+    || franchiseeRatingFilterIsActive();
 }
 
 function getAppliedTerritoryFilterCount() {
@@ -1572,8 +1595,6 @@ function getAppliedTerritoryFilterCount() {
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
     .filter((checkbox) => checkbox.value);
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
-    ?.closest(".filter-section");
-  const ratingSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Franchisee rating range']")
     ?.closest(".filter-section");
   const searchInput = document.getElementById("territorySearchInput");
 
@@ -1587,7 +1608,7 @@ function getAppliedTerritoryFilterCount() {
   const selectedStatusCount = statusCheckboxes.filter((checkbox) => checkbox.checked).length;
   const selectedSearchCount = searchInput?.value.trim() ? 1 : 0;
   const selectedInvestmentCount = territoryRangeFilterIsActive(investmentSection) ? 1 : 0;
-  const selectedRatingCount = territoryRangeFilterIsActive(ratingSection) ? 1 : 0;
+  const selectedRatingCount = franchiseeRatingFilterIsActive() ? 1 : 0;
   const selectedGeoLevelCount = getTerritoryGeoLevelFilters().length;
 
   return selectedFilterCount + selectedStatusCount + selectedSearchCount + selectedInvestmentCount + selectedRatingCount + selectedGeoLevelCount;
@@ -1616,8 +1637,6 @@ function resetFilterSelections({ refreshMap = true, statuses = DEFAULT_TERRITORY
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
     ?.closest(".filter-section");
-  const ratingSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Franchisee rating range']")
-    ?.closest(".filter-section");
   const searchInput = document.getElementById("territorySearchInput");
   const searchClear = document.getElementById("territorySearchClear");
   const searchField = searchInput?.closest(".toolbar-search-btn");
@@ -1643,16 +1662,7 @@ function resetFilterSelections({ refreshMap = true, statuses = DEFAULT_TERRITORY
     );
   }
 
-  if (ratingSection) {
-    const ratingTrack = ratingSection.querySelector(".filter-range-slider");
-    const ratingMinRange = ratingTrack?.querySelector(".range-input-min");
-    const ratingMaxRange = ratingTrack?.querySelector(".range-input-max");
-    setTerritoryFilterRangeValues(
-      ratingSection,
-      Number(ratingMinRange?.min ?? 0),
-      Number(ratingMaxRange?.max ?? 0)
-    );
-  }
+  setFranchiseeRatingMin(0);
 
   if (searchInput) {
     searchInput.value = "";
@@ -1678,11 +1688,9 @@ function getTerritoryFilterState() {
     .filter((checkbox) => checkbox.value);
   const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
     ?.closest(".filter-section");
-  const ratingSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Franchisee rating range']")
-    ?.closest(".filter-section");
   const searchInput = document.getElementById("territorySearchInput");
   const investmentRange = getTerritoryFilterRangeValues(investmentSection);
-  const ratingRange = getTerritoryFilterRangeValues(ratingSection);
+  const ratingMin = getFranchiseeRatingMin();
   const radiusCenters = getTerritoryRadiusCentersForFilter();
 
   return {
@@ -1709,8 +1717,8 @@ function getTerritoryFilterState() {
     geoLevels: getTerritoryGeoLevelFilters(),
     investmentMin: Math.min(investmentRange.min, investmentRange.max),
     investmentMax: Math.max(investmentRange.min, investmentRange.max),
-    ratingMin: Math.min(ratingRange.min, ratingRange.max),
-    ratingMax: Math.max(ratingRange.min, ratingRange.max),
+    ratingMin,
+    ratingMax: 5,
     search: searchInput?.value.trim().toLocaleLowerCase() || ""
   };
 }
@@ -1799,7 +1807,7 @@ function territoryMatchesFilters(record, filters, context) {
     return false;
   }
 
-  if (record.franchiseeRating < filters.ratingMin || record.franchiseeRating > filters.ratingMax) {
+  if (filters.ratingMin > 0 && record.franchiseeRating < filters.ratingMin) {
     return false;
   }
 
@@ -2098,6 +2106,13 @@ function bindTerritoryFilterControls() {
     });
   });
 
+  getFranchiseeRatingRadios().forEach((radio) => {
+    radio.addEventListener("change", () => {
+      setFranchiseeRatingMin(radio.value);
+      refreshTerritoryFilters();
+    });
+  });
+
   rangeSections.forEach((section) => {
     const track = section.querySelector(".filter-range-slider");
     const minRange = track?.querySelector(".range-input-min");
@@ -2151,8 +2166,8 @@ function filterSectionHasAppliedFilters(section) {
     return territoryRangeFilterIsActive(section);
   }
 
-  if (section.querySelector("[aria-label='Franchisee rating range']")) {
-    return territoryRangeFilterIsActive(section);
+  if (section.querySelector(".territory-rating-radio")) {
+    return franchiseeRatingFilterIsActive();
   }
 
   return false;
@@ -2160,6 +2175,15 @@ function filterSectionHasAppliedFilters(section) {
 
 function isTerritoryCrossroadOpen() {
   return Boolean(document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open"));
+}
+
+function ensureLocationFilterSectionExpanded() {
+  const section = document.getElementById("locationFilterSearchField")?.closest(".filter-section");
+  if (!section) return;
+
+  section.classList.remove("filter-section-collapsed");
+  section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", "true");
+  section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", "true");
 }
 
 function syncFilterSectionExpansion() {
@@ -2174,11 +2198,15 @@ function syncFilterSectionExpansion() {
 
   filterPanel.querySelectorAll(".filter-section").forEach((section) => {
     const isLocationSection = Boolean(section.querySelector("#locationFilterSearchField"));
+    const isCurrentlyExpanded = !section.classList.contains("filter-section-collapsed");
+    const hasSectionFilters = filterSectionHasAppliedFilters(section);
     const shouldExpand = splashState
       ? isLocationSection
-      : hasAppliedFilters
-        ? filterSectionHasAppliedFilters(section)
-        : isLocationSection;
+      : hasSectionFilters
+        ? true
+        : hasAppliedFilters
+          ? isCurrentlyExpanded
+          : isLocationSection;
 
     section.classList.toggle("filter-section-collapsed", !shouldExpand);
     section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(shouldExpand));
@@ -2225,6 +2253,8 @@ function applyCrossroadPresetSelections(preset = {}) {
       preset.investment?.max ?? Number(investmentMaxRange?.max ?? 0)
     );
   }
+
+  setFranchiseeRatingMin(preset.rating?.min);
 
   syncFilterComboboxes();
   syncFilterSectionExpansion();

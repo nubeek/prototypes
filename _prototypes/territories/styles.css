@@ -136,7 +136,7 @@
 
 .territory-filter-panel .filter-scroll {
   margin: 0;
-  padding: 18px 12px 86px;
+  padding: 0 12px 86px;
   opacity: 0;
   transform: translateX(-10px);
   transition: opacity 180ms ease, transform 180ms ease;
@@ -173,14 +173,6 @@
 
 .territory-filter-panel #locationFilterSearchField.is-open {
   z-index: 5;
-}
-
-.filter-location-search-field .filter-combobox-chip.is-recenterable:not(.is-excluded):hover {
-  background: #d2cae8;
-}
-
-.filter-location-search-field .filter-combobox-chip-label[role="button"] {
-  cursor: pointer;
 }
 
 .territory-filter-panel #locationFilterSearchField.is-open .filter-combobox-menu {
@@ -272,31 +264,19 @@
 }
 
 .territory-brand-panel__header {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 2;
-  isolation: isolate;
+  flex: 0 0 auto;
   background: var(--color-surface);
   padding: 18px 14px;
   border-bottom: 1px solid #e6e6ea;
-}
-
-.territory-brand-panel__header::before {
-  content: "";
-  position: absolute;
-  top: -18px;
-  right: 0;
-  left: 0;
-  height: 18px;
-  background: var(--color-surface);
-  pointer-events: none;
 }
 
 .territory-brand-panel__heading {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 22px;
+  margin: 0 0 18px;
 }
 
 .territory-brand-panel__heading h2 {
@@ -789,15 +769,19 @@
 }
 
 .territory-brand-item__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 14px;
   min-width: 0;
   padding: 0 10px 0 14px;
+  background: var(--color-surface);
 }
 
 .territory-brand-item__header:hover,
-.territory-brand-item__header:focus-within {
+.territory-brand-item__header:focus-within:has(:focus-visible) {
   background: #f3f3f4;
 }
 
@@ -954,6 +938,11 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.territory-brand-territories.is-collapsing {
+  overflow: hidden;
+  pointer-events: none;
 }
 
 /* A wide search renders thousands of rows. Letting the browser skip layout and
@@ -1738,15 +1727,7 @@ a.territory-info-card__action.is-disabled {
   margin-top: 16px;
 }
 
-/* Filter section header/clear/toggle styles live in ../shared/filter/filter-sidebar.css */
-
-.territory-filter-panel .filter-checkbox--radio {
-  border-radius: 50%;
-}
-
-.territory-filter-panel .filter-check.is-checked .filter-checkbox--radio::after {
-  border-radius: 50%;
-}
+/* Filter section header/clear/toggle, radio, and rating-star styles live in ../shared/filter/filter-sidebar.css */
 
 .filter-section--investment .filter-value--currency {
   gap: 4px;
@@ -2209,7 +2190,6 @@ a.territory-info-card__action.is-disabled {
   flex-direction: column;
   width: 100%;
   min-height: 0;
-  border-top: 1px solid #e9e9eb;
   background: var(--color-surface);
   transition:
     opacity 320ms ease,
@@ -2224,6 +2204,20 @@ a.territory-info-card__action.is-disabled {
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
+  padding-top: 24px;
+}
+
+.territory-crossroad__popular-empty {
+  margin: 0;
+  padding: 0 8px 24px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.territory-crossroad__popular-empty[hidden] {
+  display: none;
 }
 
 .territory-crossroad:has(.territory-crossroad__search.is-suggestions-open) {
@@ -2242,53 +2236,6 @@ a.territory-info-card__action.is-disabled {
   transition:
     opacity 500ms ease,
     filter 500ms ease;
-}
-
-.territory-crossroad__popular-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: 50px;
-  padding: 0 8px;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-}
-
-.territory-crossroad__popular-toggle:hover {
-  color: var(--color-brand);
-}
-
-.territory-crossroad__popular-toggle:focus-visible {
-  border-radius: 6px;
-  outline: 2px solid var(--color-brand);
-  outline-offset: -2px;
-}
-
-.territory-crossroad__popular-toggle img {
-  display: block;
-  width: 11px;
-  height: 6px;
-  transform: rotate(180deg);
-  transition: filter 160ms ease, transform 180ms ease;
-}
-
-.territory-crossroad__popular-toggle:hover img {
-  filter: brightness(0) saturate(100%) invert(45%) sepia(26%) saturate(1666%) hue-rotate(213deg) brightness(91%) contrast(91%);
-}
-
-.territory-crossroad__popular-toggle[aria-expanded="false"] img {
-  transform: rotate(0);
-}
-
-.territory-crossroad__popular-content {
-  padding-top: 24px;
 }
 
 .territory-crossroad__grid {

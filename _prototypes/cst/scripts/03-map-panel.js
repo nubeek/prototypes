@@ -384,6 +384,75 @@ function flyMapToBounds(mapInstance, bounds, { padding = MAP_FIT_PADDING, maxZoo
   return true;
 }
 
+function getOwnersMapBoundsForLocationSearch(location) {
+  if (!location || !window.mapboxgl) return null;
+
+  if (isRegionOnlyLocationSearch(location)) {
+    const regionBounds = window.cstLocationSearch?.getRegionBounds?.(location.stateCode);
+    if (Array.isArray(regionBounds) && regionBounds.length === 4) {
+      const [west, south, east, north] = regionBounds;
+      return new mapboxgl.LngLatBounds([west, south], [east, north]);
+    }
+  }
+
+  const center = getLocationSearchCoordinates(location)
+    || getMapFilterLocationCenter(location.label);
+  if (!center) return null;
+
+  const radiusMiles = isRadiusFilterActive()
+    ? selectedRadiusMiles
+    : (
+      window.WefranchRadiusControl?.LOCATION_VIEWPORT_RADIUS_MILES
+      ?? MAP_LOCATION_FILTER_RADIUS_MILES
+    );
+  const searchBounds = window.WefranchRadiusControl?.getCoordinateRadiusBounds?.(
+    center.lng,
+    center.lat,
+    radiusMiles
+  );
+  if (!searchBounds) return null;
+
+  return new mapboxgl.LngLatBounds(
+    [searchBounds.west, searchBounds.south],
+    [searchBounds.east, searchBounds.north]
+  );
+}
+
+function flyOwnersMapToLocationSearch(location) {
+  if (!ownersMap) return false;
+
+  const bounds = getOwnersMapBoundsForLocationSearch(location);
+  if (!bounds) return false;
+
+  return flyMapToBounds(ownersMap, bounds, {
+    padding: MAP_FIT_PADDING,
+    maxZoom: 9
+  });
+}
+
+function applyPendingOwnersMapLocationFocus() {
+  const location = ownersMapPendingLocationFocus;
+  if (!location || !ownersMap) return false;
+
+  ownersMapPendingLocationFocus = null;
+  return flyOwnersMapToLocationSearch(location);
+}
+
+function focusOwnersMapOnLocationSearch(location) {
+  if (!location) return false;
+
+  ownersMapCaptureQueryViewOnSettle = false;
+
+  if (isOwnersMapPanelVisible() && ownersMap?.loaded()) {
+    ownersMapPendingLocationFocus = null;
+    return flyOwnersMapToLocationSearch(location);
+  }
+
+  ownersMapPendingLocationFocus = location;
+  openMapPanel("map");
+  return true;
+}
+
 function isOwnersMapPanelVisible() {
   return Boolean(
     card?.classList.contains("is-map-open")
@@ -398,6 +467,15 @@ function getOwnersMapBusyTopOffset() {
   return Math.round(ownerMapHeader.getBoundingClientRect().height + 16);
 }
 
+function getOwnersMapContainerElement() {
+  return document.querySelector("#mapPanel .panel-map-container")
+    || document.getElementById("ownersMap");
+}
+
+function getOwnersMapResetElement() {
+  return document.getElementById("ownersMapReset");
+}
+
 function getOwnersMapBusyPills() {
   if (!ownersMapBusyPills) {
     ownersMapBusyPills = window.WefranchMapPills?.createBusyController?.(
@@ -409,8 +487,147 @@ function getOwnersMapBusyPills() {
   return ownersMapBusyPills;
 }
 
+function getOwnersMapResetPills() {
+  if (!ownersMapResetPills) {
+    ownersMapResetPills = window.WefranchMapPills?.createResetController?.(
+      getOwnersMapResetElement(),
+      {
+        getMapContainer: getOwnersMapContainerElement,
+        getTopOffset: getOwnersMapBusyTopOffset
+      }
+    );
+  }
+
+  return ownersMapResetPills;
+}
+
 function isOwnersMapBusyVisible() {
   return Boolean(getOwnersMapBusyPills()?.isVisible?.());
+}
+
+function isOwnersMapResetVisible() {
+  return Boolean(getOwnersMapResetPills()?.isVisible?.());
+}
+
+function showOwnersMapReset({ crossfade = false } = {}) {
+  getOwnersMapResetPills()?.show?.({ crossfade });
+}
+
+function hideOwnersMapReset({ immediate = false, crossfade = false } = {}) {
+  getOwnersMapResetPills()?.hide?.({ immediate, crossfade });
+}
+
+function syncOwnersMapResetPosition() {
+  getOwnersMapResetPills()?.syncPosition?.();
+}
+
+function normalizeOwnersMapCenter(center) {
+  if (!center) return null;
+  if (Array.isArray(center) && center.length >= 2) return [Number(center[0]), Number(center[1])];
+  const longitude = Number(center.lng ?? center.longitude);
+  const latitude = Number(center.lat ?? center.latitude);
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+  return [longitude, latitude];
+}
+
+function captureOwnersMapQueryView(center, zoom) {
+  const nextCenter = normalizeOwnersMapCenter(center);
+  const nextZoom = Number(zoom);
+  if (!nextCenter || !Number.isFinite(nextZoom)) return;
+
+  ownersMapQueryView = {
+    center: nextCenter,
+    zoom: nextZoom
+  };
+}
+
+function captureOwnersMapQueryViewFromMap() {
+  if (!ownersMap) return;
+  captureOwnersMapQueryView(ownersMap.getCenter(), ownersMap.getZoom());
+}
+
+function isOwnersMapAtQueryView() {
+  if (!ownersMap || !ownersMapQueryView?.center || !Number.isFinite(ownersMapQueryView.zoom)) {
+    return true;
+  }
+
+  const center = ownersMap.getCenter();
+  const zoom = ownersMap.getZoom();
+  const [defaultLng, defaultLat] = ownersMapQueryView.center;
+
+  return Math.abs(zoom - ownersMapQueryView.zoom) < 0.05
+    && Math.abs(center.lng - defaultLng) < 0.05
+    && Math.abs(center.lat - defaultLat) < 0.05;
+}
+
+function shouldOwnersMapResetShow() {
+  if (!isOwnersMapPanelVisible() || !ownersMap?.isStyleLoaded?.()) return false;
+  if (card?.classList.contains("is-splash-open")) return false;
+  return Boolean(ownersMapQueryView) && !isOwnersMapAtQueryView();
+}
+
+function updateOwnersMapResetVisibility() {
+  if (ownersMapCaptureQueryViewOnSettle && ownersMap && !ownersMap.isMoving?.()) {
+    captureOwnersMapQueryViewFromMap();
+    ownersMapCaptureQueryViewOnSettle = false;
+  }
+
+  syncOwnersMapResetPosition();
+
+  if (isOwnersMapBusyVisible()) return;
+
+  if (shouldOwnersMapResetShow()) {
+    showOwnersMapReset({ crossfade: isOwnersMapBusyVisible() });
+    return;
+  }
+
+  hideOwnersMapReset({
+    immediate: !isOwnersMapPanelVisible(),
+    crossfade: isOwnersMapBusyVisible()
+  });
+}
+
+function flyOwnersMapToQueryView() {
+  if (!ownersMap || !ownersMapQueryView?.center || !Number.isFinite(ownersMapQueryView.zoom)) {
+    return false;
+  }
+
+  ownersMap.flyTo({
+    center: ownersMapQueryView.center,
+    zoom: ownersMapQueryView.zoom,
+    duration: getOwnersMapFocusDuration(),
+    curve: MAP_FOCUS_FLY_CURVE,
+    essential: true
+  });
+
+  if (!ownersMap.isMoving?.()) {
+    updateOwnersMapResetVisibility();
+    return true;
+  }
+
+  ownersMap.once("moveend", updateOwnersMapResetVisibility);
+  return true;
+}
+
+function resetOwnersMapView() {
+  if (!ownersMap) return;
+
+  ownersMapPendingLocationFocus = null;
+  ownersMapCaptureQueryViewOnSettle = false;
+  hideOwnersMapReset();
+
+  if (flyOwnersMapToQueryView()) return;
+
+  fitOwnersMapToVisibleLocations({ force: true });
+}
+
+function bindOwnersMapResetControl() {
+  const resetEl = getOwnersMapResetElement();
+  if (!resetEl || resetEl.dataset.bound === "true") return;
+
+  resetEl.dataset.bound = "true";
+  getOwnersMapResetPills()?.bindPositionSync?.();
+  resetEl.addEventListener("click", resetOwnersMapView);
 }
 
 function isOwnersMapUpdateInFlight() {
@@ -420,7 +637,18 @@ function isOwnersMapUpdateInFlight() {
 }
 
 function setOwnersMapBusy(isBusy) {
-  getOwnersMapBusyPills()?.setBusy?.(isBusy);
+  const busyPills = getOwnersMapBusyPills();
+  if (!busyPills) return;
+
+  if (isBusy) {
+    const swap = isOwnersMapResetVisible();
+    if (swap) hideOwnersMapReset({ crossfade: true });
+    busyPills.setBusy(true, { crossfade: swap });
+    return;
+  }
+
+  busyPills.setBusy(false);
+  updateOwnersMapResetVisibility();
 }
 
 function getOwnersMapPointOpacityExpression() {
@@ -770,6 +998,40 @@ function getVisibleMapCoordinates() {
   return coordinates;
 }
 
+function captureOwnersMapQueryViewFromBounds(bounds, { padding = MAP_FIT_PADDING, maxZoom = 9 } = {}) {
+  if (!ownersMap || !bounds) {
+    ownersMapCaptureQueryViewOnSettle = true;
+    return;
+  }
+
+  const camera = ownersMap.cameraForBounds(bounds, { padding, maxZoom });
+  if (!camera) {
+    ownersMapCaptureQueryViewOnSettle = true;
+    return;
+  }
+
+  captureOwnersMapQueryView(camera.center, Math.min(camera.zoom, maxZoom));
+  ownersMapCaptureQueryViewOnSettle = false;
+}
+
+function settleOwnersMapFit(didFly, whenSettled) {
+  const finish = () => {
+    if (ownersMapCaptureQueryViewOnSettle) {
+      captureOwnersMapQueryViewFromMap();
+      ownersMapCaptureQueryViewOnSettle = false;
+    }
+    updateOwnersMapResetVisibility();
+    whenSettled?.(didFly);
+  };
+
+  if (didFly && getOwnersMapFocusDuration() > 0) {
+    whenOwnersMapCameraSettled(finish);
+    return;
+  }
+
+  finish();
+}
+
 function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
   const runFit = () => {
     if (!ownersMap || !window.mapboxgl) {
@@ -781,10 +1043,18 @@ function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
       return false;
     }
 
+    if (ownersMapPendingLocationFocus) {
+      ownersMapCaptureQueryViewOnSettle = false;
+      const didFly = applyPendingOwnersMapLocationFocus();
+      settleOwnersMapFit(didFly, whenSettled);
+      return didFly;
+    }
+
     const regionBounds = getSelectedRegionFitBounds();
     let didFly = false;
 
     if (regionBounds) {
+      captureOwnersMapQueryViewFromBounds(regionBounds);
       didFly = flyMapToBounds(ownersMap, regionBounds, {
         padding: MAP_FIT_PADDING,
         maxZoom: 9
@@ -808,20 +1078,14 @@ function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
         bounds.extend([lng + 0.35, lat + 0.35]);
       }
 
+      captureOwnersMapQueryViewFromBounds(bounds);
       didFly = flyMapToBounds(ownersMap, bounds, {
         padding: MAP_FIT_PADDING,
         maxZoom: 9
       });
     }
 
-    if (whenSettled) {
-      if (didFly && getOwnersMapFocusDuration() > 0) {
-        whenOwnersMapCameraSettled(() => whenSettled(didFly));
-      } else {
-        whenSettled(didFly);
-      }
-    }
-
+    settleOwnersMapFit(didFly, whenSettled);
     return didFly;
   };
 
@@ -1177,6 +1441,7 @@ function closeSidebar() {
   resetPanelModeAfterClose(closingMode);
   renderActiveTable();
   syncToolbarTabState(closingMode);
+  updateOwnersMapResetVisibility();
 }
 
 function handleToolbarTabClick(mode) {
@@ -1255,6 +1520,7 @@ function setPanelMode(mode) {
   }
   syncOwnerMapHeader(mode);
   syncToolbarTabState(mode);
+  updateOwnersMapResetVisibility();
 }
 
 function setPanelLayout(layout) {
@@ -1482,6 +1748,7 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
     initializeOwnersMap();
     window.setTimeout(() => {
       resizeOwnersMap();
+      syncOwnersMapResetPosition();
       if (ownersMap?.getSource("owner-points") && (!wasPanelOpen || ownersMapRevealPending)) {
         startOwnersMapFilterReveal(getOwnersMapPointFeatureCollection());
         return;
@@ -1579,6 +1846,8 @@ function initializeOwnersMap() {
     preserveDrawingBuffer: true
   });
   ensureOwnersMapResizeObserver();
+  bindOwnersMapResetControl();
+  ownersMap.on("moveend", updateOwnersMapResetVisibility);
 
   const ownersGeolocateControl = new mapboxgl.GeolocateControl({
     positionOptions: {
@@ -1696,4 +1965,5 @@ function resizeOwnersMap() {
   if (ownersMap) {
     ownersMap.resize();
   }
+  syncOwnersMapResetPosition();
 }

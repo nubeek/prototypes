@@ -582,6 +582,8 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts } = 
   tile.type = "button";
   tile.className = "target-card territory-crossroad__tile territory-crossroad__tile--preset";
   tile.dataset.presetId = preset.id;
+  tile.dataset.scope = preset.scope || "private";
+  tile.dataset.title = preset.title || "";
 
   const statusCounts = counts || {};
   const totalLabel = formatPresetCount(statusCounts.total);
@@ -1420,16 +1422,39 @@ function bindCrossroadLocationSearch() {
   };
 }
 
-function bindCrossroadPopularToggle() {
-  const toggle = document.getElementById("territoryCrossroadPopularToggle");
-  const content = document.getElementById("territoryCrossroadPopularContent");
-  if (!toggle || !content) return;
+function bindCrossroadPresetTabs() {
+  const tabs = Array.from(document.querySelectorAll(".territory-crossroad__popular .scope-tab"));
+  const searchInput = document.getElementById("territoryCrossroadPresetSearch");
+  const searchClear = document.getElementById("territoryCrossroadPresetSearchClear");
 
-  toggle.addEventListener("click", () => {
-    const isExpanded = toggle.getAttribute("aria-expanded") === "true";
-    toggle.setAttribute("aria-expanded", String(!isExpanded));
-    content.hidden = isExpanded;
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((other) => other.classList.toggle("is-active", other === tab));
+      crossroadPresetActiveScope = tab.dataset.scope || "all";
+      applyCrossroadPresetVisibility();
+    });
   });
+
+  if (searchInput) {
+    const searchField = searchInput.closest(".scope-search");
+
+    searchInput.addEventListener("input", () => {
+      crossroadPresetSearchTerm = searchInput.value;
+      searchField?.classList.toggle("is-active-search", Boolean(crossroadPresetSearchTerm.trim()));
+      if (searchClear) {
+        searchClear.hidden = !crossroadPresetSearchTerm.trim();
+      }
+      applyCrossroadPresetVisibility();
+    });
+
+    if (searchClear) {
+      searchClear.addEventListener("click", () => {
+        searchInput.value = "";
+        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+        searchInput.focus();
+      });
+    }
+  }
 }
 
 function bindPresetTile(tile, preset) {
@@ -1477,6 +1502,32 @@ function revealTerritoryCrossroadEnter(crossroad) {
 }
 
 let crossroadPresetRenderVersion = 0;
+let crossroadPresetActiveScope = "all";
+let crossroadPresetSearchTerm = "";
+
+function applyCrossroadPresetVisibility() {
+  const grid = document.getElementById("territoryCrossroadGrid");
+  const emptyState = document.getElementById("territoryCrossroadPopularEmpty");
+  if (!grid) return;
+
+  const term = crossroadPresetSearchTerm.trim().toLowerCase();
+  let visibleCount = 0;
+
+  grid.querySelectorAll("[data-preset-id]").forEach((tile) => {
+    const scope = tile.dataset.scope || "private";
+    const title = (tile.dataset.title || "").toLowerCase();
+    const matchesScope = crossroadPresetActiveScope === "all" || scope === crossroadPresetActiveScope;
+    const matchesSearch = !term || title.includes(term);
+    const isVisible = matchesScope && matchesSearch;
+
+    tile.hidden = !isVisible;
+    if (isVisible) visibleCount += 1;
+  });
+
+  if (emptyState) {
+    emptyState.hidden = visibleCount > 0;
+  }
+}
 
 function clearCrossroadPresetTiles(grid) {
   grid.querySelectorAll("[data-preset-id]").forEach((tile) => tile.remove());
@@ -1550,6 +1601,8 @@ async function renderCrossroadPresetTiles() {
       grid.append(tile);
     });
   }
+
+  applyCrossroadPresetVisibility();
 }
 
 function consumeTerritorySkipCrossroad() {
@@ -1565,7 +1618,7 @@ function consumeTerritorySkipCrossroad() {
 
 async function initTerritoryCrossroad() {
   bindCrossroadLocationSearch();
-  bindCrossroadPopularToggle();
+  bindCrossroadPresetTabs();
 
   const grid = document.getElementById("territoryCrossroadGrid");
   const crossroad = document.getElementById("territoryCrossroad");

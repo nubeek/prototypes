@@ -6361,6 +6361,13 @@ function getTerritoryMapViewportBounds() {
 }
 
 function getTerritoryMapSearchBounds(longitude, latitude, radiusMiles = TERRITORY_MAP_SEARCH_RADIUS_MILES) {
+  const sharedBounds = window.WefranchRadiusControl?.getCoordinateRadiusBounds?.(
+    longitude,
+    latitude,
+    radiusMiles
+  );
+  if (sharedBounds) return sharedBounds;
+
   const latDelta = radiusMiles / TERRITORY_MILES_PER_LATITUDE_DEGREE;
   const lngDelta = radiusMiles / (
     TERRITORY_MILES_PER_LATITUDE_DEGREE * Math.cos((latitude * Math.PI) / 180)

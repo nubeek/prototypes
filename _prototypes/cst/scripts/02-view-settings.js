@@ -89,6 +89,9 @@ function getCurrentViewSettings() {
         min: selectedNetWorthMin,
         max: selectedNetWorthMax
       },
+      rating: {
+        min: getFranchiseeRatingMin()
+      },
       radius: {
         enabled: radiusFilterEnabled,
         miles: selectedRadiusMiles
@@ -194,6 +197,7 @@ function restoreSavedFilterSelections(settings) {
     filters.netWorth?.min ?? netWorthFilterDefaults.min,
     filters.netWorth?.max ?? netWorthFilterDefaults.max
   );
+  setFranchiseeRatingMin(filters.rating?.min);
   const savedUserLocation = filters.userLocation;
   userLocationCenter = Number.isFinite(Number(savedUserLocation?.lat))
     && Number.isFinite(Number(savedUserLocation?.lng))

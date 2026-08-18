@@ -59,7 +59,8 @@
 
   function createResetController(resetEl, {
     getMapContainer,
-    topOffset = RESET_TOP_OFFSET
+    topOffset = RESET_TOP_OFFSET,
+    getTopOffset
   } = {}) {
     const hideTimer = { id: null };
     let positionObserver = null;
@@ -73,13 +74,21 @@
       );
     }
 
+    function resolveTopOffset() {
+      if (typeof getTopOffset === "function") {
+        const offset = getTopOffset();
+        if (Number.isFinite(offset)) return offset;
+      }
+      return topOffset;
+    }
+
     function syncPosition() {
       if (!resetEl) return;
       const mapContainer = typeof getMapContainer === "function" ? getMapContainer() : getMapContainer;
       if (!mapContainer) return;
 
       const rect = mapContainer.getBoundingClientRect();
-      resetEl.style.top = `${rect.top + topOffset}px`;
+      resetEl.style.top = `${rect.top + resolveTopOffset()}px`;
       resetEl.style.left = `${rect.left + (rect.width / 2)}px`;
     }
 

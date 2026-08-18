@@ -196,6 +196,7 @@ const BRAND_LIST_ENTER_MAX_STAGGER_MS = 48;
 const BRAND_LIST_ENTER_MAX_TARGETS = 120;
 const BRAND_LIST_ENTER_WAIT_MS = 50;
 const BRAND_LIST_BUILD_SLICE_MS = 8;
+const BRAND_ITEM_TOGGLE_MS = 320;
 
 function getTerritoryShapePolygons(geometry) {
   if (geometry?.type === "Polygon") return [geometry.coordinates];
@@ -621,11 +622,15 @@ function setTerritoryBrandItemExpanded(
   territoryList,
   brandId,
   expanded,
-  { syncExpandToggle = true } = {}
+  { syncExpandToggle = true, deferHide = false } = {}
 ) {
   toggle.setAttribute("aria-expanded", String(expanded));
   expandToggle.setAttribute("aria-expanded", String(expanded));
-  territoryList.hidden = !expanded;
+  if (expanded) {
+    territoryList.hidden = false;
+  } else if (!deferHide) {
+    territoryList.hidden = true;
+  }
 
   if (brandId) {
     if (expanded) {
@@ -789,6 +794,119 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
   return item;
 }
 
+let brandItemToggleToken = 0;
+let brandItemExpandOrigin = null;
+
+function prefersReducedTerritoryMotion() {
+  return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+}
+
+function getTerritoryBrandPanelScroll() {
+  return document.querySelector(".territory-brand-panel__scroll");
+}
+
+function resetTerritoryBrandListCollapseStyles(territoryList) {
+  territoryList.classList.remove("is-collapsing");
+  territoryList.style.removeProperty("height");
+}
+
+function stopTerritoryBrandItemToggleAnimation(exceptList = null) {
+  brandItemToggleToken += 1;
+  document.querySelectorAll(".territory-brand-territories.is-collapsing").forEach((list) => {
+    resetTerritoryBrandListCollapseStyles(list);
+    if (list !== exceptList) {
+      list.hidden = true;
+    }
+  });
+}
+
+function easeTerritoryBrandToggle(progress) {
+  return progress * progress * (3 - 2 * progress);
+}
+
+function animateTerritoryBrandToggleFrame(token, durationMs, render) {
+  if (durationMs <= 0) {
+    render(1);
+    return;
+  }
+
+  const startedAt = performance.now();
+  const step = (now) => {
+    if (token !== brandItemToggleToken) return;
+    const progress = Math.min(1, (now - startedAt) / durationMs);
+    render(easeTerritoryBrandToggle(progress));
+    if (progress < 1) requestAnimationFrame(step);
+  };
+
+  requestAnimationFrame(step);
+}
+
+function rememberTerritoryBrandExpandOrigin(item) {
+  if (brandItemExpandOrigin?.item === item) return;
+
+  brandItemExpandOrigin = {
+    item,
+    scrollTop: getTerritoryBrandPanelScroll()?.scrollTop ?? 0
+  };
+}
+
+function scrollTerritoryBrandItemToTop(item) {
+  const header = item.querySelector(".territory-brand-item__header");
+  const scrollParent = getTerritoryBrandPanelScroll();
+  if (!header || !scrollParent) return;
+
+  const token = ++brandItemToggleToken;
+  const durationMs = prefersReducedTerritoryMotion() ? 0 : BRAND_ITEM_TOGGLE_MS;
+
+  requestAnimationFrame(() => {
+    if (token !== brandItemToggleToken) return;
+
+    const startTop = scrollParent.scrollTop;
+    const endTop = startTop
+      + (header.getBoundingClientRect().top - scrollParent.getBoundingClientRect().top);
+
+    animateTerritoryBrandToggleFrame(token, durationMs, (eased) => {
+      scrollParent.scrollTop = startTop + (endTop - startTop) * eased;
+    });
+  });
+}
+
+function collapseTerritoryBrandItem(item, territoryList) {
+  const scrollParent = getTerritoryBrandPanelScroll();
+  const startHeight = territoryList.getBoundingClientRect().height;
+  const startScroll = scrollParent?.scrollTop ?? 0;
+  const endScroll = brandItemExpandOrigin?.item === item
+    ? brandItemExpandOrigin.scrollTop
+    : startScroll;
+  const token = ++brandItemToggleToken;
+  const durationMs = prefersReducedTerritoryMotion() ? 0 : BRAND_ITEM_TOGGLE_MS;
+
+  if (brandItemExpandOrigin?.item === item) {
+    brandItemExpandOrigin = null;
+  }
+
+  if (durationMs <= 0 || startHeight < 1) {
+    resetTerritoryBrandListCollapseStyles(territoryList);
+    territoryList.hidden = true;
+    if (scrollParent) scrollParent.scrollTop = endScroll;
+    return;
+  }
+
+  territoryList.classList.add("is-collapsing");
+  territoryList.style.height = `${startHeight}px`;
+
+  animateTerritoryBrandToggleFrame(token, durationMs, (eased) => {
+    territoryList.style.height = `${startHeight * (1 - eased)}px`;
+    if (scrollParent) {
+      scrollParent.scrollTop = startScroll + (endScroll - startScroll) * eased;
+    }
+    if (eased < 1) return;
+
+    territoryList.hidden = true;
+    resetTerritoryBrandListCollapseStyles(territoryList);
+  });
+}
+
 function toggleTerritoryBrandItemFromElement(element) {
   const item = element.closest(".territory-brand-item");
   const toggle = item?.querySelector(".territory-brand-item__toggle");
@@ -796,13 +914,33 @@ function toggleTerritoryBrandItemFromElement(element) {
   const territoryList = item?.querySelector(".territory-brand-territories");
   if (!item || !toggle || !expandToggle || !territoryList) return;
 
+  const collapsing = territoryList.classList.contains("is-collapsing");
+  const shouldExpand = collapsing || toggle.getAttribute("aria-expanded") !== "true";
+
+  stopTerritoryBrandItemToggleAnimation(shouldExpand ? territoryList : null);
+
+  if (shouldExpand) {
+    rememberTerritoryBrandExpandOrigin(item);
+    setTerritoryBrandItemExpanded(
+      toggle,
+      expandToggle,
+      territoryList,
+      item.dataset.brandId,
+      true
+    );
+    scrollTerritoryBrandItemToTop(item);
+    return;
+  }
+
   setTerritoryBrandItemExpanded(
     toggle,
     expandToggle,
     territoryList,
     item.dataset.brandId,
-    toggle.getAttribute("aria-expanded") !== "true"
+    false,
+    { deferHide: true }
   );
+  collapseTerritoryBrandItem(item, territoryList);
 }
 
 // One listener per event type on the list root. Binding them per row meant tens
@@ -924,6 +1062,8 @@ function syncTerritoryBrandPanelExpandToggle() {
 }
 
 function setAllTerritoryBrandRowsExpanded(expanded) {
+  stopTerritoryBrandItemToggleAnimation();
+  brandItemExpandOrigin = null;
   getTerritoryBrandListItems().forEach((item) => {
     const brandId = item.dataset.brandId;
     const toggle = item.querySelector(".territory-brand-item__toggle");
@@ -1102,11 +1242,6 @@ function formatSummaryCompactInvestment(value) {
   }
 
   return `$${Math.round(value)}`;
-}
-
-function formatSummaryRatingValue(value) {
-  if (!Number.isFinite(value)) return "";
-  return String(value).replace(/\.0$/, "");
 }
 
 function getSummarySelectLabels(selectId, values, formatValue) {
@@ -1333,28 +1468,10 @@ function buildInvestmentSummaryConcept(filters) {
 }
 
 function buildRatingSummaryConcept(filters) {
-  const defaults = getSummaryRangeDefaults("Franchisee rating range");
-  if (!isSummaryRangeActive(filters.ratingMin, filters.ratingMax, defaults)) {
-    return null;
-  }
+  const min = Number(filters.ratingMin);
+  if (!Number.isFinite(min) || min <= 0) return null;
 
-  const minChanged = filters.ratingMin !== defaults.min;
-  const maxChanged = filters.ratingMax !== defaults.max;
-  const minLabel = formatSummaryRatingValue(filters.ratingMin);
-  const maxLabel = formatSummaryRatingValue(filters.ratingMax);
-  let phrase = "";
-
-  if (minChanged && maxChanged && filters.ratingMin === filters.ratingMax) {
-    phrase = `rated ${minLabel}`;
-  } else if (minChanged && maxChanged) {
-    phrase = `rated ${minLabel} to ${maxLabel}`;
-  } else if (maxChanged) {
-    phrase = `rated up to ${maxLabel}`;
-  } else if (minChanged) {
-    phrase = `rated ${minLabel}+`;
-  }
-
-  return phrase ? { id: "rating", phrase } : null;
+  return { id: "rating", phrase: `rated ${min.toFixed(1)}+` };
 }
 
 function buildGeoLevelSummaryConcept(filters) {
@@ -1412,31 +1529,60 @@ function joinSummaryPhrases(phrases) {
   return combined.join(" ");
 }
 
-function formatTerritoryBrandSummary(count) {
+function getTerritoryBrandSummaryParts() {
   const filters = window.territoryFilters?.getState?.() || {};
   const concepts = collectTerritoryBrandSummaryConcepts(filters);
   const visible = concepts.slice(0, TERRITORY_BRAND_SUMMARY_MAX_CONCEPTS);
   const overflowCount = concepts.length - visible.length;
   const byId = Object.fromEntries(visible.map((concept) => [concept.id, concept]));
-  const modifiers = [byId.status?.modifier, byId.category?.modifier].filter(Boolean);
-  const phrases = [
-    byId.location?.phrase,
-    byId.franchise?.phrase,
-    byId.investment?.phrase,
-    byId.rating?.phrase,
-    byId.geoLevel?.phrase,
-    byId.category?.phrase
-  ].filter(Boolean);
 
-  let sentence = `Showing ${count}`;
-  if (modifiers.length) sentence += ` ${modifiers.join(" ")}`;
-  sentence += ` ${count === 1 ? "territory" : "territories"}`;
-  if (phrases.length) sentence += ` ${joinSummaryPhrases(phrases)}`;
+  return {
+    statusModifier: byId.status?.modifier || "",
+    categoryModifier: byId.category?.modifier || "",
+    phrases: [
+      byId.location?.phrase,
+      byId.franchise?.phrase,
+      byId.investment?.phrase,
+      byId.rating?.phrase,
+      byId.geoLevel?.phrase,
+      byId.category?.phrase
+    ].filter(Boolean),
+    overflowCount
+  };
+}
+
+function formatTerritoryBrandSummaryCopy({
+  noun,
+  includeCount = false,
+  count = 0,
+  includeStatus = true
+} = {}) {
+  const { statusModifier, categoryModifier, phrases, overflowCount } = getTerritoryBrandSummaryParts();
+  const modifiers = [
+    includeStatus ? statusModifier : "",
+    categoryModifier
+  ].filter(Boolean);
+  const parts = [];
+
+  if (includeCount) parts.push(`Showing ${count}`);
+  if (modifiers.length) parts.push(modifiers.join(" "));
+  parts.push(noun);
+  if (phrases.length) parts.push(joinSummaryPhrases(phrases));
   if (overflowCount > 0) {
-    sentence += ` with ${overflowCount} more filter${overflowCount === 1 ? "" : "s"} applied`;
+    parts.push(`with ${overflowCount} more filter${overflowCount === 1 ? "" : "s"} applied`);
   }
 
-  return `${sentence}.`;
+  return parts.join(" ");
+}
+
+function formatTerritoryBrandSummary(count) {
+  const noun = count === 1 ? "territory" : "territories";
+  return `${formatTerritoryBrandSummaryCopy({ noun, includeCount: true, count })}.`;
+}
+
+function formatTerritoryBrandAlertName() {
+  const label = formatTerritoryBrandSummaryCopy({ noun: "territories", includeStatus: true });
+  return label ? label.charAt(0).toUpperCase() + label.slice(1) : "Territories";
 }
 
 async function updateTerritoryBrandPanel(brands = [], matchingRecords = [], { isCancelled } = {}) {
@@ -1483,6 +1629,8 @@ async function updateTerritoryBrandPanel(brands = [], matchingRecords = [], { is
   );
   if (!content || isStale()) return;
 
+  stopTerritoryBrandItemToggleAnimation();
+  brandItemExpandOrigin = null;
   list.replaceChildren(content);
   syncTerritoryBrandPanelExpandToggle();
 
@@ -1527,6 +1675,8 @@ function setSelectedTerritory(territoryKey, compareKey = null) {
 
 function closeTerritoryBrandPanel() {
   territoryBrandListBuildToken += 1;
+  stopTerritoryBrandItemToggleAnimation();
+  brandItemExpandOrigin = null;
   cancelTerritoryBrandListEnterAnimation();
   document.getElementById("territoryBrandList")?.replaceChildren();
   const summary = document.getElementById("territoryBrandSummary");
@@ -1542,7 +1692,8 @@ window.territoryBrandPanel = {
   close: closeTerritoryBrandPanel,
   notifyLoadingHidden: notifyTerritoryBrandListLoadingHidden,
   isEnterPending: isTerritoryBrandListEnterPending,
-  createShape: createTerritoryShape
+  createShape: createTerritoryShape,
+  formatAlertName: formatTerritoryBrandAlertName
 };
 
 initTerritoryBrandPanel();
