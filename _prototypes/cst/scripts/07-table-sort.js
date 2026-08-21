@@ -384,9 +384,9 @@ const TABLE_HEADING_SORT_LABELS = {
   category: "Category A–Z"
 };
 
-function getLocationSelectionState(rows = displayedLocations) {
+function getRowSelectionState(rows, selectedIds, getId) {
   const selectedCount = rows.reduce((count, row) => (
-    selectedLocationRowIds.has(row.id) ? count + 1 : count
+    selectedIds.has(getId(row)) ? count + 1 : count
   ), 0);
   const totalCount = rows.length;
   const allSelected = totalCount > 0 && selectedCount === totalCount;
@@ -400,11 +400,17 @@ function getLocationSelectionState(rows = displayedLocations) {
   };
 }
 
-function getLocationSelectAllHeaderMarkup(rows = displayedLocations) {
-  const { allSelected } = getLocationSelectionState(rows);
+function getLocationSelectionState(rows = displayedLocations) {
+  return getRowSelectionState(rows, selectedLocationRowIds, (row) => row.id);
+}
 
+function getFranchiseeSelectionState(rows = displayedFranchisees) {
+  return getRowSelectionState(rows, selectedFranchiseeIndexes, (owner) => owner.originalIndex);
+}
+
+function getSelectAllHeaderMarkup({ allSelected, ariaLabel }) {
   return `
-    <label class="location-row-select location-select-all" aria-label="Select all location rows">
+    <label class="location-row-select location-select-all" aria-label="${ariaLabel}">
       <input
         class="location-row-checkbox location-select-all-checkbox"
         type="checkbox"
@@ -415,15 +421,53 @@ function getLocationSelectAllHeaderMarkup(rows = displayedLocations) {
   `;
 }
 
-function syncLocationHeaderCheckboxState(rows = displayedLocations) {
+function getLocationSelectAllHeaderMarkup(rows = displayedLocations) {
+  return getSelectAllHeaderMarkup({
+    allSelected: getLocationSelectionState(rows).allSelected,
+    ariaLabel: "Select all location rows"
+  });
+}
+
+function getFranchiseeSelectAllHeaderMarkup(rows = displayedFranchisees) {
+  return getSelectAllHeaderMarkup({
+    allSelected: getFranchiseeSelectionState(rows).allSelected,
+    ariaLabel: "Select all franchisee rows"
+  });
+}
+
+function getRowSelectCellMarkup({ rowNumber, isSelected, ariaLabel, inputAttributes }) {
+  return `
+    <td class="location-number-cell">
+      <label class="location-row-select" aria-label="${ariaLabel}">
+        <input
+          class="location-row-checkbox"
+          type="checkbox"
+          ${inputAttributes}
+          ${isSelected ? "checked" : ""}
+        >
+        <span class="location-row-number" aria-hidden="true">${rowNumber}</span>
+        <span class="location-row-checkbox-visual" aria-hidden="true"></span>
+      </label>
+    </td>
+  `;
+}
+
+function syncSelectAllHeaderState({ allSelected, partiallySelected }) {
   const selectAllLabel = locationNumberColumnHeader?.querySelector(".location-select-all");
   const selectAllCheckbox = locationNumberColumnHeader?.querySelector(".location-select-all-checkbox");
   if (!(selectAllLabel instanceof HTMLLabelElement) || !(selectAllCheckbox instanceof HTMLInputElement)) return;
 
-  const { allSelected, partiallySelected } = getLocationSelectionState(rows);
   selectAllCheckbox.checked = allSelected;
   selectAllCheckbox.indeterminate = partiallySelected;
   selectAllLabel.classList.toggle("is-indeterminate", partiallySelected);
+}
+
+function syncLocationHeaderCheckboxState(rows = displayedLocations) {
+  syncSelectAllHeaderState(getLocationSelectionState(rows));
+}
+
+function syncFranchiseeHeaderCheckboxState(rows = displayedFranchisees) {
+  syncSelectAllHeaderState(getFranchiseeSelectionState(rows));
 }
 
 function getSortableHeaderMarkup(label) {
@@ -443,13 +487,16 @@ function setMainTableHeader(header, { label, sortKey, width }) {
     header.className = "location-number-header";
     header.removeAttribute("data-sort-key");
     header.removeAttribute("aria-sort");
-    header.innerHTML = getLocationSelectAllHeaderMarkup();
+    header.innerHTML = isDatasetTableView()
+      ? getLocationSelectAllHeaderMarkup()
+      : getFranchiseeSelectAllHeaderMarkup();
   }
 }
 
 function syncLocationTableView() {
   restoreFranchiseesTableView({ clearRaw: false, clearGlobalRaw: false });
   franchiseesTable?.classList.add("locations-table");
+  franchiseesTable?.classList.add("has-row-select");
   tableWrap?.classList.add("is-locations-view");
   LOCATION_TABLE_HEADERS.forEach((config) => setMainTableHeader(config.header, config));
 }
@@ -457,7 +504,11 @@ function syncLocationTableView() {
 function syncFranchiseesTableView() {
   restoreFranchiseesTableView({ clearRaw: false, clearGlobalRaw: false });
   franchiseesTable?.classList.remove("locations-table");
+  franchiseesTable?.classList.add("has-row-select");
   tableWrap?.classList.remove("is-locations-view");
+  if (locationNumberColumnHeader) {
+    setMainTableHeader(locationNumberColumnHeader, { label: "", sortKey: "", width: "64px" });
+  }
 }
 
 function syncToolbarViewState() {
@@ -504,15 +555,27 @@ function renderFranchisees(rows) {
 
   tableBody.innerHTML = rows
     .map(
-      (owner) => {
+      (owner, rowIndex) => {
         const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
         const isContactHidden = hiddenContactOwnerIndexes.has(owner.originalIndex);
+        const isChecked = selectedFranchiseeIndexes.has(owner.originalIndex);
+        const isRowSelected = activeDetailOwnerIndex === owner.originalIndex
+          || activeOrgOwnerIndex === owner.originalIndex
+          || activeMapOwnerIndex === owner.originalIndex
+          || activeRawOwnerIndex === owner.originalIndex;
+        const rowNumber = rowIndex + 1;
 
         return `
         <tr
-          class="${activeDetailOwnerIndex === owner.originalIndex || activeOrgOwnerIndex === owner.originalIndex || activeMapOwnerIndex === owner.originalIndex || activeRawOwnerIndex === owner.originalIndex ? "is-selected" : ""}"
+          class="${[isRowSelected ? "is-selected" : "", isChecked ? "is-checked" : ""].filter(Boolean).join(" ")}"
           data-owner-index="${owner.originalIndex}"
         >
+          ${getRowSelectCellMarkup({
+            rowNumber,
+            isSelected: isChecked,
+            ariaLabel: `Select franchisee row ${rowNumber}`,
+            inputAttributes: `data-owner-index="${owner.originalIndex}"`
+          })}
           <td>
             <div class="name-cell">
               <div class="ui-tile logo">
@@ -579,6 +642,8 @@ function renderFranchisees(rows) {
       }
     )
     .join("");
+
+  syncFranchiseeHeaderCheckboxState(rows);
 }
 
 function getOwnerLocationRows(owner) {
@@ -987,18 +1052,12 @@ function renderLocations(rows) {
 
       return `
         <tr class="${row.isProspectDataset ? "prospect-dataset-row" : ""} ${isSelected ? "is-checked" : ""} ${isProspectHidden ? "is-contact-hidden" : ""}" ${getLocationRowAttributeMarkup(row, pageRowIndex)}>
-          <td class="location-number-cell">
-            <label class="location-row-select" aria-label="Select location row ${rowNumber}">
-              <input
-                class="location-row-checkbox"
-                type="checkbox"
-                data-location-row-id="${row.id}"
-                ${isSelected ? "checked" : ""}
-              >
-              <span class="location-row-number" aria-hidden="true">${rowNumber}</span>
-              <span class="location-row-checkbox-visual" aria-hidden="true"></span>
-            </label>
-          </td>
+          ${getRowSelectCellMarkup({
+            rowNumber,
+            isSelected,
+            ariaLabel: `Select location row ${rowNumber}`,
+            inputAttributes: `data-location-row-id="${row.id}"`
+          })}
           <td>
             ${getDatasetNameCellMarkup(row)}
           </td>
@@ -1212,7 +1271,7 @@ function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
   const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
 
   if (isRadiusFilterActive()) {
-    return ownerLocations.some((location) => locationWithinSelectedRadius(location));
+    return ownerLocations.some((location) => locationRecordMatchesActiveRadius(location));
   }
 
   if (selectedLocationSearches.length || locationLabels.length) {
@@ -2203,6 +2262,15 @@ function updateClearFiltersButton() {
     filterToggleLabel.textContent = hasAppliedFilters
       ? `Filters (${appliedFilterCount})`
       : "Filters";
+  }
+
+  if (readerEditQueryLabel) {
+    const filtersLabel = hasAppliedFilters
+      ? `Filters (${appliedFilterCount})`
+      : "Filters";
+    readerEditQueryLabel.textContent = filtersLabel;
+    readerEditQueryBtn?.setAttribute("aria-label", filtersLabel);
+    readerEditQueryBtn?.setAttribute("title", filtersLabel);
   }
 
   persistViewSettings();

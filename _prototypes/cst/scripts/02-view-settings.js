@@ -329,6 +329,10 @@ function setReaderMode(isActive, { title = null, savedSearchId = undefined, pers
   readerModeActive = Boolean(isActive);
   readerModeSavedSearchTitle = readerModeActive ? (title || getSavedSearchById(activeSavedSearchId)?.title || null) : null;
   card.classList.toggle("is-reader-mode", readerModeActive);
+  card.classList.toggle(
+    "is-owned-saved-search",
+    readerModeActive && Boolean(window.cstSavedSearchStore?.canEdit?.(activeSavedSearchId))
+  );
 
   if (readerModeActive) {
     setFilterPanelOpen(false);

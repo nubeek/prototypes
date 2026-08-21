@@ -11,7 +11,9 @@
 //   owners        legacy alias for franchisees
 //   units         { min, max } unit count range; omit a bound to keep the default
 //   contacts      { min, max } contact count range
-// scope: "private" | "team" | "public" — used by the splash category tabs
+// scope: "private" | "team" | "public" — used by the splash category tabs.
+// Bundled (hardcoded) queries are always public so they show under Public
+// after a localStorage clear. User-created views keep the chosen visibility.
 // snapshot: pre-rendered map image. Regenerate with:
 //   node _prototypes/cst/scripts/generate-splash-snapshots.js
 // view: which table the search opens in ("franchisees" | "candidates" | "locations")
@@ -178,7 +180,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
   {
     id: "planet-fitness-at-scale",
     title: "Planet Fitness at scale",
-    scope: "team",
+    scope: "public",
     ownerCount: 6,
     snapshot: "assets/snapshots/planet-fitness-at-scale.jpg",
     filters: {
@@ -189,7 +191,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
   {
     id: "midwest-operator-groups",
     title: "Midwest operator groups",
-    scope: "private",
+    scope: "public",
     ownerCount: 15,
     snapshot: "assets/snapshots/midwest-operator-groups.jpg",
     filters: {
@@ -199,7 +201,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
   {
     id: "southeast-expansion",
     title: "Southeast expansion targets",
-    scope: "team",
+    scope: "public",
     ownerCount: 11,
     snapshot: "assets/snapshots/southeast-expansion.jpg",
     filters: {
@@ -209,7 +211,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
   {
     id: "boutique-studio-operators",
     title: "Boutique studio operators",
-    scope: "private",
+    scope: "public",
     ownerCount: 7,
     snapshot: "assets/snapshots/boutique-studio-operators.jpg",
     filters: {
@@ -219,7 +221,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
   {
     id: "deep-contact-rosters",
     title: "Deep contact rosters",
-    scope: "team",
+    scope: "public",
     ownerCount: 9,
     snapshot: "assets/snapshots/deep-contact-rosters.jpg",
     filters: {
@@ -229,7 +231,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
   {
     id: "canada-and-mexico-units",
     title: "Canada & Mexico units",
-    scope: "private",
+    scope: "public",
     ownerCount: 11,
     unitCount: 739,
     snapshot: "assets/snapshots/canada-and-mexico-units.jpg",
@@ -255,6 +257,12 @@ window.cstSavedSearchesData = [
 ];
 
 window.cstSavedSearchStore = {
+  isBundled(searchId) {
+    return bundledCstSavedSearchIds.has(searchId);
+  },
+  canEdit(searchId) {
+    return Boolean(searchId) && !bundledCstSavedSearchIds.has(searchId);
+  },
   create(value) {
     const title = String(value?.title || "").trim();
     const savedSearch = normalizeStoredCstSavedSearch({

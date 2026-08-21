@@ -37,6 +37,12 @@ const CST_SPLASH_SAVED_DELETE_BLUR_PX = 12;
 const CST_SPLASH_SAVED_DELETE_SHIFT_DURATION_MS = 680;
 const CST_SPLASH_SAVED_DELETE_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
 const CST_SPLASH_SAVED_SCOPES = new Set(["all", "private", "team", "public"]);
+const CST_SPLASH_SAVED_EMPTY_MESSAGES = {
+  all: "No saved searches match your search.",
+  private: "You haven't saved any private searches.",
+  team: "You haven't saved any team searches.",
+  public: "You haven't saved any public searches."
+};
 
 /* Web Mercator projection (matches Mapbox center/zoom rendering) --------- */
 
@@ -92,6 +98,8 @@ function computeCstSplashZoom(west, south, east, north, width = CST_SPLASH_SNAPS
 // Same source as the live query map: region boxes when the query is states
 // only, otherwise the pins getMapPointFeatures() would draw.
 function getCstSplashRegionFitBounds() {
+  if (typeof isRadiusFilterActive === "function" && isRadiusFilterActive()) return null;
+
   const regionSearches = selectedLocationSearches.filter((search) => isRegionOnlyLocationSearch(search));
   if (!regionSearches.length || userLocationCenter) return null;
   if (selectedLocationSearches.some((search) => search && !isRegionOnlyLocationSearch(search))) return null;
@@ -163,6 +171,14 @@ function computeCstSplashView(points) {
   const coordinates = (points || [])
     .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng))
     .map((point) => [point.lng, point.lat]);
+
+  if (typeof getRadiusCircleFeatureCollection === "function") {
+    getRadiusCircleFeatureCollection().features.forEach((feature) => {
+      const ring = feature?.geometry?.coordinates?.[0];
+      if (Array.isArray(ring)) coordinates.push(...ring);
+    });
+  }
+
   if (!coordinates.length) return CST_SPLASH_DEFAULT_VIEW;
 
   return computeCstSplashViewFromBounds(getCstSplashBoundsFromCoordinates(coordinates));
@@ -244,7 +260,7 @@ function setCstSplashSavedScope(scope, { render = true } = {}) {
   });
 
   if (render) {
-    renderCstSplashTiles();
+    applyCstSplashSavedVisibility();
   }
 }
 
@@ -262,14 +278,54 @@ function resetCstSplashSavedSearchFilter() {
   }
 }
 
-function getVisibleCstSplashSavedSearches() {
-  const term = cstSplashSavedSearchTerm.trim().toLowerCase();
+function getCstSplashScopeGrid(scope) {
+  return document.querySelector(`[data-splash-grid="${scope}"]`);
+}
 
-  return getCstSplashSavedSearches().filter((savedSearch) => {
-    const matchesScope = cstSplashSavedActiveScope === "all" || savedSearch.scope === cstSplashSavedActiveScope;
-    const matchesSearch = !term || savedSearch.title.toLowerCase().includes(term);
-    return matchesScope && matchesSearch;
+function applyCstSplashSavedVisibility() {
+  const stack = document.getElementById("cstSplashScopeStack");
+  const emptyState = document.getElementById("cstSplashSavedEmpty");
+  if (!stack) return;
+
+  const term = cstSplashSavedSearchTerm.trim().toLowerCase();
+  const activeScope = cstSplashSavedActiveScope;
+  let totalVisible = 0;
+
+  stack.querySelectorAll(".cst-splash__scope-section").forEach((section) => {
+    const sectionScope = section.dataset.splashScope;
+    const heading = section.querySelector(".cst-splash__scope-heading");
+    let sectionVisible = 0;
+
+    section.querySelectorAll("[data-saved-search-id]").forEach((tile) => {
+      const title = (tile.dataset.title || "").toLowerCase();
+      const matchesSearch = !term || title.includes(term);
+      tile.hidden = !matchesSearch;
+      if (matchesSearch) sectionVisible += 1;
+    });
+
+    if (activeScope === "all") {
+      section.hidden = sectionVisible === 0;
+      if (heading) heading.hidden = section.hidden;
+      if (!section.hidden) totalVisible += sectionVisible;
+      return;
+    }
+
+    if (activeScope === sectionScope) {
+      section.hidden = false;
+      if (heading) heading.hidden = sectionVisible === 0;
+      totalVisible += sectionVisible;
+      return;
+    }
+
+    section.hidden = true;
+    if (heading) heading.hidden = true;
   });
+
+  if (emptyState) {
+    emptyState.textContent = CST_SPLASH_SAVED_EMPTY_MESSAGES[activeScope]
+      || CST_SPLASH_SAVED_EMPTY_MESSAGES.all;
+    emptyState.hidden = totalVisible > 0;
+  }
 }
 
 function serializeCstSavedLocationSearch(search) {
@@ -620,11 +676,39 @@ function getCstSplashDynamicPreview(savedSearch) {
   return preview;
 }
 
+function isCstUserCreatedSavedSearch(savedSearch) {
+  return Boolean(window.cstSavedSearchStore?.canEdit?.(savedSearch?.id));
+}
+
+function bindCstSplashTileSettings(tile, savedSearch) {
+  const settingsControl = tile.querySelector(".target-settings");
+  if (!settingsControl) return;
+
+  const openSavedSearchSettings = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const latestSearch = getCstSplashSavedSearches().find((entry) => entry.id === savedSearch.id)
+      || savedSearch;
+    window.openCreateTargetModal?.(settingsControl, { savedSearch: latestSearch });
+  };
+
+  settingsControl.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+  });
+  settingsControl.addEventListener("click", openSavedSearchSettings);
+  settingsControl.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    openSavedSearchSettings(event);
+  });
+}
+
 function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, pointsUrl } = {}) {
   const tile = document.createElement("button");
   tile.type = "button";
   tile.className = "target-card cst-splash__tile";
   tile.dataset.savedSearchId = savedSearch.id;
+  tile.dataset.title = savedSearch.title;
 
   const valueLabel = formatCstSplashCount(metric.value);
   tile.setAttribute(
@@ -641,6 +725,23 @@ function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, poi
   const pointsImage = !snapshotUrl && pointsUrl
     ? `<img class="target-map-points" src="${escapeCstSplashHtml(pointsUrl)}" alt="" aria-hidden="true">`
     : "";
+  const canEditFromSplash = isCstUserCreatedSavedSearch(savedSearch);
+  const tileActionsMarkup = canEditFromSplash
+    ? `
+        <span class="target-card-actions">
+          <span class="target-settings" role="button" tabindex="0" aria-label="Edit search settings">
+            <img src="assets/settings.svg" alt="">
+          </span>
+          <span class="target-chevron" aria-hidden="true">
+            <img src="assets/chevron.svg" alt="">
+          </span>
+        </span>
+      `
+    : `
+        <span class="target-chevron" aria-hidden="true">
+          <img src="assets/chevron.svg" alt="">
+        </span>
+      `;
 
   tile.innerHTML = `
     <div class="target-map">${snapshotImage}${baseImage}${pointsImage}</div>
@@ -649,16 +750,22 @@ function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, poi
       <span class="target-label">${escapeCstSplashHtml(metric.label)}</span>
       <div class="target-prospects-row">
         <span class="target-number">${valueLabel}</span>
-        <span class="target-chevron" aria-hidden="true">
-          <img src="assets/chevron.svg" alt="">
-        </span>
+        ${tileActionsMarkup}
       </div>
     </div>
   `;
 
-  tile.addEventListener("click", () => {
+  tile.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest(".target-settings")) {
+      return;
+    }
+
     openCstSplashSavedSearch(savedSearch);
   });
+
+  if (canEditFromSplash) {
+    bindCstSplashTileSettings(tile, savedSearch);
+  }
 
   return tile;
 }
@@ -697,7 +804,7 @@ function renderCstSplashGenerateTiles() {
       console.warn("Unable to render the saved search preview.", error);
     }
 
-    document.getElementById("cstSplashGrid")?.append(createCstSplashTile(savedSearch, {
+    getCstSplashScopeGrid(savedSearch.scope)?.append(createCstSplashTile(savedSearch, {
       baseMapUrl: buildCstSplashBaseMapUrl(tileData.view),
       metric: tileData.metric,
       pointsUrl
@@ -706,32 +813,30 @@ function renderCstSplashGenerateTiles() {
 }
 
 function renderCstSplashTiles({ excludedSearchId = null } = {}) {
-  const grid = document.getElementById("cstSplashGrid");
-  const emptyState = document.getElementById("cstSplashSavedEmpty");
-  if (!grid) return;
+  const stack = document.getElementById("cstSplashScopeStack");
+  if (!stack) return;
 
-  grid.replaceChildren();
+  stack.querySelectorAll("[data-splash-grid]").forEach((grid) => {
+    grid.replaceChildren();
+  });
 
   if (isCstSplashSnapshotGenerateMode()) {
     renderCstSplashGenerateTiles();
+    applyCstSplashSavedVisibility();
     return;
   }
 
-  const visibleSearches = getVisibleCstSplashSavedSearches().filter(
-    (savedSearch) => savedSearch.id !== excludedSearchId
-  );
+  getCstSplashSavedSearches()
+    .filter((savedSearch) => savedSearch.id !== excludedSearchId)
+    .forEach((savedSearch) => {
+      getCstSplashScopeGrid(savedSearch.scope)?.append(createRenderedCstSplashTile(savedSearch));
+    });
 
-  visibleSearches.forEach((savedSearch) => {
-    grid.append(createRenderedCstSplashTile(savedSearch));
-  });
-
-  if (emptyState) {
-    emptyState.hidden = visibleSearches.length > 0;
-  }
+  applyCstSplashSavedVisibility();
 }
 
 function animateCstSplashSavedSearchInsertion(savedSearch) {
-  const grid = document.getElementById("cstSplashGrid");
+  const grid = getCstSplashScopeGrid(savedSearch.scope);
   if (!grid) return;
 
   const savedScroll = document.getElementById("cstSplash");
@@ -746,7 +851,7 @@ function animateCstSplashSavedSearchInsertion(savedSearch) {
   const newTile = createRenderedCstSplashTile(savedSearch);
   newTile.style.pointerEvents = "none";
   grid.prepend(newTile);
-  document.getElementById("cstSplashSavedEmpty")?.setAttribute("hidden", "");
+  applyCstSplashSavedVisibility();
 
   const shouldReduceMotion = usesReducedMotion()
     || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -816,8 +921,10 @@ function animateCstSplashSavedSearchShift(
 }
 
 function animateCstSplashSavedSearchDeletion(savedSearchId) {
-  const grid = document.getElementById("cstSplashGrid");
-  const removedTile = grid?.querySelector(`[data-saved-search-id="${CSS.escape(savedSearchId)}"]`);
+  const removedTile = document.querySelector(
+    `#cstSplashScopeStack [data-saved-search-id="${CSS.escape(savedSearchId)}"]`
+  );
+  const grid = removedTile?.closest("[data-splash-grid]");
   if (!grid || !removedTile) return;
 
   const savedScroll = document.getElementById("cstSplash");
@@ -828,8 +935,7 @@ function animateCstSplashSavedSearchDeletion(savedSearchId) {
 
   if (shouldReduceMotion) {
     removedTile.remove();
-    const emptyState = document.getElementById("cstSplashSavedEmpty");
-    if (emptyState) emptyState.hidden = grid.children.length > 0;
+    applyCstSplashSavedVisibility();
     return;
   }
 
@@ -866,9 +972,7 @@ function animateCstSplashSavedSearchDeletion(savedSearchId) {
       );
 
       removedTile.remove();
-
-      const emptyState = document.getElementById("cstSplashSavedEmpty");
-      if (emptyState) emptyState.hidden = grid.children.length > 0;
+      applyCstSplashSavedVisibility();
 
       animateCstSplashSavedSearchShift(
         remainingTiles,
@@ -910,6 +1014,8 @@ function updateCstSavedView(searchId, {
   visibility = "private",
   alerts = null
 } = {}) {
+  if (!window.cstSavedSearchStore?.canEdit?.(searchId)) return null;
+
   const savedSearch = window.cstSavedSearchStore?.update?.(searchId, {
     title,
     description,
@@ -919,10 +1025,15 @@ function updateCstSavedView(searchId, {
   if (!savedSearch) return null;
 
   renderCstSplashTiles();
+  if (isCstSplashOpen()) {
+    setCstSplashSavedScope(savedSearch.scope);
+  }
   return savedSearch;
 }
 
 function deleteCstSavedView(searchId) {
+  if (!window.cstSavedSearchStore?.canEdit?.(searchId)) return null;
+
   const searches = getCstSplashSavedSearches();
   const savedSearch = searches.find((entry) => entry.id === searchId);
   if (!savedSearch) return null;
@@ -948,11 +1059,14 @@ function revealNewCstSplashSavedSearch(savedSearch) {
   resetCstSplashSavedSearchFilter();
   setCstSplashSavedScope(savedSearch.scope, { render: false });
   renderCstSplashTiles({ excludedSearchId: savedSearch.id });
-  document.getElementById("cstSplashSavedEmpty")?.setAttribute("hidden", "");
   showCstSplash({ animate: false });
 
   whenCstSplashVisible(() => {
     animateCstSplashSavedSearchInsertion(savedSearch);
+    const newTile = document.querySelector(
+      `#cstSplashScopeStack [data-saved-search-id="${CSS.escape(savedSearch.id)}"]`
+    );
+    newTile?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   });
 }
 
@@ -963,11 +1077,11 @@ function revealDeletedCstSplashSavedSearch({ savedSearch, scopeIndex = 0 } = {})
   setCstSplashSavedScope(savedSearch.scope, { render: false });
   renderCstSplashTiles();
 
-  const grid = document.getElementById("cstSplashGrid");
+  const grid = getCstSplashScopeGrid(savedSearch.scope);
   if (grid) {
     const removedTile = createRenderedCstSplashTile(savedSearch);
     grid.insertBefore(removedTile, grid.children[Math.max(0, scopeIndex)] || null);
-    document.getElementById("cstSplashSavedEmpty")?.setAttribute("hidden", "");
+    applyCstSplashSavedVisibility();
   }
   showCstSplash({ animate: false });
 
@@ -1907,7 +2021,7 @@ function bindCstSplashSavedTabs() {
       if (searchClear) {
         searchClear.hidden = !cstSplashSavedSearchTerm.trim();
       }
-      renderCstSplashTiles();
+      applyCstSplashSavedVisibility();
     });
 
     if (searchClear) {

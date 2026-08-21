@@ -40,16 +40,29 @@ if (tableBody) {
     if (!(checkbox instanceof HTMLInputElement) || !checkbox.classList.contains("location-row-checkbox")) return;
 
     const rowId = checkbox.dataset.locationRowId;
-    if (!rowId) return;
+    if (rowId) {
+      if (checkbox.checked) {
+        selectedLocationRowIds.add(rowId);
+      } else {
+        selectedLocationRowIds.delete(rowId);
+      }
 
-    if (checkbox.checked) {
-      selectedLocationRowIds.add(rowId);
-    } else {
-      selectedLocationRowIds.delete(rowId);
+      checkbox.closest("tr[data-location-row-id]")?.classList.toggle("is-checked", checkbox.checked);
+      syncLocationHeaderCheckboxState(displayedLocations);
+      return;
     }
 
-    checkbox.closest("tr[data-location-row-id]")?.classList.toggle("is-checked", checkbox.checked);
-    syncLocationHeaderCheckboxState(displayedLocations);
+    const ownerIndex = Number(checkbox.dataset.ownerIndex);
+    if (!Number.isFinite(ownerIndex)) return;
+
+    if (checkbox.checked) {
+      selectedFranchiseeIndexes.add(ownerIndex);
+    } else {
+      selectedFranchiseeIndexes.delete(ownerIndex);
+    }
+
+    checkbox.closest("tr[data-owner-index]")?.classList.toggle("is-checked", checkbox.checked);
+    syncFranchiseeHeaderCheckboxState(displayedFranchisees);
   });
 
   tableBody.addEventListener("click", (event) => {
@@ -186,18 +199,32 @@ if (franchiseesTable) {
   franchiseesTable.addEventListener("change", (event) => {
     const checkbox = event.target;
     if (!(checkbox instanceof HTMLInputElement) || !checkbox.classList.contains("location-select-all-checkbox")) return;
-    if (!isDatasetTableView()) return;
 
     const shouldSelect = checkbox.checked;
-    displayedLocations.forEach((row) => {
+
+    if (isDatasetTableView()) {
+      displayedLocations.forEach((row) => {
+        if (shouldSelect) {
+          selectedLocationRowIds.add(row.id);
+        } else {
+          selectedLocationRowIds.delete(row.id);
+        }
+      });
+
+      renderLocations(displayedLocations);
+      syncSortHeaders();
+      return;
+    }
+
+    displayedFranchisees.forEach((owner) => {
       if (shouldSelect) {
-        selectedLocationRowIds.add(row.id);
+        selectedFranchiseeIndexes.add(owner.originalIndex);
       } else {
-        selectedLocationRowIds.delete(row.id);
+        selectedFranchiseeIndexes.delete(owner.originalIndex);
       }
     });
 
-    renderLocations(displayedLocations);
+    renderFranchisees(displayedFranchisees);
     syncSortHeaders();
   });
 }
@@ -802,13 +829,19 @@ function finalizeCreateTargetModalClose() {
   syncCreateTargetAlertsState();
 
   if (lastCreateTargetTrigger instanceof HTMLElement) {
-    lastCreateTargetTrigger.focus({ preventScroll: true });
+    if (lastCreateTargetTrigger.classList.contains("target-settings")) {
+      lastCreateTargetTrigger.blur();
+      lastCreateTargetTrigger.closest(".target-card")?.blur();
+    } else {
+      lastCreateTargetTrigger.focus({ preventScroll: true });
+    }
   }
   lastCreateTargetTrigger = null;
 }
 
 function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
   if (!createTargetModal) return;
+  if (savedSearch?.id && !window.cstSavedSearchStore?.canEdit?.(savedSearch.id)) return;
 
   if (createTargetModalCloseTimeoutId) {
     window.clearTimeout(createTargetModalCloseTimeoutId);
@@ -894,7 +927,7 @@ if (readerViewSettingsBtn) {
   readerViewSettingsBtn.addEventListener("click", (event) => {
     event.preventDefault();
     const savedSearch = getSavedSearchById(activeSavedSearchId);
-    if (!savedSearch) return;
+    if (!savedSearch || !window.cstSavedSearchStore?.canEdit?.(savedSearch.id)) return;
 
     openCreateTargetModal(readerViewSettingsBtn, { savedSearch });
   });
@@ -967,12 +1000,15 @@ if (createTargetForm) {
     }
 
     const wasEditing = Boolean(editingSavedSearchId);
+    const wasEditingFromSplash = lastCreateTargetTrigger?.classList?.contains("target-settings");
     closeCreateTargetModal();
     if (wasEditing) {
-      setReaderMode(true, {
-        title: savedSearch.title,
-        savedSearchId: savedSearch.id
-      });
+      if (!wasEditingFromSplash) {
+        setReaderMode(true, {
+          title: savedSearch.title,
+          savedSearchId: savedSearch.id
+        });
+      }
       return;
     }
 

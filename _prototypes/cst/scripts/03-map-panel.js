@@ -45,8 +45,9 @@ function ensureCstMapboxGl() {
   return cstMapboxGlLoader;
 }
 
-function getLocationSearchCoordinates(search) {
-  if (isRegionOnlyLocationSearch(search)) return null;
+function getLocationSearchCoordinates(search, { allowRegion = false } = {}) {
+  if (!search) return null;
+  if (!allowRegion && isRegionOnlyLocationSearch(search)) return null;
 
   const storedLongitude = Number(search?.coordinates?.longitude);
   const storedLatitude = Number(search?.coordinates?.latitude);
@@ -63,6 +64,10 @@ function getLocationSearchCoordinates(search) {
     lat: latitude,
     lng: longitude
   };
+}
+
+function getRadiusCenterForSearch(search) {
+  return getLocationSearchCoordinates(search, { allowRegion: true });
 }
 
 function getMapFilterLocationCenter(locationLabel) {
@@ -132,6 +137,8 @@ function locationRecordMatchesStateCap(location, stateCodes = getIncludedLocatio
 }
 
 function getSelectedRegionFitBounds() {
+  if (isRadiusFilterActive()) return null;
+
   const regionSearches = selectedLocationSearches.filter((search) => isRegionOnlyLocationSearch(search));
   if (!regionSearches.length) return null;
   if (userLocationCenter) return null;
@@ -154,15 +161,12 @@ function getSelectedRegionFitBounds() {
 }
 
 function getSelectedRadiusCenters() {
-  const searchCenters = selectedLocationSearches
-    .filter((search) => !isRegionOnlyLocationSearch(search))
-    .map(getLocationSearchCoordinates);
-  const labelCenters = selectedLocationLabels
-    .filter((label) => {
-      const search = window.cstLocationSearch?.fromLabel?.(label);
-      return !isRegionOnlyLocationSearch(search);
-    })
-    .map((label) => getMapFilterLocationCenter(label));
+  const searchCenters = selectedLocationSearches.map(getRadiusCenterForSearch);
+  const labelCenters = selectedLocationLabels.map((label) => {
+    const search = selectedLocationSearches.find((item) => item.label === label)
+      || window.cstLocationSearch?.fromLabel?.(label);
+    return getRadiusCenterForSearch(search) || getMapFilterLocationCenter(label);
+  });
   const centers = [
     ...searchCenters,
     ...labelCenters
@@ -207,6 +211,17 @@ function locationWithinSelectedRadius(location) {
   );
 }
 
+function locationRecordIsInSelectedRegion(location) {
+  const stateCodes = getIncludedLocationStateCodes();
+  if (!stateCodes.length) return false;
+  return locationRecordMatchesStateCap(location, stateCodes);
+}
+
+function locationRecordMatchesActiveRadius(location) {
+  if (locationRecordIsInSelectedRegion(location)) return true;
+  return locationWithinSelectedRadius(location);
+}
+
 function locationRecordIsExcluded(location) {
   if (locationRecordMatchesSearchList(location, excludedLocationSearches)) return true;
   if (!excludedLocationLabels.length) return false;
@@ -237,10 +252,7 @@ function rowMatchesLocationFilter(row) {
   if (locationRecordIsExcluded(location)) return false;
 
   if (isRadiusFilterActive()) {
-    if (typeof row?.lat === "number" && typeof row?.lng === "number") {
-      if (!locationWithinSelectedRadius(row)) return false;
-    }
-    return locationRecordMatchesStateCap(location);
+    return locationRecordMatchesActiveRadius(location);
   }
 
   if (!locationRecordMatchesIncludedSelection(location)) return false;
@@ -251,8 +263,7 @@ function mapLocationMatchesSelectedFilter(location) {
   if (locationRecordIsExcluded(location)) return false;
 
   if (isRadiusFilterActive()) {
-    if (!locationWithinSelectedRadius(location)) return false;
-    return locationRecordMatchesStateCap(location);
+    return locationRecordMatchesActiveRadius(location);
   }
 
   if (!selectedLocationSearches.length && !selectedLocationLabels.length) return true;
@@ -418,7 +429,7 @@ function flyMapToBounds(mapInstance, bounds, { padding = MAP_FIT_PADDING, maxZoo
 function getOwnersMapBoundsForLocationSearch(location) {
   if (!location || !window.mapboxgl) return null;
 
-  if (isRegionOnlyLocationSearch(location)) {
+  if (isRegionOnlyLocationSearch(location) && !isRadiusFilterActive()) {
     const regionBounds = window.cstLocationSearch?.getRegionBounds?.(location.stateCode);
     if (Array.isArray(regionBounds) && regionBounds.length === 4) {
       const [west, south, east, north] = regionBounds;
@@ -426,7 +437,8 @@ function getOwnersMapBoundsForLocationSearch(location) {
     }
   }
 
-  const center = getLocationSearchCoordinates(location)
+  const center = getRadiusCenterForSearch(location)
+    || getLocationSearchCoordinates(location)
     || getMapFilterLocationCenter(location.label);
   if (!center) return null;
 

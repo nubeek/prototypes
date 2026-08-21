@@ -282,7 +282,10 @@
         <section class="cst-splash__saved" aria-label="Saved searches">
           <div class="scope-toolbar">
             <nav class="scope-tabs" aria-label="Saved search type">
-              <button class="scope-tab is-active" type="button" data-scope="all">All</button>
+              <button class="scope-tab scope-tab--icon is-active" type="button" data-scope="all" aria-label="All">
+                <img class="scope-tab-icon" src="assets/home.svg" alt="" aria-hidden="true">
+              </button>
+              <span class="cst-splash__scope-tabs-divider" aria-hidden="true"></span>
               <button class="scope-tab" type="button" data-scope="private">Private</button>
               <button class="scope-tab" type="button" data-scope="team">Team</button>
               <button class="scope-tab" type="button" data-scope="public">Public</button>
@@ -302,7 +305,20 @@
             </label>
           </div>
           <div class="cst-splash__saved-scroll">
-            <div class="cst-splash__grid" id="cstSplashGrid"></div>
+            <div class="cst-splash__scope-stack" id="cstSplashScopeStack">
+              <section class="cst-splash__scope-section" data-splash-scope="private">
+                <h3 class="cst-splash__scope-heading">Private</h3>
+                <div class="cst-splash__grid" id="cstSplashPrivateGrid" data-splash-grid="private"></div>
+              </section>
+              <section class="cst-splash__scope-section" data-splash-scope="team">
+                <h3 class="cst-splash__scope-heading">Team</h3>
+                <div class="cst-splash__grid" id="cstSplashTeamGrid" data-splash-grid="team"></div>
+              </section>
+              <section class="cst-splash__scope-section" data-splash-scope="public">
+                <h3 class="cst-splash__scope-heading">Public</h3>
+                <div class="cst-splash__grid" id="cstSplashPublicGrid" data-splash-grid="public"></div>
+              </section>
+            </div>
             <p class="cst-splash__saved-empty" id="cstSplashSavedEmpty" hidden>No saved searches match your search.</p>
           </div>
         </section>
@@ -635,19 +651,18 @@
                 <h2 id="tableHeadingTitle">Franchisees</h2>
               </div>
               <div class="table-heading__actions">
-                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__edit-query" id="readerEditQueryBtn" type="button" data-reader-only aria-label="Edit filters" title="Edit filters">
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__edit-query" id="readerEditQueryBtn" type="button" data-reader-only aria-label="Filters" title="Filters">
                   <img class="table-heading__edit-query-icon" src="assets/filters.svg" alt="" aria-hidden="true">
-                  <span class="table-heading__sort-label">Edit filters</span>
+                  <span class="table-heading__sort-label" id="readerEditQueryLabel">Filters</span>
                 </button>
-                <span class="table-heading__actions-divider" data-reader-only aria-hidden="true"></span>
-                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__view-settings" id="readerViewSettingsBtn" type="button" data-reader-only aria-label="Edit view settings" title="Edit view settings">
+                <span class="table-heading__actions-divider" data-reader-only data-owner-edit-only aria-hidden="true"></span>
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__view-settings" id="readerViewSettingsBtn" type="button" data-reader-only data-owner-edit-only aria-label="Edit" title="Edit">
                   <img class="table-heading__view-settings-icon" src="assets/settings.svg" alt="" aria-hidden="true">
-                  <span class="table-heading__sort-label">Settings</span>
+                  <span class="table-heading__sort-label">Edit</span>
                 </button>
                 <span class="table-heading__actions-divider" data-reader-only aria-hidden="true"></span>
-                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__create-target" id="createTargetOption" type="button" data-reader-hide aria-label="Save view" title="Save view">
-                  <img class="table-heading__create-target-icon" src="assets/target.svg" alt="" aria-hidden="true">
-                  <span class="table-heading__sort-label">Save view</span>
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__create-target" id="createTargetOption" type="button" data-reader-hide aria-label="Save search" title="Save search">
+                  <span class="table-heading__sort-label">Save search</span>
                 </button>
                 <span class="table-heading__actions-divider" data-reader-hide aria-hidden="true"></span>
                 <details class="toolbar-dropdown table-heading__sort" id="tableHeadingSort">
