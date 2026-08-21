@@ -70,7 +70,7 @@ function getCurrentViewSettings() {
         included: selectedCategoryValues,
         excluded: excludedCategoryValues
       },
-      owners: {
+      franchisees: {
         included: selectedOwnerIndexes,
         excluded: excludedOwnerIndexes
       },
@@ -181,8 +181,8 @@ function restoreSavedFilterSelections(settings) {
   excludedCategoryValues = getValidSavedSelectValues(categoryFilterSelect, filters.categories?.excluded);
   setFilterSelectIncludedExcludedValues(categoryFilterSelect, selectedCategoryValues, excludedCategoryValues);
 
-  selectedOwnerIndexes = getValidSavedSelectValues(ownerFilterSelect, filters.owners?.included);
-  excludedOwnerIndexes = getValidSavedSelectValues(ownerFilterSelect, filters.owners?.excluded);
+  selectedOwnerIndexes = getValidSavedSelectValues(ownerFilterSelect, (filters.franchisees || filters.owners)?.included);
+  excludedOwnerIndexes = getValidSavedSelectValues(ownerFilterSelect, (filters.franchisees || filters.owners)?.excluded);
   setFilterSelectIncludedExcludedValues(ownerFilterSelect, selectedOwnerIndexes, excludedOwnerIndexes);
 
   selectedFranchiseIndexes = getValidSavedSelectValues(franchiseFilterSelect, filters.franchises?.included);

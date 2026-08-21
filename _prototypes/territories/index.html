@@ -427,9 +427,12 @@
             <section class="territory-crossroad__popular" aria-label="Popular searches">
               <div class="scope-toolbar">
                 <nav class="scope-tabs" aria-label="Popular search type">
-                  <button class="scope-tab is-active" type="button" data-scope="all">All</button>
-                  <button class="scope-tab" type="button" data-scope="private">Private</button>
-                  <button class="scope-tab" type="button" data-scope="team">Team</button>
+                  <button class="scope-tab scope-tab--icon is-active" type="button" data-scope="all" aria-label="All">
+                    <img class="scope-tab-icon" src="assets/home.svg" alt="" aria-hidden="true">
+                  </button>
+                  <span class="territory-crossroad__scope-tabs-divider" aria-hidden="true"></span>
+                  <button class="scope-tab" type="button" data-scope="featured">Featured</button>
+                  <button class="scope-tab" type="button" data-scope="saved">Saved</button>
                 </nav>
                 <label class="scope-search" for="territoryCrossroadPresetSearch" role="search">
                   <img class="scope-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
@@ -446,7 +449,16 @@
                 </label>
               </div>
               <div class="territory-crossroad__popular-scroll">
-                <div class="territory-crossroad__grid" id="territoryCrossroadGrid" data-crossroad-grid></div>
+                <div class="territory-crossroad__scope-stack" id="territoryCrossroadScopeStack">
+                  <section class="territory-crossroad__scope-section" data-crossroad-scope="saved">
+                    <h3 class="territory-crossroad__scope-heading">Saved</h3>
+                    <div class="territory-crossroad__grid" id="territoryCrossroadSavedGrid" data-crossroad-grid="saved"></div>
+                  </section>
+                  <section class="territory-crossroad__scope-section" data-crossroad-scope="featured">
+                    <h3 class="territory-crossroad__scope-heading">Featured</h3>
+                    <div class="territory-crossroad__grid" id="territoryCrossroadGrid" data-crossroad-grid="featured"></div>
+                  </section>
+                </div>
                 <p class="territory-crossroad__popular-empty" id="territoryCrossroadPopularEmpty" hidden>No popular searches match your search.</p>
               </div>
             </section>
@@ -454,8 +466,27 @@
         </div>
         <div class="territory-brand-panel__header">
           <div class="territory-brand-panel__heading">
-            <h2>Territories</h2>
+            <h2 id="territoryBrandPanelTitle">Territories</h2>
             <div class="territory-brand-panel__heading-actions">
+              <button
+                class="ui-control ui-button-ghost territory-brand-panel__alert-toggle territory-save-search-btn"
+                id="territorySaveSearch"
+                type="button"
+                aria-label="Save search"
+              >
+                Save search
+              </button>
+              <button
+                class="ui-control ui-button-ghost territory-brand-panel__alert-toggle territory-saved-search-settings-btn"
+                id="territorySavedSearchSettings"
+                type="button"
+                aria-label="Edit saved search"
+                hidden
+              >
+                <img class="territory-saved-search-settings-btn__icon" src="assets/settings.svg" alt="" aria-hidden="true">
+                Settings
+              </button>
+              <span class="territory-brand-panel__heading-divider" aria-hidden="true"></span>
               <details class="toolbar-dropdown territory-brand-panel__sort" id="territoryBrandSort">
                 <summary
                   class="ui-control ui-button-ghost territory-brand-panel__sort-toggle"
@@ -481,25 +512,16 @@
               </details>
               <span class="territory-brand-panel__heading-divider" aria-hidden="true"></span>
               <button
-                class="ui-control ui-button-ghost territory-brand-panel__alert-toggle territory-save-search-btn"
-                id="territorySaveSearch"
+                class="ui-control ui-button-ghost territory-brand-panel__expand-toggle"
+                id="territoryBrandExpandToggle"
                 type="button"
-                aria-label="Add alert"
-                data-tooltip="Get notified when these&#10;results change"
+                aria-label="Collapse all rows"
+                data-tooltip="Collapse all rows"
+                hidden
               >
-                <img src="assets/alert.svg" alt="" aria-hidden="true">
+                <img src="assets/collapse.svg" alt="" aria-hidden="true">
               </button>
             </div>
-            <button
-              class="ui-control ui-button-ghost territory-brand-panel__expand-toggle"
-              id="territoryBrandExpandToggle"
-              type="button"
-              aria-label="Collapse all rows"
-              data-tooltip="Collapse all rows"
-              hidden
-            >
-              <img src="assets/collapse.svg" alt="" aria-hidden="true">
-            </button>
           </div>
           <p class="territory-brand-panel__summary" id="territoryBrandSummary" aria-live="polite">Showing 0 territories</p>
         </div>
@@ -666,59 +688,79 @@
 
   <div class="profile-modal-overlay target-modal-overlay save-search-modal-overlay" id="saveSearchModal" hidden>
     <section class="profile-modal target-modal save-search-modal" role="dialog" aria-modal="true" aria-labelledby="saveSearchModalTitle">
-      <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close save-search-modal-close" type="button" aria-label="Close save search">
-        <img src="assets/close.svg" alt="" aria-hidden="true">
-      </button>
-
       <form class="target-modal-form save-search-modal-form" id="saveSearchModalForm">
-        <div class="save-search-view save-search-view--form" id="saveSearchFormView">
-          <h2 class="target-modal-title save-search-modal-title" id="saveSearchModalTitle">
-            <img class="save-search-modal-title__icon" src="assets/add-alert.svg" alt="" aria-hidden="true" width="18" height="18">
-            Set up an alert
-          </h2>
-          <p class="save-search-description">We'll notify you when results matching your current search change.</p>
-
-          <fieldset class="save-search-notify">
-            <legend class="save-search-notify__legend">Notify me when:</legend>
-            <div class="filter-check-group save-search-notify__options">
-              <label class="filter-check is-checked">
-                <input class="save-search-notify-checkbox" type="checkbox" name="notifyAvailable" value="available" checked>
-                <span class="filter-checkbox" aria-hidden="true"></span>
-                <span>New territories become available</span>
-              </label>
-              <label class="filter-check is-checked">
-                <input class="save-search-notify-checkbox" type="checkbox" name="notifyStatus" value="status" checked>
-                <span class="filter-checkbox" aria-hidden="true"></span>
-                <span>Territory status changes</span>
-              </label>
-              <label class="filter-check is-checked">
-                <input class="save-search-notify-checkbox" type="checkbox" name="notifyBrands" value="brands" checked>
-                <span class="filter-checkbox" aria-hidden="true"></span>
-                <span>New brands match this search</span>
-              </label>
-            </div>
-          </fieldset>
-
-          <label class="target-modal-field save-search-name-field" for="saveSearchAlertName">
-            <span>Alert name</span>
-            <input class="target-modal-control target-modal-input" id="saveSearchAlertName" name="alertName" type="text" autocomplete="off" required>
-          </label>
-
-          <div class="target-modal-actions save-search-modal-actions">
-            <button class="ui-control ui-button target-modal-cancel save-search-modal-cancel" type="button">Cancel</button>
-            <button class="ui-control ui-button ui-button-primary target-modal-save save-search-modal-save" type="submit">Create alert</button>
+        <div class="target-modal-header">
+          <h2 class="target-modal-title save-search-modal-title" id="saveSearchModalTitle">Save search</h2>
+          <div class="target-modal-header-actions">
+            <button class="ui-control ui-button-ghost target-modal-delete" id="deleteSavedSearch" type="button" hidden>
+              <img class="target-modal-delete__icon" src="../cst/assets/delete.svg" alt="" aria-hidden="true" width="12" height="14">
+              Delete
+            </button>
+            <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close save-search-modal-close" type="button" aria-label="Close save search">
+              <img src="assets/close.svg" alt="" aria-hidden="true">
+            </button>
           </div>
         </div>
 
-        <div class="save-search-view save-search-view--success" id="saveSearchSuccessView" hidden>
-          <div class="save-search-success">
-            <span class="save-search-success__icon" aria-hidden="true">
-              <img src="assets/check.svg" alt="">
-            </span>
-            <h2 class="target-modal-title save-search-success__title" id="saveSearchSuccessTitle">Alert saved</h2>
-            <p class="save-search-success__copy">You'll be notified when matching territories change.</p>
-            <button class="ui-control ui-button ui-button-primary save-search-success__done" type="button">Done</button>
+        <label class="target-modal-field" for="saveSearchTitle">
+          <span>Title</span>
+          <input class="target-modal-control target-modal-input" id="saveSearchTitle" name="title" type="text" autocomplete="off" maxlength="100" placeholder=" " required>
+        </label>
+
+        <div class="target-modal-divider" aria-hidden="true"></div>
+
+        <div class="save-search-alerts" id="saveSearchAlerts">
+          <div class="target-modal-alert-row" id="saveSearchAlertsRow">
+            <div class="target-modal-alert-content">
+              <img class="target-modal-alert-icon" src="assets/alert.svg" alt="" aria-hidden="true" width="16" height="16">
+              <button class="target-modal-alert-details" id="saveSearchAlertsDetails" type="button">
+                <span class="target-modal-alert-label">Alerts</span>
+                <span class="target-modal-alert-helper" id="saveSearchAlertsHelper">Notify me when results change</span>
+              </button>
+            </div>
+            <div class="target-modal-alert-actions">
+              <button
+                class="target-modal-alert-switch"
+                id="saveSearchAlertsToggle"
+                type="button"
+                role="switch"
+                aria-checked="false"
+                aria-expanded="false"
+                aria-label="Enable alerts"
+                aria-describedby="saveSearchAlertsHelper"
+                aria-controls="saveSearchAlertsPanel"
+              >
+                <span class="toolbar-switch" aria-hidden="true"></span>
+              </button>
+            </div>
           </div>
+
+          <div class="save-search-alerts-panel" id="saveSearchAlertsPanel" aria-hidden="true" inert>
+            <div class="save-search-alerts-panel__clip">
+              <div class="filter-check-group save-search-alerts-options">
+                <label class="filter-check is-checked">
+                  <input class="save-search-notify-checkbox" type="checkbox" name="notifyAvailable" value="available" checked>
+                  <span class="filter-checkbox" aria-hidden="true"></span>
+                  <span>Territories become available</span>
+                </label>
+                <label class="filter-check is-checked">
+                  <input class="save-search-notify-checkbox" type="checkbox" name="notifyStatus" value="status" checked>
+                  <span class="filter-checkbox" aria-hidden="true"></span>
+                  <span>Territory status changes</span>
+                </label>
+                <label class="filter-check is-checked">
+                  <input class="save-search-notify-checkbox" type="checkbox" name="notifyBrands" value="brands" checked>
+                  <span class="filter-checkbox" aria-hidden="true"></span>
+                  <span>New brands match</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="target-modal-actions save-search-modal-actions">
+          <button class="ui-control ui-button target-modal-cancel save-search-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary target-modal-save save-search-modal-save" type="submit">Save</button>
         </div>
       </form>
     </section>
@@ -738,22 +780,22 @@
           <div class="request-info-name-row">
             <label class="target-modal-field" for="requestInfoFirstName">
               <span>First name</span>
-              <input class="target-modal-control target-modal-input" id="requestInfoFirstName" name="firstName" type="text" autocomplete="given-name" required>
+              <input class="target-modal-control target-modal-input" id="requestInfoFirstName" name="firstName" type="text" autocomplete="given-name" placeholder=" " required>
             </label>
             <label class="target-modal-field" for="requestInfoLastName">
               <span>Last name</span>
-              <input class="target-modal-control target-modal-input" id="requestInfoLastName" name="lastName" type="text" autocomplete="family-name" required>
+              <input class="target-modal-control target-modal-input" id="requestInfoLastName" name="lastName" type="text" autocomplete="family-name" placeholder=" " required>
             </label>
           </div>
 
           <label class="target-modal-field" for="requestInfoEmail">
             <span>Email</span>
-            <input class="target-modal-control target-modal-input" id="requestInfoEmail" name="email" type="email" autocomplete="email" required>
+            <input class="target-modal-control target-modal-input" id="requestInfoEmail" name="email" type="email" autocomplete="email" placeholder=" " required>
           </label>
 
           <label class="target-modal-field" for="requestInfoPhone">
             <span>Phone</span>
-            <input class="target-modal-control target-modal-input" id="requestInfoPhone" name="phone" type="tel" autocomplete="tel" required>
+            <input class="target-modal-control target-modal-input" id="requestInfoPhone" name="phone" type="tel" autocomplete="tel" placeholder=" " required>
           </label>
 
           <label class="target-modal-field" for="requestInfoTerritory">
@@ -806,6 +848,7 @@
   <script src="../shared/filter/filter-range.js"></script>
   <script src="../shared/map/map-pills.js"></script>
   <script src="scripts/datasets.js"></script>
+  <script src="data/saved-searches.js"></script>
   <script src="scripts/categories.js"></script>
   <script src="scripts/location-search.js"></script>
   <script src="scripts/filters.js"></script>

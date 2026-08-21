@@ -2423,7 +2423,8 @@ function scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords) {
     }
 
     if (window.territoryFilters?.hasImplicitAreaSearch?.()) {
-      const locationBounds = getLocationSearchFocusBounds();
+      const implicitBounds = window.territoryFilters.getImplicitViewportBounds?.();
+      const locationBounds = implicitBounds || getLocationSearchFocusBounds();
       if (!territoryViewportFramed && locationBounds && window.mapboxgl) {
         territoryViewportFramed = true;
         focusTerritoryMapOnBounds(
@@ -2435,7 +2436,9 @@ function scheduleTerritoryMapViewForFilters(territoryMap, matchingRecords) {
         );
         territoryMap.once("moveend", () => {
           captureTerritoryFilterDefaultViewFromMap(territoryMap);
-          window.territoryFilters?.captureViewportFromMap?.();
+          if (!implicitBounds) {
+            window.territoryFilters?.captureViewportFromMap?.();
+          }
           playPendingTerritoryReveal();
           updateTerritoryMapResetVisibility();
         });
@@ -4669,6 +4672,53 @@ function collectGeometryPolygons(geometry) {
   return [];
 }
 
+// Census MultiPolygons include the Farallon Islands as part of San Francisco
+// and California. They are an uninhabited refuge ~27 miles offshore, and
+// simplification turns the city piece into a large hoverable ocean blob.
+const TERRITORY_EXCLUDED_ISLAND_BOUNDS = [
+  { west: -123.20, east: -122.90, south: 37.62, north: 37.85 }
+];
+
+function polygonBoundsAreInsideBox(rings, box) {
+  const outer = rings?.[0];
+  if (!outer?.length) return false;
+
+  let west = Infinity;
+  let east = -Infinity;
+  let south = Infinity;
+  let north = -Infinity;
+
+  outer.forEach(([lng, lat]) => {
+    if (lng < west) west = lng;
+    if (lng > east) east = lng;
+    if (lat < south) south = lat;
+    if (lat > north) north = lat;
+  });
+
+  return west >= box.west && east <= box.east && south >= box.south && north <= box.north;
+}
+
+function stripExcludedTerritoryIslandPolygons(geometry) {
+  const polygons = collectGeometryPolygons(geometry);
+  if (polygons.length < 2) return geometry;
+
+  const kept = polygons.filter((rings) => (
+    !TERRITORY_EXCLUDED_ISLAND_BOUNDS.some((box) => polygonBoundsAreInsideBox(rings, box))
+  ));
+  if (kept.length === polygons.length || !kept.length) return geometry;
+
+  return kept.length === 1
+    ? { type: "Polygon", coordinates: kept[0] }
+    : { type: "MultiPolygon", coordinates: kept };
+}
+
+function sanitizeTerritoryFeature(feature) {
+  if (!feature?.geometry) return feature;
+
+  const geometry = stripExcludedTerritoryIslandPolygons(feature.geometry);
+  return geometry === feature.geometry ? feature : { ...feature, geometry };
+}
+
 function getGeometryBounds(geometry) {
   const polygons = collectGeometryPolygons(geometry);
   if (!polygons.length) return null;
@@ -5746,13 +5796,19 @@ async function loadTerritoryData(territoryMap) {
     } = await loadTerritoryDataBundle();
 
     const statesByCode = new Map(
-      statesGeojson.features.map((feature) => [feature.properties.code, feature])
+      statesGeojson.features.map((feature) => [feature.properties.code, sanitizeTerritoryFeature(feature)])
     );
     const countiesByFips = countiesGeojson
-      ? new Map(countiesGeojson.features.map((feature) => [feature.properties.fips, feature]))
+      ? new Map(countiesGeojson.features.map((feature) => [
+        feature.properties.fips,
+        sanitizeTerritoryFeature(feature)
+      ]))
       : new Map();
     const geoFeaturesByKey = geoFeaturesGeojson
-      ? new Map(geoFeaturesGeojson.features.map((feature) => [feature.properties.geoKey, feature]))
+      ? new Map(geoFeaturesGeojson.features.map((feature) => [
+        feature.properties.geoKey,
+        sanitizeTerritoryFeature(feature)
+      ]))
       : new Map();
     const geoIndex = { statesByCode, countiesByFips, geoFeaturesByKey };
 

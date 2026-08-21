@@ -20,6 +20,7 @@ const CROSSROAD_REGIONAL_ZOOM_OUT = 0.2;
 const CROSSROAD_MAX_REGIONAL_LOCATION_COUNT = 35;
 const CROSSROAD_MIN_REGIONAL_ZOOM = 3;
 const CROSSROAD_MAX_REGIONAL_ZOOM = 6.5;
+const CROSSROAD_MAX_LOCAL_ZOOM = 9;
 const CROSSROAD_SEARCH_SUGGESTION_GROUP_LIMIT = 3;
 const CROSSROAD_SEARCH_SUGGESTION_LIMIT = 9;
 
@@ -80,6 +81,52 @@ function crossroadCollectPolygons(geometry) {
   if (geometry.type === "Polygon") return [geometry.coordinates];
   if (geometry.type === "MultiPolygon") return geometry.coordinates;
   return [];
+}
+
+const CROSSROAD_EXCLUDED_ISLAND_BOUNDS = [
+  { west: -123.20, east: -122.90, south: 37.62, north: 37.85 }
+];
+
+function crossroadPolygonBoundsAreInsideBox(rings, box) {
+  const outer = rings?.[0];
+  if (!outer?.length) return false;
+
+  let west = Infinity;
+  let east = -Infinity;
+  let south = Infinity;
+  let north = -Infinity;
+
+  outer.forEach(([lng, lat]) => {
+    if (lng < west) west = lng;
+    if (lng > east) east = lng;
+    if (lat < south) south = lat;
+    if (lat > north) north = lat;
+  });
+
+  return west >= box.west && east <= box.east && south >= box.south && north <= box.north;
+}
+
+function stripCrossroadExcludedIslandPolygons(geometry) {
+  const polygons = crossroadCollectPolygons(geometry);
+  if (polygons.length < 2) return geometry;
+
+  const kept = polygons.filter((rings) => (
+    !CROSSROAD_EXCLUDED_ISLAND_BOUNDS.some((box) => (
+      crossroadPolygonBoundsAreInsideBox(rings, box)
+    ))
+  ));
+  if (kept.length === polygons.length || !kept.length) return geometry;
+
+  return kept.length === 1
+    ? { type: "Polygon", coordinates: kept[0] }
+    : { type: "MultiPolygon", coordinates: kept };
+}
+
+function sanitizeCrossroadFeature(feature) {
+  if (!feature?.geometry) return feature;
+
+  const geometry = stripCrossroadExcludedIslandPolygons(feature.geometry);
+  return geometry === feature.geometry ? feature : { ...feature, geometry };
 }
 
 function getCrossroadGeometryBounds(geometry) {
@@ -159,7 +206,7 @@ function computeZoomForBounds(west, south, east, north) {
   );
 }
 
-function computeRegionalSnapshotView(bounds, padding = CROSSROAD_REGIONAL_PADDING) {
+function computeRegionalSnapshotView(bounds, padding = CROSSROAD_REGIONAL_PADDING, { maxZoom = CROSSROAD_MAX_REGIONAL_ZOOM } = {}) {
   const lngSpan = Math.max(bounds.east - bounds.west, 0.5);
   const latSpan = Math.max(bounds.north - bounds.south, 0.5);
   const padLng = lngSpan * padding;
@@ -174,17 +221,59 @@ function computeRegionalSnapshotView(bounds, padding = CROSSROAD_REGIONAL_PADDIN
     center: [(west + east) / 2, (south + north) / 2],
     zoom: Math.max(
       CROSSROAD_MIN_REGIONAL_ZOOM,
-      computeZoomForBounds(west, south, east, north) - CROSSROAD_REGIONAL_ZOOM_OUT
+      Math.min(maxZoom, computeZoomForBounds(west, south, east, north) - CROSSROAD_REGIONAL_ZOOM_OUT)
     )
   };
 }
 
+function getCrossroadLocationSearches(filters = {}) {
+  return window.territoryFilters?.hydrateLocationSearches?.(filters) || [];
+}
+
+function deriveCrossroadSearchBounds(searches = [], miles = 50) {
+  return searches.reduce((bounds, location) => {
+    if (location?.excluded || !location?.coordinates) return bounds;
+    const nextBounds = window.territoryMapControls?.getSearchViewportBounds?.(
+      location.coordinates.longitude,
+      location.coordinates.latitude,
+      miles
+    );
+    return mergeBounds(bounds, nextBounds);
+  }, null);
+}
+
+function getCrossroadViewportBounds(filters = {}) {
+  if (filters.radius?.enabled) return null;
+
+  const savedViewport = window.territoryFilters?.normalizeViewportBounds?.(filters.viewport);
+  if (savedViewport) return savedViewport;
+
+  const includedSearches = getCrossroadLocationSearches(filters).filter((location) => !location.excluded);
+  return deriveCrossroadSearchBounds(includedSearches);
+}
+
+function getCrossroadRadiusBounds(filters = {}) {
+  if (!filters.radius?.enabled) return null;
+
+  const includedSearches = getCrossroadLocationSearches(filters).filter((location) => !location.excluded);
+  return deriveCrossroadSearchBounds(includedSearches, Number(filters.radius.miles) || 50);
+}
+
 function hasRegionalLocationFilter(filters = {}) {
+  if (getCrossroadViewportBounds(filters) || getCrossroadRadiusBounds(filters)) return true;
+
   const locations = filters.locations || [];
   return locations.length > 0 && locations.length <= CROSSROAD_MAX_REGIONAL_LOCATION_COUNT;
 }
 
 function resolveCrossroadSnapshotView(filters = {}, matchedFeatures, geoIndex) {
+  const localBounds = getCrossroadViewportBounds(filters) || getCrossroadRadiusBounds(filters);
+  if (localBounds) {
+    return computeRegionalSnapshotView(localBounds, CROSSROAD_REGIONAL_PADDING, {
+      maxZoom: CROSSROAD_MAX_LOCAL_ZOOM
+    });
+  }
+
   if (!hasRegionalLocationFilter(filters)) {
     return CROSSROAD_DEFAULT_VIEW;
   }
@@ -362,7 +451,74 @@ function normalizeCrossroadInvestmentValue(value) {
   return 0;
 }
 
-function presetMatchesRecord(record, filters = {}) {
+function withCrossroadRecordGeometry(record, geoIndex) {
+  if (!geoIndex || record.geometry) return record;
+
+  const feature = resolveCrossroadFeature(record, geoIndex);
+  if (!feature?.geometry) return record;
+
+  record.geometry = feature.geometry;
+  record.geometryBounds = getCrossroadGeometryBounds(feature.geometry);
+  return record;
+}
+
+function createCrossroadMatchContext(filters = {}, geoIndex = null) {
+  const searches = getCrossroadLocationSearches(filters);
+  const includedSearches = searches.filter((location) => !location.excluded);
+  const excludedSearches = searches.filter((location) => location.excluded);
+  const resolveTarget = (location) => {
+    if (window.territoryMapFilters?.resolveLocationTarget) {
+      return window.territoryMapFilters.resolveLocationTarget(location);
+    }
+
+    return location?.stateCode
+      ? { kind: "state", stateCode: location.stateCode }
+      : null;
+  };
+  const locationTargets = includedSearches.map(resolveTarget).filter(Boolean);
+  const excludedTargets = excludedSearches.map(resolveTarget).filter(Boolean);
+  const radiusCenters = includedSearches
+    .filter((location) => location.coordinates)
+    .map((location) => ({
+      state: location.stateCode,
+      center: [location.coordinates.longitude, location.coordinates.latitude]
+    }));
+  const radiusEnabled = Boolean(filters.radius?.enabled) && radiusCenters.length > 0;
+  const viewport = radiusEnabled ? null : getCrossroadViewportBounds(filters);
+
+  return {
+    geoIndex,
+    excludedTargets,
+    locationTargets,
+    locationCache: new Map(),
+    hasLocationConstraint: locationTargets.length > 0,
+    viewportContext: viewport
+      ? window.territoryMapFilters?.createViewportMatchContext?.(viewport)
+      : null,
+    radiusContext: radiusEnabled
+      ? window.territoryMapFilters?.createRadiusMatchContext?.(
+          radiusCenters,
+          filters.radius.miles
+        )
+      : null
+  };
+}
+
+function recordMatchesCrossroadLocation(record, target, context) {
+  if (!target) return false;
+  if (target.kind === "state") return record.state === target.stateCode;
+
+  const geoRecord = withCrossroadRecordGeometry(record, context.geoIndex);
+  return Boolean(
+    window.territoryMapFilters?.recordMatchesLocationTarget?.(
+      geoRecord,
+      target,
+      context.locationCache
+    )
+  );
+}
+
+function presetMatchesRecord(record, filters = {}, context = null) {
   const categories = filters.categories || [];
   const statuses = filters.statuses || [];
   const franchises = filters.franchises || [];
@@ -374,13 +530,38 @@ function presetMatchesRecord(record, filters = {}) {
       ? [filters.geoLevel]
       : [];
   const investment = filters.investment;
+  const matchContext = context || createCrossroadMatchContext(filters, null);
 
   if (categories.length && !categories.includes(record.category)) return false;
   if (statuses.length && !statuses.includes(record.status)) return false;
   if (franchises.length && !franchises.includes(record.brandId)) return false;
-  if (locations.length && !locations.includes(record.state)) return false;
-  if (locationsExcluded.length && locationsExcluded.includes(record.state)) return false;
   if (geoLevels.length && !geoLevels.includes(record.geoType)) return false;
+
+  if (matchContext.excludedTargets.some((target) => (
+    recordMatchesCrossroadLocation(record, target, matchContext)
+  ))) {
+    return false;
+  }
+
+  if (matchContext.viewportContext) {
+    const geoRecord = withCrossroadRecordGeometry(record, matchContext.geoIndex);
+    if (!window.territoryMapFilters?.recordIntersectsViewport?.(geoRecord, matchContext.viewportContext)) {
+      return false;
+    }
+  } else if (matchContext.radiusContext) {
+    const geoRecord = withCrossroadRecordGeometry(record, matchContext.geoIndex);
+    if (!window.territoryMapFilters?.recordIntersectsRadius?.(geoRecord, matchContext.radiusContext)) {
+      return false;
+    }
+  } else if (matchContext.hasLocationConstraint) {
+    const matchesLocation = matchContext.locationTargets.some((target) => (
+      recordMatchesCrossroadLocation(record, target, matchContext)
+    ));
+    if (!matchesLocation) return false;
+  } else {
+    if (locations.length && !locations.includes(record.state)) return false;
+    if (locationsExcluded.length && locationsExcluded.includes(record.state)) return false;
+  }
 
   if (investment) {
     const value = normalizeCrossroadInvestmentValue(record.initialInvestment);
@@ -429,13 +610,22 @@ function isCrossroadCountyLevelBrand(brand) {
 function buildCrossroadGeoIndex(statesGeojson, countiesGeojson, geoFeaturesGeojson) {
   return {
     statesByCode: new Map(
-      (statesGeojson?.features || []).map((feature) => [feature.properties?.code, feature])
+      (statesGeojson?.features || []).map((feature) => [
+        feature.properties?.code,
+        sanitizeCrossroadFeature(feature)
+      ])
     ),
     countiesByFips: new Map(
-      (countiesGeojson?.features || []).map((feature) => [feature.properties?.fips, feature])
+      (countiesGeojson?.features || []).map((feature) => [
+        feature.properties?.fips,
+        sanitizeCrossroadFeature(feature)
+      ])
     ),
     geoFeaturesByKey: new Map(
-      (geoFeaturesGeojson?.features || []).map((feature) => [feature.properties?.geoKey, feature])
+      (geoFeaturesGeojson?.features || []).map((feature) => [
+        feature.properties?.geoKey,
+        sanitizeCrossroadFeature(feature)
+      ])
     )
   };
 }
@@ -458,7 +648,7 @@ function getCrossroadFeatureKey(record) {
   return record.state;
 }
 
-function resolveCrossroadPreviewLevel(filters, records) {
+function resolveCrossroadPreviewLevel(filters, records, geoIndex) {
   const geoLevelFilters = Array.isArray(filters.geoLevels)
     ? filters.geoLevels
     : filters.geoLevel && filters.geoLevel !== "all types"
@@ -470,7 +660,8 @@ function resolveCrossroadPreviewLevel(filters, records) {
       : "geo";
   }
 
-  const matching = records.filter((record) => presetMatchesRecord(record, filters));
+  const context = createCrossroadMatchContext(filters, geoIndex);
+  const matching = records.filter((record) => presetMatchesRecord(record, filters, context));
   if (!matching.length) return "state";
 
   const brandLevels = [...new Set(matching.map((record) => record.brandLevel))];
@@ -503,9 +694,10 @@ function getCrossroadPreviewFeatureKey(record, previewLevel) {
 
 function buildPresetMatchedFeatures(records, filters, geoIndex, previewLevel) {
   const matchedFeatures = new Map();
+  const context = createCrossroadMatchContext(filters, geoIndex);
 
   records.forEach((record) => {
-    if (!presetMatchesRecord(record, filters)) return;
+    if (!presetMatchesRecord(record, filters, context)) return;
 
     const feature = resolveCrossroadPreviewFeature(record, geoIndex, previewLevel);
     if (!feature?.geometry) return;
@@ -541,9 +733,10 @@ function buildPresetMatchedFeatures(records, filters, geoIndex, previewLevel) {
   return matchedFeatures;
 }
 
-function computePresetStatusCounts(records, filters = {}) {
+function computePresetStatusCounts(records, filters = {}, geoIndex = null) {
   const { statuses, ...filtersWithoutStatus } = filters;
-  const matching = records.filter((record) => presetMatchesRecord(record, filtersWithoutStatus));
+  const context = createCrossroadMatchContext(filtersWithoutStatus, geoIndex);
+  const matching = records.filter((record) => presetMatchesRecord(record, filtersWithoutStatus, context));
 
   return {
     total: matching.length,
@@ -577,12 +770,17 @@ function escapeHtml(value) {
   }[char]));
 }
 
-function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts } = {}) {
+function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kind = "preset" } = {}) {
   const tile = document.createElement("button");
   tile.type = "button";
   tile.className = "target-card territory-crossroad__tile territory-crossroad__tile--preset";
-  tile.dataset.presetId = preset.id;
-  tile.dataset.scope = preset.scope || "private";
+  if (kind === "saved") {
+    tile.dataset.savedSearchId = preset.id;
+  } else {
+    tile.dataset.presetId = preset.id;
+  }
+  tile.dataset.kind = kind;
+  tile.dataset.listScope = kind === "saved" ? "saved" : "featured";
   tile.dataset.title = preset.title || "";
 
   const statusCounts = counts || {};
@@ -602,6 +800,22 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts } = 
   const bordersImg = bordersUrl
     ? `<img class="target-map-borders" src="${escapeHtml(bordersUrl)}" alt="" aria-hidden="true">`
     : "";
+  const tileActionsMarkup = kind === "saved"
+    ? `
+        <span class="target-card-actions">
+          <span class="target-settings" role="button" tabindex="0" aria-label="Edit search settings">
+            <img src="assets/settings.svg" alt="">
+          </span>
+          <span class="target-chevron" aria-hidden="true">
+            <img src="assets/chevron.svg" alt="">
+          </span>
+        </span>
+      `
+    : `
+        <span class="target-chevron" aria-hidden="true">
+          <img src="assets/chevron.svg" alt="">
+        </span>
+      `;
 
   tile.innerHTML = `
     <div class="target-map">${baseImg}${fillImg}${bordersImg}</div>
@@ -610,9 +824,7 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts } = 
       <span class="target-label">Territories</span>
       <div class="target-prospects-row">
         <span class="target-number">${totalLabel}</span>
-        <span class="target-chevron" aria-hidden="true">
-          <img src="assets/chevron.svg" alt="">
-        </span>
+        ${tileActionsMarkup}
       </div>
     </div>
   `;
@@ -620,9 +832,59 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts } = 
   return tile;
 }
 
+// Shared by bundled presets and user-saved searches: both carry the same
+// `{ id, title, filters }` shape, so the same matching/preview pipeline
+// renders either kind of tile.
+function buildCrossroadTile(entry, records, geoIndex, kind = "preset") {
+  const filters = entry.filters || {};
+  const previewLevel = resolveCrossroadPreviewLevel(filters, records, geoIndex);
+  const matchedFeatures = buildPresetMatchedFeatures(records, filters, geoIndex, previewLevel);
+  const snapshotView = resolveCrossroadSnapshotView(filters, matchedFeatures, geoIndex);
+  const baseMapUrl = buildBaseMapUrl(snapshotView);
+
+  let fillUrl = "";
+  let bordersUrl = "";
+  try {
+    fillUrl = buildFillDataUrl(geoIndex, matchedFeatures, previewLevel, snapshotView);
+    bordersUrl = buildBordersDataUrl(matchedFeatures, previewLevel, snapshotView);
+  } catch (error) {
+    console.warn("Unable to render territory preview.", error);
+  }
+
+  return createPresetTile(entry, {
+    baseMapUrl,
+    fillUrl,
+    bordersUrl,
+    counts: computePresetStatusCounts(records, filters, geoIndex),
+    kind
+  });
+}
+
+// Cached from the last successful renderCrossroadPresetTiles() call so a
+// single new tile (e.g. a just-saved search) can be built for the insertion
+// animation without re-fetching/re-indexing all territory data.
+let lastCrossroadRecords = null;
+let lastCrossroadGeoIndex = null;
+
+function buildCrossroadTileFromCache(entry, kind) {
+  if (lastCrossroadRecords && lastCrossroadGeoIndex) {
+    return buildCrossroadTile(entry, lastCrossroadRecords, lastCrossroadGeoIndex, kind);
+  }
+  return createPresetTile(entry, { kind });
+}
+
 const CROSSROAD_WORKSPACE_HIDE_MS = 240;
 const CROSSROAD_ENTER_STAGGER_MS = 65;
 const CROSSROAD_ENTER_DURATION_MS = 320;
+const CROSSROAD_SAVED_INSERT_SHIFT_DURATION_MS = 680;
+const CROSSROAD_SAVED_INSERT_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
+const CROSSROAD_SAVED_INSERT_REVEAL_MS = 200;
+const CROSSROAD_SAVED_INSERT_BLUR_PX = 4;
+const CROSSROAD_SAVED_DELETE_FADE_MS = 500;
+const CROSSROAD_SAVED_DELETE_BLUR_MS = 400;
+const CROSSROAD_SAVED_DELETE_BLUR_PX = 12;
+const CROSSROAD_SAVED_DELETE_SHIFT_DURATION_MS = 680;
+const CROSSROAD_SAVED_DELETE_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
 
 function canFocusTerritoryCrossroadSearchInput() {
   if (
@@ -752,13 +1014,17 @@ function showTerritoryCrossroad({ animate = false } = {}) {
   }
 }
 
-function showTerritoryCrossroadAfterClearAll() {
+function showTerritoryCrossroadAfterClearAll({ onReveal = null } = {}) {
   const shell = document.querySelector(".territory-shell");
   const crossroad = document.getElementById("territoryCrossroad");
+  const reveal = typeof onReveal === "function"
+    ? onReveal
+    : () => showTerritoryCrossroad({ animate: true });
+
   window.territoryFilters?.setPanelOpen?.(false);
   resetTerritoryCrossroadSearch();
   if (!shell || !crossroad) {
-    showTerritoryCrossroad({ animate: true });
+    reveal();
     return;
   }
 
@@ -773,7 +1039,7 @@ function showTerritoryCrossroadAfterClearAll() {
 
   window.setTimeout(() => {
     shell.classList.remove("is-crossroad-hiding-workspace");
-    showTerritoryCrossroad({ animate: true });
+    reveal();
   }, CROSSROAD_WORKSPACE_HIDE_MS);
 }
 
@@ -787,6 +1053,8 @@ function beginTerritoryMapLoad() {
 }
 
 function chooseCrossroadOption(choice) {
+  window.territoryBrandPanel?.setActiveSavedSearch?.(null);
+
   if (window.__territoryMapStarted) {
     window.territoryCrossroadChoice = choice;
     window.territoryMapFilters?.hideTerritoryRecords?.();
@@ -1422,6 +1690,27 @@ function bindCrossroadLocationSearch() {
   };
 }
 
+function setCrossroadPresetActiveScope(scope) {
+  const tabs = Array.from(document.querySelectorAll(".territory-crossroad__popular .scope-tab"));
+  const nextScope = tabs.some((tab) => (tab.dataset.scope || "all") === scope)
+    ? scope
+    : "all";
+
+  crossroadPresetActiveScope = nextScope;
+  tabs.forEach((tab) => tab.classList.toggle("is-active", (tab.dataset.scope || "all") === nextScope));
+}
+
+function resetCrossroadPresetSearchFilter() {
+  const searchInput = document.getElementById("territoryCrossroadPresetSearch");
+  const searchClear = document.getElementById("territoryCrossroadPresetSearchClear");
+  const searchField = searchInput?.closest(".scope-search");
+
+  if (searchInput) searchInput.value = "";
+  crossroadPresetSearchTerm = "";
+  searchField?.classList.remove("is-active-search");
+  if (searchClear) searchClear.hidden = true;
+}
+
 function bindCrossroadPresetTabs() {
   const tabs = Array.from(document.querySelectorAll(".territory-crossroad__popular .scope-tab"));
   const searchInput = document.getElementById("territoryCrossroadPresetSearch");
@@ -1429,8 +1718,7 @@ function bindCrossroadPresetTabs() {
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      tabs.forEach((other) => other.classList.toggle("is-active", other === tab));
-      crossroadPresetActiveScope = tab.dataset.scope || "all";
+      setCrossroadPresetActiveScope(tab.dataset.scope || "all");
       applyCrossroadPresetVisibility();
     });
   });
@@ -1457,10 +1745,53 @@ function bindCrossroadPresetTabs() {
   }
 }
 
-function bindPresetTile(tile, preset) {
-  tile.addEventListener("click", () => {
-    chooseCrossroadOption({ type: "preset", presetId: preset.id, filters: preset.filters });
+function bindCrossroadTile(tile, entry, kind = "preset") {
+  tile.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest(".target-settings")) {
+      return;
+    }
+
+    chooseCrossroadOption({
+      type: "preset",
+      presetId: entry.id,
+      filters: entry.filters || {},
+      savedSearchId: kind === "saved" ? entry.id : null,
+      title: entry.title || ""
+    });
   });
+
+  if (kind !== "saved") return;
+
+  const settingsControl = tile.querySelector(".target-settings");
+  if (!settingsControl) return;
+
+  const openSavedSearchSettings = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const savedSearch = window.territorySavedSearchStore?.getById?.(entry.id);
+    if (!savedSearch) return;
+
+    window.territorySaveSearchModal?.open?.(settingsControl, { savedSearch });
+  };
+
+  settingsControl.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+  });
+  settingsControl.addEventListener("click", openSavedSearchSettings);
+  settingsControl.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    openSavedSearchSettings(event);
+  });
+}
+
+function getCrossroadSavedSearches() {
+  const datasetId = window.territoryDatasets?.getActive?.()?.id;
+  return window.territorySavedSearchStore?.getAll?.(datasetId) || [];
+}
+
+function getCrossroadScopeGrid(scope) {
+  return document.querySelector(`[data-crossroad-grid="${scope}"]`);
 }
 
 async function fetchCrossroadJson(url) {
@@ -1505,42 +1836,75 @@ let crossroadPresetRenderVersion = 0;
 let crossroadPresetActiveScope = "all";
 let crossroadPresetSearchTerm = "";
 
+const CROSSROAD_PRESET_EMPTY_MESSAGES = {
+  all: "No popular searches match your search.",
+  featured: "No popular searches match your search.",
+  saved: "You haven't saved any searches."
+};
+
 function applyCrossroadPresetVisibility() {
-  const grid = document.getElementById("territoryCrossroadGrid");
+  const stack = document.getElementById("territoryCrossroadScopeStack");
   const emptyState = document.getElementById("territoryCrossroadPopularEmpty");
-  if (!grid) return;
+  if (!stack) return;
 
   const term = crossroadPresetSearchTerm.trim().toLowerCase();
-  let visibleCount = 0;
+  const activeScope = crossroadPresetActiveScope;
+  let totalVisible = 0;
 
-  grid.querySelectorAll("[data-preset-id]").forEach((tile) => {
-    const scope = tile.dataset.scope || "private";
-    const title = (tile.dataset.title || "").toLowerCase();
-    const matchesScope = crossroadPresetActiveScope === "all" || scope === crossroadPresetActiveScope;
-    const matchesSearch = !term || title.includes(term);
-    const isVisible = matchesScope && matchesSearch;
+  stack.querySelectorAll(".territory-crossroad__scope-section").forEach((section) => {
+    const sectionScope = section.dataset.crossroadScope;
+    const heading = section.querySelector(".territory-crossroad__scope-heading");
+    let sectionVisible = 0;
 
-    tile.hidden = !isVisible;
-    if (isVisible) visibleCount += 1;
+    section.querySelectorAll("[data-preset-id], [data-saved-search-id]").forEach((tile) => {
+      const title = (tile.dataset.title || "").toLowerCase();
+      const matchesSearch = !term || title.includes(term);
+      tile.hidden = !matchesSearch;
+      if (matchesSearch) sectionVisible += 1;
+    });
+
+    if (activeScope === "all") {
+      section.hidden = sectionVisible === 0;
+      if (heading) heading.hidden = section.hidden;
+      if (!section.hidden) totalVisible += sectionVisible;
+      return;
+    }
+
+    if (activeScope === sectionScope) {
+      section.hidden = false;
+      if (heading) heading.hidden = sectionVisible === 0;
+      totalVisible += sectionVisible;
+      return;
+    }
+
+    section.hidden = true;
+    if (heading) heading.hidden = true;
   });
 
   if (emptyState) {
-    emptyState.hidden = visibleCount > 0;
+    emptyState.textContent = CROSSROAD_PRESET_EMPTY_MESSAGES[activeScope]
+      || CROSSROAD_PRESET_EMPTY_MESSAGES.all;
+    emptyState.hidden = totalVisible > 0;
   }
 }
 
-function clearCrossroadPresetTiles(grid) {
-  grid.querySelectorAll("[data-preset-id]").forEach((tile) => tile.remove());
+function clearCrossroadScopeGrids() {
+  document.querySelectorAll("[data-crossroad-grid]").forEach((grid) => {
+    grid.querySelectorAll("[data-preset-id], [data-saved-search-id]").forEach((tile) => tile.remove());
+  });
 }
 
-async function renderCrossroadPresetTiles() {
-  const grid = document.getElementById("territoryCrossroadGrid");
-  if (!grid) return;
+async function renderCrossroadPresetTiles({ excludeSavedSearchId = null } = {}) {
+  const featuredGrid = getCrossroadScopeGrid("featured");
+  const savedGrid = getCrossroadScopeGrid("saved");
+  if (!featuredGrid || !savedGrid) return;
 
   const renderVersion = ++crossroadPresetRenderVersion;
   const activeDataset = window.territoryDatasets.getActive();
   const presets = activeDataset.presets || [];
-  clearCrossroadPresetTiles(grid);
+  const savedSearches = getCrossroadSavedSearches()
+    .filter((search) => search.id !== excludeSavedSearchId);
+  clearCrossroadScopeGrids();
 
   try {
     const { statesGeojson, countiesGeojson, geoFeaturesGeojson, brands } = await loadCrossroadTerritoryData();
@@ -1553,38 +1917,21 @@ async function renderCrossroadPresetTiles() {
 
     const geoIndex = buildCrossroadGeoIndex(statesGeojson, countiesGeojson, geoFeaturesGeojson);
     const records = buildCrossroadRecords(brands);
+    lastCrossroadRecords = records;
+    lastCrossroadGeoIndex = geoIndex;
 
     window.territoryFilters?.hydrateOptions?.(brands, { replace: true });
 
+    savedSearches.forEach((savedSearch) => {
+      const tile = buildCrossroadTile(savedSearch, records, geoIndex, "saved");
+      bindCrossroadTile(tile, savedSearch, "saved");
+      savedGrid.append(tile);
+    });
+
     presets.forEach((preset) => {
-      const filters = preset.filters || {};
-      const previewLevel = resolveCrossroadPreviewLevel(filters, records);
-      const matchedFeatures = buildPresetMatchedFeatures(
-        records,
-        filters,
-        geoIndex,
-        previewLevel
-      );
-      const snapshotView = resolveCrossroadSnapshotView(filters, matchedFeatures, geoIndex);
-      const baseMapUrl = buildBaseMapUrl(snapshotView);
-
-      let fillUrl = "";
-      let bordersUrl = "";
-      try {
-        fillUrl = buildFillDataUrl(geoIndex, matchedFeatures, previewLevel, snapshotView);
-        bordersUrl = buildBordersDataUrl(matchedFeatures, previewLevel, snapshotView);
-      } catch (error) {
-        console.warn("Unable to render territory preview.", error);
-      }
-
-      const tile = createPresetTile(preset, {
-        baseMapUrl,
-        fillUrl,
-        bordersUrl,
-        counts: computePresetStatusCounts(records, filters)
-      });
-      bindPresetTile(tile, preset);
-      grid.append(tile);
+      const tile = buildCrossroadTile(preset, records, geoIndex, "preset");
+      bindCrossroadTile(tile, preset, "preset");
+      featuredGrid.append(tile);
     });
   } catch (error) {
     if (
@@ -1595,15 +1942,253 @@ async function renderCrossroadPresetTiles() {
     }
 
     console.warn("Unable to build territory crossroad previews.", error);
+    savedSearches.forEach((savedSearch) => {
+      const tile = buildCrossroadTileFromCache(savedSearch, "saved");
+      bindCrossroadTile(tile, savedSearch, "saved");
+      savedGrid.append(tile);
+    });
     presets.forEach((preset) => {
-      const tile = createPresetTile(preset);
-      bindPresetTile(tile, preset);
-      grid.append(tile);
+      const tile = buildCrossroadTileFromCache(preset, "preset");
+      bindCrossroadTile(tile, preset, "preset");
+      featuredGrid.append(tile);
     });
   }
 
   applyCrossroadPresetVisibility();
 }
+
+/* Saving a search: animate it into the Saved tab ---------------------- */
+
+function animateCrossroadSavedSearchShift(
+  tiles,
+  previousPositions,
+  duration = CROSSROAD_SAVED_INSERT_SHIFT_DURATION_MS,
+  easing = CROSSROAD_SAVED_INSERT_SHIFT_EASING
+) {
+  const animations = [];
+
+  tiles.forEach((tile) => {
+    const key = tile.dataset.savedSearchId || tile.dataset.presetId;
+    const previousPosition = previousPositions.get(key);
+    if (!previousPosition) return;
+
+    const nextPosition = tile.getBoundingClientRect();
+    const deltaX = previousPosition.left - nextPosition.left;
+    const deltaY = previousPosition.top - nextPosition.top;
+    if (!deltaX && !deltaY) return;
+
+    animations.push(tile.animate([
+      { transform: `translate3d(${deltaX}px, ${deltaY}px, 0)` },
+      { transform: "translate3d(0, 0, 0)" }
+    ], { duration, easing }));
+  });
+
+  return Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
+}
+
+function animateCrossroadSavedSearchInsertion(savedSearch) {
+  const grid = getCrossroadScopeGrid("saved");
+  if (!grid || !savedSearch) return;
+
+  const savedScroll = document.getElementById("territoryCrossroad");
+  savedScroll?.scrollTo({ top: 0, behavior: "auto" });
+
+  const visibleTiles = Array.from(grid.children).filter((tile) => !tile.hidden);
+  const previousPositions = new Map(
+    visibleTiles.map((tile) => [
+      tile.dataset.savedSearchId || tile.dataset.presetId,
+      tile.getBoundingClientRect()
+    ])
+  );
+
+  const newTile = buildCrossroadTileFromCache(savedSearch, "saved");
+  bindCrossroadTile(newTile, savedSearch, "saved");
+  newTile.style.pointerEvents = "none";
+  grid.prepend(newTile);
+  applyCrossroadPresetVisibility();
+
+  const shouldReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (shouldReduceMotion) {
+    newTile.style.removeProperty("pointer-events");
+    return;
+  }
+
+  newTile.style.opacity = "0";
+  newTile.style.filter = `blur(${CROSSROAD_SAVED_INSERT_BLUR_PX}px)`;
+
+  const existingTiles = visibleTiles.filter((tile) => tile !== newTile);
+
+  animateCrossroadSavedSearchShift(existingTiles, previousPositions).finally(() => {
+    const revealAnimation = newTile.animate([
+      { opacity: 0, filter: `blur(${CROSSROAD_SAVED_INSERT_BLUR_PX}px)` },
+      { opacity: 1, filter: "blur(0px)" }
+    ], {
+      duration: CROSSROAD_SAVED_INSERT_REVEAL_MS,
+      easing: "ease-out",
+      fill: "forwards"
+    });
+
+    revealAnimation.finished
+      .catch(() => {})
+      .finally(() => {
+        newTile.style.removeProperty("opacity");
+        newTile.style.removeProperty("filter");
+        newTile.style.removeProperty("pointer-events");
+      });
+  });
+}
+
+async function prepareTerritorySavedSearchReveal(savedSearch) {
+  resetCrossroadPresetSearchFilter();
+  setCrossroadPresetActiveScope("saved");
+  await renderCrossroadPresetTiles({ excludeSavedSearchId: savedSearch.id });
+  showTerritoryCrossroad({ animate: false });
+
+  requestAnimationFrame(() => {
+    animateCrossroadSavedSearchInsertion(savedSearch);
+  });
+}
+
+function animateCrossroadSavedSearchDeletion(savedSearchId) {
+  const grid = getCrossroadScopeGrid("saved");
+  const removedTile = grid?.querySelector(`[data-saved-search-id="${CSS.escape(savedSearchId)}"]`);
+  if (!grid || !removedTile) return;
+
+  const savedScroll = document.getElementById("territoryCrossroad");
+  savedScroll?.scrollTo({ top: 0, behavior: "auto" });
+
+  const shouldReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (shouldReduceMotion) {
+    removedTile.remove();
+    applyCrossroadPresetVisibility();
+    return;
+  }
+
+  removedTile.style.pointerEvents = "none";
+
+  const blurCompleteOffset = CROSSROAD_SAVED_DELETE_BLUR_MS / CROSSROAD_SAVED_DELETE_FADE_MS;
+  const removalAnimation = removedTile.animate([
+    { opacity: 1, filter: "blur(0px)", offset: 0 },
+    {
+      opacity: 1,
+      filter: `blur(${CROSSROAD_SAVED_DELETE_BLUR_PX}px)`,
+      offset: blurCompleteOffset
+    },
+    {
+      opacity: 0,
+      filter: `blur(${CROSSROAD_SAVED_DELETE_BLUR_PX}px)`,
+      offset: 1
+    }
+  ], {
+    duration: CROSSROAD_SAVED_DELETE_FADE_MS,
+    easing: "ease",
+    fill: "forwards"
+  });
+
+  removalAnimation.finished
+    .catch(() => {})
+    .finally(() => {
+      const remainingTiles = Array.from(grid.children).filter((tile) => tile !== removedTile);
+      const previousPositions = new Map(
+        remainingTiles.map((tile) => [
+          tile.dataset.savedSearchId || tile.dataset.presetId,
+          tile.getBoundingClientRect()
+        ])
+      );
+
+      removedTile.remove();
+      applyCrossroadPresetVisibility();
+
+      animateCrossroadSavedSearchShift(
+        remainingTiles,
+        previousPositions,
+        CROSSROAD_SAVED_DELETE_SHIFT_DURATION_MS,
+        CROSSROAD_SAVED_DELETE_SHIFT_EASING
+      );
+    });
+}
+
+function deleteTerritorySavedSearch(searchId) {
+  const searches = getCrossroadSavedSearches();
+  const savedSearch = searches.find((entry) => entry.id === searchId);
+  if (!savedSearch) return null;
+
+  const scopeIndex = searches.findIndex((entry) => entry.id === searchId);
+  const removedSearch = window.territorySavedSearchStore?.remove?.(searchId);
+  if (!removedSearch) return null;
+
+  return {
+    savedSearch: removedSearch,
+    scopeIndex: Math.max(0, scopeIndex)
+  };
+}
+
+async function prepareTerritorySavedSearchDeletionReveal({ savedSearch, scopeIndex = 0 } = {}) {
+  resetCrossroadPresetSearchFilter();
+  setCrossroadPresetActiveScope("saved");
+  await renderCrossroadPresetTiles();
+
+  const grid = getCrossroadScopeGrid("saved");
+  if (grid && savedSearch) {
+    const removedTile = buildCrossroadTileFromCache(savedSearch, "saved");
+    bindCrossroadTile(removedTile, savedSearch, "saved");
+    grid.insertBefore(removedTile, grid.children[Math.max(0, scopeIndex)] || null);
+    applyCrossroadPresetVisibility();
+  }
+  showTerritoryCrossroad({ animate: false });
+
+  requestAnimationFrame(() => {
+    animateCrossroadSavedSearchDeletion(savedSearch.id);
+  });
+}
+
+function revealDeletedTerritorySavedSearch({ savedSearch, scopeIndex = 0 } = {}) {
+  if (!savedSearch) return;
+
+  window.territoryMapFilters?.hideTerritoryRecords?.();
+  window.territoryMapSelection?.clear?.();
+  window.territoryBrandPanel?.close?.();
+
+  const shell = document.querySelector(".territory-shell");
+  const crossroad = document.getElementById("territoryCrossroad");
+  const alreadyOnSplash = Boolean(
+    crossroad && !crossroad.hidden && shell?.classList.contains("is-crossroad-open")
+  );
+
+  if (window.__territoryMapStarted && !alreadyOnSplash) {
+    showTerritoryCrossroadAfterClearAll({
+      onReveal: () => prepareTerritorySavedSearchDeletionReveal({ savedSearch, scopeIndex })
+    });
+  } else {
+    prepareTerritorySavedSearchDeletionReveal({ savedSearch, scopeIndex });
+  }
+}
+
+// Called after "Save search" persists a new search: brings the user back to
+// the crossroad splash screen, switches to the Saved tab, and animates the
+// new tile into the grid (same FLIP insert/shift technique CST uses for its
+// saved-search splash).
+function revealTerritorySavedSearch(savedSearch) {
+  if (!savedSearch) return;
+
+  window.territoryMapFilters?.hideTerritoryRecords?.();
+  window.territoryMapSelection?.clear?.();
+  window.territoryBrandPanel?.close?.();
+
+  if (window.__territoryMapStarted) {
+    showTerritoryCrossroadAfterClearAll({
+      onReveal: () => prepareTerritorySavedSearchReveal(savedSearch)
+    });
+  } else {
+    prepareTerritorySavedSearchReveal(savedSearch);
+  }
+}
+
+window.territoryCrossroad = {
+  deleteSavedSearch: deleteTerritorySavedSearch,
+  revealSavedSearch: revealTerritorySavedSearch,
+  revealDeletedSearch: revealDeletedTerritorySavedSearch
+};
 
 function consumeTerritorySkipCrossroad() {
   try {
@@ -1620,9 +2205,9 @@ async function initTerritoryCrossroad() {
   bindCrossroadLocationSearch();
   bindCrossroadPresetTabs();
 
-  const grid = document.getElementById("territoryCrossroadGrid");
+  const featuredGrid = getCrossroadScopeGrid("featured");
   const crossroad = document.getElementById("territoryCrossroad");
-  if (!grid) return;
+  if (!featuredGrid) return;
 
   const shouldSkipCrossroad = consumeTerritorySkipCrossroad();
   const shouldRevealOnLoad = Boolean(
@@ -1667,6 +2252,12 @@ async function initTerritoryCrossroad() {
 }
 
 window.addEventListener("territorydatasetchange", () => {
+  if (!window.__territoryMapStarted) {
+    renderCrossroadPresetTiles();
+  }
+});
+
+window.addEventListener("territory:saved-searches-changed", () => {
   if (!window.__territoryMapStarted) {
     renderCrossroadPresetTiles();
   }

@@ -325,7 +325,7 @@ function loadMoreRawDataRows(pageType) {
   renderRawDataSidebar(activeRawOwnerIndex, { resetPagination: false });
 }
 
-function restoreOwnersTableView({ clearRaw = true, clearGlobalRaw = true } = {}) {
+function restoreFranchiseesTableView({ clearRaw = true, clearGlobalRaw = true } = {}) {
   if (clearRaw) {
     activeRawOwnerIndex = null;
   }
@@ -334,7 +334,7 @@ function restoreOwnersTableView({ clearRaw = true, clearGlobalRaw = true } = {})
     globalRawDataViewOpen = false;
   }
 
-  ownersTable?.classList.remove("raw-data-table");
+  franchiseesTable?.classList.remove("raw-data-table");
   tableWrap?.classList.remove("is-raw-data-view");
 
   defaultHeaderState.forEach((state) => {

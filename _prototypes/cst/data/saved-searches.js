@@ -7,13 +7,14 @@
 //   locations     location labels, e.g. "Omaha, Nebraska"
 //   categories    category names
 //   franchises    franchise/brand names
-//   owners        owner indexes (matches the Owners filter)
+//   franchisees   franchisee indexes (matches the Franchisees filter)
+//   owners        legacy alias for franchisees
 //   units         { min, max } unit count range; omit a bound to keep the default
 //   contacts      { min, max } contact count range
 // scope: "private" | "team" | "public" — used by the splash category tabs
 // snapshot: pre-rendered map image. Regenerate with:
 //   node _prototypes/cst/scripts/generate-splash-snapshots.js
-// view: which table the search opens in ("owners" | "locations")
+// view: which table the search opens in ("franchisees" | "candidates" | "locations")
 // ownerCount / unitCount: splash tile metrics; keep in sync when filters change
 
 const CST_SAVED_SEARCHES_STORAGE_KEY = "cst.savedSearches.v1";
@@ -33,7 +34,10 @@ function normalizeStoredCstSavedSearch(value) {
     title,
     description: String(value.description || "").trim(),
     scope,
-    view: String(value.view || "owners").trim() || "owners",
+    view: ({
+      owners: "franchisees",
+      userProfiles: "candidates"
+    })[String(value.view || "franchisees").trim()] || String(value.view || "franchisees").trim() || "franchisees",
     filters: value.filters && typeof value.filters === "object" && !Array.isArray(value.filters)
       ? value.filters
       : {}
@@ -45,6 +49,13 @@ function normalizeStoredCstSavedSearch(value) {
   if (Number.isFinite(unitCount)) savedSearch.unitCount = unitCount;
   if (value.createdAt) savedSearch.createdAt = String(value.createdAt);
   if (value.snapshot) savedSearch.snapshot = String(value.snapshot);
+  if (value.alerts?.enabled) {
+    savedSearch.alerts = {
+      enabled: true,
+      notifyAdded: Boolean(value.alerts.notifyAdded),
+      notifyModified: Boolean(value.alerts.notifyModified)
+    };
+  }
 
   return savedSearch;
 }

@@ -396,14 +396,48 @@ function simplifyRing(points) {
   return fallback.length >= 4 ? fallback : null;
 }
 
+// Farallon Islands are legally San Francisco / California, but nobody will
+// look for franchise territories on that uninhabited offshore refuge.
+const EXCLUDED_ISLAND_BOUNDS = [
+  { west: -123.20, east: -122.90, south: 37.62, north: 37.85 }
+];
+
+function polygonBoundsAreInsideBox(rings, box) {
+  const outer = rings?.[0];
+  if (!outer?.length) return false;
+
+  let west = Infinity;
+  let east = -Infinity;
+  let south = Infinity;
+  let north = -Infinity;
+
+  for (const [lng, lat] of outer) {
+    if (lng < west) west = lng;
+    if (lng > east) east = lng;
+    if (lat < south) south = lat;
+    if (lat > north) north = lat;
+  }
+
+  return west >= box.west && east <= box.east && south >= box.south && north <= box.north;
+}
+
+function dropExcludedIslandPolygons(polygons) {
+  if (!Array.isArray(polygons) || polygons.length < 2) return polygons;
+
+  const kept = polygons.filter((rings) => (
+    !EXCLUDED_ISLAND_BOUNDS.some((box) => polygonBoundsAreInsideBox(rings, box))
+  ));
+  return kept.length ? kept : polygons;
+}
+
 function simplifyGeometry(geometry) {
   const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
-  const simplifiedPolygons = polygons.map((rings) => {
+  const simplifiedPolygons = dropExcludedIslandPolygons(polygons.map((rings) => {
     const simplifiedRings = rings.map(simplifyRing).filter(Boolean);
     return simplifiedRings.length ? simplifiedRings : null;
-  }).filter(Boolean);
+  }).filter(Boolean));
 
-  if (geometry.type === "Polygon") {
+  if (simplifiedPolygons.length === 1) {
     return { type: "Polygon", coordinates: simplifiedPolygons[0] || [] };
   }
   return { type: "MultiPolygon", coordinates: simplifiedPolygons };

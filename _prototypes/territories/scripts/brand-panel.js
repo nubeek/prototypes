@@ -1135,13 +1135,8 @@ function initTerritoryBrandSort() {
 }
 
 function initTerritoryBrandPanel() {
-  const alertToggle = document.getElementById("territorySaveSearch");
   const expandToggle = document.getElementById("territoryBrandExpandToggle");
   const list = document.getElementById("territoryBrandList");
-
-  if (alertToggle) {
-    bindBrandPanelFloatingTooltip(alertToggle);
-  }
 
   if (expandToggle) {
     bindBrandPanelFloatingTooltip(expandToggle);
@@ -1673,6 +1668,42 @@ function setSelectedTerritory(territoryKey, compareKey = null) {
   });
 }
 
+// Header "Settings" (edit) is disabled for now — private searches opened from
+// the crossroad are treated as new queries. activeTerritorySavedSearch remains
+// available if edit-from-header is re-enabled later.
+let activeTerritorySavedSearch = null;
+let isActiveTerritorySavedSearchDirty = false;
+
+function syncTerritorySavedSearchHeading() {
+  const titleElement = document.getElementById("territoryBrandPanelTitle");
+  const saveButton = document.getElementById("territorySaveSearch");
+  const settingsButton = document.getElementById("territorySavedSearchSettings");
+  const showSettings = Boolean(activeTerritorySavedSearch) && !isActiveTerritorySavedSearchDirty;
+
+  if (titleElement) {
+    titleElement.textContent = activeTerritorySavedSearch?.title || "Territories";
+  }
+  if (saveButton) saveButton.hidden = showSettings;
+  if (settingsButton) settingsButton.hidden = !showSettings;
+}
+
+function setActiveTerritorySavedSearch(savedSearch) {
+  activeTerritorySavedSearch = savedSearch
+    ? { id: savedSearch.id, title: savedSearch.title || "" }
+    : null;
+  isActiveTerritorySavedSearchDirty = false;
+  syncTerritorySavedSearchHeading();
+}
+
+function setTerritorySavedSearchDirty(isDirty) {
+  isActiveTerritorySavedSearchDirty = Boolean(isDirty);
+  syncTerritorySavedSearchHeading();
+}
+
+function getActiveTerritorySavedSearch() {
+  return activeTerritorySavedSearch ? { ...activeTerritorySavedSearch } : null;
+}
+
 function closeTerritoryBrandPanel() {
   territoryBrandListBuildToken += 1;
   stopTerritoryBrandItemToggleAnimation();
@@ -1683,6 +1714,7 @@ function closeTerritoryBrandPanel() {
   if (summary) {
     summary.textContent = "Showing 0 territories";
   }
+  setActiveTerritorySavedSearch(null);
   syncTerritoryBrandPanelExpandToggle();
 }
 
@@ -1693,7 +1725,10 @@ window.territoryBrandPanel = {
   notifyLoadingHidden: notifyTerritoryBrandListLoadingHidden,
   isEnterPending: isTerritoryBrandListEnterPending,
   createShape: createTerritoryShape,
-  formatAlertName: formatTerritoryBrandAlertName
+  formatAlertName: formatTerritoryBrandAlertName,
+  setActiveSavedSearch: setActiveTerritorySavedSearch,
+  getActiveSavedSearch: getActiveTerritorySavedSearch,
+  setSavedSearchDirty: setTerritorySavedSearchDirty
 };
 
 initTerritoryBrandPanel();

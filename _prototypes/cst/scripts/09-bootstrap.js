@@ -182,8 +182,8 @@ if (tableBody) {
   });
 }
 
-if (ownersTable) {
-  ownersTable.addEventListener("change", (event) => {
+if (franchiseesTable) {
+  franchiseesTable.addEventListener("change", (event) => {
     const checkbox = event.target;
     if (!(checkbox instanceof HTMLInputElement) || !checkbox.classList.contains("location-select-all-checkbox")) return;
     if (!isDatasetTableView()) return;
@@ -703,17 +703,103 @@ if (resetViewOption) {
 }
 
 const CREATE_TARGET_MODAL_CLOSE_DURATION_MS = 320;
+const CREATE_TARGET_ALERT_TOGGLE_DELAY_MS = 180;
 let createTargetModalCloseTimeoutId = null;
+let createTargetAlertsOpenTimeoutId = null;
 let editingSavedSearchId = null;
+let pendingCreateTargetAlerts = null;
+let createTargetAlertsPreviewEnabled = false;
+
+function normalizeCreateTargetAlerts(alerts) {
+  if (!alerts?.enabled) return null;
+
+  return {
+    enabled: true,
+    notifyAdded: Boolean(alerts.notifyAdded),
+    notifyModified: Boolean(alerts.notifyModified)
+  };
+}
+
+function getCreateTargetAlertsHelperText() {
+  if (!pendingCreateTargetAlerts) {
+    return "Get notified when this view's data changes";
+  }
+  if (pendingCreateTargetAlerts.notifyAdded && pendingCreateTargetAlerts.notifyModified) {
+    return "New and modified matching data";
+  }
+  if (pendingCreateTargetAlerts.notifyAdded) {
+    return "New matching data";
+  }
+  if (pendingCreateTargetAlerts.notifyModified) {
+    return "Modified matching data";
+  }
+  return "Alerts on";
+}
+
+function syncCreateTargetAlertsState() {
+  const isEnabled = Boolean(
+    pendingCreateTargetAlerts?.enabled || createTargetAlertsPreviewEnabled
+  );
+  createTargetAlertsRow?.classList.toggle("is-enabled", isEnabled);
+  createTargetAlertsToggle?.setAttribute("aria-checked", String(isEnabled));
+  createTargetAlertsToggle?.setAttribute(
+    "aria-label",
+    isEnabled ? "Disable alerts" : "Enable alerts"
+  );
+  if (createTargetAlertsHelper) {
+    createTargetAlertsHelper.textContent = getCreateTargetAlertsHelperText();
+  }
+  if (createTargetAlertsEdit) {
+    createTargetAlertsEdit.hidden = !(isEnabled && pendingCreateTargetAlerts?.enabled);
+  }
+}
+
+function openCreateTargetAlertsModal(trigger) {
+  window.cstViewAlertModal?.open?.(trigger, {
+    settings: pendingCreateTargetAlerts,
+    onConfirm(settings) {
+      createTargetAlertsPreviewEnabled = false;
+      pendingCreateTargetAlerts = normalizeCreateTargetAlerts(settings);
+      syncCreateTargetAlertsState();
+    },
+    onCancel() {
+      createTargetAlertsPreviewEnabled = false;
+      syncCreateTargetAlertsState();
+    }
+  });
+}
+
+function animateCreateTargetAlertsOn(trigger) {
+  if (createTargetAlertsOpenTimeoutId) {
+    window.clearTimeout(createTargetAlertsOpenTimeoutId);
+  }
+
+  createTargetAlertsPreviewEnabled = true;
+  syncCreateTargetAlertsState();
+  createTargetAlertsOpenTimeoutId = window.setTimeout(() => {
+    createTargetAlertsOpenTimeoutId = null;
+    if (!createTargetModal || createTargetModal.hidden || pendingCreateTargetAlerts?.enabled) {
+      return;
+    }
+    openCreateTargetAlertsModal(trigger);
+  }, CREATE_TARGET_ALERT_TOGGLE_DELAY_MS);
+}
 
 function finalizeCreateTargetModalClose() {
   if (!createTargetModal) return;
 
+  if (createTargetAlertsOpenTimeoutId) {
+    window.clearTimeout(createTargetAlertsOpenTimeoutId);
+    createTargetAlertsOpenTimeoutId = null;
+  }
   createTargetModal.classList.remove("is-open", "is-closing");
   createTargetModal.hidden = true;
   createTargetForm?.reset();
   createTargetModalCloseTimeoutId = null;
   editingSavedSearchId = null;
+  pendingCreateTargetAlerts = null;
+  createTargetAlertsPreviewEnabled = false;
+  syncCreateTargetAlertsState();
 
   if (lastCreateTargetTrigger instanceof HTMLElement) {
     lastCreateTargetTrigger.focus({ preventScroll: true });
@@ -728,9 +814,15 @@ function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
     window.clearTimeout(createTargetModalCloseTimeoutId);
     createTargetModalCloseTimeoutId = null;
   }
+  if (createTargetAlertsOpenTimeoutId) {
+    window.clearTimeout(createTargetAlertsOpenTimeoutId);
+    createTargetAlertsOpenTimeoutId = null;
+  }
 
   lastCreateTargetTrigger = trigger;
   editingSavedSearchId = savedSearch?.id || null;
+  pendingCreateTargetAlerts = normalizeCreateTargetAlerts(savedSearch?.alerts);
+  createTargetAlertsPreviewEnabled = false;
   createTargetForm?.reset();
   createTargetTitleInput?.setCustomValidity("");
   if (createTargetModalTitle) {
@@ -752,7 +844,10 @@ function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
     if (createTargetVisibilitySelect) {
       createTargetVisibilitySelect.value = savedSearch.scope || "private";
     }
+  } else if (createTargetTitleInput) {
+    createTargetTitleInput.value = getSuggestedSavedViewTitle();
   }
+  syncCreateTargetAlertsState();
 
   createTargetModal.classList.remove("is-closing");
   createTargetModal.hidden = false;
@@ -768,6 +863,12 @@ function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
 function closeCreateTargetModal() {
   if (!createTargetModal || createTargetModal.hidden) return;
 
+  if (createTargetAlertsOpenTimeoutId) {
+    window.clearTimeout(createTargetAlertsOpenTimeoutId);
+    createTargetAlertsOpenTimeoutId = null;
+    createTargetAlertsPreviewEnabled = false;
+    syncCreateTargetAlertsState();
+  }
   if (createTargetModalCloseTimeoutId) {
     window.clearTimeout(createTargetModalCloseTimeoutId);
   }
@@ -779,6 +880,8 @@ function closeCreateTargetModal() {
     CREATE_TARGET_MODAL_CLOSE_DURATION_MS
   );
 }
+
+window.openCreateTargetModal = openCreateTargetModal;
 
 if (createTargetOption) {
   createTargetOption.addEventListener("click", (event) => {
@@ -796,6 +899,35 @@ if (readerViewSettingsBtn) {
     openCreateTargetModal(readerViewSettingsBtn, { savedSearch });
   });
 }
+
+function toggleCreateTargetAlerts(trigger) {
+  if (pendingCreateTargetAlerts?.enabled || createTargetAlertsPreviewEnabled) {
+    if (createTargetAlertsOpenTimeoutId) {
+      window.clearTimeout(createTargetAlertsOpenTimeoutId);
+      createTargetAlertsOpenTimeoutId = null;
+    }
+    pendingCreateTargetAlerts = null;
+    createTargetAlertsPreviewEnabled = false;
+    syncCreateTargetAlertsState();
+    return;
+  }
+
+  animateCreateTargetAlertsOn(trigger);
+}
+
+createTargetAlertsRow?.addEventListener("click", (event) => {
+  if (!(event.target instanceof Element)) return;
+  if (event.target.closest("#createTargetAlertsEdit")) return;
+
+  const trigger = event.target.closest("#createTargetAlertsToggle, #createTargetAlertsDetails") || createTargetAlertsRow;
+  toggleCreateTargetAlerts(trigger);
+});
+
+createTargetAlertsEdit?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  if (!pendingCreateTargetAlerts?.enabled) return;
+  openCreateTargetAlertsModal(createTargetAlertsEdit);
+});
 
 if (createTargetModal) {
   createTargetModal.addEventListener("click", (event) => {
@@ -820,7 +952,10 @@ if (createTargetForm) {
     const viewDetails = {
       title,
       description: String(formData.get("description") || "").trim(),
-      visibility: String(formData.get("visibility") || "private")
+      visibility: String(formData.get("visibility") || "private"),
+      alerts: pendingCreateTargetAlerts
+        ? { ...pendingCreateTargetAlerts }
+        : null
     };
     const savedSearch = editingSavedSearchId
       ? window.cstSplash?.updateSavedView?.(editingSavedSearchId, viewDetails)
@@ -1057,6 +1192,10 @@ if (profileModal) {
 }
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && viewAlertModal && !viewAlertModal.hidden) {
+    window.cstViewAlertModal?.close?.();
+    return;
+  }
   if (event.key === "Escape" && saveLeadModal && !saveLeadModal.hidden) {
     if (saveLeadListSelectorField?.classList.contains("is-open")) {
       saveLeadListSelectorApi?.close();

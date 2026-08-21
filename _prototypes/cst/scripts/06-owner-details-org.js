@@ -29,7 +29,7 @@ function renderOwnerDetails(owner) {
 
   ownerDetailsPanel.innerHTML = `
     <article class="owner-detail-card">
-      ${getOwnerHeader(owner, { closeLabel: "Close owner details" })}
+      ${getOwnerHeader(owner, { closeLabel: "Close franchisee details" })}
 
       <section class="owner-detail-section owner-detail-contact">
         <h3 class="ui-section-title">Contact</h3>
@@ -327,7 +327,7 @@ function renderOwnerOrgChart(ownerIndex) {
 }
 
 function getOwnerSearchOwners() {
-  return displayedOwners.length ? displayedOwners : owners;
+  return displayedFranchisees.length ? displayedFranchisees : owners;
 }
 
 function getOwnerSearchFieldMarkup() {
@@ -338,17 +338,17 @@ function getOwnerSearchFieldMarkup() {
         <input
           type="text"
           class="owner-search-input"
-          placeholder="Search owners..."
+          placeholder="Search franchisees..."
           autocomplete="off"
           spellcheck="false"
           role="combobox"
           aria-autocomplete="list"
           aria-expanded="false"
           aria-controls="ownerSearchMenu"
-          aria-label="Search owners"
+          aria-label="Search franchisees"
         >
       </div>
-      <div class="owner-search-menu" id="ownerSearchMenu" role="listbox" aria-label="Owner search results">
+      <div class="owner-search-menu" id="ownerSearchMenu" role="listbox" aria-label="Franchisee search results">
         <div class="owner-search-options"></div>
       </div>
     </div>

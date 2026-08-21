@@ -1051,7 +1051,7 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 0 0 16px;
+  margin: 0 0 20px;
   color: #050505;
   font-size: 16px;
   font-weight: 400;
@@ -1080,15 +1080,35 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
 }
 
 .target-modal-input {
-  padding: 0 16px;
+  padding: 0 12px;
+}
+
+.target-modal-input,
+.target-modal-textarea {
+  background: var(--color-surface-muted);
+  border-color: transparent;
+}
+
+.target-modal-control.target-modal-input:not(:placeholder-shown),
+.target-modal-control.target-modal-textarea:not(:placeholder-shown),
+.target-modal-control.target-modal-input:focus,
+.target-modal-control.target-modal-textarea:focus {
+  background: var(--color-surface);
+}
+
+.target-modal-input:not(:placeholder-shown),
+.target-modal-textarea:not(:placeholder-shown) {
+  border-color: var(--color-border);
+}
+
+.target-modal-input::placeholder {
+  opacity: 0;
 }
 
 .target-modal-textarea {
   min-height: 100px;
   resize: vertical;
-  padding: 14px 18px;
-  background: var(--color-surface);
-  border-color: var(--color-border);
+  padding: 12px;
   line-height: 1.45;
 }
 
@@ -1096,10 +1116,11 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
   color: var(--color-text-muted);
 }
 
-.target-modal-control:focus {
+.target-modal-control.target-modal-input:focus,
+.target-modal-control.target-modal-textarea:focus,
+.target-modal-select:focus {
   border-color: var(--color-brand);
   box-shadow: 0 0 0 1px var(--color-brand);
-  background: var(--color-surface);
 }
 
 .target-modal-select-field {

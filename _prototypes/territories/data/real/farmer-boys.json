@@ -1,0 +1,118 @@
+{
+  "id": "farmer-boys",
+  "brand": "Farmer Boys",
+  "category": "Food and Beverage",
+  "color": "#1F4D2E",
+  "logo": "assets/logos/farmer-boys.png",
+  "country": "US",
+  "level": "geo",
+  "franchiseeRating": 0,
+  "profileUrl": "",
+  "territories": [
+    {
+      "geoKey": "place:4911320",
+      "geoType": "place",
+      "state": "UT",
+      "name": "Cedar City, UT",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0613014",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Chico, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4819000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Dallas, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0627000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Fresno, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0643000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Long Beach, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0444410",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Maricopa, AZ",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3246000",
+      "geoType": "place",
+      "state": "NV",
+      "name": "Mesquite, NV",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0455000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Phoenix, AZ",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3260600",
+      "geoType": "place",
+      "state": "NV",
+      "name": "Reno, NV",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0664000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Sacramento, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0666000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "San Diego, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0667000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "San Francisco, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3268400",
+      "geoType": "place",
+      "state": "NV",
+      "name": "Sparks, NV",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4965330",
+      "geoType": "place",
+      "state": "UT",
+      "name": "St. George, UT",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0477000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Tucson, AZ",
+      "status": "available"
+    }
+  ]
+}

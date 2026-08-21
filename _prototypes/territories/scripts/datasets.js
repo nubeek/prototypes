@@ -24,7 +24,6 @@ const TERRITORY_DATASETS = {
       {
         id: "qsr-southeast",
         title: "QSR in the South-East",
-        scope: "team",
         filters: {
           locations: ["FL", "GA", "AL", "SC", "NC", "TN", "KY", "VA", "MS", "LA"],
           categories: ["Food & Beverage"],
@@ -34,7 +33,6 @@ const TERRITORY_DATASETS = {
       {
         id: "fitness-california",
         title: "Fitness in California",
-        scope: "private",
         filters: {
           locations: ["CA"],
           categories: ["Health & Fitness"],
@@ -44,7 +42,6 @@ const TERRITORY_DATASETS = {
       {
         id: "low-investment-midwest",
         title: "Low Investment in the Midwest",
-        scope: "team",
         filters: {
           locations: ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"],
           investment: { min: 0, max: 500000 }
@@ -53,7 +50,6 @@ const TERRITORY_DATASETS = {
       {
         id: "chick-fil-a-southeast",
         title: "Chick-fil-A South-East",
-        scope: "private",
         filters: {
           locations: ["GA", "IN", "KY", "NY", "NC", "VA"],
           franchises: ["chick-fil-a"],
@@ -63,7 +59,6 @@ const TERRITORY_DATASETS = {
       {
         id: "burgers-and-fries-texas",
         title: "Burgers & Fries in Texas",
-        scope: "team",
         filters: {
           locations: ["TX"],
           categories: ["Food & Beverage"],
@@ -94,7 +89,6 @@ const TERRITORY_DATASETS = {
       {
         id: "qsr-texas-florida",
         title: "QSR in Texas & Florida",
-        scope: "team",
         filters: {
           locations: ["TX", "FL"],
           categories: ["Food & Beverage"],
@@ -104,7 +98,6 @@ const TERRITORY_DATASETS = {
       {
         id: "southeast-growth",
         title: "Southeast Growth Markets",
-        scope: "private",
         filters: {
           locations: ["TX", "FL", "GA", "NC", "SC"],
           statuses: ["available"]
@@ -113,7 +106,6 @@ const TERRITORY_DATASETS = {
       {
         id: "fitness-west",
         title: "Fitness in the West",
-        scope: "team",
         filters: {
           locations: ["CA", "AZ", "CO"],
           categories: ["Health & Fitness"],
@@ -123,7 +115,6 @@ const TERRITORY_DATASETS = {
       {
         id: "western-metros",
         title: "Western Metro Markets",
-        scope: "private",
         filters: {
           locations: ["CA", "AZ", "CO"],
           statuses: ["available"]
@@ -146,7 +137,9 @@ const TERRITORY_DATASETS = {
       "real/black-sheep-coffee.json",
       "real/captain-ds.json",
       "real/college-hunks-hauling-junk-and-moving.json",
+      "real/coffee-bean-tea-leaf.json",
       "real/dryer-vent-wizard.json",
+      "real/farmer-boys.json",
       "real/five-star-painting.json",
       "real/glass-doctor.json",
       "real/housemaster.json",
@@ -185,7 +178,6 @@ const TERRITORY_DATASETS = {
       {
         id: "texas-home-services",
         title: "Home Services in Texas",
-        scope: "team",
         filters: {
           locations: ["TX"],
           categories: ["Home & Services"],
@@ -195,7 +187,6 @@ const TERRITORY_DATASETS = {
       {
         id: "southeast-available",
         title: "South-East of the US",
-        scope: "private",
         filters: {
           locations: ["FL", "GA", "AL", "SC", "NC", "TN", "KY", "VA", "MS", "LA"],
           statuses: ["available"]
@@ -204,7 +195,6 @@ const TERRITORY_DATASETS = {
       {
         id: "california-home-services",
         title: "Home Services in CA",
-        scope: "team",
         filters: {
           locations: ["CA"],
           categories: ["Home & Services"],
@@ -214,7 +204,6 @@ const TERRITORY_DATASETS = {
       {
         id: "florida-cleaning",
         title: "Cleaning in Florida",
-        scope: "private",
         filters: {
           locations: ["FL"],
           categories: ["Cleaning and Maintenance"],
@@ -224,7 +213,6 @@ const TERRITORY_DATASETS = {
       {
         id: "texas-florida",
         title: "Texas & Florida Growth Markets",
-        scope: "team",
         filters: {
           locations: ["TX", "FL"],
           statuses: ["available"]
@@ -233,7 +221,6 @@ const TERRITORY_DATASETS = {
       {
         id: "midwest-low-investment",
         title: "Under $150k in the Midwest",
-        scope: "private",
         filters: {
           locations: ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"],
           statuses: ["available"],

@@ -534,14 +534,14 @@ function getSyntheticAthleteProfile(index) {
   };
 }
 
-function createUserProfiles() {
+function createCandidates() {
   return Array.from({ length: PROSPECT_DATASET_SIZE }, (_, index) => {
     const name = getProspectName(index);
     const franchiseProfile = USER_PROFILE_FRANCHISES[index % USER_PROFILE_FRANCHISES.length];
     const franchise = franchiseProfile.franchise;
 
     return {
-      id: `user-profile-${prospectSlug(name)}-${index + 1}`,
+      id: `candidate-${prospectSlug(name)}-${index + 1}`,
       name,
       location: PROSPECT_LOCATIONS[(index * 5) % PROSPECT_LOCATIONS.length],
       email: getProspectEmail(name, index, franchise, { preferFranchiseDomain: Boolean(franchise) }),
@@ -590,9 +590,9 @@ function createAthletes() {
 }
 
 window.prospectDatasetsData = {
-  userProfiles: {
-    label: "User profiles",
-    rows: createUserProfiles()
+  candidates: {
+    label: "Candidates",
+    rows: createCandidates()
   },
   searchers: {
     label: "Searchers",

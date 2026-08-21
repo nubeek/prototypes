@@ -287,7 +287,7 @@ function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
     ? new Set(excludedOwnerIndexes.map(Number))
     : null;
   const filteredMapOwnerIndexes = ownerIndex === null
-    ? new Set(getFilteredOwners().map((owner) => owner.originalIndex))
+    ? new Set(getFilteredFranchisees().map((owner) => owner.originalIndex))
     : null;
 
   const features = (window.ownerLocationsData || [])
@@ -1120,7 +1120,12 @@ function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
     return didFly;
   };
 
-  if (!ownersMap?.loaded()) {
+  if (!ownersMap) {
+    whenSettled?.(false);
+    return false;
+  }
+
+  if (!ownersMap.loaded()) {
     ownersMap.once("idle", runFit);
     return false;
   }

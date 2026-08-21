@@ -1,4 +1,4 @@
-const tableBody = document.getElementById("ownersTableBody");
+const tableBody = document.getElementById("franchiseesTableBody");
 const tableWrap = document.getElementById("tableWrap");
 const tableEmptyState = document.getElementById("tableEmptyState");
 const tableHeadingTitle = document.getElementById("tableHeadingTitle");
@@ -61,6 +61,12 @@ const createTargetModalTitle = document.getElementById("createTargetModalTitle")
 const createTargetTitleInput = document.getElementById("createTargetTitle");
 const createTargetDescriptionInput = document.getElementById("createTargetDescription");
 const createTargetVisibilitySelect = document.getElementById("createTargetVisibility");
+const createTargetAlertsRow = document.getElementById("createTargetAlertsRow");
+const createTargetAlertsDetails = document.getElementById("createTargetAlertsDetails");
+const createTargetAlertsHelper = document.getElementById("createTargetAlertsHelper");
+const createTargetAlertsToggle = document.getElementById("createTargetAlertsToggle");
+const createTargetAlertsEdit = document.getElementById("createTargetAlertsEdit");
+const viewAlertModal = document.getElementById("viewAlertModal");
 const deleteSavedViewBtn = document.getElementById("deleteSavedView");
 const saveLeadModal = document.getElementById("saveLeadModal");
 const saveLeadModalForm = document.getElementById("saveLeadModalForm");
@@ -99,7 +105,7 @@ const locationsColumnHeader = document.getElementById("locationsColumnHeader");
 const categoryColumnHeader = document.getElementById("categoryColumnHeader");
 const organizationColumnHeader = document.getElementById("organizationColumnHeader");
 const locationNumberColumnHeader = document.getElementById("locationNumberColumnHeader");
-const ownersTable = tableBody?.closest("table");
+const franchiseesTable = tableBody?.closest("table");
 const ownerTableHeaders = [
   locationNumberColumnHeader,
   ownerColumnHeader,
@@ -204,8 +210,18 @@ function getOwnerFranchiseeRating(owner) {
   return ratingSteps[owner.originalIndex % ratingSteps.length];
 }
 
-let currentTableView = "owners";
-let displayedOwners = [...owners];
+const TABLE_VIEW_ALIASES = {
+  owners: "franchisees",
+  userProfiles: "candidates"
+};
+
+function normalizeTableView(view) {
+  const key = String(view || "").trim();
+  return TABLE_VIEW_ALIASES[key] || key || "franchisees";
+}
+
+let currentTableView = "franchisees";
+let displayedFranchisees = [...owners];
 let displayedLocations = [];
 const selectedLocationRowIds = new Set();
 const LOCATION_TABLE_PAGE_SIZE = 100;
@@ -245,7 +261,7 @@ let activeRawOwnerIndex = null;
 let globalRawDataViewOpen = false;
 // Set only by manual toolbar tab clicks ("map" | "org" | "raw" | null).
 // A locked tab is highlighted; closing its sidebar requires the toolbar or
-// the hide-panel option, while the sidebar X only clears the selected owner.
+// the hide-panel option, while the sidebar X only clears the selected franchisee.
 let lockedToolbarMode = null;
 let currentPanelLayout = "right";
 let lastProfileModalTrigger = null;
@@ -296,13 +312,13 @@ const PANEL_LAYOUT_CLASSES = {
 };
 const orgCollapsedNodeIdsByOwner = new Map();
 const tableSortStates = {
-  owners: {
+  franchisees: {
     columns: [{ key: "locations", direction: "descending" }]
   },
   locations: {
     columns: [{ key: "contactName", direction: "descending" }]
   },
-  userProfiles: {
+  candidates: {
     columns: [{ key: "contactName", direction: "descending" }]
   },
   searchers: {
@@ -313,7 +329,7 @@ const tableSortStates = {
   }
 };
 let sortState = {
-  columns: tableSortStates.owners.columns.map((column) => ({ ...column }))
+  columns: tableSortStates.franchisees.columns.map((column) => ({ ...column }))
 };
 const columnWidths = {
   owner: "31%",

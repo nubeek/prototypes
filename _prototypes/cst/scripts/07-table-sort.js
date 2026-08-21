@@ -322,8 +322,8 @@ const prospectDatasetTableOptions = Object.entries(window.prospectDatasetsData |
   {}
 );
 const TABLE_VIEW_OPTIONS = {
-  owners: {
-    label: "Owners",
+  franchisees: {
+    label: "Franchisees",
     icon: "assets/owners.svg"
   },
   locations: {
@@ -355,7 +355,7 @@ const LOCATION_TABLE_HEADERS = [
 ].filter((config) => config.header);
 
 const TABLE_HEADING_SORT_RELEVANCY = "relevancy";
-const OWNERS_TABLE_SORT_COLUMNS = [
+const FRANCHISEES_TABLE_SORT_COLUMNS = [
   { sortKey: "ownerName", label: "Name A–Z" },
   { sortKey: "contactName", label: "Contact A–Z" },
   { sortKey: "contacts", label: "Most contacts" },
@@ -365,17 +365,17 @@ const OWNERS_TABLE_SORT_COLUMNS = [
 const TABLE_HEADING_SORT_LABELS = {
   relevancy: "Relevancy",
   ownerName: {
-    owners: "Name A–Z",
+    franchisees: "Name A–Z",
     default: "Institution A–Z"
   },
   contactName: {
-    owners: "Contact A–Z",
+    franchisees: "Contact A–Z",
     default: "Name A–Z"
   },
   contacts: "Most contacts",
   locations: "Most units",
   franchise: {
-    owners: "Most franchises",
+    franchisees: "Most franchises",
     default: "Franchise A–Z"
   },
   location: "Location A–Z",
@@ -448,15 +448,15 @@ function setMainTableHeader(header, { label, sortKey, width }) {
 }
 
 function syncLocationTableView() {
-  restoreOwnersTableView({ clearRaw: false, clearGlobalRaw: false });
-  ownersTable?.classList.add("locations-table");
+  restoreFranchiseesTableView({ clearRaw: false, clearGlobalRaw: false });
+  franchiseesTable?.classList.add("locations-table");
   tableWrap?.classList.add("is-locations-view");
   LOCATION_TABLE_HEADERS.forEach((config) => setMainTableHeader(config.header, config));
 }
 
-function syncOwnersTableView() {
-  restoreOwnersTableView({ clearRaw: false, clearGlobalRaw: false });
-  ownersTable?.classList.remove("locations-table");
+function syncFranchiseesTableView() {
+  restoreFranchiseesTableView({ clearRaw: false, clearGlobalRaw: false });
+  franchiseesTable?.classList.remove("locations-table");
   tableWrap?.classList.remove("is-locations-view");
 }
 
@@ -474,6 +474,7 @@ function syncDatasetSelectorState() {
 }
 
 function setMainTableView(nextView) {
+  nextView = normalizeTableView(nextView);
   if (!TABLE_VIEW_OPTIONS[nextView] || nextView === currentTableView) {
     datasetSelectorApi?.close();
     return;
@@ -492,8 +493,8 @@ function setMainTableView(nextView) {
   datasetSelectorApi?.close();
 }
 
-function renderOwners(rows) {
-  syncOwnersTableView();
+function renderFranchisees(rows) {
+  syncFranchiseesTableView();
   const isEmpty = rows.length === 0;
 
   tableWrap?.classList.toggle("is-empty", isEmpty);
@@ -840,7 +841,7 @@ function scrollToLocationRow(rowIndex) {
   const row = tableBody?.querySelector(`tr[data-location-row-index="${rowIndex}"]`);
   if (!(row instanceof HTMLTableRowElement)) return;
 
-  const headerHeight = ownersTable?.querySelector("thead")?.offsetHeight || 0;
+  const headerHeight = franchiseesTable?.querySelector("thead")?.offsetHeight || 0;
   const scrollTop = Math.max(row.offsetTop - headerHeight, 0);
   tableWrap.scrollTo({
     top: scrollTop,
@@ -1067,11 +1068,11 @@ function getTableHeadingSortLabel(sortKey, tableView = currentTableView) {
   const labels = TABLE_HEADING_SORT_LABELS[sortKey];
   if (!labels) return sortKey;
   if (typeof labels === "string") return labels;
-  return tableView === "owners" ? labels.owners : (labels.default || labels.owners);
+  return tableView === "franchisees" ? labels.franchisees : (labels.default || labels.franchisees);
 }
 
 function getTableHeadingSortColumns(tableView = currentTableView) {
-  if (tableView === "owners") return OWNERS_TABLE_SORT_COLUMNS;
+  if (tableView === "franchisees") return FRANCHISEES_TABLE_SORT_COLUMNS;
 
   return LOCATION_TABLE_HEADERS
     .filter((config) => config.sortKey)
@@ -1354,7 +1355,7 @@ function rawRowMatchesFilters(row) {
   return row.franchises.some((franchiseName) => selectedFranchiseIndexes.includes(franchiseName));
 }
 
-let filteredOwnersCache = null;
+let filteredFranchiseesCache = null;
 
 function getCstFilterResultCacheKey(ownerIndex = null) {
   return [
@@ -1384,13 +1385,13 @@ function getCstFilterResultCacheKey(ownerIndex = null) {
   ].join("\u0002");
 }
 
-function getFilteredOwners() {
+function getFilteredFranchisees() {
   const cacheKey = getCstFilterResultCacheKey();
-  if (filteredOwnersCache?.key === cacheKey) {
-    return filteredOwnersCache.owners.slice();
+  if (filteredFranchiseesCache?.key === cacheKey) {
+    return filteredFranchiseesCache.franchisees.slice();
   }
 
-  const matchedOwners = owners.filter((owner) => {
+  const matchedFranchisees = owners.filter((owner) => {
     if (!ownerMatchesSearchQuery(owner)) return false;
     if (!ownerHasLocationLabel(owner)) return false;
     if (ownerExcludesLocationLabel(owner)) return false;
@@ -1402,11 +1403,11 @@ function getFilteredOwners() {
     if (!ownerMatchesRatingFilter(owner)) return false;
     return ownerMatchesOwnerFilter(owner);
   });
-  filteredOwnersCache = { key: cacheKey, owners: matchedOwners };
-  return matchedOwners.slice();
+  filteredFranchiseesCache = { key: cacheKey, franchisees: matchedFranchisees };
+  return matchedFranchisees.slice();
 }
 
-function compareOwnersByColumn(a, b, column) {
+function compareFranchiseesByColumn(a, b, column) {
   const direction = getSortDirectionMultiplier(column.key, column.direction);
 
   if (column.key === "ownerName") {
@@ -1429,17 +1430,17 @@ function compareOwnersByColumn(a, b, column) {
   return comparison * direction;
 }
 
-function sortOwners() {
-  const filteredOwners = getFilteredOwners();
+function sortFranchisees() {
+  const filteredFranchisees = getFilteredFranchisees();
 
   if (!sortState.columns.length) {
-    displayedOwners = filteredOwners.sort((a, b) => a.originalIndex - b.originalIndex);
+    displayedFranchisees = filteredFranchisees.sort((a, b) => a.originalIndex - b.originalIndex);
     return;
   }
 
-  displayedOwners = filteredOwners.sort((a, b) => {
+  displayedFranchisees = filteredFranchisees.sort((a, b) => {
     for (const column of sortState.columns) {
-      const comparison = compareOwnersByColumn(a, b, column);
+      const comparison = compareFranchiseesByColumn(a, b, column);
       if (comparison !== 0) return comparison;
     }
 
@@ -1488,7 +1489,7 @@ const TABLE_HEADING_SUMMARY_FILTER_SECTIONS = {
   category: "category",
   location: "location",
   franchise: "franchise",
-  owner: "owners",
+  owner: "franchisees",
   units: "units",
   contacts: "contacts",
   netWorth: "net-worth",
@@ -1806,13 +1807,13 @@ function buildHeadingSummaryOwnerConcept() {
   if (included.length) {
     const { phrase, highlight } = buildHeadingSummaryNamedOrCountedPhrase(included, {
       named: (list) => `for ${list}`,
-      counted: (count) => `for ${count} operators`
+      counted: (count) => `for ${count} franchisees`
     });
     return { id: "owner", phrase, highlight };
   }
 
   if (!excluded.length) return null;
-  const { phrase, highlight } = buildHeadingSummaryExclusionPhrase(excluded, "operators");
+  const { phrase, highlight } = buildHeadingSummaryExclusionPhrase(excluded, "franchisees");
   return { id: "owner", phrase, highlight };
 }
 
@@ -1920,6 +1921,61 @@ function collectTableHeadingSummaryConcepts() {
   return TABLE_HEADING_SUMMARY_PRIORITY
     .map((id) => builders[id]())
     .filter(Boolean);
+}
+
+function getSavedViewEntityTitle(tableView = currentTableView) {
+  if (tableView === "franchisees") return "Franchisees";
+
+  const headingByView = {
+    candidates: "Candidates",
+    locations: "Locations",
+    searchers: "Searchers",
+    athletes: "Athletes"
+  };
+
+  return headingByView[tableView] || TABLE_VIEW_OPTIONS[tableView]?.label || "Results";
+}
+
+function getSuggestedSavedViewTitle(tableView = currentTableView) {
+  if (!getAppliedFilterCount()) return "";
+
+  const concepts = collectTableHeadingSummaryConcepts();
+  if (!concepts.length) return "";
+
+  const visible = concepts.slice(0, TABLE_HEADING_SUMMARY_MAX_CONCEPTS);
+  const byId = Object.fromEntries(visible.map((concept) => [concept.id, concept]));
+  const entityTitle = getSavedViewEntityTitle(tableView);
+  const modifiers = [byId.status, byId.category]
+    .filter((concept) => concept?.modifier)
+    .map((concept) => concept.modifier);
+  const phraseEntries = [
+    byId.location,
+    byId.franchise,
+    byId.owner,
+    byId.units,
+    byId.contacts,
+    byId.netWorth,
+    byId.rating,
+    byId.search,
+    byId.category?.phrase ? byId.category : null
+  ].filter(Boolean);
+  const filterPhrase = joinHeadingSummaryPhrases(phraseEntries)
+    .map((entry) => entry.phrase)
+    .join(" ")
+    .trim();
+
+  let title = modifiers.length
+    ? `${modifiers.join(" ")} ${entityTitle.toLowerCase()}`
+    : entityTitle;
+
+  if (filterPhrase) {
+    title += ` ${filterPhrase}`;
+  }
+
+  title = title.trim();
+  if (!title) return "";
+
+  return title.length > 100 ? title.slice(0, 100) : title;
 }
 
 function joinHeadingSummaryPhrases(entries) {
@@ -2033,14 +2089,14 @@ function formatTableHeadingSummary(count, singular, plural) {
 function getTableHeadingCopy(tableView = currentTableView) {
   let copy;
 
-  if (tableView === "owners") {
+  if (tableView === "franchisees") {
     copy = {
-      title: "Operators",
-      summary: formatTableHeadingSummary(displayedOwners.length, "operator", "operators")
+      title: "Franchisees",
+      summary: formatTableHeadingSummary(displayedFranchisees.length, "franchisee", "franchisees")
     };
   } else {
     const headingByView = {
-      userProfiles: { title: "Franchisees", singular: "franchisee", plural: "franchisees" },
+      candidates: { title: "Candidates", singular: "candidate", plural: "candidates" },
       locations: { title: "Locations", singular: "location", plural: "locations" },
       searchers: { title: "Searchers", singular: "searcher", plural: "searchers" },
       athletes: { title: "Athletes", singular: "athlete", plural: "athletes" }
@@ -2084,7 +2140,7 @@ function updateFilterSummary() {
 
   const visibleCount = isDatasetTableView()
     ? getLocationVisibleCount(displayedLocations.length)
-    : displayedOwners.length;
+    : displayedFranchisees.length;
   const visibleRange = visibleCount > 0 ? `1-${visibleCount}` : "0";
   const totalCount = isDatasetTableView() ? getAllLocationRows().length : owners.length;
   const sortLabel = getActiveTableHeadingSortLabel().toLocaleLowerCase();
@@ -2188,7 +2244,7 @@ function renderActiveTable() {
   if (isDatasetTableView()) {
     renderLocations(displayedLocations);
   } else {
-    renderOwners(displayedOwners);
+    renderFranchisees(displayedFranchisees);
   }
 }
 
@@ -2198,8 +2254,8 @@ function applySort() {
     sortLocations();
     renderLocations(displayedLocations);
   } else {
-    sortOwners();
-    renderOwners(displayedOwners);
+    sortFranchisees();
+    renderFranchisees(displayedFranchisees);
   }
   syncDatasetSelectorState();
   syncToolbarViewState();

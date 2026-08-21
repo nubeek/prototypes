@@ -1,0 +1,62 @@
+{
+  "id": "coffee-bean-tea-leaf",
+  "brand": "Coffee Bean & Tea Leaf",
+  "category": "Food and Beverage",
+  "color": "#4A2C6A",
+  "logo": "assets/logos/coffee-bean-tea-leaf.png",
+  "country": "US",
+  "level": "geo",
+  "franchiseeRating": 0,
+  "profileUrl": "",
+  "territories": [
+    {
+      "geoKey": "place:0668000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "San Jose, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0664000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Sacramento, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0667000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "San Francisco, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0613014",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Chico, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0626000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Fremont, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0675000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Stockton, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0670098",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Santa Rosa, CA",
+      "status": "available"
+    }
+  ]
+}

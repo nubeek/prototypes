@@ -193,7 +193,7 @@ function getCstSplashPreviewPoints(units) {
 }
 
 // Draws the matching units as franchise-colored dots, same palette and
-// white-stroked look the interactive owners map uses.
+// white-stroked look the interactive franchisees map uses.
 function buildCstSplashPointsDataUrl(units, view) {
   const points = getCstSplashPreviewPoints(units).filter(
     (unit) => Number.isFinite(unit.lat) && Number.isFinite(unit.lng)
@@ -301,8 +301,8 @@ function getCurrentCstSavedSearchFilters() {
     locationSearchesExcluded: excludedLocationSearches.map(serializeCstSavedLocationSearch).filter(Boolean),
     categories: [...selectedCategoryValues],
     categoriesExcluded: [...excludedCategoryValues],
-    owners: [...selectedOwnerIndexes],
-    ownersExcluded: [...excludedOwnerIndexes],
+    franchisees: [...selectedOwnerIndexes],
+    franchiseesExcluded: [...excludedOwnerIndexes],
     franchises: [...selectedFranchiseIndexes],
     franchisesExcluded: [...excludedFranchiseIndexes],
     statuses: statusFilterInputs.map((checkbox) => checkbox.checked),
@@ -435,8 +435,8 @@ function applyCstSplashFilterState(filters = {}) {
   }
   selectedCategoryValues = getSavedStringArray(filters.categories);
   excludedCategoryValues = getSavedStringArray(filters.categoriesExcluded);
-  selectedOwnerIndexes = getSavedStringArray(filters.owners);
-  excludedOwnerIndexes = getSavedStringArray(filters.ownersExcluded);
+  selectedOwnerIndexes = getSavedStringArray(filters.franchisees || filters.owners);
+  excludedOwnerIndexes = getSavedStringArray(filters.franchiseesExcluded || filters.ownersExcluded);
   selectedFranchiseIndexes = getSavedStringArray(filters.franchises);
   excludedFranchiseIndexes = getSavedStringArray(filters.franchisesExcluded);
   selectedUnitsMin = units.min;
@@ -485,7 +485,7 @@ function toCstSplashUnitRow(unit) {
 
 function getCstSplashMatches(filters) {
   return withCstSplashFilterScope(filters, () => {
-    const matchedOwners = getFilteredOwners();
+    const matchedOwners = getFilteredFranchisees();
     const matchedUnits = matchedOwners
       .flatMap((owner) => window.ownerLocationsData?.[owner.originalIndex]?.units || [])
       .map(toCstSplashUnitRow)
@@ -546,7 +546,7 @@ const cstSplashDynamicPreviewCache = new Map();
 
 function getCstSplashMatchCounts(filters, { needsUnitCount = true } = {}) {
   return withCstSplashFilterScope(filters, () => {
-    const matchedOwners = getFilteredOwners();
+    const matchedOwners = getFilteredFranchisees();
     let unitCount = 0;
 
     if (needsUnitCount) {
@@ -681,7 +681,7 @@ function renderCstSplashGenerateTiles() {
       const points = getCstSplashMapPoints();
       return {
         metric: getCstSplashTileMetric(savedSearch, {
-          ownerCount: getFilteredOwners().length,
+          ownerCount: getFilteredFranchisees().length,
           unitCount: points.length,
           units: points
         }),
@@ -734,7 +734,7 @@ function animateCstSplashSavedSearchInsertion(savedSearch) {
   const grid = document.getElementById("cstSplashGrid");
   if (!grid) return;
 
-  const savedScroll = document.querySelector(".cst-splash__saved-scroll");
+  const savedScroll = document.getElementById("cstSplash");
   savedScroll?.scrollTo({ top: 0, behavior: "auto" });
 
   const previousPositions = new Map(
@@ -820,7 +820,7 @@ function animateCstSplashSavedSearchDeletion(savedSearchId) {
   const removedTile = grid?.querySelector(`[data-saved-search-id="${CSS.escape(savedSearchId)}"]`);
   if (!grid || !removedTile) return;
 
-  const savedScroll = document.querySelector(".cst-splash__saved-scroll");
+  const savedScroll = document.getElementById("cstSplash");
   savedScroll?.scrollTo({ top: 0, behavior: "auto" });
 
   const shouldReduceMotion = usesReducedMotion()
@@ -879,13 +879,19 @@ function animateCstSplashSavedSearchDeletion(savedSearchId) {
     });
 }
 
-function saveCurrentCstView({ title, description = "", visibility = "private" } = {}) {
+function saveCurrentCstView({
+  title,
+  description = "",
+  visibility = "private",
+  alerts = null
+} = {}) {
   const filters = getCurrentCstSavedSearchFilters();
   const matches = getCstSplashMatchCounts(filters);
   const savedSearch = window.cstSavedSearchStore?.create?.({
     title,
     description,
     scope: visibility,
+    alerts,
     view: currentTableView,
     filters,
     ownerCount: matches.ownerCount,
@@ -901,12 +907,14 @@ function saveCurrentCstView({ title, description = "", visibility = "private" } 
 function updateCstSavedView(searchId, {
   title,
   description = "",
-  visibility = "private"
+  visibility = "private",
+  alerts = null
 } = {}) {
   const savedSearch = window.cstSavedSearchStore?.update?.(searchId, {
     title,
     description,
-    scope: visibility
+    scope: visibility,
+    alerts
   });
   if (!savedSearch) return null;
 
@@ -1041,7 +1049,8 @@ function syncCstSplashToolbarSearch() {
   }
 }
 
-function applyCstSplashQuery(filters = {}, { view = "owners" } = {}) {
+function applyCstSplashQuery(filters = {}, { view = "franchisees" } = {}) {
+  view = normalizeTableView(view);
   resetCstFilterSelections({ refresh: false });
   applyCstSplashFilterState(filters);
   activeMapOwnerIndex = null;
@@ -1088,7 +1097,7 @@ function openCstSplashSavedSearch(savedSearch) {
   // leave the workspace looking like edit mode, and so a later apply error
   // cannot skip read mode entirely.
   setReaderMode(true, { title: savedSearch.title, savedSearchId: savedSearch.id });
-  applyCstSplashQuery(savedSearch.filters || {}, { view: savedSearch.view || "owners" });
+  applyCstSplashQuery(savedSearch.filters || {}, { view: normalizeTableView(savedSearch.view) });
 }
 
 function restoreCstSavedSearchSession() {
@@ -1111,7 +1120,7 @@ function restoreCstSavedSearchSession() {
 
   try {
     if (urlState && getAppliedFilterCount() === 0) {
-      applyCstSplashQuery(savedSearch.filters || {}, { view: savedSearch.view || "owners" });
+      applyCstSplashQuery(savedSearch.filters || {}, { view: normalizeTableView(savedSearch.view) });
     }
 
     if (mode === "read") {
@@ -1394,12 +1403,12 @@ function getCstSplashLocalSuggestionPool() {
 
   return [
     ...owners.map((owner) => ({
-      filters: { owners: [String(owner.originalIndex)] },
-      group: "Operators",
+      filters: { franchisees: [String(owner.originalIndex)] },
+      group: "Franchisees",
       label: owner.ownerName,
       logoFallback: getInitials(owner.ownerName),
       logoSrc: owner.logoSrc,
-      type: "operator"
+      type: "franchisee"
     })),
     ...brandNames.map((brandName) => ({
       filters: { franchises: [brandName] },
@@ -1427,7 +1436,7 @@ function getCstSplashLocalSuggestions(query) {
     matchesByGroup.set(item.group, groupMatches);
   });
 
-  return ["Operators", "Brands"].flatMap((group) => (
+  return ["Franchisees", "Brands"].flatMap((group) => (
     (matchesByGroup.get(group) || [])
       .sort((a, b) => a.matchIndex - b.matchIndex || a.label.localeCompare(b.label))
       .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT)
@@ -1658,7 +1667,7 @@ function bindCstSplashSearch() {
       appendSuggestionHeading("Suggestions");
       const status = document.createElement("div");
       status.className = "cst-splash__search-suggestion-status";
-      status.textContent = "No operators, brands, or locations match.";
+      status.textContent = "No franchisees, brands, or locations match.";
       suggestions.append(status);
       setSuggestionsOpen(true);
       return;
@@ -1696,7 +1705,7 @@ function bindCstSplashSearch() {
   async function submitFreeTextSearch() {
     const query = input.value.trim();
     if (!query) {
-      setCstSplashSearchFeedback("Enter an operator, brand, or location to begin.");
+      setCstSplashSearchFeedback("Enter a franchisee, brand, or location to begin.");
       input.focus();
       return;
     }
@@ -1932,7 +1941,7 @@ function bindCstSplashEntryPoints() {
       if (!isCstSplashOpen()) return;
 
       const viewKey = button.dataset.tableView;
-      if (viewKey !== "owners" && viewKey !== "userProfiles") return;
+      if (viewKey !== "franchisees" && viewKey !== "candidates") return;
 
       event.preventDefault();
       event.stopImmediatePropagation();

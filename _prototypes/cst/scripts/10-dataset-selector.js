@@ -219,7 +219,7 @@ function initDatasetSelector() {
   });
 
   datasetSelectorClear.addEventListener("click", () => {
-    setMainTableView("owners");
+    setMainTableView("franchisees");
     close({ restoreDisplay: true });
     datasetSelectorInput.blur();
   });

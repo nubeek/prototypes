@@ -596,7 +596,7 @@ function filterSectionHasAppliedFilters(section) {
       return hasAppliedLocationFilters();
     case "category":
       return selectedCategoryValues.length > 0 || excludedCategoryValues.length > 0;
-    case "owners":
+    case "franchisees":
       return selectedOwnerIndexes.length > 0 || excludedOwnerIndexes.length > 0;
     case "franchise":
       return selectedFranchiseIndexes.length > 0 || excludedFranchiseIndexes.length > 0;
@@ -645,7 +645,7 @@ function clearFilterSection(section) {
       excludedCategoryValues = [];
       setFilterSelectValues(categoryFilterSelect, []);
       break;
-    case "owners":
+    case "franchisees":
       selectedOwnerIndexes = [];
       excludedOwnerIndexes = [];
       setFilterSelectValues(ownerFilterSelect, []);

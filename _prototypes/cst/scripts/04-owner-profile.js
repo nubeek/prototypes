@@ -110,7 +110,7 @@ function getOwnerHeaderViewControls(owner) {
   const buttons = [
     {
       view: "details",
-      label: "Show owner details",
+      label: "Show franchisee details",
       title: "Details",
       icon: "assets/about.svg",
       iconClass: "",
@@ -118,21 +118,21 @@ function getOwnerHeaderViewControls(owner) {
     },
     {
       view: "map",
-      label: "Show owner map",
+      label: "Show franchisee map",
       title: "Map",
       icon: "assets/map.svg",
       iconClass: "segmented-control-btn-divider-left"
     },
     {
       view: "org",
-      label: "Show owner organization chart",
+      label: "Show franchisee organization chart",
       title: "Org chart",
       icon: "assets/orgchart.svg",
       iconClass: "segmented-control-btn-divider-left"
     },
     {
       view: "raw",
-      label: "Show owner contacts",
+      label: "Show franchisee contacts",
       title: "Contacts",
       icon: "assets/contacts.svg",
       iconClass: "segmented-control-btn-divider-left",
@@ -141,7 +141,7 @@ function getOwnerHeaderViewControls(owner) {
   ];
 
   return `
-    <div class="owner-detail-header-actions segmented-control" aria-label="Owner views">
+    <div class="owner-detail-header-actions segmented-control" aria-label="Franchisee views">
       ${buttons.map((button) => {
         const isActive = isOwnerHeaderViewActive(button.view, ownerIndex);
         const contactsIconClass = button.view === "raw" ? " contacts-toggle-icon" : "";
@@ -191,7 +191,7 @@ function handleOwnerHeaderViewButton(button) {
   openSidebar(view, ownerIndex);
 }
 
-function getOwnerHeader(owner, { className = "", closeLabel = "Close owner panel", linksToDetail = false } = {}) {
+function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee panel", linksToDetail = false } = {}) {
   const logoMarkup = `
     <span class="owner-detail-logo" aria-hidden="true">
       <span>${getInitials(owner.ownerName)}</span>
@@ -251,7 +251,7 @@ function syncOwnerMapHeader(mode = getCurrentPanelMode()) {
   ownerMapHeader.innerHTML = shouldShowHeader
     ? getOwnerHeader(owner, {
         className: "owner-map-heading",
-        closeLabel: "Clear owner map filter",
+        closeLabel: "Clear franchisee map filter",
         linksToDetail: true
       })
     : "";
@@ -356,7 +356,7 @@ function resolveContactNodeId(ownerIndex, nodeId) {
 }
 
 // The owner's main contact shares state with the owner-level lead/hide sets so
-// the owners table and contacts table stay in sync. Any other contact uses a
+// the franchisees table and contacts table stay in sync. Any other contact uses a
 // per-node key.
 function isOwnerMainContactNode(ownerIndex, nodeId) {
   const resolved = resolveContactNodeId(ownerIndex, nodeId);

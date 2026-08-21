@@ -200,6 +200,7 @@ function getCurrentTerritorySettings() {
       },
       locationSearch: getIncludedLocationSearches()[0] || selectedLocationSearches[0] || null,
       locationSearches: selectedLocationSearches.map((location) => ({ ...location })),
+      viewport: getImplicitViewportBounds(),
       radius: {
         enabled: radiusFilterEnabled,
         miles: selectedRadiusMiles
@@ -250,6 +251,26 @@ function normalizeSavedLocationSearch(savedSearch) {
     geoKey: savedSearch.geoKey ? String(savedSearch.geoKey) : null,
     excluded: Boolean(savedSearch.excluded)
   };
+}
+
+function serializeSavedLocationSearch(location) {
+  const normalized = normalizeSavedLocationSearch(location);
+  if (!normalized) return null;
+
+  const serialized = {
+    label: normalized.label,
+    stateCode: normalized.stateCode
+  };
+  if (normalized.coordinates) {
+    serialized.coordinates = {
+      longitude: normalized.coordinates.longitude,
+      latitude: normalized.coordinates.latitude
+    };
+  }
+  if (normalized.geoLevel) serialized.geoLevel = normalized.geoLevel;
+  if (normalized.geoKey) serialized.geoKey = normalized.geoKey;
+  if (normalized.excluded) serialized.excluded = true;
+  return serialized;
 }
 
 function getLocationSearchKey(location) {
@@ -681,6 +702,56 @@ function setLocationStateFilters(includedStates = [], excludedStates = [], { ref
   }
 }
 
+function armLocationFilterReveal() {
+  const includedSearches = getIncludedLocationSearches();
+  const coordinateSearch = includedSearches.find((location) => location.coordinates);
+  if (coordinateSearch?.coordinates) {
+    window.territoryMapControls?.armLocationReveal?.(
+      coordinateSearch.coordinates.longitude,
+      coordinateSearch.coordinates.latitude
+    );
+    return;
+  }
+
+  const includedStateCodes = getLocationIncludedStates();
+  if (includedStateCodes.length) {
+    window.territoryMapControls?.armStatesReveal?.(includedStateCodes);
+  }
+}
+
+function restoreLocationFilterCamera(filters = {}) {
+  const savedViewport = !radiusFilterEnabled
+    ? normalizeViewportBounds(filters.viewport)
+    : null;
+
+  if (radiusFilterEnabled) {
+    clearImplicitViewportBounds();
+  } else if (savedViewport) {
+    setImplicitViewportBounds(savedViewport, { framed: false });
+  } else {
+    syncImplicitViewportBounds({ framed: false });
+  }
+
+  if (savedViewport) {
+    const longitude = (savedViewport.west + savedViewport.east) / 2;
+    const latitude = (savedViewport.south + savedViewport.north) / 2;
+    window.territoryMapControls?.armLocationReveal?.(longitude, latitude);
+    return;
+  }
+
+  armLocationFilterReveal();
+}
+
+function applyLocationFiltersFromPreset(filters = {}, { refresh = false } = {}) {
+  selectedLocationSearches = hydrateLocationSearches(filters);
+  restoreLocationFilterCamera(filters);
+  syncFilterLocationSearchUI();
+
+  if (refresh) {
+    refreshTerritoryFilters();
+  }
+}
+
 function focusTerritoryLocationSearchResult(result) {
   if (!result) return;
 
@@ -993,12 +1064,7 @@ function restoreSavedFilterSelections(settings) {
 
   restoreFilterSectionState(filters.sections);
   syncFilterComboboxes();
-
-  if (radiusFilterEnabled) {
-    clearImplicitViewportBounds();
-  } else {
-    syncImplicitViewportBounds({ framed: false });
-  }
+  restoreLocationFilterCamera(filters);
 }
 
 function restoreSelectFiltersFromSaved(settings) {
@@ -1998,6 +2064,7 @@ function refreshTerritoryFilters({ immediate = false } = {}) {
   syncTerritoryRadiusMap();
   updateClearFiltersButton();
   updateFilterSectionClearButtons();
+  syncTerritorySavedSearchDirtyState();
   persistTerritorySettings();
 
   return scheduleTerritoryFilterRun({ immediate });
@@ -2223,7 +2290,10 @@ function applyCrossroadPresetSelections(preset = {}) {
     ? preset.statuses
     : DEFAULT_TERRITORY_STATUSES;
 
-  setLocationStateFilters(preset.locations, preset.locationsExcluded, { refresh: false });
+  radiusFilterEnabled = Boolean(preset.radius?.enabled);
+  selectedRadiusMiles = clampRadiusValue(preset.radius?.miles);
+  syncRadiusFilterControls();
+  applyLocationFiltersFromPreset(preset, { refresh: false });
   setFilterSelectIncludedExcludedValues(
     categoryFilterSelect,
     getValidSavedSelectValues(categoryFilterSelect, preset.categories),
@@ -2237,9 +2307,6 @@ function applyCrossroadPresetSelections(preset = {}) {
 
   setTerritoryStatusFilters(statuses);
   setTerritoryGeoLevelFilters(preset.geoLevels ?? preset.geoLevel);
-  radiusFilterEnabled = Boolean(preset.radius?.enabled);
-  selectedRadiusMiles = clampRadiusValue(preset.radius?.miles);
-  syncRadiusFilterControls();
 
   if (investmentSection) {
     const investmentTrack = investmentSection.querySelector(".filter-range-slider");
@@ -2256,6 +2323,113 @@ function applyCrossroadPresetSelections(preset = {}) {
 
   syncFilterComboboxes();
   syncFilterSectionExpansion({ expandAppliedFilters: true });
+}
+
+// Snapshot of the current filter panel selections, shaped like a crossroad
+// preset's `filters` (see datasets.js) so a saved search can reuse the exact
+// same preview-rendering and "open this preset" logic. Only keys that differ
+// from the defaults are included, matching how bundled presets are authored.
+function getCurrentTerritoryPresetFilters() {
+  const state = getTerritoryFilterState();
+  const investmentSection = document.querySelector(".filter-section .filter-range-slider[aria-label='Initial investment range']")
+    ?.closest(".filter-section");
+  const filters = {};
+  const locationSearches = selectedLocationSearches
+    .map(serializeSavedLocationSearch)
+    .filter(Boolean);
+
+  if (locationSearches.length) filters.locationSearches = locationSearches;
+  if (state.locations.included.length) filters.locations = [...state.locations.included];
+  if (state.locations.excluded.length) filters.locationsExcluded = [...state.locations.excluded];
+  if (state.categories.included.length) filters.categories = [...state.categories.included];
+  if (state.categories.excluded.length) filters.categoriesExcluded = [...state.categories.excluded];
+  if (state.franchises.included.length) filters.franchises = [...state.franchises.included];
+  if (state.franchises.excluded.length) filters.franchisesExcluded = [...state.franchises.excluded];
+  if (state.statuses.length) filters.statuses = [...state.statuses];
+  if (state.geoLevels.length) filters.geoLevels = [...state.geoLevels];
+  if (territoryRangeFilterIsActive(investmentSection)) {
+    filters.investment = { min: state.investmentMin, max: state.investmentMax };
+  }
+  if (state.ratingMin > 0) filters.rating = { min: state.ratingMin };
+  if (state.radius.enabled) {
+    filters.radius = { enabled: true, miles: state.radius.miles };
+  } else {
+    const viewport = normalizeViewportBounds(getImplicitViewportBounds());
+    if (viewport) filters.viewport = viewport;
+  }
+
+  return filters;
+}
+
+const TERRITORY_PRESET_FILTER_ARRAY_KEYS = [
+  "locations", "locationsExcluded", "categories", "categoriesExcluded",
+  "franchises", "franchisesExcluded", "statuses", "geoLevels"
+];
+
+// Fills in defaults so two sparse preset-filter snapshots (only differing
+// keys are stored — see getCurrentTerritoryPresetFilters) can be compared
+// structurally, regardless of which keys either side happened to omit.
+function normalizeTerritoryPresetFiltersForComparison(filters = {}) {
+  const normalized = {};
+
+  TERRITORY_PRESET_FILTER_ARRAY_KEYS.forEach((key) => {
+    const values = Array.isArray(filters[key]) ? filters[key] : [];
+    normalized[key] = [...values].sort();
+  });
+
+  normalized.investment = {
+    min: filters.investment?.min ?? 0,
+    max: Number.isFinite(filters.investment?.max) ? filters.investment.max : null
+  };
+  normalized.rating = { min: filters.rating?.min ?? 0 };
+  normalized.radius = {
+    enabled: Boolean(filters.radius?.enabled),
+    miles: filters.radius?.enabled ? Number(filters.radius?.miles ?? 0) : 0
+  };
+  normalized.locationSearches = (Array.isArray(filters.locationSearches) ? filters.locationSearches : [])
+    .map(serializeSavedLocationSearch)
+    .filter(Boolean)
+    .map((location) => ({
+      key: getLocationSearchKey(location),
+      excluded: Boolean(location.excluded),
+      label: location.label,
+      stateCode: location.stateCode,
+      geoLevel: location.geoLevel || "",
+      geoKey: location.geoKey || "",
+      longitude: location.coordinates ? Number(location.coordinates.longitude).toFixed(5) : "",
+      latitude: location.coordinates ? Number(location.coordinates.latitude).toFixed(5) : ""
+    }))
+    .sort((left, right) => left.key.localeCompare(right.key));
+  const viewport = filters.radius?.enabled ? null : normalizeViewportBounds(filters.viewport);
+  normalized.viewport = viewport
+    ? {
+      west: viewport.west.toFixed(5),
+      east: viewport.east.toFixed(5),
+      south: viewport.south.toFixed(5),
+      north: viewport.north.toFixed(5)
+    }
+    : null;
+
+  return normalized;
+}
+
+function territoryPresetFiltersAreEqual(left, right) {
+  return JSON.stringify(normalizeTerritoryPresetFiltersForComparison(left))
+    === JSON.stringify(normalizeTerritoryPresetFiltersForComparison(right));
+}
+
+// Keeps the "Save search" / "Settings" toggle in sync: once the live filter
+// panel no longer matches the saved search that's open, "Settings" (which
+// edits that saved search's own title/alerts) gives way to "Save search"
+// (to save the now-different query).
+function syncTerritorySavedSearchDirtyState() {
+  const activeSearch = window.territoryBrandPanel?.getActiveSavedSearch?.();
+  if (!activeSearch) return;
+
+  const savedSearch = window.territorySavedSearchStore?.getById?.(activeSearch.id);
+  const isDirty = !savedSearch
+    || !territoryPresetFiltersAreEqual(savedSearch.filters, getCurrentTerritoryPresetFilters());
+  window.territoryBrandPanel?.setSavedSearchDirty?.(isDirty);
 }
 
 function setTerritoryLocationFilter(stateCode) {
@@ -2341,6 +2515,7 @@ window.territoryFilters = {
   getFilterSelectIncludedValues,
   getFilterSelectExcludedValues,
   getState: getTerritoryFilterState,
+  getCurrentPresetFilters: getCurrentTerritoryPresetFilters,
   setPanelOpen: setFilterPanelOpen,
   syncFilterComboboxes,
   syncFilterSectionExpansion,
@@ -2353,6 +2528,8 @@ window.territoryFilters = {
   applySearchThisArea,
   hasImplicitAreaSearch,
   getImplicitViewportBounds,
+  hydrateLocationSearches,
+  normalizeViewportBounds,
   captureViewportFromMap,
   applyLocationInclude,
   applyLocationExclude,

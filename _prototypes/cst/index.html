@@ -44,17 +44,17 @@
 
   <main class="card is-splash-open">
     <div class="content-shell">
-      <div class="header" aria-label="Owners toolbar">
+      <div class="header" aria-label="Franchisees toolbar">
         <div class="toolbar-group toolbar-primary">
           <div class="view" id="toolbarView" aria-label="Table view" data-reader-hide>
-            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="owners" aria-pressed="false">
+            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="franchisees" aria-pressed="false">
               <img class="toolbar-asset-icon view-btn-icon" src="assets/owners.svg" alt="" aria-hidden="true">
-              <span class="view-btn-label">Operators</span>
+              <span class="view-btn-label">Franchisees</span>
             </button>
             <span class="view-divider" aria-hidden="true"></span>
-            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="userProfiles" aria-pressed="false">
+            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="candidates" aria-pressed="false">
               <img class="toolbar-asset-icon view-btn-icon" src="assets/prospects.svg" alt="" aria-hidden="true">
-              <span class="view-btn-label">Franchisees</span>
+              <span class="view-btn-label">Candidates</span>
             </button>
           </div>
           <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn reader-back-btn" id="readerBackBtn" type="button" data-reader-only aria-label="Back to saved searches" title="Back to saved searches">
@@ -234,7 +234,7 @@
               inputmode="search"
               autocomplete="off"
               placeholder="Search by name, brand or location..."
-              aria-label="Search owners, contacts, locations, and franchises"
+              aria-label="Search franchisees, contacts, locations, and franchises"
             >
             <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
           </label>
@@ -260,8 +260,8 @@
               aria-haspopup="listbox"
               aria-expanded="false"
               aria-controls="cstSplashSearchSuggestions"
-              placeholder="Search by operator, brand, or location..."
-              aria-label="Search operators, brands, and locations"
+              placeholder="Search by franchisee, brand, or location..."
+              aria-label="Search franchisees, brands, and locations"
               aria-describedby="cstSplashSearchFeedback"
             >
             <div
@@ -406,14 +406,14 @@
           </div>
         </section>
 
-        <section class="filter-section filter-section-collapsed" data-filter-section="owners">
+        <section class="filter-section filter-section-collapsed" data-filter-section="franchisees">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
-            <span>Owners</span>
+            <span>Franchisees</span>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-select-field">
-            <select class="ui-select filter-field-select" id="ownerFilterSelect" aria-label="Select owner" required>
-              <option value="">Select owner...</option>
+            <select class="ui-select filter-field-select" id="ownerFilterSelect" aria-label="Select franchisee" required>
+              <option value="">Select franchisee...</option>
             </select>
             <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
@@ -632,15 +632,16 @@
           <header class="table-heading">
             <div class="table-heading__row">
               <div class="table-heading__title-group">
-                <h2 id="tableHeadingTitle">Operators</h2>
+                <h2 id="tableHeadingTitle">Franchisees</h2>
               </div>
               <div class="table-heading__actions">
-                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__edit-query" id="readerEditQueryBtn" type="button" data-reader-only aria-label="Edit query" title="Edit query">
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__edit-query" id="readerEditQueryBtn" type="button" data-reader-only aria-label="Edit filters" title="Edit filters">
                   <img class="table-heading__edit-query-icon" src="assets/filters.svg" alt="" aria-hidden="true">
-                  <span class="table-heading__sort-label">Edit query</span>
+                  <span class="table-heading__sort-label">Edit filters</span>
                 </button>
                 <span class="table-heading__actions-divider" data-reader-only aria-hidden="true"></span>
                 <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__view-settings" id="readerViewSettingsBtn" type="button" data-reader-only aria-label="Edit view settings" title="Edit view settings">
+                  <img class="table-heading__view-settings-icon" src="assets/settings.svg" alt="" aria-hidden="true">
                   <span class="table-heading__sort-label">Settings</span>
                 </button>
                 <span class="table-heading__actions-divider" data-reader-only aria-hidden="true"></span>
@@ -686,7 +687,7 @@
               </details>
               </div>
             </div>
-            <p id="tableHeadingSummary" aria-live="polite">Showing 0 operators.</p>
+            <p id="tableHeadingSummary" aria-live="polite">Showing 0 franchisees.</p>
           </header>
           <div class="table-wrap" id="tableWrap">
         <table>
@@ -702,7 +703,7 @@
               <th class="sortable-header" id="categoryColumnHeader" data-sort-key="category" aria-sort="none" hidden><span class="th-content">Category <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
             </tr>
           </thead>
-          <tbody id="ownersTableBody"></tbody>
+          <tbody id="franchiseesTableBody"></tbody>
         </table>
         <p class="table-empty-state" id="tableEmptyState" role="status" hidden>We couldn't find anything matching your query.</p>
           </div>
@@ -813,11 +814,15 @@
 
   <div class="profile-modal-overlay target-modal-overlay" id="createTargetModal" hidden>
     <section class="profile-modal target-modal" role="dialog" aria-modal="true" aria-labelledby="createTargetModalTitle">
-      <form class="target-modal-form" id="createTargetForm">
+      <form class="target-modal-form create-target-modal-form" id="createTargetForm">
+        <div class="create-target-modal-content">
         <div class="target-modal-header">
           <h2 class="target-modal-title" id="createTargetModalTitle">Save view</h2>
           <div class="target-modal-header-actions">
-            <button class="ui-control ui-button-ghost target-modal-delete" id="deleteSavedView" type="button" hidden>Delete</button>
+            <button class="ui-control ui-button-ghost target-modal-delete" id="deleteSavedView" type="button" hidden>
+              <img class="target-modal-delete__icon" src="assets/delete.svg" alt="" aria-hidden="true" width="12" height="14">
+              Delete
+            </button>
             <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close" type="button" aria-label="Close save view">
               <img src="assets/close.svg" alt="" aria-hidden="true">
             </button>
@@ -826,7 +831,7 @@
 
         <label class="target-modal-field" for="createTargetTitle">
           <span>Title</span>
-          <input class="target-modal-control target-modal-input" id="createTargetTitle" name="title" type="text" autocomplete="off" maxlength="100" required>
+          <input class="target-modal-control target-modal-input" id="createTargetTitle" name="title" type="text" autocomplete="off" maxlength="100" placeholder=" " required>
         </label>
 
         <label class="target-modal-field" for="createTargetDescription">
@@ -846,9 +851,84 @@
           </span>
         </label>
 
+        <div class="target-modal-divider" aria-hidden="true"></div>
+
+        <div class="target-modal-alert-row" id="createTargetAlertsRow">
+          <div class="target-modal-alert-content">
+            <button class="target-modal-alert-details" id="createTargetAlertsDetails" type="button">
+              <span class="target-modal-alert-label">Alerts</span>
+              <span class="target-modal-alert-helper" id="createTargetAlertsHelper">Get notified when this view's data changes</span>
+            </button>
+          </div>
+          <div class="target-modal-alert-actions">
+            <button
+              class="target-modal-alert-edit"
+              id="createTargetAlertsEdit"
+              type="button"
+              hidden
+              aria-label="Edit alert"
+              data-tooltip="Edit alert"
+            >
+              <img class="target-modal-alert-edit__icon" src="assets/settings.svg" alt="" aria-hidden="true">
+            </button>
+            <button
+              class="target-modal-alert-switch"
+              id="createTargetAlertsToggle"
+              type="button"
+              role="switch"
+              aria-checked="false"
+              aria-label="Enable alerts"
+              aria-describedby="createTargetAlertsHelper"
+            >
+              <span class="toolbar-switch" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+        </div>
+
         <div class="target-modal-actions">
           <button class="ui-control ui-button target-modal-cancel" type="button">Cancel</button>
           <button class="ui-control ui-button ui-button-primary target-modal-save" type="submit">Save</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="profile-modal-overlay target-modal-overlay view-alert-modal-overlay" id="viewAlertModal" hidden>
+    <section class="profile-modal target-modal view-alert-modal" role="dialog" aria-modal="true" aria-labelledby="viewAlertModalTitle">
+      <form class="target-modal-form view-alert-modal-form" id="viewAlertModalForm">
+        <div class="target-modal-header">
+          <h2 class="target-modal-title view-alert-modal-title" id="viewAlertModalTitle">
+            <img class="view-alert-modal-title__icon" src="assets/add-alert.svg" alt="" aria-hidden="true" width="18" height="18">
+            Set up an alert
+          </h2>
+          <div class="target-modal-header-actions">
+            <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close view-alert-modal-close" type="button" aria-label="Close alert setup">
+              <img src="assets/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <p class="view-alert-description">We'll notify you when results matching this view change.</p>
+
+        <fieldset class="view-alert-notify">
+          <legend class="view-alert-notify__legend">Notify me when</legend>
+          <div class="filter-check-group view-alert-notify__options">
+            <label class="filter-check is-checked">
+              <input class="view-alert-notify-checkbox" type="checkbox" name="notifyAdded" checked>
+              <span class="filter-checkbox" aria-hidden="true"></span>
+              <span>New records are added</span>
+            </label>
+            <label class="filter-check is-checked">
+              <input class="view-alert-notify-checkbox" type="checkbox" name="notifyModified" checked>
+              <span class="filter-checkbox" aria-hidden="true"></span>
+              <span>Existing records change</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="target-modal-actions view-alert-modal-actions">
+          <button class="ui-control ui-button target-modal-cancel view-alert-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary target-modal-save view-alert-modal-save" type="submit">Save alert</button>
         </div>
       </form>
     </section>
@@ -878,6 +958,7 @@
   <script src="scripts/10-dataset-selector.js"></script>
   <script src="scripts/11-save-lead-modal.js"></script>
   <script src="scripts/12-contact-action-tooltips.js"></script>
+  <script src="scripts/15-view-alert-modal.js"></script>
   <script src="scripts/09-bootstrap.js"></script>
   <script src="scripts/13-splash.js"></script>
 </body>
