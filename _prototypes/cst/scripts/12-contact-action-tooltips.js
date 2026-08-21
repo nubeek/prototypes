@@ -2,7 +2,7 @@ const PROSPECT_CONTACT_ACTION_SELECTOR =
   ".prospect-dataset-row .contact-hide-results-action, .prospect-dataset-row .contact-add-lead-action";
 const CONTACT_EMAIL_COPY_SELECTOR = ".contact-email-copy";
 const COPY_EMAIL_TOOLTIP = "Copy email";
-const COPIED_EMAIL_TOOLTIP = "Copied";
+const COPIED_EMAIL_TOOLTIP = "Copied!";
 
 let contactActionFloatingTooltip = null;
 let contactActionFloatingTooltipTarget = null;
@@ -17,18 +17,45 @@ function getContactActionFloatingTooltip() {
   return contactActionFloatingTooltip;
 }
 
-function positionFloatingTooltip(target, tooltipText) {
+function setFloatingTooltipContent(tooltip, tooltipText, { showCopyIcon = false } = {}) {
+  if (showCopyIcon) {
+    tooltip.replaceChildren();
+    tooltip.classList.add("has-copy-icon");
+
+    const icon = document.createElement("img");
+    icon.src = "assets/copy.svg";
+    icon.alt = "";
+    icon.className = "contact-email-copy-tooltip-icon";
+    icon.width = 15;
+    icon.height = 15;
+
+    const label = document.createElement("span");
+    label.textContent = tooltipText;
+
+    tooltip.append(icon, label);
+    return;
+  }
+
+  tooltip.classList.remove("has-copy-icon");
+  tooltip.textContent = tooltipText;
+}
+
+function positionFloatingTooltip(target, tooltipText, options = {}) {
   if (!tooltipText) return;
 
   const tooltip = getContactActionFloatingTooltip();
-  tooltip.textContent = tooltipText;
+  setFloatingTooltipContent(tooltip, tooltipText, options);
 
   if (!tooltip.isConnected) {
     document.body.append(tooltip);
   }
 
   tooltip.classList.add("is-visible");
-  window.fitTooltipToContent?.(tooltip);
+  if (options.showCopyIcon) {
+    tooltip.style.width = "";
+  } else {
+    window.fitTooltipToContent?.(tooltip);
+  }
 
   const targetRect = target.getBoundingClientRect();
   const tooltipRect = tooltip.getBoundingClientRect();
@@ -53,7 +80,9 @@ function getContactEmailTooltipText(emailElement) {
 }
 
 function positionContactEmailFloatingTooltip(emailElement) {
-  positionFloatingTooltip(emailElement, getContactEmailTooltipText(emailElement));
+  const tooltipText = getContactEmailTooltipText(emailElement);
+  const showCopyIcon = emailElement.dataset.tooltipState !== "copied";
+  positionFloatingTooltip(emailElement, tooltipText, { showCopyIcon });
 }
 
 function showContactActionFloatingTooltip(target) {

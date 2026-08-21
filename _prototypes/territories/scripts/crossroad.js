@@ -604,15 +604,16 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts } = 
     : "";
 
   tile.innerHTML = `
-    <div class="target-card-title">${escapeHtml(preset.title)}</div>
     <div class="target-map">${baseImg}${fillImg}${bordersImg}</div>
+    <div class="target-card-title">${escapeHtml(preset.title)}</div>
     <div class="target-field target-prospects">
       <span class="target-label">Territories</span>
       <div class="target-prospects-row">
         <span class="target-number">${totalLabel}</span>
-        <img class="target-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+        <span class="target-chevron" aria-hidden="true">
+          <img src="assets/chevron.svg" alt="">
+        </span>
       </div>
-      <p class="target-status-breakdown">${escapeHtml(breakdownLabel)}</p>
     </div>
   `;
 
@@ -821,9 +822,8 @@ function startTerritoryMapFromFilters() {
 
   window.territoryCrossroadChoice = { type: "filters" };
   dismissTerritoryCrossroad();
-  // Leaving splash: expand sections that have applied filters (e.g. Territory
-  // status "Available"), while keeping untouched sections collapsed.
-  window.territoryFilters?.syncFilterSectionExpansion?.();
+  // Leaving splash: keep only Location expanded, even when default filters apply.
+  window.territoryFilters?.syncFilterSectionExpansion?.({ expandAppliedFilters: true });
   beginTerritoryMapLoad();
 }
 
@@ -1642,6 +1642,16 @@ async function initTerritoryCrossroad() {
 
   if (shouldSkipCrossroad && !window.__territoryMapStarted) {
     chooseCrossroadOption({ type: "new", filters: {} });
+    return;
+  }
+
+  if (window.WefranchReload?.isHardReload) {
+    resetTerritoryCrossroadSearch?.();
+    if (shouldRevealOnLoad) {
+      revealTerritoryCrossroadEnter(crossroad);
+    } else if (crossroad) {
+      crossroad.classList.remove("is-preparing-enter");
+    }
     return;
   }
 

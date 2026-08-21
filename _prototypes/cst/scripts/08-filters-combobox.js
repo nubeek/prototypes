@@ -519,7 +519,7 @@ function setLocationFilterSelections(included = [], excluded = [], searches = []
   syncFilterLocationSearchUI();
 }
 
-function clearAllFilterSelections() {
+function resetCstFilterSelections({ refresh = true } = {}) {
   selectedLocationLabels = [];
   excludedLocationLabels = [];
   selectedLocationSearches = [];
@@ -567,10 +567,19 @@ function clearAllFilterSelections() {
   syncNetWorthFilterControls();
   syncRadiusFilterControls();
   syncMapLocationFilter();
-  refreshFilteredViews();
-  refitOpenMapToVisibleLocations();
-  syncOpenOrgPanelWithSelection();
-  tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+
+  if (refresh) {
+    refreshFilteredViews();
+    refitOpenMapToVisibleLocations();
+    syncOpenOrgPanelWithSelection();
+    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+  }
+}
+
+function clearAllFilterSelections() {
+  clearCstSavedSearchSession({ persist: false });
+  resetCstFilterSelections({ refresh: true });
+  returnToCstSplash?.();
 }
 
 const FILTER_HISTOGRAM_BINS = 24;

@@ -16,13 +16,8 @@ const CST_SPLASH_SNAPSHOT_WIDTH = 640;
 const CST_SPLASH_SNAPSHOT_HEIGHT = 320;
 const CST_SPLASH_SNAPSHOT_SCALE = 2;
 const CST_SPLASH_DEFAULT_VIEW = { center: [-98.5795, 39.8283], zoom: 2.1 };
-const CST_SPLASH_MIN_ZOOM = 2;
-const CST_SPLASH_MAX_ZOOM = 6.5;
-const CST_SPLASH_FIT_PADDING = 0.18;
-const CST_SPLASH_ZOOM_OUT = 0.2;
-// Framing ignores the outermost units so a handful of strays can't zoom the
-// whole preview out.
-const CST_SPLASH_OUTLIER_RATIO = 0.03;
+const CST_SPLASH_MIN_ZOOM = 1;
+const CST_SPLASH_MAX_ZOOM = 9;
 const CST_SPLASH_MAX_PREVIEW_POINTS = 1400;
 const CST_SPLASH_POINT_RADIUS = 3;
 const CST_SPLASH_POINT_OPACITY = 0.78;
@@ -32,6 +27,16 @@ const CST_SPLASH_LEAVE_DURATION_MS = 300;
 const CST_SPLASH_WORKSPACE_HIDE_MS = 240;
 const CST_SPLASH_SUGGESTION_GROUP_LIMIT = 3;
 const CST_SPLASH_SUGGESTION_LIMIT = 9;
+const CST_SPLASH_SAVED_INSERT_SHIFT_DURATION_MS = 680;
+const CST_SPLASH_SAVED_INSERT_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
+const CST_SPLASH_SAVED_INSERT_REVEAL_MS = 200;
+const CST_SPLASH_SAVED_INSERT_BLUR_PX = 4;
+const CST_SPLASH_SAVED_DELETE_FADE_MS = 500;
+const CST_SPLASH_SAVED_DELETE_BLUR_MS = 400;
+const CST_SPLASH_SAVED_DELETE_BLUR_PX = 12;
+const CST_SPLASH_SAVED_DELETE_SHIFT_DURATION_MS = 680;
+const CST_SPLASH_SAVED_DELETE_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
+const CST_SPLASH_SAVED_SCOPES = new Set(["all", "private", "team", "public"]);
 
 /* Web Mercator projection (matches Mapbox center/zoom rendering) --------- */
 
@@ -68,15 +73,15 @@ function cstSplashLatitudeRadians(lat) {
   return Math.max(Math.min(radians, Math.PI), -Math.PI) / 2;
 }
 
-function computeCstSplashZoom(west, south, east, north) {
+function computeCstSplashZoom(west, south, east, north, width = CST_SPLASH_SNAPSHOT_WIDTH, height = CST_SPLASH_SNAPSHOT_HEIGHT) {
   const worldSize = 512;
   const lngFraction = Math.max((east - west) / 360, 0.0001);
   const latFraction = Math.max(
     (cstSplashLatitudeRadians(north) - cstSplashLatitudeRadians(south)) / Math.PI,
     0.0001
   );
-  const lngZoom = Math.log2(CST_SPLASH_SNAPSHOT_WIDTH / worldSize / lngFraction);
-  const latZoom = Math.log2(CST_SPLASH_SNAPSHOT_HEIGHT / worldSize / latFraction);
+  const lngZoom = Math.log2(width / worldSize / lngFraction);
+  const latZoom = Math.log2(height / worldSize / latFraction);
 
   return Math.max(
     CST_SPLASH_MIN_ZOOM,
@@ -84,39 +89,83 @@ function computeCstSplashZoom(west, south, east, north) {
   );
 }
 
-function getCstSplashTrimmedBound(values, ratio) {
-  const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.min(
-    sorted.length - 1,
-    Math.max(0, Math.round((sorted.length - 1) * ratio))
-  );
-  return sorted[index];
+// Same source as the live query map: region boxes when the query is states
+// only, otherwise the pins getMapPointFeatures() would draw.
+function getCstSplashRegionFitBounds() {
+  const regionSearches = selectedLocationSearches.filter((search) => isRegionOnlyLocationSearch(search));
+  if (!regionSearches.length || userLocationCenter) return null;
+  if (selectedLocationSearches.some((search) => search && !isRegionOnlyLocationSearch(search))) return null;
+
+  const boundsList = regionSearches
+    .map((search) => window.cstLocationSearch?.getRegionBounds?.(search.stateCode))
+    .filter((bounds) => Array.isArray(bounds) && bounds.length === 4);
+  if (!boundsList.length) return null;
+
+  return boundsList.reduce((union, [west, south, east, north]) => ({
+    west: Math.min(union.west, west),
+    south: Math.min(union.south, south),
+    east: Math.max(union.east, east),
+    north: Math.max(union.north, north)
+  }), {
+    west: boundsList[0][0],
+    south: boundsList[0][1],
+    east: boundsList[0][2],
+    north: boundsList[0][3]
+  });
 }
 
-function computeCstSplashView(units) {
-  const latitudes = units.map((unit) => unit.lat).filter(Number.isFinite);
-  const longitudes = units.map((unit) => unit.lng).filter(Number.isFinite);
-  if (!latitudes.length || !longitudes.length) return CST_SPLASH_DEFAULT_VIEW;
+function getCstSplashBoundsFromCoordinates(coordinates) {
+  let west = coordinates[0][0];
+  let east = coordinates[0][0];
+  let south = coordinates[0][1];
+  let north = coordinates[0][1];
 
-  const south = getCstSplashTrimmedBound(latitudes, CST_SPLASH_OUTLIER_RATIO);
-  const north = getCstSplashTrimmedBound(latitudes, 1 - CST_SPLASH_OUTLIER_RATIO);
-  const west = getCstSplashTrimmedBound(longitudes, CST_SPLASH_OUTLIER_RATIO);
-  const east = getCstSplashTrimmedBound(longitudes, 1 - CST_SPLASH_OUTLIER_RATIO);
+  coordinates.forEach(([lng, lat]) => {
+    west = Math.min(west, lng);
+    east = Math.max(east, lng);
+    south = Math.min(south, lat);
+    north = Math.max(north, lat);
+  });
 
-  const lngSpan = Math.max(east - west, 0.5);
-  const latSpan = Math.max(north - south, 0.5);
-  const paddedWest = west - lngSpan * CST_SPLASH_FIT_PADDING;
-  const paddedEast = east + lngSpan * CST_SPLASH_FIT_PADDING;
-  const paddedSouth = south - latSpan * CST_SPLASH_FIT_PADDING;
-  const paddedNorth = north + latSpan * CST_SPLASH_FIT_PADDING;
+  if (coordinates.length === 1) {
+    west -= 0.35;
+    east += 0.35;
+    south -= 0.35;
+    north += 0.35;
+  }
+
+  return { west, south, east, north };
+}
+
+function computeCstSplashViewFromBounds({ west, south, east, north }) {
+  const insetWidth = Math.max(CST_SPLASH_SNAPSHOT_WIDTH - MAP_FIT_PADDING * 2, 1);
+  const insetHeight = Math.max(CST_SPLASH_SNAPSHOT_HEIGHT - MAP_FIT_PADDING * 2, 1);
 
   return {
-    center: [(paddedWest + paddedEast) / 2, (paddedSouth + paddedNorth) / 2],
-    zoom: Math.max(
-      CST_SPLASH_MIN_ZOOM,
-      computeCstSplashZoom(paddedWest, paddedSouth, paddedEast, paddedNorth) - CST_SPLASH_ZOOM_OUT
-    )
+    center: [(west + east) / 2, (south + north) / 2],
+    zoom: computeCstSplashZoom(west, south, east, north, insetWidth, insetHeight)
   };
+}
+
+function getCstSplashMapPoints() {
+  return getMapPointFeatures(null).map((feature) => ({
+    color: feature.properties.color,
+    franchise: feature.properties.franchise,
+    lat: feature.geometry.coordinates[1],
+    lng: feature.geometry.coordinates[0]
+  }));
+}
+
+function computeCstSplashView(points) {
+  const regionBounds = getCstSplashRegionFitBounds();
+  if (regionBounds) return computeCstSplashViewFromBounds(regionBounds);
+
+  const coordinates = (points || [])
+    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng))
+    .map((point) => [point.lng, point.lat]);
+  if (!coordinates.length) return CST_SPLASH_DEFAULT_VIEW;
+
+  return computeCstSplashViewFromBounds(getCstSplashBoundsFromCoordinates(coordinates));
 }
 
 /* Snapshot generation (used only with ?generateSnapshots=1) ------------ */
@@ -126,7 +175,11 @@ function buildCstSplashBaseMapUrl(view = CST_SPLASH_DEFAULT_VIEW) {
 
   const [lng, lat] = view.center;
   const dimensions = `${CST_SPLASH_SNAPSHOT_WIDTH}x${CST_SPLASH_SNAPSHOT_HEIGHT}@${CST_SPLASH_SNAPSHOT_SCALE}x`;
-  const params = new URLSearchParams({ access_token: MAPBOX_ACCESS_TOKEN });
+  const params = new URLSearchParams({
+    access_token: MAPBOX_ACCESS_TOKEN,
+    attribution: "false",
+    logo: "false"
+  });
 
   return `https://api.mapbox.com/styles/v1/${CST_SPLASH_MAPBOX_STYLE}/static/`
     + `${lng},${lat},${view.zoom.toFixed(2)},0/${dimensions}?${params.toString()}`;
@@ -183,6 +236,32 @@ function getCstSplashSavedSearches() {
 let cstSplashSavedActiveScope = "all";
 let cstSplashSavedSearchTerm = "";
 
+function setCstSplashSavedScope(scope, { render = true } = {}) {
+  cstSplashSavedActiveScope = CST_SPLASH_SAVED_SCOPES.has(scope) ? scope : "all";
+
+  document.querySelectorAll(".cst-splash__saved .scope-tab").forEach((tab) => {
+    tab.classList.toggle("is-active", tab.dataset.scope === cstSplashSavedActiveScope);
+  });
+
+  if (render) {
+    renderCstSplashTiles();
+  }
+}
+
+function resetCstSplashSavedSearchFilter() {
+  const searchInput = document.getElementById("cstSplashSavedSearch");
+  const searchClear = document.getElementById("cstSplashSavedSearchClear");
+
+  cstSplashSavedSearchTerm = "";
+  if (searchInput) {
+    searchInput.value = "";
+    searchInput.closest(".scope-search")?.classList.remove("is-active-search");
+  }
+  if (searchClear) {
+    searchClear.hidden = true;
+  }
+}
+
 function getVisibleCstSplashSavedSearches() {
   const term = cstSplashSavedSearchTerm.trim().toLowerCase();
 
@@ -191,6 +270,69 @@ function getVisibleCstSplashSavedSearches() {
     const matchesSearch = !term || savedSearch.title.toLowerCase().includes(term);
     return matchesScope && matchesSearch;
   });
+}
+
+function serializeCstSavedLocationSearch(search) {
+  if (!search || typeof search !== "object") return null;
+
+  const serializedSearch = {
+    label: String(search.label || "").trim(),
+    stateCode: String(search.stateCode || "").trim()
+  };
+  const longitude = Number(search.coordinates?.longitude);
+  const latitude = Number(search.coordinates?.latitude);
+
+  if (!serializedSearch.label) return null;
+  if (Number.isFinite(longitude) && Number.isFinite(latitude)) {
+    serializedSearch.coordinates = { longitude, latitude };
+  }
+  if (search.geoLevel) serializedSearch.geoLevel = String(search.geoLevel);
+  if (search.geoKey) serializedSearch.geoKey = String(search.geoKey);
+
+  return serializedSearch;
+}
+
+function getCurrentCstSavedSearchFilters() {
+  return {
+    search: searchQuery,
+    locations: [...selectedLocationLabels],
+    locationsExcluded: [...excludedLocationLabels],
+    locationSearches: selectedLocationSearches.map(serializeCstSavedLocationSearch).filter(Boolean),
+    locationSearchesExcluded: excludedLocationSearches.map(serializeCstSavedLocationSearch).filter(Boolean),
+    categories: [...selectedCategoryValues],
+    categoriesExcluded: [...excludedCategoryValues],
+    owners: [...selectedOwnerIndexes],
+    ownersExcluded: [...excludedOwnerIndexes],
+    franchises: [...selectedFranchiseIndexes],
+    franchisesExcluded: [...excludedFranchiseIndexes],
+    statuses: statusFilterInputs.map((checkbox) => checkbox.checked),
+    units: {
+      min: selectedUnitsMin,
+      max: selectedUnitsMax
+    },
+    contacts: {
+      min: selectedContactsMin,
+      max: selectedContactsMax
+    },
+    netWorth: {
+      min: selectedNetWorthMin,
+      max: selectedNetWorthMax
+    },
+    rating: {
+      min: getFranchiseeRatingMin()
+    },
+    radius: {
+      enabled: radiusFilterEnabled,
+      miles: selectedRadiusMiles
+    },
+    userLocation: userLocationCenter
+      ? {
+          lat: userLocationCenter.lat,
+          lng: userLocationCenter.lng,
+          label: userLocationCenter.label || "My location"
+        }
+      : null
+  };
 }
 
 function normalizeCstSplashRange(range, defaults) {
@@ -212,6 +354,7 @@ function withCstSplashFilterScope(filters, read) {
     excludedOwnerIndexes,
     radiusFilterEnabled,
     searchQuery,
+    selectedRadiusMiles,
     selectedCategoryValues,
     selectedContactsMax,
     selectedContactsMin,
@@ -224,6 +367,7 @@ function withCstSplashFilterScope(filters, read) {
     selectedFranchiseeRatingMin,
     selectedUnitsMax,
     selectedUnitsMin,
+    statusSelections: statusFilterInputs.map((checkbox) => checkbox.checked),
     userLocationCenter
   };
 
@@ -252,6 +396,10 @@ function withCstSplashFilterScope(filters, read) {
     selectedFranchiseeRatingMin = restore.selectedFranchiseeRatingMin;
     userLocationCenter = restore.userLocationCenter;
     radiusFilterEnabled = restore.radiusFilterEnabled;
+    selectedRadiusMiles = restore.selectedRadiusMiles;
+    statusFilterInputs.forEach((checkbox, index) => {
+      checkbox.checked = restore.statusSelections[index];
+    });
   }
 }
 
@@ -259,11 +407,17 @@ function applyCstSplashFilterState(filters = {}) {
   const units = normalizeCstSplashRange(filters.units, unitsFilterDefaults);
   const contacts = normalizeCstSplashRange(filters.contacts, contactsFilterDefaults);
   const netWorth = normalizeCstSplashRange(filters.netWorth, netWorthFilterDefaults);
+  const includedLocationSearches = Array.isArray(filters.locationSearches)
+    ? filters.locationSearches
+    : [];
+  const nextExcludedLocationSearches = Array.isArray(filters.locationSearchesExcluded)
+    ? filters.locationSearchesExcluded
+    : [];
 
   searchQuery = String(filters.search || "").trim().toLocaleLowerCase();
-  selectedLocationLabels = [...(filters.locations || [])];
-  excludedLocationLabels = [...(filters.locationsExcluded || [])];
-  selectedLocationSearches = (filters.locationSearches || [])
+  selectedLocationLabels = getSavedStringArray(filters.locations);
+  excludedLocationLabels = getSavedStringArray(filters.locationsExcluded);
+  selectedLocationSearches = includedLocationSearches
     .map(normalizeSavedLocationSearch)
     .filter(Boolean);
   if (!selectedLocationSearches.length && selectedLocationLabels.length) {
@@ -271,7 +425,7 @@ function applyCstSplashFilterState(filters = {}) {
       .map((label) => window.cstLocationSearch?.fromLabel?.(label))
       .filter(Boolean);
   }
-  excludedLocationSearches = (filters.locationSearchesExcluded || [])
+  excludedLocationSearches = nextExcludedLocationSearches
     .map(normalizeSavedLocationSearch)
     .filter(Boolean);
   if (!excludedLocationSearches.length && excludedLocationLabels.length) {
@@ -279,12 +433,12 @@ function applyCstSplashFilterState(filters = {}) {
       .map((label) => window.cstLocationSearch?.fromLabel?.(label))
       .filter(Boolean);
   }
-  selectedCategoryValues = [...(filters.categories || [])];
-  excludedCategoryValues = [...(filters.categoriesExcluded || [])];
-  selectedOwnerIndexes = (filters.owners || []).map(String);
-  excludedOwnerIndexes = [];
-  selectedFranchiseIndexes = [...(filters.franchises || [])];
-  excludedFranchiseIndexes = [];
+  selectedCategoryValues = getSavedStringArray(filters.categories);
+  excludedCategoryValues = getSavedStringArray(filters.categoriesExcluded);
+  selectedOwnerIndexes = getSavedStringArray(filters.owners);
+  excludedOwnerIndexes = getSavedStringArray(filters.ownersExcluded);
+  selectedFranchiseIndexes = getSavedStringArray(filters.franchises);
+  excludedFranchiseIndexes = getSavedStringArray(filters.franchisesExcluded);
   selectedUnitsMin = units.min;
   selectedUnitsMax = units.max;
   selectedContactsMin = contacts.min;
@@ -292,8 +446,28 @@ function applyCstSplashFilterState(filters = {}) {
   selectedNetWorthMin = netWorth.min;
   selectedNetWorthMax = netWorth.max;
   selectedFranchiseeRatingMin = normalizeFranchiseeRatingMin(filters.rating?.min);
-  userLocationCenter = null;
-  radiusFilterEnabled = false;
+  const savedUserLocation = filters.userLocation;
+  const savedLatitude = Number(savedUserLocation?.lat);
+  const savedLongitude = Number(savedUserLocation?.lng);
+  userLocationCenter = Number.isFinite(savedLatitude) && Number.isFinite(savedLongitude)
+    ? {
+        lat: savedLatitude,
+        lng: savedLongitude,
+        label: String(savedUserLocation.label || "").trim() || "My location"
+      }
+    : null;
+  radiusFilterEnabled = Boolean(filters.radius?.enabled);
+  const savedRadiusMiles = Number(filters.radius?.miles);
+  selectedRadiusMiles = Number.isFinite(savedRadiusMiles)
+    ? Math.min(
+        RADIUS_FILTER_DEFAULTS.max,
+        Math.max(RADIUS_FILTER_DEFAULTS.min, Math.round(savedRadiusMiles))
+      )
+    : RADIUS_FILTER_DEFAULTS.value;
+  const savedStatuses = Array.isArray(filters.statuses) ? filters.statuses : [];
+  statusFilterInputs.forEach((checkbox, index) => {
+    checkbox.checked = Boolean(savedStatuses[index]);
+  });
 }
 
 function toCstSplashUnitRow(unit) {
@@ -364,28 +538,86 @@ function isCstSplashSnapshotGenerateMode() {
 }
 
 function getCstSplashSnapshotUrl(savedSearch) {
-  return savedSearch.snapshot || `assets/snapshots/${savedSearch.id}.jpg`;
+  return savedSearch.snapshot || "";
 }
 
-function getCstSplashMatchCounts(filters) {
+const cstSplashMatchCountCache = new Map();
+const cstSplashDynamicPreviewCache = new Map();
+
+function getCstSplashMatchCounts(filters, { needsUnitCount = true } = {}) {
   return withCstSplashFilterScope(filters, () => {
     const matchedOwners = getFilteredOwners();
     let unitCount = 0;
 
-    matchedOwners.forEach((owner) => {
-      const units = window.ownerLocationsData?.[owner.originalIndex]?.units || [];
-      units.forEach((unit) => {
-        if (unitRowMatchesFilters(toCstSplashUnitRow(unit))) {
-          unitCount += 1;
-        }
+    if (needsUnitCount) {
+      matchedOwners.forEach((owner) => {
+        const units = window.ownerLocationsData?.[owner.originalIndex]?.units || [];
+        units.forEach((unit) => {
+          if (unitRowMatchesFilters(toCstSplashUnitRow(unit))) {
+            unitCount += 1;
+          }
+        });
       });
-    });
+    }
 
     return {
       ownerCount: matchedOwners.length,
       unitCount
     };
   });
+}
+
+function getStoredCstSplashMatchCounts(savedSearch) {
+  const ownerCount = Number(savedSearch.ownerCount);
+  if (!Number.isFinite(ownerCount)) return null;
+
+  return {
+    ownerCount,
+    unitCount: Number.isFinite(Number(savedSearch.unitCount)) ? Number(savedSearch.unitCount) : 0
+  };
+}
+
+function getCachedCstSplashMatchCounts(savedSearch) {
+  const cacheKey = savedSearch.id;
+  const cached = cstSplashMatchCountCache.get(cacheKey);
+  if (cached) return cached;
+
+  const stored = getStoredCstSplashMatchCounts(savedSearch);
+  if (stored) {
+    cstSplashMatchCountCache.set(cacheKey, stored);
+    return stored;
+  }
+
+  const matches = getCstSplashMatchCounts(savedSearch.filters || {}, {
+    needsUnitCount: savedSearch.view === "locations"
+  });
+  cstSplashMatchCountCache.set(cacheKey, matches);
+  return matches;
+}
+
+function getCstSplashDynamicPreview(savedSearch) {
+  const cachedPreview = cstSplashDynamicPreviewCache.get(savedSearch.id);
+  if (cachedPreview) return cachedPreview;
+
+  const preview = withCstSplashFilterScope(savedSearch.filters || {}, () => {
+    const points = getCstSplashMapPoints();
+    const view = computeCstSplashView(points);
+    let pointsUrl = "";
+
+    try {
+      pointsUrl = buildCstSplashPointsDataUrl(points, view);
+    } catch (error) {
+      console.warn("Unable to render the saved search preview.", error);
+    }
+
+    return {
+      baseMapUrl: buildCstSplashBaseMapUrl(view),
+      pointsUrl
+    };
+  });
+  cstSplashDynamicPreviewCache.set(savedSearch.id, preview);
+
+  return preview;
 }
 
 function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, pointsUrl } = {}) {
@@ -411,13 +643,15 @@ function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, poi
     : "";
 
   tile.innerHTML = `
-    <div class="target-card-title">${escapeCstSplashHtml(savedSearch.title)}</div>
     <div class="target-map">${snapshotImage}${baseImage}${pointsImage}</div>
+    <div class="target-card-title">${escapeCstSplashHtml(savedSearch.title)}</div>
     <div class="target-field target-prospects">
       <span class="target-label">${escapeCstSplashHtml(metric.label)}</span>
       <div class="target-prospects-row">
         <span class="target-number">${valueLabel}</span>
-        <img class="target-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+        <span class="target-chevron" aria-hidden="true">
+          <img src="assets/chevron.svg" alt="">
+        </span>
       </div>
     </div>
   `;
@@ -429,27 +663,49 @@ function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, poi
   return tile;
 }
 
+function createRenderedCstSplashTile(savedSearch) {
+  const matches = getCachedCstSplashMatchCounts(savedSearch);
+  const snapshotUrl = getCstSplashSnapshotUrl(savedSearch);
+  const preview = snapshotUrl ? {} : getCstSplashDynamicPreview(savedSearch);
+
+  return createCstSplashTile(savedSearch, {
+    ...preview,
+    snapshotUrl,
+    metric: getCstSplashTileMetric(savedSearch, matches)
+  });
+}
+
 function renderCstSplashGenerateTiles() {
   getCstSplashSavedSearches().forEach((savedSearch) => {
-    const matches = getCstSplashMatches(savedSearch.filters || {});
-    const view = computeCstSplashView(matches.units);
+    const tileData = withCstSplashFilterScope(savedSearch.filters || {}, () => {
+      const points = getCstSplashMapPoints();
+      return {
+        metric: getCstSplashTileMetric(savedSearch, {
+          ownerCount: getFilteredOwners().length,
+          unitCount: points.length,
+          units: points
+        }),
+        points,
+        view: computeCstSplashView(points)
+      };
+    });
 
     let pointsUrl = "";
     try {
-      pointsUrl = buildCstSplashPointsDataUrl(matches.units, view);
+      pointsUrl = buildCstSplashPointsDataUrl(tileData.points, tileData.view);
     } catch (error) {
       console.warn("Unable to render the saved search preview.", error);
     }
 
     document.getElementById("cstSplashGrid")?.append(createCstSplashTile(savedSearch, {
-      baseMapUrl: buildCstSplashBaseMapUrl(view),
-      metric: getCstSplashTileMetric(savedSearch, matches),
+      baseMapUrl: buildCstSplashBaseMapUrl(tileData.view),
+      metric: tileData.metric,
       pointsUrl
     }));
   });
 }
 
-function renderCstSplashTiles() {
+function renderCstSplashTiles({ excludedSearchId = null } = {}) {
   const grid = document.getElementById("cstSplashGrid");
   const emptyState = document.getElementById("cstSplashSavedEmpty");
   if (!grid) return;
@@ -461,15 +717,12 @@ function renderCstSplashTiles() {
     return;
   }
 
-  const visibleSearches = getVisibleCstSplashSavedSearches();
+  const visibleSearches = getVisibleCstSplashSavedSearches().filter(
+    (savedSearch) => savedSearch.id !== excludedSearchId
+  );
 
   visibleSearches.forEach((savedSearch) => {
-    const matches = getCstSplashMatchCounts(savedSearch.filters || {});
-
-    grid.append(createCstSplashTile(savedSearch, {
-      snapshotUrl: getCstSplashSnapshotUrl(savedSearch),
-      metric: getCstSplashTileMetric(savedSearch, matches)
-    }));
+    grid.append(createRenderedCstSplashTile(savedSearch));
   });
 
   if (emptyState) {
@@ -477,9 +730,269 @@ function renderCstSplashTiles() {
   }
 }
 
+function animateCstSplashSavedSearchInsertion(savedSearch) {
+  const grid = document.getElementById("cstSplashGrid");
+  if (!grid) return;
+
+  const savedScroll = document.querySelector(".cst-splash__saved-scroll");
+  savedScroll?.scrollTo({ top: 0, behavior: "auto" });
+
+  const previousPositions = new Map(
+    Array.from(grid.children).map((tile) => [
+      tile.dataset.savedSearchId,
+      tile.getBoundingClientRect()
+    ])
+  );
+  const newTile = createRenderedCstSplashTile(savedSearch);
+  newTile.style.pointerEvents = "none";
+  grid.prepend(newTile);
+  document.getElementById("cstSplashSavedEmpty")?.setAttribute("hidden", "");
+
+  const shouldReduceMotion = usesReducedMotion()
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (shouldReduceMotion) {
+    newTile.style.removeProperty("pointer-events");
+    return;
+  }
+
+  newTile.style.opacity = "0";
+  newTile.style.filter = `blur(${CST_SPLASH_SAVED_INSERT_BLUR_PX}px)`;
+
+  const existingTiles = Array.from(grid.children).filter((tile) => tile !== newTile);
+
+  animateCstSplashSavedSearchShift(
+    existingTiles,
+    previousPositions,
+    CST_SPLASH_SAVED_INSERT_SHIFT_DURATION_MS,
+    CST_SPLASH_SAVED_INSERT_SHIFT_EASING
+  ).finally(() => {
+    const revealAnimation = newTile.animate([
+      { opacity: 0, filter: `blur(${CST_SPLASH_SAVED_INSERT_BLUR_PX}px)` },
+      { opacity: 1, filter: "blur(0px)" }
+    ], {
+      duration: CST_SPLASH_SAVED_INSERT_REVEAL_MS,
+      easing: "ease-out",
+      fill: "forwards"
+    });
+
+    revealAnimation.finished
+      .catch(() => {})
+      .finally(() => {
+        newTile.style.removeProperty("opacity");
+        newTile.style.removeProperty("filter");
+        newTile.style.removeProperty("pointer-events");
+      });
+  });
+}
+
+function animateCstSplashSavedSearchShift(
+  remainingTiles,
+  previousPositions,
+  duration = CST_SPLASH_SAVED_INSERT_SHIFT_DURATION_MS,
+  easing = CST_SPLASH_SAVED_INSERT_SHIFT_EASING
+) {
+  const animations = [];
+
+  remainingTiles.forEach((tile) => {
+    const previousPosition = previousPositions.get(tile.dataset.savedSearchId);
+    if (!previousPosition) return;
+
+    const nextPosition = tile.getBoundingClientRect();
+    const deltaX = previousPosition.left - nextPosition.left;
+    const deltaY = previousPosition.top - nextPosition.top;
+    if (!deltaX && !deltaY) return;
+
+    animations.push(tile.animate([
+      { transform: `translate3d(${deltaX}px, ${deltaY}px, 0)` },
+      { transform: "translate3d(0, 0, 0)" }
+    ], {
+      duration,
+      easing
+    }));
+  });
+
+  return Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
+}
+
+function animateCstSplashSavedSearchDeletion(savedSearchId) {
+  const grid = document.getElementById("cstSplashGrid");
+  const removedTile = grid?.querySelector(`[data-saved-search-id="${CSS.escape(savedSearchId)}"]`);
+  if (!grid || !removedTile) return;
+
+  const savedScroll = document.querySelector(".cst-splash__saved-scroll");
+  savedScroll?.scrollTo({ top: 0, behavior: "auto" });
+
+  const shouldReduceMotion = usesReducedMotion()
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (shouldReduceMotion) {
+    removedTile.remove();
+    const emptyState = document.getElementById("cstSplashSavedEmpty");
+    if (emptyState) emptyState.hidden = grid.children.length > 0;
+    return;
+  }
+
+  removedTile.style.pointerEvents = "none";
+
+  const blurCompleteOffset = CST_SPLASH_SAVED_DELETE_BLUR_MS / CST_SPLASH_SAVED_DELETE_FADE_MS;
+  const removalAnimation = removedTile.animate([
+    { opacity: 1, filter: "blur(0px)", offset: 0 },
+    {
+      opacity: 1,
+      filter: `blur(${CST_SPLASH_SAVED_DELETE_BLUR_PX}px)`,
+      offset: blurCompleteOffset
+    },
+    {
+      opacity: 0,
+      filter: `blur(${CST_SPLASH_SAVED_DELETE_BLUR_PX}px)`,
+      offset: 1
+    }
+  ], {
+    duration: CST_SPLASH_SAVED_DELETE_FADE_MS,
+    easing: "ease",
+    fill: "forwards"
+  });
+
+  removalAnimation.finished
+    .catch(() => {})
+    .finally(() => {
+      const remainingTiles = Array.from(grid.children).filter((tile) => tile !== removedTile);
+      const previousPositions = new Map(
+        remainingTiles.map((tile) => [
+          tile.dataset.savedSearchId,
+          tile.getBoundingClientRect()
+        ])
+      );
+
+      removedTile.remove();
+
+      const emptyState = document.getElementById("cstSplashSavedEmpty");
+      if (emptyState) emptyState.hidden = grid.children.length > 0;
+
+      animateCstSplashSavedSearchShift(
+        remainingTiles,
+        previousPositions,
+        CST_SPLASH_SAVED_DELETE_SHIFT_DURATION_MS,
+        CST_SPLASH_SAVED_DELETE_SHIFT_EASING
+      );
+    });
+}
+
+function saveCurrentCstView({ title, description = "", visibility = "private" } = {}) {
+  const filters = getCurrentCstSavedSearchFilters();
+  const matches = getCstSplashMatchCounts(filters);
+  const savedSearch = window.cstSavedSearchStore?.create?.({
+    title,
+    description,
+    scope: visibility,
+    view: currentTableView,
+    filters,
+    ownerCount: matches.ownerCount,
+    unitCount: matches.unitCount
+  });
+  if (!savedSearch) return null;
+
+  cstSplashMatchCountCache.set(savedSearch.id, matches);
+
+  return savedSearch;
+}
+
+function updateCstSavedView(searchId, {
+  title,
+  description = "",
+  visibility = "private"
+} = {}) {
+  const savedSearch = window.cstSavedSearchStore?.update?.(searchId, {
+    title,
+    description,
+    scope: visibility
+  });
+  if (!savedSearch) return null;
+
+  renderCstSplashTiles();
+  return savedSearch;
+}
+
+function deleteCstSavedView(searchId) {
+  const searches = getCstSplashSavedSearches();
+  const savedSearch = searches.find((entry) => entry.id === searchId);
+  if (!savedSearch) return null;
+
+  const scopeIndex = searches
+    .filter((entry) => entry.scope === savedSearch.scope)
+    .findIndex((entry) => entry.id === searchId);
+  const removedSearch = window.cstSavedSearchStore?.remove?.(searchId);
+  if (!removedSearch) return null;
+
+  cstSplashMatchCountCache.delete(searchId);
+  cstSplashDynamicPreviewCache.delete(searchId);
+
+  return {
+    savedSearch: removedSearch,
+    scopeIndex: Math.max(0, scopeIndex)
+  };
+}
+
+function revealNewCstSplashSavedSearch(savedSearch) {
+  if (!savedSearch) return;
+
+  resetCstSplashSavedSearchFilter();
+  setCstSplashSavedScope(savedSearch.scope, { render: false });
+  renderCstSplashTiles({ excludedSearchId: savedSearch.id });
+  document.getElementById("cstSplashSavedEmpty")?.setAttribute("hidden", "");
+  showCstSplash({ animate: false });
+
+  whenCstSplashVisible(() => {
+    animateCstSplashSavedSearchInsertion(savedSearch);
+  });
+}
+
+function revealDeletedCstSplashSavedSearch({ savedSearch, scopeIndex = 0 } = {}) {
+  if (!savedSearch) return;
+
+  resetCstSplashSavedSearchFilter();
+  setCstSplashSavedScope(savedSearch.scope, { render: false });
+  renderCstSplashTiles();
+
+  const grid = document.getElementById("cstSplashGrid");
+  if (grid) {
+    const removedTile = createRenderedCstSplashTile(savedSearch);
+    grid.insertBefore(removedTile, grid.children[Math.max(0, scopeIndex)] || null);
+    document.getElementById("cstSplashSavedEmpty")?.setAttribute("hidden", "");
+  }
+  showCstSplash({ animate: false });
+
+  whenCstSplashVisible(() => {
+    animateCstSplashSavedSearchDeletion(savedSearch.id);
+  });
+}
+
 /* Applying a query ------------------------------------------------------ */
 
+function setCstFilterSectionExpanded(section, shouldExpand) {
+  section.classList.toggle("filter-section-collapsed", !shouldExpand);
+  section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(shouldExpand));
+  section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(shouldExpand));
+}
+
+function resetCstFilterSectionsToDefault() {
+  if (!filterPanel) return;
+
+  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
+    const isLocationSection = section.dataset.filterSection === "location"
+      || Boolean(section.querySelector("#locationFilterSearchField"));
+    setCstFilterSectionExpanded(section, isLocationSection);
+  });
+
+  if (viewSettingsReadyToPersist && !isRestoringViewSettings) {
+    persistViewSettings();
+  }
+}
+
 function expandCstSplashFilterSections() {
+  if (!filterPanel) return;
+
   const activeSections = new Set();
   const markActive = (element, isActive) => {
     if (!isActive) return;
@@ -487,7 +1000,7 @@ function expandCstSplashFilterSections() {
     if (section) activeSections.add(section);
   };
 
-  markActive(locationFilterSearchField, hasAppliedLocationFilters());
+  markActive(locationFilterSearchField, true);
   markActive(categoryFilterSelect, selectedCategoryValues.length || excludedCategoryValues.length);
   markActive(ownerFilterSelect, selectedOwnerIndexes.length || excludedOwnerIndexes.length);
   markActive(franchiseFilterSelect, selectedFranchiseIndexes.length || excludedFranchiseIndexes.length);
@@ -496,11 +1009,23 @@ function expandCstSplashFilterSections() {
   markActive(netWorthMinRange, netWorthFilterIsActive());
   markActive(document.getElementById("franchiseeRatingFilterSection"), franchiseeRatingFilterIsActive());
 
-  activeSections.forEach((section) => {
-    section.classList.remove("filter-section-collapsed");
-    section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", "true");
-    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", "true");
+  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
+    const isLocationSection = section.dataset.filterSection === "location"
+      || Boolean(section.querySelector("#locationFilterSearchField"));
+    setCstFilterSectionExpanded(section, isLocationSection || activeSections.has(section));
   });
+}
+
+function expandCstFilterSectionOnly(sectionKey) {
+  if (!filterPanel || !sectionKey) return;
+
+  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
+    setCstFilterSectionExpanded(section, section.dataset.filterSection === sectionKey);
+  });
+
+  if (viewSettingsReadyToPersist && !isRestoringViewSettings) {
+    persistViewSettings();
+  }
 }
 
 function syncCstSplashToolbarSearch() {
@@ -517,8 +1042,8 @@ function syncCstSplashToolbarSearch() {
 }
 
 function applyCstSplashQuery(filters = {}, { view = "owners" } = {}) {
+  resetCstFilterSelections({ refresh: false });
   applyCstSplashFilterState(filters);
-  selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
   activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
 
@@ -528,16 +1053,14 @@ function applyCstSplashQuery(filters = {}, { view = "owners" } = {}) {
   setFilterSelectIncludedExcludedValues(franchiseFilterSelect, selectedFranchiseIndexes, excludedFranchiseIndexes);
   syncFilterComboboxes();
 
-  const autoRadiusSearch = (filters.locationSearches || []).find((search) => (
+  const autoRadiusSearch = (Array.isArray(filters.locationSearches) ? filters.locationSearches : []).find((search) => (
     window.cstLocationSearch?.shouldAutoEnableRadius?.(search)
   ));
-  if (autoRadiusSearch) {
+  const hasSavedRadiusState = filters.radius && typeof filters.radius === "object";
+  if (!hasSavedRadiusState && autoRadiusSearch) {
     applyAutoRadiusForLocationResult(autoRadiusSearch);
   }
 
-  statusFilterInputs.forEach((checkbox) => {
-    checkbox.checked = false;
-  });
   syncStatusFilterStates();
   syncUnitsFilterControls();
   syncContactsFilterControls();
@@ -547,10 +1070,9 @@ function applyCstSplashQuery(filters = {}, { view = "owners" } = {}) {
   syncCstSplashToolbarSearch();
   expandCstSplashFilterSections();
 
-  syncMapLocationFilter();
-
   if (view !== currentTableView) {
     setMainTableView(view);
+    syncMapLocationFilter();
   } else {
     refreshFilteredViews();
   }
@@ -561,14 +1083,109 @@ function applyCstSplashQuery(filters = {}, { view = "owners" } = {}) {
 }
 
 function openCstSplashSavedSearch(savedSearch) {
-  dismissCstSplash();
+  dismissCstSplash({ refresh: false });
+  // Enter read mode before applying filters so a slow location query cannot
+  // leave the workspace looking like edit mode, and so a later apply error
+  // cannot skip read mode entirely.
+  setReaderMode(true, { title: savedSearch.title, savedSearchId: savedSearch.id });
   applyCstSplashQuery(savedSearch.filters || {}, { view: savedSearch.view || "owners" });
+}
+
+function restoreCstSavedSearchSession() {
+  const urlState = getCstSavedSearchUrlState();
+  const storedSearchId = savedViewSettings?.savedSearchId ?? null;
+  const searchId = urlState?.searchId ?? storedSearchId;
+  if (!searchId) return;
+
+  const savedSearch = getSavedSearchById(searchId);
+  if (!savedSearch) {
+    clearCstSavedSearchSession({ persist: false });
+    return;
+  }
+
+  activeSavedSearchId = searchId;
+
+  const mode = urlState?.mode ?? (savedViewSettings?.readerMode === false ? "edit" : "read");
+
+  isRestoringViewSettings = true;
+
+  try {
+    if (urlState && getAppliedFilterCount() === 0) {
+      applyCstSplashQuery(savedSearch.filters || {}, { view: savedSearch.view || "owners" });
+    }
+
+    if (mode === "read") {
+      setReaderMode(true, { title: savedSearch.title, persist: false });
+    } else {
+      setReaderMode(false, { persist: false });
+      setFilterPanelOpen(true);
+    }
+
+    if (!urlState) {
+      syncCstSavedSearchUrl({ searchId, mode });
+    }
+  } finally {
+    isRestoringViewSettings = false;
+    viewSettingsReadyToPersist = true;
+    persistViewSettings();
+  }
 }
 
 /* Show & hide ----------------------------------------------------------- */
 
 function getCstSplashElement() {
   return document.getElementById("cstSplash");
+}
+
+function isCstSplashFullyVisible(splash = getCstSplashElement()) {
+  if (!splash || splash.hidden) return false;
+
+  const style = getComputedStyle(splash);
+  return style.visibility === "visible"
+    && Number.parseFloat(style.opacity) >= 0.99;
+}
+
+function whenCstSplashVisible(callback) {
+  const splash = getCstSplashElement();
+  if (!splash) {
+    callback();
+    return;
+  }
+
+  if (
+    isCstSplashFullyVisible(splash)
+    || usesReducedMotion()
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    callback();
+    return;
+  }
+
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    splash.removeEventListener("transitionend", onTransitionEnd);
+    callback();
+  };
+
+  const onTransitionEnd = (event) => {
+    if (event.target !== splash || event.propertyName !== "opacity") return;
+    finish();
+  };
+
+  splash.addEventListener("transitionend", onTransitionEnd);
+
+  const pollVisibility = () => {
+    if (finished) return;
+    if (isCstSplashFullyVisible(splash)) {
+      finish();
+      return;
+    }
+    requestAnimationFrame(pollVisibility);
+  };
+
+  requestAnimationFrame(pollVisibility);
 }
 
 function isCstSplashOpen() {
@@ -672,6 +1289,11 @@ function syncCstSplashMapPanelForSplash(isSplashOpen) {
   }
 }
 
+function returnToCstSplash() {
+  showCstSplash({ animate: true });
+  updateClearFiltersButton();
+}
+
 function showCstSplash({ animate = false } = {}) {
   const splash = getCstSplashElement();
   if (!splash) return;
@@ -680,6 +1302,8 @@ function showCstSplash({ animate = false } = {}) {
   cancelCstTableEnterAnimation?.();
   card?.classList.remove("is-splash-hiding-workspace");
   syncCstSplashMapPanelForSplash(true);
+  resetCstFilterSectionsToDefault();
+  clearCstSavedSearchSession({ persist: false });
   setFilterPanelOpen(false);
   setCstSplashWorkspaceInert(true);
   card?.classList.add("is-splash-open");
@@ -700,8 +1324,10 @@ function revealCstSplashWorkspace() {
   scheduleCstTableEnterAnimation?.();
 }
 
-function dismissCstSplash() {
+function dismissCstSplash({ refresh = true } = {}) {
   const splash = getCstSplashElement();
+
+  resetCstFilterSectionsToDefault();
   card?.classList.remove("is-splash-open");
   card?.classList.add("is-splash-hiding-workspace");
   setCstSplashWorkspaceInert(false);
@@ -712,6 +1338,7 @@ function dismissCstSplash() {
 
   if (!splash || splash.hidden) {
     revealCstSplashWorkspace();
+    if (refresh) refreshFilteredViews();
     return;
   }
 
@@ -735,6 +1362,8 @@ function dismissCstSplash() {
       splash.hidden = true;
     }
   }, leaveDurationMs);
+
+  if (refresh) refreshFilteredViews();
 }
 
 function hideCstSplashImmediately() {
@@ -1059,7 +1688,8 @@ function bindCstSplashSearch() {
     syncSearchActions();
     closeSuggestions();
     setCstSplashSearchFeedback();
-    dismissCstSplash();
+    clearCstSavedSearchSession({ persist: false });
+    dismissCstSplash({ refresh: false });
     applyCstSplashQuery(item.filters);
   }
 
@@ -1090,7 +1720,8 @@ function bindCstSplashSearch() {
 
     closeSuggestions();
     setCstSplashSearchFeedback();
-    dismissCstSplash();
+    clearCstSavedSearchSession({ persist: false });
+    dismissCstSplash({ refresh: false });
     applyCstSplashQuery({ search: query });
   }
 
@@ -1254,9 +1885,7 @@ function bindCstSplashSavedTabs() {
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      tabs.forEach((other) => other.classList.toggle("is-active", other === tab));
-      cstSplashSavedActiveScope = tab.dataset.scope || "all";
-      renderCstSplashTiles();
+      setCstSplashSavedScope(tab.dataset.scope || "all");
     });
   });
 
@@ -1283,9 +1912,7 @@ function bindCstSplashSavedTabs() {
 }
 
 function bindCstSplashEntryPoints() {
-  // Clearing every filter has nothing left to show, so it returns to the
-  // splash the same way the territories prototype does.
-  clearAllFilters?.addEventListener("click", () => {
+  readerBackBtn?.addEventListener("click", () => {
     showCstSplash({ animate: true });
   });
 
@@ -1335,6 +1962,14 @@ function initCstSplash() {
   }
 
   renderCstSplashTiles();
+  if (shouldResetCstToSplashOnLoad()) {
+    clearCstUrlQueryParams();
+    clearCstSavedSearchSession({ persist: false });
+    showCstSplash({ animate: true });
+    return;
+  }
+
+  restoreCstSavedSearchSession();
 
   // A restored session already has a query applied, so skip the start screen.
   if (getAppliedFilterCount() > 0) {
@@ -1346,8 +1981,13 @@ function initCstSplash() {
 }
 
 window.cstSplash = {
+  deleteSavedView: deleteCstSavedView,
   dismiss: dismissCstSplash,
-  show: showCstSplash
+  revealDeletedSearch: revealDeletedCstSplashSavedSearch,
+  revealSavedSearch: revealNewCstSplashSavedSearch,
+  saveCurrentView: saveCurrentCstView,
+  show: showCstSplash,
+  updateSavedView: updateCstSavedView
 };
 
 initCstSplash();

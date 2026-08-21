@@ -55,7 +55,7 @@ let selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
 let selectedLocationSearches = [];
 let implicitViewportBounds = null;
 let filterLocationSearchControl = null;
-const savedTerritorySettings = readSavedTerritorySettings();
+const savedTerritorySettings = window.WefranchReload?.isHardReload ? null : readSavedTerritorySettings();
 
 function setTerritoryStatusFilters(statuses) {
   const statusSet = new Set(getSavedStringArray(statuses));
@@ -487,7 +487,7 @@ function ensureTerritoryMapStartedFromLocationFilter() {
     const wasCrossroadOpen = isTerritoryCrossroadOpen();
     window.dismissTerritoryCrossroad?.();
     if (wasCrossroadOpen) {
-      syncFilterSectionExpansion();
+      syncFilterSectionExpansion({ expandAppliedFilters: true });
     }
   }
 }
@@ -620,7 +620,7 @@ function returnToSplashAfterLocationCleared() {
 function syncAfterPrimaryFilterChange({ syncExpansion = false, keepLocationFilterActive = false } = {}) {
   if (hasPrimaryTerritoryFilters()) {
     if (syncExpansion) {
-      syncFilterSectionExpansion();
+      syncFilterSectionExpansion({ expandAppliedFilters: true });
     }
     refreshTerritoryFilters();
     return;
@@ -895,6 +895,16 @@ function restoreFilterSectionState(sectionSettings = {}) {
   if (!filterPanel) return;
 
   Array.from(filterPanel.querySelectorAll(".filter-section")).forEach((section, index) => {
+    const isRatingSection = section.id === "franchiseeRatingFilterSection"
+      || Boolean(section.querySelector(".territory-rating-radio"));
+    if (isRatingSection) {
+      const isCollapsed = !franchiseeRatingFilterIsActive();
+      section.classList.toggle("filter-section-collapsed", isCollapsed);
+      section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(!isCollapsed));
+      section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(!isCollapsed));
+      return;
+    }
+
     const savedCollapsed = sectionSettings[getFilterSectionStorageKey(section, index)];
     if (typeof savedCollapsed !== "boolean") return;
     section.classList.toggle("filter-section-collapsed", savedCollapsed);
@@ -1362,7 +1372,7 @@ function initTerritoryFilters() {
       const wasCrossroadOpen = isTerritoryCrossroadOpen();
       window.dismissTerritoryCrossroad?.();
       if (wasCrossroadOpen) {
-        syncFilterSectionExpansion();
+        syncFilterSectionExpansion({ expandAppliedFilters: true });
       }
     }
     window.territoryMapControls?.triggerTerritoryGeolocation?.();
@@ -1934,7 +1944,7 @@ function maybeStartTerritoryMapFromFilters() {
   const wasCrossroadOpen = isTerritoryCrossroadOpen();
   window.dismissTerritoryCrossroad?.();
   if (wasCrossroadOpen) {
-    syncFilterSectionExpansion();
+    syncFilterSectionExpansion({ expandAppliedFilters: true });
   }
 }
 
@@ -2186,27 +2196,15 @@ function ensureLocationFilterSectionExpanded() {
   section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", "true");
 }
 
-function syncFilterSectionExpansion() {
+function syncFilterSectionExpansion({ expandAppliedFilters = false } = {}) {
   const filterPanel = document.querySelector(".territory-filter-panel");
   if (!filterPanel) return;
 
-  // Splash / clear-all: only Location stays open, even when the default
-  // Territory status ("Available") is applied. Once a search starts and the
-  // map opens, expand every section that currently has filters applied.
-  const splashState = isTerritoryCrossroadOpen();
-  const hasAppliedFilters = getAppliedTerritoryFilterCount() > 0;
-
   filterPanel.querySelectorAll(".filter-section").forEach((section) => {
     const isLocationSection = Boolean(section.querySelector("#locationFilterSearchField"));
-    const isCurrentlyExpanded = !section.classList.contains("filter-section-collapsed");
-    const hasSectionFilters = filterSectionHasAppliedFilters(section);
-    const shouldExpand = splashState
-      ? isLocationSection
-      : hasSectionFilters
-        ? true
-        : hasAppliedFilters
-          ? isCurrentlyExpanded
-          : isLocationSection;
+    const isStatusSection = Boolean(section.querySelector(".territory-filter-checkbox"));
+    const shouldExpand = isLocationSection
+      || (expandAppliedFilters && !isStatusSection && filterSectionHasAppliedFilters(section));
 
     section.classList.toggle("filter-section-collapsed", !shouldExpand);
     section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(shouldExpand));
@@ -2257,7 +2255,7 @@ function applyCrossroadPresetSelections(preset = {}) {
   setFranchiseeRatingMin(preset.rating?.min);
 
   syncFilterComboboxes();
-  syncFilterSectionExpansion();
+  syncFilterSectionExpansion({ expandAppliedFilters: true });
 }
 
 function setTerritoryLocationFilter(stateCode) {

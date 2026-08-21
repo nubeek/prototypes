@@ -525,7 +525,14 @@ function syncOpenOrgPanelWithSelection() {
 }
 
 function initializeOwnerDetailsMap(ownerIndex) {
-  if (!window.mapboxgl || !HAS_MAPBOX_ACCESS_TOKEN) return;
+  if (!HAS_MAPBOX_ACCESS_TOKEN) return;
+
+  if (!window.mapboxgl) {
+    ensureCstMapboxGl?.()
+      .then(() => initializeOwnerDetailsMap(ownerIndex))
+      .catch((error) => console.warn("Unable to initialize the owner details map.", error));
+    return;
+  }
 
   const mapContainer = document.getElementById("ownerDetailsMap");
   if (!mapContainer) return;

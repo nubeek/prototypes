@@ -210,8 +210,34 @@ function shouldIgnoreInSafeScreenshot(element) {
   return Boolean(element.closest?.(".mapboxgl-map"));
 }
 
+const CST_HTML2CANVAS_SRC = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+let cstHtml2CanvasLoader = null;
+
+function ensureHtml2Canvas() {
+  if (typeof window.html2canvas === "function") return Promise.resolve(window.html2canvas);
+  if (cstHtml2CanvasLoader) return cstHtml2CanvasLoader;
+
+  cstHtml2CanvasLoader = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = CST_HTML2CANVAS_SRC;
+    script.async = true;
+    script.onload = () => resolve(window.html2canvas);
+    script.onerror = () => reject(new Error("Failed to load html2canvas."));
+    document.head.append(script);
+  });
+  return cstHtml2CanvasLoader;
+}
+
 async function takeViewportScreenshot() {
   if (screenshotInProgress) return;
+
+  try {
+    await ensureHtml2Canvas();
+  } catch (error) {
+    console.error("Take screenshot failed: html2canvas is unavailable.", error);
+    showScreenshotToast("Screenshot failed", true);
+    return;
+  }
 
   if (typeof window.html2canvas !== "function") {
     console.error("Take screenshot failed: html2canvas is unavailable.");
@@ -1328,8 +1354,43 @@ function rawRowMatchesFilters(row) {
   return row.franchises.some((franchiseName) => selectedFranchiseIndexes.includes(franchiseName));
 }
 
+let filteredOwnersCache = null;
+
+function getCstFilterResultCacheKey(ownerIndex = null) {
+  return [
+    ownerIndex,
+    searchQuery,
+    selectedLocationLabels.join("\u0001"),
+    excludedLocationLabels.join("\u0001"),
+    selectedLocationSearches.map((search) => search?.label || "").join("\u0001"),
+    excludedLocationSearches.map((search) => search?.label || "").join("\u0001"),
+    selectedCategoryValues.join("\u0001"),
+    excludedCategoryValues.join("\u0001"),
+    selectedOwnerIndexes.join("\u0001"),
+    excludedOwnerIndexes.join("\u0001"),
+    selectedFranchiseIndexes.join("\u0001"),
+    excludedFranchiseIndexes.join("\u0001"),
+    selectedUnitsMin,
+    selectedUnitsMax,
+    selectedContactsMin,
+    selectedContactsMax,
+    selectedNetWorthMin,
+    selectedNetWorthMax,
+    selectedFranchiseeRatingMin,
+    radiusFilterEnabled,
+    selectedRadiusMiles,
+    userLocationCenter?.lat,
+    userLocationCenter?.lng
+  ].join("\u0002");
+}
+
 function getFilteredOwners() {
-  return owners.filter((owner) => {
+  const cacheKey = getCstFilterResultCacheKey();
+  if (filteredOwnersCache?.key === cacheKey) {
+    return filteredOwnersCache.owners.slice();
+  }
+
+  const matchedOwners = owners.filter((owner) => {
     if (!ownerMatchesSearchQuery(owner)) return false;
     if (!ownerHasLocationLabel(owner)) return false;
     if (ownerExcludesLocationLabel(owner)) return false;
@@ -1341,6 +1402,8 @@ function getFilteredOwners() {
     if (!ownerMatchesRatingFilter(owner)) return false;
     return ownerMatchesOwnerFilter(owner);
   });
+  filteredOwnersCache = { key: cacheKey, owners: matchedOwners };
+  return matchedOwners.slice();
 }
 
 function compareOwnersByColumn(a, b, column) {
@@ -1420,6 +1483,45 @@ const TABLE_HEADING_SUMMARY_STATUS_SHORT_LABELS = {
   "multi-brand operator": "multi-brand",
   "multi-unit operator": "multi-unit"
 };
+const TABLE_HEADING_SUMMARY_FILTER_SECTIONS = {
+  status: "status",
+  category: "category",
+  location: "location",
+  franchise: "franchise",
+  owner: "owners",
+  units: "units",
+  contacts: "contacts",
+  netWorth: "net-worth",
+  rating: "rating"
+};
+
+function getTableHeadingSummaryFilterSection(conceptId) {
+  return TABLE_HEADING_SUMMARY_FILTER_SECTIONS[conceptId] || null;
+}
+
+function createTableHeadingSummaryHighlight(text, conceptId) {
+  if (!text) return null;
+  return {
+    text,
+    filterSection: getTableHeadingSummaryFilterSection(conceptId)
+  };
+}
+
+function normalizeTableHeadingSummaryHighlights(highlight) {
+  if (!highlight) return [];
+
+  const entries = Array.isArray(highlight) ? highlight : [highlight];
+  return entries.map((entry) => {
+    if (typeof entry === "string") {
+      return { text: entry, filterSection: null };
+    }
+
+    return {
+      text: entry.text,
+      filterSection: entry.filterSection ?? null
+    };
+  }).filter((entry) => entry.text);
+}
 
 function formatHeadingSummaryNameList(names) {
   if (names.length <= 1) return names[0] || "";
@@ -1443,21 +1545,80 @@ function getHeadingSummarySelectLabels(select, values) {
   return labels.length ? labels : values.map((value) => String(value));
 }
 
-function buildHeadingSummaryNamedOrCountedPhrase(names, { named, counted }) {
-  if (names.length >= TABLE_HEADING_SUMMARY_NAMED_LIMIT + 1) {
-    return counted(names.length);
+function escapeTableHeadingSummaryHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
+
+function wrapTableHeadingSummaryValue(value, filterSection) {
+  const safeValue = escapeTableHeadingSummaryHtml(value);
+  if (!filterSection) {
+    return `<span class="table-heading-summary__value">${safeValue}</span>`;
   }
 
-  return named(formatHeadingSummaryNameList(names));
+  const safeSection = escapeTableHeadingSummaryHtml(filterSection);
+  return `<button class="table-heading-summary__value" type="button" data-filter-section="${safeSection}">${safeValue}</button>`;
+}
+
+function renderTableHeadingSummaryPhrase(phrase, highlight) {
+  const safePhrase = escapeTableHeadingSummaryHtml(phrase);
+  if (!phrase || !highlight) return safePhrase;
+
+  const highlights = normalizeTableHeadingSummaryHighlights(highlight);
+  let html = "";
+  let remaining = phrase;
+
+  highlights.forEach(({ text, filterSection }) => {
+    if (!text) return;
+
+    const index = remaining.indexOf(text);
+    if (index === -1) return;
+
+    html += escapeTableHeadingSummaryHtml(remaining.slice(0, index));
+    html += wrapTableHeadingSummaryValue(text, filterSection);
+    remaining = remaining.slice(index + text.length);
+  });
+
+  html += escapeTableHeadingSummaryHtml(remaining);
+  return html;
+}
+
+function buildHeadingSummaryNamedOrCountedPhrase(names, { named, counted }) {
+  if (names.length >= TABLE_HEADING_SUMMARY_NAMED_LIMIT + 1) {
+    const phrase = counted(names.length);
+    return {
+      phrase,
+      highlight: phrase.replace(/^(from|for|across|in|near|excluding)\s+/, "")
+    };
+  }
+
+  const list = formatHeadingSummaryNameList(names);
+  return {
+    phrase: named(list),
+    highlight: list
+  };
 }
 
 function buildHeadingSummaryExclusionPhrase(names, countedNoun) {
-  if (!names.length) return "";
+  if (!names.length) return { phrase: "", highlight: "" };
   if (names.length >= TABLE_HEADING_SUMMARY_NAMED_LIMIT + 1) {
-    return `excluding ${names.length} ${countedNoun}`;
+    const highlight = `${names.length} ${countedNoun}`;
+    return {
+      phrase: `excluding ${highlight}`,
+      highlight
+    };
   }
 
-  return `excluding ${formatHeadingSummaryNameList(names)}`;
+  const list = formatHeadingSummaryNameList(names);
+  return {
+    phrase: `excluding ${list}`,
+    highlight: list
+  };
 }
 
 function formatHeadingSummaryCompactCurrency(value) {
@@ -1522,10 +1683,24 @@ function getHeadingSummaryIncludedLocations() {
   const locations = [...selectedLocationSearches, ...labelOnlyLocations];
 
   if (userLocationCenter) {
-    locations.push({
-      label: userLocationCenter.label || "My location",
-      geoLevel: "address"
+    const userLabel = userLocationCenter.label || "My location";
+    const alreadyRepresented = locations.some((location) => {
+      const locationLabel = String(location?.label || "");
+      const coordinates = location?.coordinates;
+      const sameLabel = locationLabel.toLocaleLowerCase() === userLabel.toLocaleLowerCase();
+      const sameCoordinates = Number.isFinite(Number(coordinates?.latitude))
+        && Number.isFinite(Number(coordinates?.longitude))
+        && Number(coordinates.latitude).toFixed(5) === Number(userLocationCenter.lat).toFixed(5)
+        && Number(coordinates.longitude).toFixed(5) === Number(userLocationCenter.lng).toFixed(5);
+      return sameLabel || sameCoordinates;
     });
+
+    if (!alreadyRepresented) {
+      locations.push({
+        label: userLabel,
+        geoLevel: "address"
+      });
+    }
   }
 
   return locations;
@@ -1543,7 +1718,8 @@ function buildHeadingSummaryStatusConcept() {
     .filter(Boolean);
 
   if (!labels.length) return null;
-  return { id: "status", modifier: formatHeadingSummaryNameList(labels) };
+  const modifier = formatHeadingSummaryNameList(labels);
+  return { id: "status", modifier, modifierHighlight: modifier };
 }
 
 function buildHeadingSummaryCategoryConcept() {
@@ -1552,14 +1728,17 @@ function buildHeadingSummaryCategoryConcept() {
 
   if (included.length) {
     if (included.length >= TABLE_HEADING_SUMMARY_NAMED_LIMIT + 1) {
-      return { id: "category", phrase: `across ${included.length} categories` };
+      const phrase = `across ${included.length} categories`;
+      return { id: "category", phrase, highlight: `${included.length} categories` };
     }
 
-    return { id: "category", modifier: formatHeadingSummaryNameList(included) };
+    const modifier = formatHeadingSummaryNameList(included);
+    return { id: "category", modifier, modifierHighlight: modifier };
   }
 
   if (!excluded.length) return null;
-  return { id: "category", phrase: buildHeadingSummaryExclusionPhrase(excluded, "categories") };
+  const { phrase, highlight } = buildHeadingSummaryExclusionPhrase(excluded, "categories");
+  return { id: "category", phrase, highlight };
 }
 
 function buildHeadingSummaryLocationConcept() {
@@ -1573,25 +1752,34 @@ function buildHeadingSummaryLocationConcept() {
   const radiusEnabled = Boolean(radiusFilterEnabled) && Number.isFinite(selectedRadiusMiles);
 
   if (includedLabels.length) {
-    return {
-      id: "location",
-      phrase: buildHeadingSummaryNamedOrCountedPhrase(includedLabels, {
-        named: (list) => {
-          if (radiusEnabled) return `within ${selectedRadiusMiles} miles of ${list}`;
-          if (included.every(isHeadingSummaryStateLocation)) return `in ${list}`;
-          return `near ${list}`;
-        },
-        counted: (count) => `across ${count} locations`
-      })
-    };
+    const { phrase, highlight } = buildHeadingSummaryNamedOrCountedPhrase(includedLabels, {
+      named: (list) => {
+        if (radiusEnabled) return `within ${selectedRadiusMiles} miles of ${list}`;
+        if (included.every(isHeadingSummaryStateLocation)) return `in ${list}`;
+        return `near ${list}`;
+      },
+      counted: (count) => `across ${count} locations`
+    });
+
+    if (radiusEnabled && includedLabels.length <= TABLE_HEADING_SUMMARY_NAMED_LIMIT) {
+      return {
+        id: "location",
+        phrase,
+        highlight: `${selectedRadiusMiles} miles of ${highlight}`
+      };
+    }
+
+    return { id: "location", phrase, highlight };
   }
 
   if (radiusEnabled && userLocationCenter) {
-    return { id: "location", phrase: `within ${selectedRadiusMiles} miles of my location` };
+    const highlight = `${selectedRadiusMiles} miles of my location`;
+    return { id: "location", phrase: `within ${highlight}`, highlight };
   }
 
   if (!excludedLabels.length) return null;
-  return { id: "location", phrase: buildHeadingSummaryExclusionPhrase(excludedLabels, "locations") };
+  const { phrase, highlight } = buildHeadingSummaryExclusionPhrase(excludedLabels, "locations");
+  return { id: "location", phrase, highlight };
 }
 
 function buildHeadingSummaryFranchiseConcept() {
@@ -1599,17 +1787,16 @@ function buildHeadingSummaryFranchiseConcept() {
   const excluded = getHeadingSummarySelectLabels(franchiseFilterSelect, excludedFranchiseIndexes);
 
   if (included.length) {
-    return {
-      id: "franchise",
-      phrase: buildHeadingSummaryNamedOrCountedPhrase(included, {
-        named: (list) => `from ${list}`,
-        counted: (count) => `from ${count} brands`
-      })
-    };
+    const { phrase, highlight } = buildHeadingSummaryNamedOrCountedPhrase(included, {
+      named: (list) => `from ${list}`,
+      counted: (count) => `from ${count} brands`
+    });
+    return { id: "franchise", phrase, highlight };
   }
 
   if (!excluded.length) return null;
-  return { id: "franchise", phrase: buildHeadingSummaryExclusionPhrase(excluded, "brands") };
+  const { phrase, highlight } = buildHeadingSummaryExclusionPhrase(excluded, "brands");
+  return { id: "franchise", phrase, highlight };
 }
 
 function buildHeadingSummaryOwnerConcept() {
@@ -1617,17 +1804,16 @@ function buildHeadingSummaryOwnerConcept() {
   const excluded = getHeadingSummarySelectLabels(ownerFilterSelect, excludedOwnerIndexes);
 
   if (included.length) {
-    return {
-      id: "owner",
-      phrase: buildHeadingSummaryNamedOrCountedPhrase(included, {
-        named: (list) => `for ${list}`,
-        counted: (count) => `for ${count} operators`
-      })
-    };
+    const { phrase, highlight } = buildHeadingSummaryNamedOrCountedPhrase(included, {
+      named: (list) => `for ${list}`,
+      counted: (count) => `for ${count} operators`
+    });
+    return { id: "owner", phrase, highlight };
   }
 
   if (!excluded.length) return null;
-  return { id: "owner", phrase: buildHeadingSummaryExclusionPhrase(excluded, "operators") };
+  const { phrase, highlight } = buildHeadingSummaryExclusionPhrase(excluded, "operators");
+  return { id: "owner", phrase, highlight };
 }
 
 function buildHeadingSummaryUnitsConcept() {
@@ -1648,72 +1834,73 @@ function buildHeadingSummaryUnitsConcept() {
   if (!phrase) return null;
 
   if (selectedUnitsMin !== unitsFilterDefaults.min && selectedUnitsMax === unitsFilterDefaults.max) {
-    return { id: "units", phrase: `with ${formatTableHeadingCount(selectedUnitsMin)}+ units` };
+    const highlight = `${formatTableHeadingCount(selectedUnitsMin)}+ units`;
+    return { id: "units", phrase: `with ${highlight}`, highlight };
   }
   if (selectedUnitsMin !== unitsFilterDefaults.min && selectedUnitsMax !== unitsFilterDefaults.max) {
     if (selectedUnitsMin === selectedUnitsMax) {
-      return { id: "units", phrase: `with ${formatTableHeadingCount(selectedUnitsMin)} units` };
+      const highlight = `${formatTableHeadingCount(selectedUnitsMin)} units`;
+      return { id: "units", phrase: `with ${highlight}`, highlight };
     }
-    return {
-      id: "units",
-      phrase: `with ${formatTableHeadingCount(selectedUnitsMin)} to ${formatTableHeadingCount(selectedUnitsMax)} units`
-    };
+    const highlight = `${formatTableHeadingCount(selectedUnitsMin)} to ${formatTableHeadingCount(selectedUnitsMax)} units`;
+    return { id: "units", phrase: `with ${highlight}`, highlight };
   }
 
-  return { id: "units", phrase: `${phrase} units` };
+  const highlight = `${phrase.replace(/^with\s+/, "")} units`;
+  return { id: "units", phrase: `${phrase} units`, highlight };
 }
 
 function buildHeadingSummaryContactsConcept() {
   if (!contactsFilterIsActive()) return null;
 
   if (selectedContactsMin !== contactsFilterDefaults.min && selectedContactsMax === contactsFilterDefaults.max) {
-    return { id: "contacts", phrase: `with ${formatTableHeadingCount(selectedContactsMin)}+ contacts` };
+    const highlight = `${formatTableHeadingCount(selectedContactsMin)}+ contacts`;
+    return { id: "contacts", phrase: `with ${highlight}`, highlight };
   }
   if (selectedContactsMin !== contactsFilterDefaults.min && selectedContactsMax !== contactsFilterDefaults.max) {
     if (selectedContactsMin === selectedContactsMax) {
-      return { id: "contacts", phrase: `with ${formatTableHeadingCount(selectedContactsMin)} contacts` };
+      const highlight = `${formatTableHeadingCount(selectedContactsMin)} contacts`;
+      return { id: "contacts", phrase: `with ${highlight}`, highlight };
     }
-    return {
-      id: "contacts",
-      phrase: `with ${formatTableHeadingCount(selectedContactsMin)} to ${formatTableHeadingCount(selectedContactsMax)} contacts`
-    };
+    const highlight = `${formatTableHeadingCount(selectedContactsMin)} to ${formatTableHeadingCount(selectedContactsMax)} contacts`;
+    return { id: "contacts", phrase: `with ${highlight}`, highlight };
   }
 
-  return { id: "contacts", phrase: `with up to ${formatTableHeadingCount(selectedContactsMax)} contacts` };
+  const highlight = `${formatTableHeadingCount(selectedContactsMax)} contacts`;
+  return { id: "contacts", phrase: `with up to ${highlight}`, highlight };
 }
 
 function buildHeadingSummaryNetWorthConcept() {
   if (!netWorthFilterIsActive()) return null;
 
   if (selectedNetWorthMin !== netWorthFilterDefaults.min && selectedNetWorthMax === netWorthFilterDefaults.max) {
-    return { id: "netWorth", phrase: `with ${formatHeadingSummaryCompactCurrency(selectedNetWorthMin)}+ net worth` };
+    const highlight = `${formatHeadingSummaryCompactCurrency(selectedNetWorthMin)}+ net worth`;
+    return { id: "netWorth", phrase: `with ${highlight}`, highlight };
   }
   if (selectedNetWorthMin !== netWorthFilterDefaults.min && selectedNetWorthMax !== netWorthFilterDefaults.max) {
     if (selectedNetWorthMin === selectedNetWorthMax) {
-      return { id: "netWorth", phrase: `with ${formatHeadingSummaryCompactCurrency(selectedNetWorthMin)} net worth` };
+      const highlight = `${formatHeadingSummaryCompactCurrency(selectedNetWorthMin)} net worth`;
+      return { id: "netWorth", phrase: `with ${highlight}`, highlight };
     }
-    return {
-      id: "netWorth",
-      phrase: `with net worth between ${formatHeadingSummaryCompactCurrency(selectedNetWorthMin)} and ${formatHeadingSummaryCompactCurrency(selectedNetWorthMax)}`
-    };
+    const highlight = `net worth between ${formatHeadingSummaryCompactCurrency(selectedNetWorthMin)} and ${formatHeadingSummaryCompactCurrency(selectedNetWorthMax)}`;
+    return { id: "netWorth", phrase: `with ${highlight}`, highlight };
   }
 
-  return {
-    id: "netWorth",
-    phrase: `with net worth under ${formatHeadingSummaryCompactCurrency(selectedNetWorthMax)}`
-  };
+  const highlight = `net worth under ${formatHeadingSummaryCompactCurrency(selectedNetWorthMax)}`;
+  return { id: "netWorth", phrase: `with ${highlight}`, highlight };
 }
 
 function buildHeadingSummaryRatingConcept() {
   if (!franchiseeRatingFilterIsActive()) return null;
   const min = getFranchiseeRatingMin();
-  return { id: "rating", phrase: `rated ${min.toFixed(1)}+` };
+  const highlight = `${min.toFixed(1)}+`;
+  return { id: "rating", phrase: `rated ${highlight}`, highlight };
 }
 
 function buildHeadingSummarySearchConcept() {
   const query = toolbarSearchInput?.value.trim() || searchQuery;
   if (!query) return null;
-  return { id: "search", phrase: `matching “${query}”` };
+  return { id: "search", phrase: `matching “${query}”`, highlight: query };
 }
 
 function collectTableHeadingSummaryConcepts() {
@@ -1735,29 +1922,60 @@ function collectTableHeadingSummaryConcepts() {
     .filter(Boolean);
 }
 
-function joinHeadingSummaryPhrases(phrases) {
+function joinHeadingSummaryPhrases(entries) {
   const combined = [];
 
-  phrases.forEach((phrase) => {
+  entries.forEach((entry) => {
+    const phrase = entry?.phrase || "";
+    if (!phrase) return;
+
     const withMatch = /^with (.+)$/.exec(phrase);
     const last = combined[combined.length - 1];
-    const lastWith = last ? /^with (.+)$/.exec(last) : null;
+    const lastWith = last ? /^with (.+)$/.exec(last.phrase) : null;
+    const entryHighlights = entry.highlight
+      ? [createTableHeadingSummaryHighlight(entry.highlight, entry.id)].filter(Boolean)
+      : [];
+
     if (withMatch && lastWith) {
-      combined[combined.length - 1] = `with ${lastWith[1]} and ${withMatch[1]}`;
+      combined[combined.length - 1] = {
+        phrase: `with ${lastWith[1]} and ${withMatch[1]}`,
+        highlights: [
+          ...(last.highlights?.length
+            ? last.highlights
+            : [createTableHeadingSummaryHighlight(lastWith[1], last.id)].filter(Boolean)),
+          ...(entryHighlights.length
+            ? entryHighlights
+            : [createTableHeadingSummaryHighlight(withMatch[1], entry.id)].filter(Boolean))
+        ]
+      };
       return;
     }
 
     const acrossMatch = /^across (.+)$/.exec(phrase);
-    const lastAcross = last ? /^across (.+)$/.exec(last) : null;
+    const lastAcross = last ? /^across (.+)$/.exec(last.phrase) : null;
     if (acrossMatch && lastAcross) {
-      combined[combined.length - 1] = `across ${lastAcross[1]} and ${acrossMatch[1]}`;
+      combined[combined.length - 1] = {
+        phrase: `across ${lastAcross[1]} and ${acrossMatch[1]}`,
+        highlights: [
+          ...(last.highlights?.length
+            ? last.highlights
+            : [createTableHeadingSummaryHighlight(lastAcross[1], last.id)].filter(Boolean)),
+          ...(entryHighlights.length
+            ? entryHighlights
+            : [createTableHeadingSummaryHighlight(acrossMatch[1], entry.id)].filter(Boolean))
+        ]
+      };
       return;
     }
 
-    combined.push(phrase);
+    combined.push({
+      id: entry.id,
+      phrase,
+      highlights: entryHighlights
+    });
   });
 
-  return combined.join(" ");
+  return combined;
 }
 
 function formatTableHeadingSummary(count, singular, plural) {
@@ -1765,54 +1983,88 @@ function formatTableHeadingSummary(count, singular, plural) {
   const visible = concepts.slice(0, TABLE_HEADING_SUMMARY_MAX_CONCEPTS);
   const overflowCount = concepts.length - visible.length;
   const byId = Object.fromEntries(visible.map((concept) => [concept.id, concept]));
-  const modifiers = [byId.status?.modifier, byId.category?.modifier].filter(Boolean);
-  const phrases = [
-    byId.location?.phrase,
-    byId.franchise?.phrase,
-    byId.owner?.phrase,
-    byId.units?.phrase,
-    byId.contacts?.phrase,
-    byId.netWorth?.phrase,
-    byId.rating?.phrase,
-    byId.search?.phrase,
-    byId.category?.phrase
+  const modifiers = [byId.status, byId.category]
+    .filter((concept) => concept?.modifier)
+    .map((concept) => ({
+      text: concept.modifier,
+      highlight: createTableHeadingSummaryHighlight(
+        concept.modifierHighlight || concept.modifier,
+        concept.id
+      )
+    }));
+  const phraseEntries = [
+    byId.location,
+    byId.franchise,
+    byId.owner,
+    byId.units,
+    byId.contacts,
+    byId.netWorth,
+    byId.rating,
+    byId.search,
+    byId.category?.phrase ? byId.category : null
   ].filter(Boolean);
+  const joinedPhrases = joinHeadingSummaryPhrases(phraseEntries);
 
-  let sentence = `Showing ${formatTableHeadingCount(count)}`;
-  if (modifiers.length) sentence += ` ${modifiers.join(" ")}`;
-  sentence += ` ${pluralizeTableHeadingCount(count, singular, plural)}`;
-  if (phrases.length) sentence += ` ${joinHeadingSummaryPhrases(phrases)}`;
-  if (overflowCount > 0) {
-    sentence += ` with ${overflowCount} more filter${overflowCount === 1 ? "" : "s"} applied`;
+  const countLabel = formatTableHeadingCount(count);
+  const entityLabel = pluralizeTableHeadingCount(count, singular, plural);
+  let html = "Showing ";
+
+  if (!modifiers.length) {
+    html += `${escapeTableHeadingSummaryHtml(countLabel)} ${escapeTableHeadingSummaryHtml(entityLabel)}`;
+  } else {
+    html += escapeTableHeadingSummaryHtml(countLabel);
+    modifiers.forEach((modifier) => {
+      html += ` ${renderTableHeadingSummaryPhrase(modifier.text, modifier.highlight)}`;
+    });
+    html += ` ${escapeTableHeadingSummaryHtml(entityLabel)}`;
   }
 
-  return `${sentence}.`;
+  if (joinedPhrases.length) {
+    html += ` ${joinedPhrases.map((entry) => renderTableHeadingSummaryPhrase(entry.phrase, entry.highlights)).join(" ")}`;
+  }
+
+  if (overflowCount > 0) {
+    html += ` with ${escapeTableHeadingSummaryHtml(`${overflowCount} more filter${overflowCount === 1 ? "" : "s"} applied`)}`;
+  }
+
+  return `${html}.`;
 }
 
 function getTableHeadingCopy(tableView = currentTableView) {
+  let copy;
+
   if (tableView === "owners") {
-    return {
+    copy = {
       title: "Operators",
       summary: formatTableHeadingSummary(displayedOwners.length, "operator", "operators")
     };
+  } else {
+    const headingByView = {
+      userProfiles: { title: "Franchisees", singular: "franchisee", plural: "franchisees" },
+      locations: { title: "Locations", singular: "location", plural: "locations" },
+      searchers: { title: "Searchers", singular: "searcher", plural: "searchers" },
+      athletes: { title: "Athletes", singular: "athlete", plural: "athletes" }
+    };
+    const heading = headingByView[tableView] || {
+      title: TABLE_VIEW_OPTIONS[tableView]?.label || "Results",
+      singular: "record",
+      plural: "records"
+    };
+
+    copy = {
+      title: heading.title,
+      summary: formatTableHeadingSummary(displayedLocations.length, heading.singular, heading.plural)
+    };
   }
 
-  const headingByView = {
-    userProfiles: { title: "Franchisees", singular: "franchisee", plural: "franchisees" },
-    locations: { title: "Locations", singular: "location", plural: "locations" },
-    searchers: { title: "Searchers", singular: "searcher", plural: "searchers" },
-    athletes: { title: "Athletes", singular: "athlete", plural: "athletes" }
-  };
-  const heading = headingByView[tableView] || {
-    title: TABLE_VIEW_OPTIONS[tableView]?.label || "Results",
-    singular: "record",
-    plural: "records"
-  };
+  // Reader mode shows the saved search's name instead of the dataset name —
+  // people opening a saved search care what it's called, not which table
+  // view it happens to render.
+  if (readerModeActive && readerModeSavedSearchTitle) {
+    copy.title = readerModeSavedSearchTitle;
+  }
 
-  return {
-    title: heading.title,
-    summary: formatTableHeadingSummary(displayedLocations.length, heading.singular, heading.plural)
-  };
+  return copy;
 }
 
 function updateTableHeading() {
@@ -1823,7 +2075,7 @@ function updateTableHeading() {
   }
 
   if (tableHeadingSummary) {
-    tableHeadingSummary.textContent = summary;
+    tableHeadingSummary.innerHTML = summary;
   }
 }
 

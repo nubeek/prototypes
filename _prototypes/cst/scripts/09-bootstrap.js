@@ -455,6 +455,30 @@ if (filterToggle && card) {
   });
 }
 
+if (readerEditQueryBtn) {
+  readerEditQueryBtn.addEventListener("click", () => {
+    exitReaderMode();
+  });
+}
+
+if (tableHeadingSummary) {
+  tableHeadingSummary.addEventListener("click", (event) => {
+    const filterTrigger = event.target.closest(".table-heading-summary__value[data-filter-section]");
+    if (!filterTrigger) return;
+
+    const sectionKey = filterTrigger.dataset.filterSection;
+    if (!sectionKey) return;
+
+    if (readerModeActive) {
+      exitReaderMode({ expandSection: sectionKey });
+      return;
+    }
+
+    setFilterPanelOpen(true);
+    expandCstFilterSectionOnly?.(sectionKey);
+  });
+}
+
 if (toolbarSearchInput) {
   const searchField = toolbarSearchInput.closest(".toolbar-search-btn");
   toolbarSearchInput.addEventListener("input", () => {
@@ -680,6 +704,7 @@ if (resetViewOption) {
 
 const CREATE_TARGET_MODAL_CLOSE_DURATION_MS = 320;
 let createTargetModalCloseTimeoutId = null;
+let editingSavedSearchId = null;
 
 function finalizeCreateTargetModalClose() {
   if (!createTargetModal) return;
@@ -688,6 +713,7 @@ function finalizeCreateTargetModalClose() {
   createTargetModal.hidden = true;
   createTargetForm?.reset();
   createTargetModalCloseTimeoutId = null;
+  editingSavedSearchId = null;
 
   if (lastCreateTargetTrigger instanceof HTMLElement) {
     lastCreateTargetTrigger.focus({ preventScroll: true });
@@ -695,7 +721,7 @@ function finalizeCreateTargetModalClose() {
   lastCreateTargetTrigger = null;
 }
 
-function openCreateTargetModal(trigger = null) {
+function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
   if (!createTargetModal) return;
 
   if (createTargetModalCloseTimeoutId) {
@@ -704,7 +730,30 @@ function openCreateTargetModal(trigger = null) {
   }
 
   lastCreateTargetTrigger = trigger;
+  editingSavedSearchId = savedSearch?.id || null;
   createTargetForm?.reset();
+  createTargetTitleInput?.setCustomValidity("");
+  if (createTargetModalTitle) {
+    createTargetModalTitle.textContent = editingSavedSearchId ? "Edit view" : "Save view";
+  }
+  if (deleteSavedViewBtn) {
+    deleteSavedViewBtn.hidden = !editingSavedSearchId;
+  }
+  createTargetModal.querySelector(".target-modal-close")?.setAttribute(
+    "aria-label",
+    editingSavedSearchId ? "Close edit view" : "Close save view"
+  );
+
+  if (savedSearch) {
+    if (createTargetTitleInput) createTargetTitleInput.value = savedSearch.title || "";
+    if (createTargetDescriptionInput) {
+      createTargetDescriptionInput.value = savedSearch.description || "";
+    }
+    if (createTargetVisibilitySelect) {
+      createTargetVisibilitySelect.value = savedSearch.scope || "private";
+    }
+  }
+
   createTargetModal.classList.remove("is-closing");
   createTargetModal.hidden = false;
   createTargetModal.classList.remove("is-open");
@@ -734,9 +783,17 @@ function closeCreateTargetModal() {
 if (createTargetOption) {
   createTargetOption.addEventListener("click", (event) => {
     event.preventDefault();
-    closeToolbarSubmenus();
-    closeToolbarDropdowns();
     openCreateTargetModal(createTargetOption);
+  });
+}
+
+if (readerViewSettingsBtn) {
+  readerViewSettingsBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    const savedSearch = getSavedSearchById(activeSavedSearchId);
+    if (!savedSearch) return;
+
+    openCreateTargetModal(readerViewSettingsBtn, { savedSearch });
   });
 }
 
@@ -754,9 +811,61 @@ if (createTargetModal) {
 if (createTargetForm) {
   createTargetForm.addEventListener("submit", (event) => {
     event.preventDefault();
+
+    const formData = new FormData(createTargetForm);
+    const title = String(formData.get("title") || "").trim();
+    createTargetTitleInput?.setCustomValidity(title ? "" : "Enter a title.");
+    if (!createTargetForm.reportValidity()) return;
+
+    const viewDetails = {
+      title,
+      description: String(formData.get("description") || "").trim(),
+      visibility: String(formData.get("visibility") || "private")
+    };
+    const savedSearch = editingSavedSearchId
+      ? window.cstSplash?.updateSavedView?.(editingSavedSearchId, viewDetails)
+      : window.cstSplash?.saveCurrentView?.(viewDetails);
+    if (!savedSearch) {
+      createTargetTitleInput?.setCustomValidity("This view could not be saved. Please try again.");
+      createTargetForm.reportValidity();
+      return;
+    }
+
+    const wasEditing = Boolean(editingSavedSearchId);
     closeCreateTargetModal();
+    if (wasEditing) {
+      setReaderMode(true, {
+        title: savedSearch.title,
+        savedSearchId: savedSearch.id
+      });
+      return;
+    }
+
+    window.setTimeout(() => {
+      window.cstSplash?.revealSavedSearch?.(savedSearch);
+    }, CREATE_TARGET_MODAL_CLOSE_DURATION_MS);
   });
 }
+
+deleteSavedViewBtn?.addEventListener("click", () => {
+  if (!editingSavedSearchId) return;
+
+  const deletedSearch = window.cstSplash?.deleteSavedView?.(editingSavedSearchId);
+  if (!deletedSearch) {
+    createTargetTitleInput?.setCustomValidity("This view could not be deleted. Please try again.");
+    createTargetForm?.reportValidity();
+    return;
+  }
+
+  closeCreateTargetModal();
+  window.setTimeout(() => {
+    window.cstSplash?.revealDeletedSearch?.(deletedSearch);
+  }, CREATE_TARGET_MODAL_CLOSE_DURATION_MS);
+});
+
+createTargetTitleInput?.addEventListener("input", () => {
+  createTargetTitleInput.setCustomValidity("");
+});
 
 function setToolbarSubmenuOpen(submenu, trigger, isOpen) {
   if (!submenu || !trigger) return;

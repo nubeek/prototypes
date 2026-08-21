@@ -63,6 +63,7 @@ async function captureSnapshots() {
     }
 
     const map = tile.locator(".target-map");
+    await map.scrollIntoViewIfNeeded();
     const box = await map.boundingBox();
     if (!box || box.width < SNAPSHOT_WIDTH - 2 || box.height < SNAPSHOT_HEIGHT - 2) {
       throw new Error(`Splash tile "${id}" map is ${box?.width}x${box?.height}, expected ${SNAPSHOT_WIDTH}x${SNAPSHOT_HEIGHT}.`);

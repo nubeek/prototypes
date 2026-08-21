@@ -510,6 +510,7 @@
   cursor: pointer;
   background: rgba(122, 99, 221, 0.22);
   color: var(--color-brand);
+  font: inherit;
   line-height: 0;
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
@@ -535,6 +536,7 @@
   background: #ffffff;
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
   color: #17171c;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.25;

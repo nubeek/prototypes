@@ -1,4 +1,4 @@
-const savedViewSettings = readSavedViewSettings();
+const savedViewSettings = window.WefranchReload?.isHardReload ? null : readSavedViewSettings();
 function readSavedViewSettings() {
   try {
     const savedValue = window.localStorage?.getItem(VIEW_SETTINGS_STORAGE_KEY);
@@ -55,6 +55,8 @@ function getCurrentViewSettings() {
     panelMode: lockedToolbarMode,
     panelLayout: currentPanelLayout,
     reduceMotionEnabled,
+    savedSearchId: activeSavedSearchId,
+    readerMode: readerModeActive,
     filters: {
       open: Boolean(card?.classList.contains("is-filter-open")),
       sections: getFilterSectionSettings(),
@@ -97,7 +99,11 @@ function getCurrentViewSettings() {
         miles: selectedRadiusMiles
       },
       userLocation: userLocationCenter
-        ? { lat: userLocationCenter.lat, lng: userLocationCenter.lng }
+        ? {
+            lat: userLocationCenter.lat,
+            lng: userLocationCenter.lng,
+            label: userLocationCenter.label || "My location"
+          }
         : null
     }
   };
@@ -144,7 +150,10 @@ function restoreFilterSectionState(sectionSettings = {}) {
   Array.from(filterPanel.querySelectorAll(".filter-section")).forEach((section, index) => {
     const savedCollapsed = sectionSettings[getFilterSectionStorageKey(section, index)];
     const fallbackCollapsed = defaultFilterSectionStates[index] ?? section.classList.contains("filter-section-collapsed");
-    const isCollapsed = typeof savedCollapsed === "boolean" ? savedCollapsed : fallbackCollapsed;
+    let isCollapsed = typeof savedCollapsed === "boolean" ? savedCollapsed : fallbackCollapsed;
+    if (section.id === "franchiseeRatingFilterSection") {
+      isCollapsed = !franchiseeRatingFilterIsActive();
+    }
     section.classList.toggle("filter-section-collapsed", isCollapsed);
     section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(!isCollapsed));
     section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(!isCollapsed));
@@ -204,7 +213,7 @@ function restoreSavedFilterSelections(settings) {
     ? {
         lat: Number(savedUserLocation.lat),
         lng: Number(savedUserLocation.lng),
-        label: "My location"
+        label: String(savedUserLocation.label || "").trim() || "My location"
       }
     : null;
   radiusFilterEnabled = Boolean(filters.radius?.enabled);
@@ -236,6 +245,119 @@ function setFilterPanelOpen(isOpen) {
   }
 }
 
+function getSavedSearchById(searchId) {
+  if (!searchId) return null;
+
+  const searches = Array.isArray(window.cstSavedSearchesData) ? window.cstSavedSearchesData : [];
+  return searches.find((entry) => entry.id === searchId) || null;
+}
+
+function clearCstUrlQueryParams() {
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("search");
+    url.searchParams.delete("mode");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  } catch (error) {
+    console.warn("Unable to clear saved search URL.", error);
+  }
+}
+
+function shouldResetCstToSplashOnLoad() {
+  return Boolean(window.WefranchReload?.isHardReload);
+}
+
+function getCstSavedSearchUrlState() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const searchId = params.get("search");
+    if (!searchId) return null;
+
+    return {
+      searchId,
+      mode: params.get("mode") === "edit" ? "edit" : "read"
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function syncCstSavedSearchUrl({ searchId = activeSavedSearchId, mode = readerModeActive ? "read" : "edit" } = {}) {
+  try {
+    const url = new URL(window.location.href);
+
+    if (searchId) {
+      url.searchParams.set("search", searchId);
+      url.searchParams.set("mode", mode);
+    } else {
+      url.searchParams.delete("search");
+      url.searchParams.delete("mode");
+    }
+
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  } catch (error) {
+    console.warn("Unable to sync saved search URL.", error);
+  }
+}
+
+function clearCstSavedSearchSession({ persist = true } = {}) {
+  activeSavedSearchId = null;
+  readerModeSavedSearchTitle = null;
+  syncCstSavedSearchUrl({ searchId: null });
+
+  if (readerModeActive) {
+    setReaderMode(false, { persist: false });
+  }
+
+  if (persist) {
+    persistViewSettings();
+  }
+}
+
+function persistSavedSearchSession() {
+  syncCstSavedSearchUrl();
+  persistViewSettings();
+}
+
+function setReaderMode(isActive, { title = null, savedSearchId = undefined, persist = true } = {}) {
+  if (!card) return;
+
+  if (savedSearchId !== undefined) {
+    activeSavedSearchId = savedSearchId || null;
+  }
+
+  readerModeActive = Boolean(isActive);
+  readerModeSavedSearchTitle = readerModeActive ? (title || getSavedSearchById(activeSavedSearchId)?.title || null) : null;
+  card.classList.toggle("is-reader-mode", readerModeActive);
+
+  if (readerModeActive) {
+    setFilterPanelOpen(false);
+  }
+  if (filterPanel) {
+    filterPanel.inert = readerModeActive;
+  }
+
+  updateTableHeading();
+
+  if (persist) {
+    persistSavedSearchSession();
+  }
+}
+
+function exitReaderMode({ expandSection = null } = {}) {
+  if (!readerModeActive) return;
+  setReaderMode(false, { persist: false });
+  setFilterPanelOpen(true);
+
+  if (expandSection) {
+    expandCstFilterSectionOnly?.(expandSection);
+  } else {
+    expandCstSplashFilterSections?.();
+  }
+
+  persistSavedSearchSession();
+}
+
 function restoreSavedPanelSettings(settings) {
   const savedLayout = PANEL_LAYOUT_CLASSES[settings?.panelLayout] ? settings.panelLayout : "right";
   setPanelLayout(savedLayout);
@@ -250,6 +372,7 @@ function restoreSavedPanelSettings(settings) {
   }
 
   lockedToolbarMode = savedMode;
+  if (card?.classList.contains("is-splash-open")) return;
   openSidebar(savedMode, savedMode === "map" ? null : getPrimarySelectedOwnerIndex());
 }
 
@@ -258,6 +381,10 @@ function restoreSavedViewSettings() {
 
   try {
     if (savedViewSettings) {
+      // Keep the saved-search session until splash restore applies read/edit
+      // mode. Persisting here with empty session fields would drop the id and
+      // force the next load into a filter-only edit workspace.
+      activeSavedSearchId = savedViewSettings.savedSearchId || null;
       restoreSavedOptionSettings(savedViewSettings);
       restoreSavedFilterSelections(savedViewSettings);
       restoreSavedPanelSettings(savedViewSettings);
@@ -280,6 +407,7 @@ function resetViewSettings() {
     };
     lockedToolbarMode = null;
     clearSidebarOwnerState();
+    clearCstSavedSearchSession({ persist: false });
 
     syncReduceMotionToggleOption();
     syncReduceMotionStateClass();

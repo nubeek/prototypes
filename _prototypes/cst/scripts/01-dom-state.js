@@ -5,6 +5,8 @@ const tableHeadingTitle = document.getElementById("tableHeadingTitle");
 const tableHeadingSummary = document.getElementById("tableHeadingSummary");
 const card = document.querySelector(".card");
 const filterToggle = document.getElementById("filterToggle");
+const readerBackBtn = document.getElementById("readerBackBtn");
+const readerEditQueryBtn = document.getElementById("readerEditQueryBtn");
 const filterToggleLabel = document.getElementById("filterToggleLabel");
 const toolbarSearchInput = document.getElementById("toolbarSearchInput");
 const toolbarSearchClear = document.getElementById("toolbarSearchClear");
@@ -52,9 +54,14 @@ const ownerDetailsPanel = document.getElementById("ownerDetailsPanel");
 const profileModal = document.getElementById("profileModal");
 const profileModalContent = document.getElementById("profileModalContent");
 const createTargetOption = document.getElementById("createTargetOption");
+const readerViewSettingsBtn = document.getElementById("readerViewSettingsBtn");
 const createTargetModal = document.getElementById("createTargetModal");
 const createTargetForm = document.getElementById("createTargetForm");
+const createTargetModalTitle = document.getElementById("createTargetModalTitle");
 const createTargetTitleInput = document.getElementById("createTargetTitle");
+const createTargetDescriptionInput = document.getElementById("createTargetDescription");
+const createTargetVisibilitySelect = document.getElementById("createTargetVisibility");
+const deleteSavedViewBtn = document.getElementById("deleteSavedView");
 const saveLeadModal = document.getElementById("saveLeadModal");
 const saveLeadModalForm = document.getElementById("saveLeadModalForm");
 const saveLeadContactName = document.getElementById("saveLeadContactName");
@@ -272,6 +279,13 @@ let screenshotInProgress = false;
 let screenshotToastTimeout;
 let viewSettingsReadyToPersist = false;
 let isRestoringViewSettings = false;
+// Reader mode simplifies the UI when a saved search is opened for viewing:
+// the filter sidebar collapses and non-essential toolbar controls hide,
+// since most people opening a saved search want the results, not the query
+// builder. It's exited by clicking "Edit query" (the repurposed filter toggle).
+let readerModeActive = false;
+let readerModeSavedSearchTitle = null;
+let activeSavedSearchId = null;
 const toolbarTabOpenTimeoutByItem = new WeakMap();
 const toolbarTabCloseTimeoutByItem = new WeakMap();
 const PANEL_LAYOUT_CLASSES = {

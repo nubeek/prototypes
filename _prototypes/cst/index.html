@@ -11,6 +11,7 @@
       window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
     }
   </script>
+  <script src="../shared/ui/soft-reload.js"></script>
   <title>Prospects</title>
     <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
@@ -45,7 +46,7 @@
     <div class="content-shell">
       <div class="header" aria-label="Owners toolbar">
         <div class="toolbar-group toolbar-primary">
-          <div class="view" id="toolbarView" aria-label="Table view">
+          <div class="view" id="toolbarView" aria-label="Table view" data-reader-hide>
             <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="owners" aria-pressed="false">
               <img class="toolbar-asset-icon view-btn-icon" src="assets/owners.svg" alt="" aria-hidden="true">
               <span class="view-btn-label">Operators</span>
@@ -56,10 +57,55 @@
               <span class="view-btn-label">Franchisees</span>
             </button>
           </div>
-          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" data-splash-workspace-control aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+          <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn reader-back-btn" id="readerBackBtn" type="button" data-reader-only aria-label="Back to saved searches" title="Back to saved searches">
+            <img class="toolbar-asset-icon reader-back-btn__chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" data-splash-workspace-control data-reader-hide aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
             <img class="toolbar-asset-icon filter-toggle-icon" src="assets/filters.svg" alt="" aria-hidden="true">
             <span id="filterToggleLabel">Filters</span>
           </button>
+        </div>
+
+        <div class="toolbar-group toolbar-actions">
+          <details class="toolbar-dropdown" id="toolbarMenuDropdown">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
+              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Export CSV</span>
+              </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Email campaign</span>
+              </button>
+              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+              <div class="toolbar-submenu" data-toolbar-submenu="settings">
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
+                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
+                  <span class="toolbar-dropdown-label">Settings</span>
+                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <div class="ui-menu toolbar-submenu-menu" id="toolbarSettingsSubmenu" role="menu" aria-label="Settings menu">
+                  <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+                    <span class="toolbar-switch" aria-hidden="true"></span>
+                    <span class="toolbar-dropdown-label">Reduce motion</span>
+                  </button>
+                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Take screenshot</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
+                    <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
+                    <span class="toolbar-dropdown-label">Reset view</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
           <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
           <div class="toolbar-tabs segmented-control" data-splash-workspace-control>
             <div class="toolbar-tab-item">
@@ -154,67 +200,7 @@
             </div>
           </div>
           <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
-          <label class="toolbar-search-btn toolbar-btn" data-splash-workspace-control for="toolbarSearchInput" role="search">
-            <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
-            <input
-              class="toolbar-search-input"
-              id="toolbarSearchInput"
-              type="search"
-              inputmode="search"
-              autocomplete="off"
-              placeholder="Search by name, brand or location..."
-              aria-label="Search owners, contacts, locations, and franchises"
-            >
-            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
-          </label>
-        </div>
-
-        <div class="toolbar-group toolbar-actions">
-          <details class="toolbar-dropdown" id="toolbarMenuDropdown">
-            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
-              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
-              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-            </summary>
-            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Export CSV</span>
-              </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Email campaign</span>
-              </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="createTargetOption" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/target.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Create target</span>
-              </button>
-              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-              <div class="toolbar-submenu" data-toolbar-submenu="settings">
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
-                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">Settings</span>
-                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-                </button>
-                <div class="ui-menu toolbar-submenu-menu" id="toolbarSettingsSubmenu" role="menu" aria-label="Settings menu">
-                  <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
-                    <span class="toolbar-switch" aria-hidden="true"></span>
-                    <span class="toolbar-dropdown-label">Reduce motion</span>
-                  </button>
-                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Take screenshot</span>
-                  </button>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Reset view</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </details>
-          <span class="toolbar-divider" aria-hidden="true"></span>
-          <div class="toolbar-dataset-selector" id="datasetSelector" data-dataset-active="false">
+          <div class="toolbar-dataset-selector" id="datasetSelector" data-dataset-active="false" data-splash-workspace-control>
             <div class="dataset-selector-field">
               <img class="dataset-selector-icon" src="assets/dataset.svg?v=2" alt="" aria-hidden="true">
               <input
@@ -238,6 +224,20 @@
               </div>
             </div>
           </div>
+          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
+          <label class="toolbar-search-btn toolbar-btn" data-splash-workspace-control for="toolbarSearchInput" role="search">
+            <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+            <input
+              class="toolbar-search-input"
+              id="toolbarSearchInput"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Search by name, brand or location..."
+              aria-label="Search owners, contacts, locations, and franchises"
+            >
+            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
+          </label>
         </div>
       </div>
 
@@ -245,7 +245,7 @@
     <div class="cst-splash is-preparing-enter" id="cstSplash" data-cst-splash role="group" aria-label="Start a search">
       <div class="cst-splash__inner">
         <div class="cst-splash__intro">
-          <p class="cst-splash__heading">Start a new search<br>or reopen one of your saved searches</p>
+          <p class="cst-splash__heading">Start a new search<br>or open one of public or your saved searches</p>
           <form class="cst-splash__search" id="cstSplashSearch" role="search" autocomplete="off" novalidate>
             <img class="cst-splash__search-icon" src="assets/search.svg" alt="" aria-hidden="true">
             <input
@@ -285,6 +285,7 @@
               <button class="scope-tab is-active" type="button" data-scope="all">All</button>
               <button class="scope-tab" type="button" data-scope="private">Private</button>
               <button class="scope-tab" type="button" data-scope="team">Team</button>
+              <button class="scope-tab" type="button" data-scope="public">Public</button>
             </nav>
             <label class="scope-search" for="cstSplashSavedSearch" role="search">
               <img class="scope-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
@@ -630,8 +631,25 @@
         <div class="table-column">
           <header class="table-heading">
             <div class="table-heading__row">
-              <h2 id="tableHeadingTitle">Operators</h2>
-              <details class="toolbar-dropdown table-heading__sort" id="tableHeadingSort">
+              <div class="table-heading__title-group">
+                <h2 id="tableHeadingTitle">Operators</h2>
+              </div>
+              <div class="table-heading__actions">
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__edit-query" id="readerEditQueryBtn" type="button" data-reader-only aria-label="Edit query" title="Edit query">
+                  <img class="table-heading__edit-query-icon" src="assets/filters.svg" alt="" aria-hidden="true">
+                  <span class="table-heading__sort-label">Edit query</span>
+                </button>
+                <span class="table-heading__actions-divider" data-reader-only aria-hidden="true"></span>
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__view-settings" id="readerViewSettingsBtn" type="button" data-reader-only aria-label="Edit view settings" title="Edit view settings">
+                  <span class="table-heading__sort-label">Settings</span>
+                </button>
+                <span class="table-heading__actions-divider" data-reader-only aria-hidden="true"></span>
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__create-target" id="createTargetOption" type="button" data-reader-hide aria-label="Save view" title="Save view">
+                  <img class="table-heading__create-target-icon" src="assets/target.svg" alt="" aria-hidden="true">
+                  <span class="table-heading__sort-label">Save view</span>
+                </button>
+                <span class="table-heading__actions-divider" data-reader-hide aria-hidden="true"></span>
+                <details class="toolbar-dropdown table-heading__sort" id="tableHeadingSort">
                 <summary
                   class="ui-control ui-button-ghost table-heading__sort-toggle"
                   aria-label="Sort by Most units"
@@ -666,6 +684,7 @@
                   </button>
                 </div>
               </details>
+              </div>
             </div>
             <p id="tableHeadingSummary" aria-live="polite">Showing 0 operators.</p>
           </header>
@@ -794,20 +813,25 @@
 
   <div class="profile-modal-overlay target-modal-overlay" id="createTargetModal" hidden>
     <section class="profile-modal target-modal" role="dialog" aria-modal="true" aria-labelledby="createTargetModalTitle">
-      <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close" type="button" aria-label="Close create target">
-        <img src="assets/close.svg" alt="" aria-hidden="true">
-      </button>
       <form class="target-modal-form" id="createTargetForm">
-        <h2 class="target-modal-title" id="createTargetModalTitle">Create Target</h2>
+        <div class="target-modal-header">
+          <h2 class="target-modal-title" id="createTargetModalTitle">Save view</h2>
+          <div class="target-modal-header-actions">
+            <button class="ui-control ui-button-ghost target-modal-delete" id="deleteSavedView" type="button" hidden>Delete</button>
+            <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close" type="button" aria-label="Close save view">
+              <img src="assets/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
 
         <label class="target-modal-field" for="createTargetTitle">
           <span>Title</span>
-          <input class="target-modal-control target-modal-input" id="createTargetTitle" name="title" type="text" autocomplete="off" required>
+          <input class="target-modal-control target-modal-input" id="createTargetTitle" name="title" type="text" autocomplete="off" maxlength="100" required>
         </label>
 
         <label class="target-modal-field" for="createTargetDescription">
           <span>Description</span>
-          <textarea class="target-modal-control target-modal-textarea" id="createTargetDescription" name="description" placeholder="Optional"></textarea>
+          <textarea class="target-modal-control target-modal-textarea" id="createTargetDescription" name="description" maxlength="500" placeholder="Optional"></textarea>
         </label>
 
         <label class="target-modal-field" for="createTargetVisibility">
@@ -835,8 +859,6 @@
   <script src="data/prospect-datasets.js"></script>
   <script src="data/saved-searches.js"></script>
   <script src="data/org-chart.js"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="../../scripts/cst-env.js"></script>
   <script src="../shared/filter/radius-control.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>

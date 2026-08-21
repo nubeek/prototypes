@@ -717,16 +717,10 @@ function locationRecordMatchesRegionLabel(location, regionCode, searchLabel = ""
 function locationRecordIsInRegion(location, regionCode) {
   if (!regionCode) return false;
 
-  const coordinates = getLocationRecordCoordinates(location);
-  const bounds = getCstRegionBounds(regionCode);
-  if (coordinates && bounds) {
-    const [west, south, east, north] = bounds;
-    return coordinates.longitude >= west
-      && coordinates.longitude <= east
-      && coordinates.latitude >= south
-      && coordinates.latitude <= north;
-  }
-
+  // Match the location's own state/province, the same way territories caps a
+  // state filter to `record.state`. Bounding boxes leak neighbors — Nevada
+  // cities sit inside California's rectangle — so they are only used to fit
+  // the map, not to decide which rows or points belong.
   const locationRegionCode = getLocationRecordRegionCode(location);
   if (locationRegionCode) return locationRegionCode === regionCode;
 

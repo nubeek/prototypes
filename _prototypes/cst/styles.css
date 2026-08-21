@@ -357,6 +357,10 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   gap: var(--side-panel-gap);
 }
 
+.card:not(.is-filter-open) .workspace {
+  gap: 0;
+}
+
 .workspace-main {
   display: flex;
   flex: 1 1 auto;
@@ -1084,23 +1088,54 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   padding: 34px 40px 38px;
 }
 
-.target-modal-close {
-  top: 30px;
-  right: 30px;
-}
-
 .target-modal-form {
   display: flex;
   flex-direction: column;
 }
 
+.target-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.target-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.profile-modal-close.target-modal-close {
+  position: static;
+  margin-left: 0;
+}
+
 .target-modal-title {
-  margin: 0 0 28px;
+  margin: 0;
   color: #050505;
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.1;
+}
+
+.target-modal-delete {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  color: #b42318;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.target-modal-delete:hover,
+.target-modal-delete:focus-visible {
+  background: var(--color-surface-muted);
+  color: #050505;
 }
 
 .target-modal-field {
@@ -1192,6 +1227,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 .target-modal-cancel {
   height: var(--control-height);
   min-height: var(--control-height);
+  min-width: 88px;
   padding: 0 6px;
   border-radius: var(--radius-md);
   color: #050505;
@@ -3176,8 +3212,12 @@ h1 {
   margin: 0 0 18px;
 }
 
-.table-heading h2 {
+.table-heading__title-group {
   flex: 1 1 auto;
+  min-width: 0;
+}
+
+.table-heading h2 {
   min-width: 0;
   margin: 0;
   font-size: 26px;
@@ -3190,6 +3230,63 @@ h1 {
   color: #ababab;
   font-size: var(--font-size-base);
   line-height: 1.35;
+}
+
+.table-heading-summary__value {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 100ms ease-in-out, text-decoration-color 160ms ease-in-out;
+}
+
+.table-heading-summary__value:hover {
+  color: #111;
+  text-decoration-color: #ababab;
+}
+
+.table-heading__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.table-heading__actions-divider {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+}
+
+.table-heading__edit-query-icon {
+  display: block;
+  width: 16px;
+  height: 14px;
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast);
+}
+
+.table-heading__edit-query:hover .table-heading__edit-query-icon {
+  filter: brightness(0) saturate(100%);
+}
+
+.table-heading__create-target-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast);
+}
+
+.table-heading__create-target:hover .table-heading__create-target-icon {
+  filter: brightness(0) saturate(100%);
 }
 
 .table-heading__sort {
@@ -4166,6 +4263,20 @@ tbody tr.is-selected:hover td:first-child {
 
 .contact-email-copy {
   cursor: pointer;
+}
+
+.contact-action-floating-tooltip.has-copy-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  text-align: left;
+}
+
+.contact-email-copy-tooltip-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }
 
 .contact-cell-action.is-contact-hidden .contact-name,
@@ -5266,6 +5377,43 @@ tbody tr.is-selected:hover td:first-child {
   pointer-events: none;
 }
 
+/* Reader mode -----------------------------------------------------------
+   Entered by opening a saved search: most people who open a saved search
+   want the results, not the query builder, so the sidebar collapses and
+   toolbar controls that only matter while building a query hide. "Edit query"
+   moves into the table heading beside Sort by; the back button returns to
+   the splash screen. */
+.card.is-reader-mode [data-reader-hide] {
+  display: none;
+}
+
+.card.is-reader-mode .filter-panel {
+  display: none;
+}
+
+.card.is-reader-mode .workspace {
+  gap: 0;
+}
+
+[data-reader-only] {
+  display: none;
+}
+
+.card.is-reader-mode [data-reader-only] {
+  display: inline-flex;
+}
+
+.reader-back-btn {
+  border-radius: var(--radius-md);
+}
+
+.reader-back-btn__chevron {
+  width: 11px;
+  height: 6px;
+  transform: rotate(90deg);
+  filter: var(--color-chevron-muted);
+}
+
 .card.is-splash-open .filter-scroll,
 .card.is-splash-open .filter-actions {
   opacity: 0;
@@ -5478,7 +5626,11 @@ tbody tr.is-selected:hover td:first-child {
 }
 
 .cst-splash__locate:hover::before {
-  background: #ededf0;
+  background: var(--color-surface-control-hover);
+}
+
+.cst-splash__search:focus-within .cst-splash__locate:hover::before {
+  background: var(--color-surface-control);
 }
 
 .cst-splash__locate:active {
@@ -5730,10 +5882,10 @@ tbody tr.is-selected:hover td:first-child {
 .cst-splash .target-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   height: auto;
-  padding: clamp(14px, 1.5vw, 24px);
+  padding: clamp(14px, 0.5vw, 20px);
   overflow: hidden;
   border: 2px solid transparent;
   border-radius: 18px;
@@ -5742,13 +5894,14 @@ tbody tr.is-selected:hover td:first-child {
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+  transition: border-color 220ms ease-in-out, box-shadow 220ms ease-in-out, transform 160ms ease-in-out;
 }
 
 .cst-splash .target-card:hover,
 .cst-splash .target-card:focus-visible {
-  border-color: #b8a6f4;
-  box-shadow: 0 12px 26px rgba(122, 99, 221, 0.12);
+  border-color: var(--color-border);
+  box-shadow: 0 8px 20px rgba(17, 17, 26, 0.08);
+  transform: translateY(-4px);
   outline: none;
 }
 
@@ -5756,11 +5909,18 @@ tbody tr.is-selected:hover td:first-child {
   transform: translateY(1px);
 }
 
+.cst-splash .target-card:hover:active,
+.cst-splash .target-card:focus-visible:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(17, 17, 26, 0.06);
+}
+
 .cst-splash .target-card-title {
   min-width: 0;
   flex: 0 0 auto;
   overflow: hidden;
-  font-size: clamp(13px, 1.2vw, 18px);
+  padding: 4px 8px 0 8px;
+  font-size: clamp(16px, 1.5vw, 18px);
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: -0.01em;
@@ -5776,26 +5936,24 @@ tbody tr.is-selected:hover td:first-child {
   aspect-ratio: 2 / 1;
   min-height: 118px;
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   background: #e8e8ec;
 }
 
-.cst-splash .target-map-img {
-  position: relative;
+.cst-splash .target-map-img,
+.cst-splash .target-map-points {
+  position: absolute;
+  inset: 0;
   z-index: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: left center;
 }
 
 .cst-splash .target-map-points {
-  position: absolute;
-  inset: 0;
   z-index: 1;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   pointer-events: none;
 }
 
@@ -5819,7 +5977,7 @@ tbody tr.is-selected:hover td:first-child {
 }
 
 .cst-splash .target-label {
-  font-size: clamp(12px, 1.5vw, 18px);
+  font-size: clamp(12px, 1vw, 16px);
   font-weight: 400;
   color: #a0a0a8;
   line-height: 1.2;
@@ -5827,17 +5985,20 @@ tbody tr.is-selected:hover td:first-child {
 
 .cst-splash .target-prospects {
   position: relative;
-  padding-right: 28px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-bottom: 4px;
 }
 
 .cst-splash .target-prospects-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 14px;
 }
 
 .cst-splash .target-number {
-  font-size: clamp(24px, 2vw, 32px);
+  font-size: clamp(22px, 2vw, 28px);
   font-weight: 700;
   line-height: 1;
   color: #1d1d22;
@@ -5855,20 +6016,34 @@ tbody tr.is-selected:hover td:first-child {
 }
 
 .cst-splash .target-chevron {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
-  width: 11px;
-  height: 6px;
-  transform: translateY(-50%) rotate(-90deg);
-  filter: var(--color-chevron-soft);
-  transition: filter 0.18s ease;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background-color 50ms ease;
 }
 
-.cst-splash .target-card:hover .target-chevron {
-  filter: var(--color-chevron-muted);
+.cst-splash .target-chevron img {
+  display: block;
+  width: 11px;
+  height: 6px;
+  transform: rotate(-90deg);
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast);
+}
+
+.cst-splash .target-card:hover .target-chevron,
+.cst-splash .target-card:focus-visible .target-chevron {
+  background: #e9e9e9;
+}
+
+.cst-splash .target-card:hover .target-chevron img,
+.cst-splash .target-card:focus-visible .target-chevron img {
+  filter: brightness(0) saturate(100%);
 }
 
 @media (max-height: 719px) {
