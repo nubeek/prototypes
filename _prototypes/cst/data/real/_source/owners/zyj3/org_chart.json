@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Bluemont Group, LLC",
+    "id": 9685,
+    "name": "Bluemont Group, LLC",
+    "public_id": "zyj3"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DB",
+      "children": [],
+      "id": 922214,
+      "name": "David Baumgartner",
+      "org_key": "dave-baumgartner",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/71c1f8a025d5413f93f6a8215d3aa035.jpeg"
+    }
+  ]
+}

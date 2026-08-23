@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "TA Operating LLC",
+    "id": 250,
+    "name": "TA Operating LLC",
+    "public_id": "gl66"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "RP",
+      "children": [],
+      "id": 75857,
+      "name": "Rick Pavia",
+      "org_key": "rick-pavia",
+      "org_parent": null,
+      "org_title": "Vice President QSR Development & Marketing",
+      "profile_picture": "/media/images/user-profile/7e99c225ce8b4af3847ef6a8c8802fc6.jpeg"
+    }
+  ]
+}

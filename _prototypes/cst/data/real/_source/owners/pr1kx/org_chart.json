@@ -1,0 +1,71 @@
+{
+  "institution": {
+    "group_code": "MBN Brands",
+    "id": 20178,
+    "name": "MBN Brands",
+    "public_id": "pr1kx"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "KM",
+      "children": [
+        {
+          "abbreviation": "AM",
+          "children": [],
+          "id": 942363,
+          "name": "Anne Mulcahy",
+          "org_key": "anne-mulcahy",
+          "org_parent": "kevin-mulcahy",
+          "org_title": "Executive Chairman",
+          "profile_picture": "/media/images/user-profile/7aaf85a24b89466d9f7ce512c734e7b4.jpeg"
+        },
+        {
+          "abbreviation": "LN",
+          "children": [],
+          "id": 871966,
+          "name": "Leo Nolan",
+          "org_key": "leo-nolan",
+          "org_parent": "kevin-mulcahy",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/d736b8664bf24a2fb4d23abdbc8f6f81.jpeg"
+        },
+        {
+          "abbreviation": "MM",
+          "children": [],
+          "id": 942361,
+          "name": "Michael Mulcahy",
+          "org_key": "michael-mulcahy",
+          "org_parent": "kevin-mulcahy",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/a885b53d703f48bc86a735a59db929c7.jpeg"
+        },
+        {
+          "abbreviation": "WB",
+          "children": [],
+          "id": 942360,
+          "name": "Wyatt Batchelor",
+          "org_key": "wyattbatchelor",
+          "org_parent": "kevin-mulcahy",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/320ea1be1f51466bb6086befbf899796.jpeg"
+        }
+      ],
+      "id": 942359,
+      "name": "Kevin Mulcahy",
+      "org_key": "kevin-mulcahy",
+      "org_parent": null,
+      "org_title": "Partner",
+      "profile_picture": "/media/images/user-profile/af132172d0c6430190dfe8b7a505953b.jpeg"
+    },
+    {
+      "abbreviation": "TC",
+      "children": [],
+      "id": 942362,
+      "name": "Trip Cowin",
+      "org_key": "tripcowin",
+      "org_parent": null,
+      "org_title": "Partner",
+      "profile_picture": "/media/images/user-profile/1b1c0b211da24adf88f26ea832e8f12c.jpeg"
+    }
+  ]
+}

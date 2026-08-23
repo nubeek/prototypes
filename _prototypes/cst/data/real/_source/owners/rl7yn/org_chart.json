@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "QUALITY RESTAURANT CONCEPTS, L.L.C.",
+    "id": 27281,
+    "name": "QUALITY RESTAURANT CONCEPTS, L.L.C.",
+    "public_id": "rl7yn"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "FG",
+      "children": [],
+      "id": 964978,
+      "name": "Fred Gustin",
+      "org_key": "fred-gustin",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

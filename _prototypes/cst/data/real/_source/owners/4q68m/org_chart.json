@@ -1,0 +1,70 @@
+{
+  "institution": {
+    "group_code": "K-Mac Enterprises, Inc.",
+    "id": 23943,
+    "name": "K-Mac Enterprises, Inc.",
+    "public_id": "4q68m"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "JM",
+      "children": [],
+      "id": 871330,
+      "name": "Jason Miller",
+      "org_key": "jason-miller",
+      "org_parent": null,
+      "org_title": "CFO",
+      "profile_picture": "/media/images/user-profile/4574500f37a747279adf9aea5b0eed55.jpeg"
+    },
+    {
+      "abbreviation": "JF",
+      "children": [],
+      "id": 953610,
+      "name": "Joey Freeman",
+      "org_key": "joey-freeman",
+      "org_parent": null,
+      "org_title": "Purchasing Manager",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "MP",
+      "children": [],
+      "id": 953609,
+      "name": "Matthew Parry",
+      "org_key": "matthew-parry",
+      "org_parent": null,
+      "org_title": "Chief People Officer",
+      "profile_picture": "/media/images/user-profile/2151787f54a742b3966d0be89c16c4bb.jpeg"
+    },
+    {
+      "abbreviation": "TQ",
+      "children": [],
+      "id": 953611,
+      "name": "Terry Quarshie",
+      "org_key": "terry-quarshie",
+      "org_parent": null,
+      "org_title": "Executive Assistant",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "TE",
+      "children": [],
+      "id": 953612,
+      "name": "Theresa Estep",
+      "org_key": "theresa-estep",
+      "org_parent": null,
+      "org_title": "Purchasing Director",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "TR",
+      "children": [],
+      "id": 953608,
+      "name": "Tina Reagan",
+      "org_key": "tina-reagan",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": null
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "JM - Blake-Ward",
+    "id": 8685,
+    "name": "JM - Blake-Ward",
+    "public_id": "zvlm"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "RB",
+      "children": [],
+      "id": 914776,
+      "name": "Rodger Blake-Ward",
+      "org_key": "rodger-blake-ward",
+      "org_parent": null,
+      "org_title": "Franchisee",
+      "profile_picture": null
+    }
+  ]
+}

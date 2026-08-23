@@ -1,0 +1,40 @@
+{
+  "institution": {
+    "group_code": "Denco Enterprises, Inc.",
+    "id": 9561,
+    "name": "Denco Enterprises, Inc.",
+    "public_id": "zy42"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GM",
+      "children": [],
+      "id": 138758,
+      "name": "Gurbax Rai Marwah",
+      "org_key": "gurbax-rai-marwah",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/68e9e64f46d242a2a1cb37adae490fbd.jpeg"
+    },
+    {
+      "abbreviation": "RM",
+      "children": [],
+      "id": 138760,
+      "name": "Rahul Marwah",
+      "org_key": "rahul-marwah",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/76429800b6644095b147ef10ac067056.jpeg"
+    },
+    {
+      "abbreviation": "RM",
+      "children": [],
+      "id": 138761,
+      "name": "Rajni Marwah",
+      "org_key": "rajni-marwah",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/0f54fe8cb7f142b89e082743e5848159.jpeg"
+    }
+  ]
+}

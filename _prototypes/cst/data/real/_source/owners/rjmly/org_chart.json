@@ -1,0 +1,41 @@
+{
+  "institution": {
+    "group_code": "Patton Wings",
+    "id": 27681,
+    "name": "Patton Wings",
+    "public_id": "rjmly"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "BC",
+      "children": [
+        {
+          "abbreviation": "JL",
+          "children": [],
+          "id": 965127,
+          "name": "Jean M. Lanfear",
+          "org_key": "jean-m-lanfear",
+          "org_parent": "brian-carmody",
+          "org_title": "V.P. Human Resources",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "JC",
+          "children": [],
+          "id": 965139,
+          "name": "Jeffrey Carmody",
+          "org_key": "jeffrey-carmody",
+          "org_parent": "brian-carmody",
+          "org_title": "",
+          "profile_picture": null
+        }
+      ],
+      "id": 965126,
+      "name": "Brian Carmody",
+      "org_key": "brian-carmody",
+      "org_parent": null,
+      "org_title": "COO",
+      "profile_picture": null
+    }
+  ]
+}

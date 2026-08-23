@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Sunshine Restaurant Partners, LLC",
+    "id": 25071,
+    "name": "Sunshine Restaurant Partners, LLC",
+    "public_id": "80w4q"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DE",
+      "children": [],
+      "id": 963084,
+      "name": "Daniel Enea",
+      "org_key": "daniel-enea",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/7551853cc4fa4e8c8e7bc5f24d9da073.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "institution": {
+    "group_code": "Devs Foods",
+    "id": 17957,
+    "name": "Devs Foods",
+    "public_id": "vv8q7"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DP",
+      "children": [],
+      "id": 929386,
+      "name": "Dipak Patel",
+      "org_key": "dipak-patel",
+      "org_parent": null,
+      "org_title": "COO",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "SP",
+      "children": [],
+      "id": 921888,
+      "name": "Sanjay Patel",
+      "org_key": "sanjay-patel",
+      "org_parent": null,
+      "org_title": "Franchisee",
+      "profile_picture": "/media/images/user-profile/d680f8d896c7486e80b42ac950662f67.jpeg"
+    }
+  ]
+}

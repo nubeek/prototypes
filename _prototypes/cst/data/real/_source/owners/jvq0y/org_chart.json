@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Lemek, L.L.C.",
+    "id": 23897,
+    "name": "Lemek, L.L.C.",
+    "public_id": "jvq0y"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "BL",
+      "children": [],
+      "id": 952472,
+      "name": "Brian J. Lemek",
+      "org_key": "brian-j-lemek",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/e854e7d327534806a725908908fdde17.jpeg"
+    }
+  ]
+}

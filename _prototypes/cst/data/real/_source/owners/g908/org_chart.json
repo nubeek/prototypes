@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "Michael Cherney",
+    "id": 95,
+    "name": "Michael Cherney",
+    "public_id": "g908"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MC",
+      "children": [
+        {
+          "abbreviation": "VH",
+          "children": [],
+          "id": 921843,
+          "name": "Victor Heutz",
+          "org_key": "victorheutz",
+          "org_parent": "michael-cherney",
+          "org_title": "President, CEO, Cofounder",
+          "profile_picture": null
+        }
+      ],
+      "id": 869899,
+      "name": "Michael Cherney",
+      "org_key": "michael-cherney",
+      "org_parent": null,
+      "org_title": "Chairman & Co-founder",
+      "profile_picture": "/media/images/user-profile/27337b3638a14f10a269594fecf27a97.jpeg"
+    }
+  ]
+}

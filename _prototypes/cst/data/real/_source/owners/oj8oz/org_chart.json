@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "JS Fort Group, Inc.",
+    "id": 19077,
+    "name": "JS Fort Group, Inc.",
+    "public_id": "oj8oz"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "JF",
+      "children": [],
+      "id": 942333,
+      "name": "Jeffrey Fort",
+      "org_key": "jeffrey-fort",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/7f68499b27bd456c832e4a1ff1e95597.jpeg"
+    }
+  ]
+}

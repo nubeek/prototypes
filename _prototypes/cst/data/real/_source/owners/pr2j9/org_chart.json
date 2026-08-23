@@ -1,0 +1,232 @@
+{
+  "institution": {
+    "group_code": "Spin the Planet Enterprises",
+    "id": 19078,
+    "name": "Spin the Planet Enterprises",
+    "public_id": "pr2j9"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DV",
+      "children": [
+        {
+          "abbreviation": "DW",
+          "children": [
+            {
+              "abbreviation": "AB",
+              "children": [],
+              "id": 944919,
+              "name": "Alec Butler",
+              "org_key": "alec-butler",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/f8bd1de05b6f4536bfb32f5ab287878c.jpeg"
+            },
+            {
+              "abbreviation": "CW",
+              "children": [],
+              "id": 944920,
+              "name": "Carter Wiedeman",
+              "org_key": "carter-wiedeman",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/ff5ab0fe52a2437d806ffb3cbfefe78a.jpeg"
+            },
+            {
+              "abbreviation": "DC",
+              "children": [],
+              "id": 944910,
+              "name": "Dan Cole",
+              "org_key": "dan-cole",
+              "org_parent": "dustin-wetzel",
+              "org_title": "Regional Manager",
+              "profile_picture": "/media/images/user-profile/3df7c51bad4f4a40858de21728032c8a.jpeg"
+            },
+            {
+              "abbreviation": "DK",
+              "children": [],
+              "id": 944903,
+              "name": "Daniel Kuhfuss",
+              "org_key": "daniel-kuhfuss",
+              "org_parent": "dustin-wetzel",
+              "org_title": "Training Administrator",
+              "profile_picture": "/media/images/user-profile/3c08904e558644e7b9791dd82ac998d5.jpeg"
+            },
+            {
+              "abbreviation": "JC",
+              "children": [],
+              "id": 944913,
+              "name": "Jacci Carlson",
+              "org_key": "jacci-carlson",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/e6ca22987e0947e69cfa5345bb6eff9d.jpeg"
+            },
+            {
+              "abbreviation": "JK",
+              "children": [],
+              "id": 944912,
+              "name": "Jake Keelin",
+              "org_key": "jake-keelin",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/7c73887e17564c708ead433f4ac882e2.jpeg"
+            },
+            {
+              "abbreviation": "JM",
+              "children": [],
+              "id": 944902,
+              "name": "Jamie Middleton-Brown",
+              "org_key": "jamie-middleton-brown",
+              "org_parent": "dustin-wetzel",
+              "org_title": "HR Manager",
+              "profile_picture": "/media/images/user-profile/daf88b137ee542d9855366e7f37eb266.jpeg"
+            },
+            {
+              "abbreviation": "JG",
+              "children": [],
+              "id": 944917,
+              "name": "Jason Green",
+              "org_key": "jason-green",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/6270d49992c2432fb6d1ddbd57ffcc9a.jpeg"
+            },
+            {
+              "abbreviation": "JJ",
+              "children": [],
+              "id": 944909,
+              "name": "Jen Johnstone",
+              "org_key": "jen-johnstone",
+              "org_parent": "dustin-wetzel",
+              "org_title": "Regional Manager",
+              "profile_picture": "/media/images/user-profile/b0b2984b8f7f4b2f91717b520e8790b2.jpeg"
+            },
+            {
+              "abbreviation": "JG",
+              "children": [],
+              "id": 944908,
+              "name": "Jenn Gland",
+              "org_key": "jenn-gland",
+              "org_parent": "dustin-wetzel",
+              "org_title": "HR Assistant",
+              "profile_picture": "/media/images/user-profile/314bd636d3e147f7b413032a25b0ff22.jpeg"
+            },
+            {
+              "abbreviation": "JD",
+              "children": [],
+              "id": 944915,
+              "name": "Jeremy Dean",
+              "org_key": "jeremy-dean",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/cd26c82366fc44468008b9fc400973f3.jpeg"
+            },
+            {
+              "abbreviation": "JH",
+              "children": [],
+              "id": 944916,
+              "name": "Jesse Haakenson",
+              "org_key": "jesse-haakenson",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/46967a24f87a4043b305e48f48d8cb04.jpeg"
+            },
+            {
+              "abbreviation": "KL",
+              "children": [],
+              "id": 944904,
+              "name": "Katie Lindgren",
+              "org_key": "katie-lindgren",
+              "org_parent": "dustin-wetzel",
+              "org_title": "Project Coordinator",
+              "profile_picture": "/media/images/user-profile/22508ce560164427b50ba502c2a95d8e.jpeg"
+            },
+            {
+              "abbreviation": "KN",
+              "children": [],
+              "id": 944918,
+              "name": "Katie Nelson",
+              "org_key": "katie-nelson",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/59d5c545e4c944e6bee0517f04222af0.jpeg"
+            },
+            {
+              "abbreviation": "PL",
+              "children": [],
+              "id": 944907,
+              "name": "Paul Lindgren",
+              "org_key": "paul-lindgren",
+              "org_parent": "dustin-wetzel",
+              "org_title": "Field Service Tech",
+              "profile_picture": "/media/images/user-profile/52cc8e5a8e2d41fdbe087ff7f0e2c4dd.jpeg"
+            },
+            {
+              "abbreviation": "PT",
+              "children": [],
+              "id": 942358,
+              "name": "Pete Thelen",
+              "org_key": "pete-thelen",
+              "org_parent": "dustin-wetzel",
+              "org_title": "CFO",
+              "profile_picture": "/media/images/user-profile/4161b8212c6f478bbb3987d9de5d271a.jpeg"
+            },
+            {
+              "abbreviation": "RB",
+              "children": [],
+              "id": 944911,
+              "name": "Randy Brumm",
+              "org_key": "randy-brumm",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/95912f70ec9b4ba981fee6d69babd80c.jpeg"
+            },
+            {
+              "abbreviation": "SJ",
+              "children": [],
+              "id": 944914,
+              "name": "Samantha Johnson",
+              "org_key": "samantha-johnson",
+              "org_parent": "dustin-wetzel",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/7b2fdcdd5fcc4c2eaf446f3885cd0c1f.jpeg"
+            },
+            {
+              "abbreviation": "VJ",
+              "children": [],
+              "id": 944905,
+              "name": "Vivianna Johnson",
+              "org_key": "vivianna-johnson",
+              "org_parent": "dustin-wetzel",
+              "org_title": "Senior Accountant",
+              "profile_picture": "/media/images/user-profile/5ef857b329c84593b507356f32343935.jpeg"
+            },
+            {
+              "abbreviation": "YG",
+              "children": [],
+              "id": 944906,
+              "name": "Yari Gland",
+              "org_key": "yari-gland",
+              "org_parent": "dustin-wetzel",
+              "org_title": "Facilities Manager",
+              "profile_picture": "/media/images/user-profile/adce9a81cfe94bdbbcae451ff02838ee.jpeg"
+            }
+          ],
+          "id": 942357,
+          "name": "Dustin Wetzel",
+          "org_key": "dustin-wetzel",
+          "org_parent": "dan-vansteenburg",
+          "org_title": "President",
+          "profile_picture": "/media/images/user-profile/acf5d5936f0d47a4a79ee0a3872db59d.jpeg"
+        }
+      ],
+      "id": 942356,
+      "name": "Dan Vansteenburg",
+      "org_key": "dan-vansteenburg",
+      "org_parent": null,
+      "org_title": "Founder - CEO",
+      "profile_picture": "/media/images/user-profile/c6e53c6db353415aa80b82ae7c988a3d.jpeg"
+    }
+  ]
+}

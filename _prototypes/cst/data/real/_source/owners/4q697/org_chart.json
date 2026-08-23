@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Strang Corporation",
+    "id": 23843,
+    "name": "Strang Corporation",
+    "public_id": "4q697"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "PS",
+      "children": [],
+      "id": 952476,
+      "name": "Peter Strang",
+      "org_key": "peter-strang",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/e4f8f5528e3c4125907d246d9839c7c1.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "institution": {
+    "group_code": "Amazing Seafood Kitchen LLC",
+    "id": 23483,
+    "name": "Amazing Seafood Kitchen LLC",
+    "public_id": "w1v7k"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "KJ",
+      "children": [],
+      "id": 951423,
+      "name": "Keith Johnson",
+      "org_key": "keith-johnson",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "KD",
+      "children": [],
+      "id": 937836,
+      "name": "Kevin Davis",
+      "org_key": "kevin-davis",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/1bfc78f312c94070893b92bee7bb8d4b.jpeg"
+    },
+    {
+      "abbreviation": "LS",
+      "children": [],
+      "id": 937837,
+      "name": "LL Cool J (James Todd Smith)",
+      "org_key": "ll-cool-j",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

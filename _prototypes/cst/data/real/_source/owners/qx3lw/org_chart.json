@@ -1,0 +1,323 @@
+{
+  "institution": {
+    "group_code": "Premium Loaves",
+    "id": 20179,
+    "name": "Premium Loaves",
+    "public_id": "qx3lw"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "ML",
+      "children": [
+        {
+          "abbreviation": "JH",
+          "children": [
+            {
+              "abbreviation": "CG",
+              "children": [
+                {
+                  "abbreviation": "DW",
+                  "children": [],
+                  "id": 944942,
+                  "name": "Dillon Wooden",
+                  "org_key": "dillon-wooden",
+                  "org_parent": "carolyn-gaudio",
+                  "org_title": "Staff Accountant",
+                  "profile_picture": "/media/images/user-profile/c7050c209d3f47a7acdde41b2855d487.jpeg"
+                },
+                {
+                  "abbreviation": "DN",
+                  "children": [],
+                  "id": 944937,
+                  "name": "Dylan Nein",
+                  "org_key": "dylan-nein",
+                  "org_parent": "carolyn-gaudio",
+                  "org_title": "Accounting Manager",
+                  "profile_picture": "/media/images/user-profile/9877a92baef24b7ab04f4e376a398718.jpeg"
+                },
+                {
+                  "abbreviation": "FA",
+                  "children": [],
+                  "id": 944941,
+                  "name": "Felix Archer",
+                  "org_key": "felix-archer",
+                  "org_parent": "carolyn-gaudio",
+                  "org_title": "Staff Accountant",
+                  "profile_picture": "/media/images/user-profile/9caf649f5afa4ba3998794d1fe927366.jpeg"
+                },
+                {
+                  "abbreviation": "HU",
+                  "children": [],
+                  "id": 944940,
+                  "name": "Holly Upton",
+                  "org_key": "holly-upton",
+                  "org_parent": "carolyn-gaudio",
+                  "org_title": "Staff Accountant",
+                  "profile_picture": "/media/images/user-profile/3bd411bfd196412cafcaaaa6526bbdfe.jpeg"
+                },
+                {
+                  "abbreviation": "NL",
+                  "children": [],
+                  "id": 944943,
+                  "name": "Nolen Leiva",
+                  "org_key": "nolen-leiva",
+                  "org_parent": "carolyn-gaudio",
+                  "org_title": "Staff Accountant",
+                  "profile_picture": "/media/images/user-profile/04bc0377819f41b6a25025511cef3e85.jpeg"
+                }
+              ],
+              "id": 944925,
+              "name": "Carolyn Gaudio",
+              "org_key": "carolyn-gaudio",
+              "org_parent": "jerome-hranka",
+              "org_title": "Vice President of Accounting Operations",
+              "profile_picture": "/media/images/user-profile/ba85b43879a2466a893c0e361c7ab312.jpeg"
+            },
+            {
+              "abbreviation": "AM",
+              "children": [],
+              "id": 944929,
+              "name": "Amanda Muentnich",
+              "org_key": "amanda-muentnich",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Operations - Carolinas",
+              "profile_picture": "/media/images/user-profile/828b47825d574d20bf72fa9717b82219.jpeg"
+            },
+            {
+              "abbreviation": "AD",
+              "children": [],
+              "id": 944932,
+              "name": "Andrew Donald",
+              "org_key": "andrew-donald",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Operations - Colorado",
+              "profile_picture": "/media/images/user-profile/0d346915b9614ecc989daa0f9b514c84.jpeg"
+            },
+            {
+              "abbreviation": "AE",
+              "children": [],
+              "id": 944931,
+              "name": "Austen Epperson",
+              "org_key": "austen-epperson",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Operations - Ohio",
+              "profile_picture": "/media/images/user-profile/116e54dd84e7467c846c3863812ba98e.jpeg"
+            },
+            {
+              "abbreviation": "BO",
+              "children": [],
+              "id": 944944,
+              "name": "Beth Overholt",
+              "org_key": "beth-overholt",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Communications & Administration",
+              "profile_picture": "/media/images/user-profile/883db19f2b3c41b18b9c252a42a40a44.jpeg"
+            },
+            {
+              "abbreviation": "BH",
+              "children": [],
+              "id": 944947,
+              "name": "Brent Herbeck",
+              "org_key": "brent-herbeck",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Construction",
+              "profile_picture": "/media/images/user-profile/fc3a5f843dd44f5c99422aea45d802ab.jpeg"
+            },
+            {
+              "abbreviation": "BK",
+              "children": [],
+              "id": 944935,
+              "name": "Bryan Kirchmeier",
+              "org_key": "bryan-kirchmeier",
+              "org_parent": "jerome-hranka",
+              "org_title": "Store Performance Manager",
+              "profile_picture": "/media/images/user-profile/78c62bd348124efd83fd013d640a9f61.jpeg"
+            },
+            {
+              "abbreviation": "BB",
+              "children": [],
+              "id": 944928,
+              "name": "Bryant Buford",
+              "org_key": "bryant-buford",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Operations - Wisconsin",
+              "profile_picture": "/media/images/user-profile/8472263f784d4c34950c76ef073283f6.jpeg"
+            },
+            {
+              "abbreviation": "GW",
+              "children": [],
+              "id": 944945,
+              "name": "Gena Willey",
+              "org_key": "gena-willey",
+              "org_parent": "jerome-hranka",
+              "org_title": "Executive Assistant",
+              "profile_picture": "/media/images/user-profile/d37c990d8f194a2da30390649a88fd7f.jpeg"
+            },
+            {
+              "abbreviation": "JS",
+              "children": [],
+              "id": 944930,
+              "name": "Jason Sprenger",
+              "org_key": "jason-sprenger",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Operations - Texas",
+              "profile_picture": "/media/images/user-profile/ed70498d367b49e890722623dcf46c56.jpeg"
+            },
+            {
+              "abbreviation": "JB",
+              "children": [],
+              "id": 944923,
+              "name": "Jay Buban",
+              "org_key": "jay-buban",
+              "org_parent": "jerome-hranka",
+              "org_title": "Vice President of Operations",
+              "profile_picture": "/media/images/user-profile/136de1931ce94880b5cbd21cb442f925.jpeg"
+            },
+            {
+              "abbreviation": "JC",
+              "children": [],
+              "id": 944933,
+              "name": "Jeff Collier",
+              "org_key": "jeff-collier",
+              "org_parent": "jerome-hranka",
+              "org_title": "Operations Support Analyst",
+              "profile_picture": "/media/images/user-profile/92de58ebeaa44ce790f55176b44544ad.jpeg"
+            },
+            {
+              "abbreviation": "JH",
+              "children": [],
+              "id": 944938,
+              "name": "Jennifer Hill",
+              "org_key": "jennifer-hill",
+              "org_parent": "jerome-hranka",
+              "org_title": "Senior Accountant",
+              "profile_picture": "/media/images/user-profile/d312b815b8854ec88504a8c238db8366.jpeg"
+            },
+            {
+              "abbreviation": "JT",
+              "children": [],
+              "id": 944950,
+              "name": "Jordan Thomas",
+              "org_key": "jordan-thomas",
+              "org_parent": "jerome-hranka",
+              "org_title": "Payroll Specialist",
+              "profile_picture": "/media/images/user-profile/08635c325797418087ae9c27b9b3bd6d.jpeg"
+            },
+            {
+              "abbreviation": "JM",
+              "children": [],
+              "id": 944936,
+              "name": "Justin Montemar",
+              "org_key": "justin-montemar",
+              "org_parent": "jerome-hranka",
+              "org_title": "WI Catering Manager",
+              "profile_picture": "/media/images/user-profile/fccca184b7e44b6aaa48d634626ba15a.jpeg"
+            },
+            {
+              "abbreviation": "KV",
+              "children": [],
+              "id": 944946,
+              "name": "Katy Vaughan",
+              "org_key": "katy-vaughan",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Real Estate",
+              "profile_picture": "/media/images/user-profile/88fc3ea606404b78a84e26b69bd4a232.jpeg"
+            },
+            {
+              "abbreviation": "KG",
+              "children": [],
+              "id": 944939,
+              "name": "Kirsten Gray",
+              "org_key": "kirsten-gray",
+              "org_parent": "jerome-hranka",
+              "org_title": "HR & Payroll Manager",
+              "profile_picture": "/media/images/user-profile/d527345778394f668b5af2cb8b268e93.jpeg"
+            },
+            {
+              "abbreviation": "LF",
+              "children": [],
+              "id": 944934,
+              "name": "Luke Frichtl",
+              "org_key": "luke-frichtl",
+              "org_parent": "jerome-hranka",
+              "org_title": "Store Performance Manager",
+              "profile_picture": "/media/images/user-profile/9ec2133f9e7d4e2a8d99ac921d85c2fc.jpeg"
+            },
+            {
+              "abbreviation": "MO",
+              "children": [],
+              "id": 944948,
+              "name": "Mark Oertwig",
+              "org_key": "mark-oertwig",
+              "org_parent": "jerome-hranka",
+              "org_title": "Finance and Acquisition Manager",
+              "profile_picture": "/media/images/user-profile/5ab15299c0894af29c22ecc8a1ad76ac.jpeg"
+            },
+            {
+              "abbreviation": "ML",
+              "children": [],
+              "id": 944927,
+              "name": "Michael (Riley) Lawson",
+              "org_key": "michael-(riley)-lawson",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Operations - Illinois",
+              "profile_picture": "/media/images/user-profile/557f2246706f4b4a9035dda552ec9212.jpeg"
+            },
+            {
+              "abbreviation": "NH",
+              "children": [],
+              "id": 944949,
+              "name": "Nathan Hemstreet",
+              "org_key": "nathan-hemstreet",
+              "org_parent": "jerome-hranka",
+              "org_title": "Financial Analyst",
+              "profile_picture": "/media/images/user-profile/4938318ca534419b93297c2a23276f7c.jpeg"
+            },
+            {
+              "abbreviation": "PV",
+              "children": [],
+              "id": 944924,
+              "name": "Patrick Ventura",
+              "org_key": "patrick-ventura",
+              "org_parent": "jerome-hranka",
+              "org_title": "Vice President of Operations",
+              "profile_picture": "/media/images/user-profile/42d9867466f24f8da3838c3d758ef988.jpeg"
+            },
+            {
+              "abbreviation": "RC",
+              "children": [],
+              "id": 944926,
+              "name": "Ryan Cortese",
+              "org_key": "ryan-cortese",
+              "org_parent": "jerome-hranka",
+              "org_title": "Director of Operations Excellence",
+              "profile_picture": "/media/images/user-profile/a40c7a2766584898abee12b4aa70c826.jpeg"
+            }
+          ],
+          "id": 944921,
+          "name": "Jerome Hranka",
+          "org_key": "jerome-hranka",
+          "org_parent": "marc-largent",
+          "org_title": "President",
+          "profile_picture": "/media/images/user-profile/49f8146657f34a4eaeaf86e2ee9dfdb6.jpeg"
+        },
+        {
+          "abbreviation": "DB",
+          "children": [],
+          "id": 944922,
+          "name": "David Butts",
+          "org_key": "david-butts",
+          "org_parent": "marc-largent",
+          "org_title": "Chairman of the Board",
+          "profile_picture": "/media/images/user-profile/8c11734a8789470a91ee81db84cf4004.jpeg"
+        }
+      ],
+      "id": 942369,
+      "name": "Marc Largent",
+      "org_key": "marc-largent",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/21d71c4980664e278fdda4a14fb76a83.jpeg"
+    }
+  ]
+}

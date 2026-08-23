@@ -167,13 +167,19 @@ const MAP_POINT_HOVER_SCALE = 2;
 const MAP_POINT_ZOOM_MIN = 1;
 const MAP_POINT_ZOOM_MAX = 10;
 const MAP_POINT_OPACITY = 0.78;
+const MAP_POINT_DIM_COLOR = "#c8c8c8";
+const MAP_POINT_DIM_OPACITY = 0.38;
 const MAP_REVEAL_DURATION_MS = 1500;
 const MAP_REVEAL_FADE_MS = 180;
 const MAP_POINT_FADE_MS = 280;
 const MAP_REVEAL_MIN_MILES = 14;
 const MAP_LOCATION_FILTER_RADIUS_MILES = 50;
 const RADIUS_FILTER_DEFAULTS = { min: 25, max: 1000, step: 25, value: 300 };
-const VIEW_SETTINGS_STORAGE_KEY = "cst.viewSettings.v1";
+// Keyed per data source: saved unit and contact ranges from one roster act as an
+// unwanted filter on the other.
+const VIEW_SETTINGS_STORAGE_KEY = window.cstDataSource === "dump"
+  ? "cst.viewSettings.v1.dump"
+  : "cst.viewSettings.v1";
 const PERSISTABLE_PANEL_MODES = new Set(["map", "org", "raw"]);
 
 function getOwnerContactCount(owner) {
@@ -293,6 +299,7 @@ let ownersMapRevealScheduleFrame = null;
 let ownersMapPendingRevealCollection = null;
 let ownersMapPendingPointTransition = "radial";
 let ownersMapPendingLocationFocus = null;
+let ownersMapRevealWhenTableEnters = null;
 let screenshotInProgress = false;
 let screenshotToastTimeout;
 let viewSettingsReadyToPersist = false;

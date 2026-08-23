@@ -70,11 +70,19 @@ async function captureSnapshots() {
     }
 
     const filePath = path.join(OUT_DIR, `${id}.jpg`);
-    await map.screenshot({
+    // Clip to the intended CSS size. Playwright can round a fractional
+    // bounding box up by 1px and capture the card background above the map.
+    await page.screenshot({
       path: filePath,
       type: "jpeg",
       quality: 88,
-      animations: "disabled"
+      animations: "disabled",
+      clip: {
+        x: Math.round(box.x),
+        y: Math.round(box.y),
+        width: SNAPSHOT_WIDTH,
+        height: SNAPSHOT_HEIGHT
+      }
     });
     written.push(path.relative(CST_DIR, filePath));
     console.log(`Wrote ${written[written.length - 1]}`);

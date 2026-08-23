@@ -8,7 +8,7 @@ window.targetsData = [
     added: 0,
     scope: "team",
     franchises: ["Planet Fitness", "Crunch Fitness", "Gold's Gym"],
-    dataSrc: "../cst/data/owners.js",
+    dataSrc: "../cst/data/default/owners.js",
     description: "Prospective fitness franchise owners with strong multi-unit potential across Colorado, Tennessee, and Arizona.",
     publishedBy: "Gregory Ugwi",
     publishedAt: "14 Jun 2026"

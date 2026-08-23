@@ -1940,8 +1940,15 @@ body.reduce-motion .save-lead-note {
   display: flex;
   align-items: center;
   gap: 14px;
+  color: inherit;
   font-size: var(--font-size-base);
   font-weight: 400;
+  text-decoration: none;
+}
+
+a.owner-detail-franchise:hover .owner-detail-franchise-name,
+a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
+  text-decoration: underline;
 }
 
 .owner-detail-franchises {
@@ -3486,12 +3493,12 @@ h1 {
 
 .table-heading {
   flex: 0 0 auto;
-  padding: 18px 14px;
+  padding: 18px 10px;
 }
 
 .table-heading__row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   margin: 0 0 18px;
 }
@@ -3507,6 +3514,52 @@ h1 {
   font-size: 26px;
   font-weight: 600;
   line-height: 1.2;
+}
+
+.cst-table-loading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 0;
+  padding: 48px 12px;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 240ms ease, visibility 240ms ease;
+}
+
+.cst-table-loading[hidden] {
+  display: none;
+}
+
+.cst-table-loading.is-hiding {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.cst-table-loading:not([hidden]) ~ .table-wrap {
+  display: none;
+}
+
+.cst-table-loading__spinner {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e4e4e4;
+  border-top-color: var(--color-text);
+  border-radius: 50%;
+  animation: map-pill-spin 720ms linear infinite;
+}
+
+.cst-table-loading__label {
+  margin: 0;
+  color: #ababab;
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: center;
 }
 
 .table-heading p {
@@ -3526,13 +3579,20 @@ h1 {
   text-decoration: underline;
   text-decoration-color: var(--color-border);
   text-underline-offset: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
   cursor: pointer;
   transition: color 100ms ease-in-out, text-decoration-color 160ms ease-in-out;
 }
 
-.table-heading-summary__value:hover {
+.table-heading-summary__value:hover,
+.table-heading-summary__value:focus-visible {
   color: #111;
   text-decoration-color: #ababab;
+}
+
+.table-heading-summary__value:focus-visible {
+  outline: none;
 }
 
 .table-heading__actions {
@@ -3663,6 +3723,7 @@ h1 {
   overflow-x: auto;
   overflow-y: auto;
   flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
   min-height: 0;
   position: relative;
@@ -3685,8 +3746,8 @@ h1 {
   opacity: 1;
   transform: translateX(0);
   transition:
-    opacity var(--table-enter-duration, 280ms) ease,
-    transform var(--table-enter-duration, 280ms) ease;
+    opacity var(--table-enter-duration, 340ms) ease,
+    transform var(--table-enter-duration, 340ms) ease;
   transition-delay: calc(var(--enter-index, 0) * var(--enter-stagger, 32ms));
 }
 
@@ -3747,15 +3808,25 @@ h1 {
 .table-wrap::-webkit-scrollbar { display: none; }
 
 table {
-  width: max(100%, 920px);
+  width: 100%;
+  min-width: 920px;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
 }
 
+.table-wrap > table {
+  min-width: max(100%, 920px);
+}
+
 .locations-table {
-  width: max(100%, 1604px);
+  width: 100%;
+  min-width: 1604px;
   background: #fff;
+}
+
+.table-wrap > table.locations-table {
+  min-width: max(100%, 1604px);
 }
 
 th {
@@ -3948,7 +4019,7 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .raw-data-table {
-  width: max(100%, 920px);
+  width: 100%;
   background: #fff;
 }
 
@@ -3966,9 +4037,9 @@ tbody tr.is-checked:hover td:first-child {
 .has-row-select td:first-child,
 .locations-table th:first-child,
 .locations-table td:first-child {
-  width: 64px !important;
-  padding-left: 14px;
-  padding-right: 14px;
+  width: 48px !important;
+  padding-left: 11px;
+  padding-right: 11px;
   text-align: center;
 }
 
@@ -4494,6 +4565,7 @@ tbody tr.is-checked:hover td:first-child {
 
 .owner-icon-link::after {
   content: attr(data-tooltip);
+  display: none;
   position: absolute;
   bottom: calc(100% + 6px);
   left: 50%;
@@ -4511,7 +4583,6 @@ tbody tr.is-checked:hover td:first-child {
   text-align: center;
   white-space: nowrap;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
   transform: translate(-50%, -6px);
   transition: opacity 140ms ease, transform 200ms ease;
@@ -4519,9 +4590,17 @@ tbody tr.is-checked:hover td:first-child {
 
 .owner-icon-link:hover::after,
 .owner-icon-link:focus-visible::after {
+  display: block;
   opacity: 1;
-  visibility: visible;
   transform: translate(-50%, 0);
+}
+
+@starting-style {
+  .owner-icon-link:hover::after,
+  .owner-icon-link:focus-visible::after {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
 }
 
 .icon {
@@ -4708,6 +4787,7 @@ tbody tr.is-checked:hover td:first-child {
 .contact-hide-results-action::after,
 .contact-add-lead-action::after {
   content: attr(data-tooltip);
+  display: none;
   position: absolute;
   bottom: calc(100% + 6px);
   left: 50%;
@@ -4725,7 +4805,6 @@ tbody tr.is-checked:hover td:first-child {
   text-align: center;
   white-space: nowrap;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
   transform: translate(-50%, -6px);
   transition: opacity 140ms ease, transform 200ms ease;
@@ -4790,9 +4869,19 @@ tbody tr.is-checked:hover td:first-child {
 .contact-hide-results-action:focus-visible::after,
 .contact-add-lead-action:hover::after,
 .contact-add-lead-action:focus-visible::after {
+  display: block;
   opacity: 1;
-  visibility: visible;
   transform: translate(-50%, 0);
+}
+
+@starting-style {
+  .contact-hide-results-action:hover::after,
+  .contact-hide-results-action:focus-visible::after,
+  .contact-add-lead-action:hover::after,
+  .contact-add-lead-action:focus-visible::after {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
 }
 
 .raw-name-cell .raw-name {
@@ -4894,8 +4983,14 @@ tbody tr.is-checked:hover td:first-child {
   font-size: var(--font-size-base);
   font-weight: 400;
   line-height: 1.3;
+  text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+a.franchise-name:hover,
+a.franchise-name:focus-visible {
+  text-decoration: underline;
 }
 
 .franchise-logo {
@@ -4905,7 +5000,9 @@ tbody tr.is-checked:hover td:first-child {
   width: 30px;
   height: 30px;
   border-radius: var(--radius-sm);
+  color: inherit;
   overflow: visible;
+  text-decoration: none;
 }
 
 .franchise-logo img {
@@ -4929,6 +5026,9 @@ tbody tr.is-checked:hover td:first-child {
 
 .franchise-logo::after {
   content: attr(data-tooltip);
+  /* Hidden with display: none, not visibility, so the tooltip box cannot widen
+     the scroll area of the table it sits in. */
+  display: none;
   position: absolute;
   bottom: calc(100% + 6px);
   left: 50%;
@@ -4946,7 +5046,6 @@ tbody tr.is-checked:hover td:first-child {
   text-align: center;
   white-space: nowrap;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
   transform: translate(-50%, -6px);
   transition: opacity 140ms ease, transform 200ms ease;
@@ -4954,9 +5053,17 @@ tbody tr.is-checked:hover td:first-child {
 
 .franchise-logo:hover::after,
 .franchise-logo:focus-visible::after {
+  display: block;
   opacity: 1;
-  visibility: visible;
   transform: translate(-50%, 0);
+}
+
+@starting-style {
+  .franchise-logo:hover::after,
+  .franchise-logo:focus-visible::after {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
 }
 
 .contacts-mode-cell {
@@ -5023,6 +5130,14 @@ tbody tr.is-checked:hover td:first-child {
     padding-right: 10px;
   }
 
+  .table-wrap > table:not(.raw-data-table).has-row-select th:first-child,
+  .table-wrap > table:not(.raw-data-table).has-row-select td:first-child,
+  .table-wrap > table:not(.raw-data-table).locations-table th:first-child,
+  .table-wrap > table:not(.raw-data-table).locations-table td:first-child {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
   .table-wrap > table:not(.raw-data-table) .th-content {
     min-width: 0;
     overflow: hidden;
@@ -5031,7 +5146,8 @@ tbody tr.is-checked:hover td:first-child {
   }
 
   .card.is-map-open .table-wrap > table:not(.raw-data-table) {
-    width: max(100%, 760px);
+    width: 100%;
+    min-width: max(100%, 760px);
   }
 
   .card.is-map-open .name-cell {
@@ -6153,9 +6269,21 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .cst-splash__saved-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
   width: 100%;
   padding-top: 24px;
   padding-bottom: 32px;
+}
+
+.cst-splash__saved-scroll:has(> .cst-splash__saved-empty:not([hidden])) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.cst-splash__saved-scroll:has(> .cst-splash__saved-empty:not([hidden])) .cst-splash__scope-stack {
+  display: none;
 }
 
 .cst-splash__scope-stack {
@@ -6182,8 +6310,11 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .cst-splash__saved-empty {
-  margin-top: 96px;
-  margin-inline: auto;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
   max-width: 600px;
   color: var(--color-text-muted);
   font-size: 20px;
@@ -6292,13 +6423,28 @@ tbody tr.is-checked:hover td:first-child {
 .cst-splash .target-map-img,
 .cst-splash .target-map-points {
   position: absolute;
-  inset: 0;
+  /* Overscan the clip box. Tiles land on a fractional Y, and overflow +
+     radius then antialiases a 1px light hairline across the top edge. */
+  top: -2px;
+  right: -2px;
+  bottom: -2px;
+  left: -2px;
   z-index: 0;
   display: block;
-  width: 100%;
-  height: 100%;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
   object-fit: cover;
   object-position: left center;
+}
+
+.cst-splash.is-snapshot-export .target-map-img,
+.cst-splash.is-snapshot-export .target-map-points {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .cst-splash .target-map-points {
@@ -6468,6 +6614,15 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cst-table-loading,
+  .cst-table-loading.is-hiding {
+    transition: none;
+  }
+
+  .cst-table-loading__spinner {
+    animation: none;
+  }
+
   .table-wrap.is-entering .table-wrap__enter-item,
   .table-wrap.is-entering.is-entering-active .table-wrap__enter-item {
     transition: none !important;

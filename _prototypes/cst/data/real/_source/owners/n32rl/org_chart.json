@@ -1,0 +1,40 @@
+{
+  "institution": {
+    "group_code": "Chunara Group of Companies",
+    "id": 19076,
+    "name": "Chunara Group of Companies",
+    "public_id": "n32rl"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "BH",
+      "children": [],
+      "id": 942353,
+      "name": "Beth Hilscher",
+      "org_key": "beth-hilscher",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "KC",
+      "children": [],
+      "id": 942335,
+      "name": "Kadirali Chunara",
+      "org_key": "kadirali-chunara",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "SC",
+      "children": [],
+      "id": 942352,
+      "name": "Shehzaan Chunara",
+      "org_key": "shehzaan-chunara",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

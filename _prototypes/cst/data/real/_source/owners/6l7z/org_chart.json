@@ -1,0 +1,51 @@
+{
+  "institution": {
+    "group_code": "SRG PLK OpCo, LLC.",
+    "id": 968,
+    "name": "SRG PLK OpCo, LLC.",
+    "public_id": "6l7z"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DD",
+      "children": [
+        {
+          "abbreviation": "JF",
+          "children": [],
+          "id": 921922,
+          "name": "John Fink",
+          "org_key": "johnfinkcpa",
+          "org_parent": "david-damato",
+          "org_title": "CFO",
+          "profile_picture": "/media/images/user-profile/21665203d1504c798834b71476b55438.jpeg"
+        },
+        {
+          "abbreviation": "JH",
+          "children": [],
+          "id": 921924,
+          "name": "Jordy Hill",
+          "org_key": "jordy-hill",
+          "org_parent": "david-damato",
+          "org_title": "Director of Information Technology",
+          "profile_picture": "/media/images/user-profile/ef13a75f5ac44702bd46ba51c5fb7218.jpeg"
+        },
+        {
+          "abbreviation": "KW",
+          "children": [],
+          "id": 921923,
+          "name": "Keith Wheaton",
+          "org_key": "keithwheaton",
+          "org_parent": "david-damato",
+          "org_title": "Vice President of Development",
+          "profile_picture": "/media/images/user-profile/382448b533b64b19b902a68dfd2b026c.jpeg"
+        }
+      ],
+      "id": 921921,
+      "name": "David Damato",
+      "org_key": "david-damato",
+      "org_parent": null,
+      "org_title": "Chairman",
+      "profile_picture": "/media/images/user-profile/97349b0949714dc2ac7881dc4125f6b2.jpeg"
+    }
+  ]
+}

@@ -532,11 +532,19 @@ function toCstSplashUnitRow(unit) {
     category: unit.category,
     color: unit.color,
     franchise: unit.franchise,
-    franchises: [unit.franchise],
+    // A unit can carry several brands, and unit.franchise is only their display
+    // form, so filtering has to read the list.
+    franchises: Array.isArray(unit.franchises) && unit.franchises.length
+      ? unit.franchises
+      : [unit.franchise].filter(Boolean),
     lat: unit.lat,
     lng: unit.lng,
     location: unit.label
   };
+}
+
+function getCstSplashContactCount(owners) {
+  return owners.reduce((total, owner) => total + getOwnerContactCount(owner), 0);
 }
 
 function getCstSplashMatches(filters) {
@@ -548,7 +556,7 @@ function getCstSplashMatches(filters) {
       .filter((row) => unitRowMatchesFilters(row));
 
     return {
-      contactCount: matchedOwners.reduce((total, owner) => total + getOwnerContactCount(owner), 0),
+      contactCount: getCstSplashContactCount(matchedOwners),
       ownerCount: matchedOwners.length,
       units: matchedUnits
     };
@@ -580,8 +588,8 @@ function getCstSplashTileMetric(savedSearch, matches) {
   }
 
   return {
-    label: "Prospects",
-    value: matches.ownerCount
+    label: "Contacts",
+    value: matches.contactCount ?? 0
   };
 }
 
@@ -617,32 +625,20 @@ function getCstSplashMatchCounts(filters, { needsUnitCount = true } = {}) {
     }
 
     return {
+      contactCount: getCstSplashContactCount(matchedOwners),
       ownerCount: matchedOwners.length,
       unitCount
     };
   });
 }
 
-function getStoredCstSplashMatchCounts(savedSearch) {
-  const ownerCount = Number(savedSearch.ownerCount);
-  if (!Number.isFinite(ownerCount)) return null;
-
-  return {
-    ownerCount,
-    unitCount: Number.isFinite(Number(savedSearch.unitCount)) ? Number(savedSearch.unitCount) : 0
-  };
-}
-
+// Counts are always recomputed from the loaded roster. A saved search stores the
+// figures it was created with, but those describe whichever roster was loaded at
+// the time and become wrong the moment the data behind them changes.
 function getCachedCstSplashMatchCounts(savedSearch) {
   const cacheKey = savedSearch.id;
   const cached = cstSplashMatchCountCache.get(cacheKey);
   if (cached) return cached;
-
-  const stored = getStoredCstSplashMatchCounts(savedSearch);
-  if (stored) {
-    cstSplashMatchCountCache.set(cacheKey, stored);
-    return stored;
-  }
 
   const matches = getCstSplashMatchCounts(savedSearch.filters || {}, {
     needsUnitCount: savedSearch.view === "locations"
@@ -786,9 +782,11 @@ function renderCstSplashGenerateTiles() {
   getCstSplashSavedSearches().forEach((savedSearch) => {
     const tileData = withCstSplashFilterScope(savedSearch.filters || {}, () => {
       const points = getCstSplashMapPoints();
+      const matchedOwners = getFilteredFranchisees();
       return {
         metric: getCstSplashTileMetric(savedSearch, {
-          ownerCount: getFilteredFranchisees().length,
+          contactCount: getCstSplashContactCount(matchedOwners),
+          ownerCount: matchedOwners.length,
           unitCount: points.length,
           units: points
         }),
@@ -1150,19 +1148,6 @@ function expandCstFilterSectionOnly(sectionKey) {
   }
 }
 
-function syncCstSplashToolbarSearch() {
-  if (!toolbarSearchInput) return;
-
-  toolbarSearchInput.value = searchQuery;
-  toolbarSearchInput
-    .closest(".toolbar-search-btn")
-    ?.classList.toggle("is-active-search", Boolean(searchQuery));
-
-  if (toolbarSearchClear) {
-    toolbarSearchClear.hidden = !searchQuery;
-  }
-}
-
 function applyCstSplashQuery(filters = {}, { view = "franchisees" } = {}) {
   view = normalizeTableView(view);
   resetCstFilterSelections({ refresh: false });
@@ -1190,17 +1175,13 @@ function applyCstSplashQuery(filters = {}, { view = "franchisees" } = {}) {
   syncNetWorthFilterControls();
   setFranchiseeRatingMin(selectedFranchiseeRatingMin);
   syncRadiusFilterControls();
-  syncCstSplashToolbarSearch();
+  syncToolbarSearchInput();
   expandCstSplashFilterSections();
 
   if (view !== currentTableView) {
     setMainTableView(view);
-    syncMapLocationFilter();
-  } else {
-    refreshFilteredViews();
   }
-
-  refitOpenMapToVisibleLocations();
+  refreshFilteredViews();
   syncOpenOrgPanelWithSelection();
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });
 }
@@ -1422,6 +1403,7 @@ function showCstSplash({ animate = false } = {}) {
   if (!splash) return;
 
   cstSplashSearchController?.reset();
+  hideCstTableLoading?.({ immediate: true });
   cancelCstTableEnterAnimation?.();
   card?.classList.remove("is-splash-hiding-workspace");
   syncCstSplashMapPanelForSplash(true);
@@ -1433,6 +1415,7 @@ function showCstSplash({ animate = false } = {}) {
   splash.hidden = false;
   splash.classList.remove("is-leaving", "is-entering", "is-entering-active", "is-preparing-enter");
   syncCstSplashToolbarViewState();
+  persistViewSettings();
 
   if (animate) {
     playCstSplashEnterAnimation(splash);
@@ -1444,7 +1427,7 @@ function showCstSplash({ animate = false } = {}) {
 
 function revealCstSplashWorkspace() {
   card?.classList.remove("is-splash-hiding-workspace");
-  scheduleCstTableEnterAnimation?.();
+  tryStartCstMatchedReveal?.();
 }
 
 function dismissCstSplash({ refresh = true } = {}) {
@@ -1457,7 +1440,8 @@ function dismissCstSplash({ refresh = true } = {}) {
   setFilterPanelOpen(true);
   syncCstSplashMapPanelForSplash(false);
   syncToolbarViewState();
-  markCstTableEnterPending?.();
+  beginCstResultsLoading?.();
+  persistViewSettings();
 
   if (!splash || splash.hidden) {
     revealCstSplashWorkspace();
@@ -1495,6 +1479,7 @@ function hideCstSplashImmediately() {
   cancelCstTableEnterAnimation?.();
   setCstSplashWorkspaceInert(false);
   syncToolbarViewState();
+  persistViewSettings();
 
   if (!splash) return;
 
@@ -2092,10 +2077,13 @@ function initCstSplash() {
     return;
   }
 
+  // A saved search addressed in the URL is an explicit request for that query,
+  // so it outranks whatever the stored session was looking at. Read it before
+  // restoring, which writes the active search back into the URL.
+  const hasUrlSavedSearch = Boolean(getCstSavedSearchUrlState());
   restoreCstSavedSearchSession();
 
-  // A restored session already has a query applied, so skip the start screen.
-  if (getAppliedFilterCount() > 0) {
+  if (hasUrlSavedSearch || !shouldOpenCstSplashOnLoad()) {
     hideCstSplashImmediately();
     return;
   }

@@ -1,0 +1,41 @@
+{
+  "institution": {
+    "group_code": "Koning Restaurants International",
+    "id": 17956,
+    "name": "Koning Restaurants International",
+    "public_id": "rl4oo"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "AS",
+      "children": [
+        {
+          "abbreviation": "AP",
+          "children": [],
+          "id": 939858,
+          "name": "Agustin Pacheco",
+          "org_key": "agustin-pacheco",
+          "org_parent": "al-salas",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "WR",
+          "children": [],
+          "id": 939857,
+          "name": "Walter Rios",
+          "org_key": "walter-rios",
+          "org_parent": "al-salas",
+          "org_title": "",
+          "profile_picture": null
+        }
+      ],
+      "id": 939856,
+      "name": "Alfredo (Al) Salas",
+      "org_key": "al-salas",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

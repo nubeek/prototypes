@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Chenega Corporation",
+    "id": 25075,
+    "name": "Chenega Corporation",
+    "public_id": "llokq"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "CT",
+      "children": [],
+      "id": 963091,
+      "name": "Charles W. Totemoff",
+      "org_key": "charles-w-totemoff",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": null
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "L5 FITNESS",
+    "id": 6897,
+    "name": "L5 FITNESS",
+    "public_id": "k0q4"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "EG",
+      "children": [
+        {
+          "abbreviation": "KW",
+          "children": [],
+          "id": 950347,
+          "name": "Kendall Williamson",
+          "org_key": "kendalljwilliamson",
+          "org_parent": "eric-goetsch",
+          "org_title": "Vice President Finance",
+          "profile_picture": "/media/images/user-profile/39a635c7ea034341b3577156f1c892be.jpeg"
+        }
+      ],
+      "id": 950346,
+      "name": "Eric Goetsch",
+      "org_key": "eric-goetsch",
+      "org_parent": null,
+      "org_title": "Brand President",
+      "profile_picture": "/media/images/user-profile/31526c0a49a944c7b9939a5718d4efef.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "institution": {
+    "group_code": "B & G Food Enterprises, LLC",
+    "id": 23959,
+    "name": "B & G Food Enterprises, LLC",
+    "public_id": "w1m46"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "BH",
+      "children": [],
+      "id": 953627,
+      "name": "Brenda Hamer",
+      "org_key": "brenda-hamer",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "GH",
+      "children": [],
+      "id": 953626,
+      "name": "Gregory Hamer",
+      "org_key": "gregory-hamer",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/41472a5a3ffd4aa486836e7820aff5df.jpeg"
+    },
+    {
+      "abbreviation": "GJ",
+      "children": [],
+      "id": 953628,
+      "name": "Gregory J. Hamer, Jr.",
+      "org_key": "gregory-j-hamer-jr",
+      "org_parent": null,
+      "org_title": "Executive Vice President of Admin",
+      "profile_picture": "/media/images/user-profile/7ef05a91808e4913ab6dd9d681545111.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Schuck, David",
+    "id": 21979,
+    "name": "Schuck, David",
+    "public_id": "prqpx"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DS",
+      "children": [],
+      "id": 949127,
+      "name": "David Schuck",
+      "org_key": "david-schuck",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

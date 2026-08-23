@@ -1,0 +1,174 @@
+{
+  "institution": {
+    "group_code": "G0237-ARGONNE",
+    "id": 3,
+    "name": "Argonne Capital",
+    "public_id": "emve"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MK",
+      "children": [
+        {
+          "abbreviation": "DS",
+          "children": [
+            {
+              "abbreviation": "MB",
+              "children": [],
+              "id": 964795,
+              "name": "Mo Bazian",
+              "org_key": "mo-bazian",
+              "org_parent": "douglaseshaw",
+              "org_title": "",
+              "profile_picture": null
+            }
+          ],
+          "id": 964794,
+          "name": "Doug Shaw",
+          "org_key": "douglaseshaw",
+          "org_parent": "michael-klump",
+          "org_title": "CFO - Summit Restaurant Group",
+          "profile_picture": "/media/images/user-profile/48c638c49e4f4ee0b4cd09ce28f9c07f.jpeg"
+        },
+        {
+          "abbreviation": "KJ",
+          "children": [
+            {
+              "abbreviation": "BW",
+              "children": [
+                {
+                  "abbreviation": "BG",
+                  "children": [],
+                  "id": 871215,
+                  "name": "Ben Ghriskey",
+                  "org_key": "ben-ghriskey",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Managing Director, Head of Business Development",
+                  "profile_picture": "/media/images/user-profile/58fc5bc4a38c474caba5e36a64240c42.jpeg"
+                },
+                {
+                  "abbreviation": "BN",
+                  "children": [],
+                  "id": 871222,
+                  "name": "Ben Nemo",
+                  "org_key": "ben-nemo",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Operating Partner",
+                  "profile_picture": "/media/images/user-profile/27adccac6de041f58909432ffbb0fd12.jpeg"
+                },
+                {
+                  "abbreviation": "CA",
+                  "children": [],
+                  "id": 871224,
+                  "name": "Cindy Andersen",
+                  "org_key": "cindy-andersen",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Controller",
+                  "profile_picture": "/media/images/user-profile/a972b914aa534555b5b482423f35ea9e.jpeg"
+                },
+                {
+                  "abbreviation": "DF",
+                  "children": [],
+                  "id": 871220,
+                  "name": "Drew Frank",
+                  "org_key": "drew-frank",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Associate",
+                  "profile_picture": "/media/images/user-profile/8171cb8689b2466cb242b0ad5a00b3ea.jpeg"
+                },
+                {
+                  "abbreviation": "GW",
+                  "children": [],
+                  "id": 871217,
+                  "name": "Gordon Wyche",
+                  "org_key": "gordon-wyche",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Vice President",
+                  "profile_picture": "/media/images/user-profile/8e8b46c7dbe049b29c0eab00a25404a2.jpeg"
+                },
+                {
+                  "abbreviation": "KB",
+                  "children": [],
+                  "id": 871221,
+                  "name": "Kelly C. Baltes",
+                  "org_key": "kelly-c-baltes",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Senior Operating Partner",
+                  "profile_picture": "/media/images/user-profile/2700f7b5277e4995be22662fda3fd105.jpeg"
+                },
+                {
+                  "abbreviation": "LB",
+                  "children": [],
+                  "id": 871219,
+                  "name": "Lawrence Bowers",
+                  "org_key": "lawrencebowers",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Senior Associate",
+                  "profile_picture": "/media/images/user-profile/7ca0cf2ae8e54fcc8aa2687d4c88c38c.jpeg"
+                },
+                {
+                  "abbreviation": "LH",
+                  "children": [],
+                  "id": 871225,
+                  "name": "Lyssa Hoganson",
+                  "org_key": "lyssa-hoganson",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Accounting and Administrative Assistant",
+                  "profile_picture": "/media/images/user-profile/9c121dfc2ce7473b810454978e25c30f.jpeg"
+                },
+                {
+                  "abbreviation": "MW",
+                  "children": [],
+                  "id": 871223,
+                  "name": "Mike Wood",
+                  "org_key": "mike-wood",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Operating Partner",
+                  "profile_picture": "/media/images/user-profile/8ba3011b25ac4d8db6966584d89760a9.jpeg"
+                },
+                {
+                  "abbreviation": "MB",
+                  "children": [],
+                  "id": 871218,
+                  "name": "Mitchell Brister",
+                  "org_key": "mitchell-brister",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Vice President",
+                  "profile_picture": "/media/images/user-profile/6f9219ed84e041f1a81b19d61bacba01.jpeg"
+                },
+                {
+                  "abbreviation": "PA",
+                  "children": [],
+                  "id": 871216,
+                  "name": "Patrick Anderson",
+                  "org_key": "patrick-anderson",
+                  "org_parent": "bill-weimar",
+                  "org_title": "Senior Vice President",
+                  "profile_picture": "/media/images/user-profile/ef938a24b6c84b54b3838a247fdc068a.jpeg"
+                }
+              ],
+              "id": 871214,
+              "name": "Bill Weimar",
+              "org_key": "bill-weimar",
+              "org_parent": "karl-jaeger",
+              "org_title": "President",
+              "profile_picture": "/media/images/user-profile/55ef6c1c72ef4315b46c3af788bc809f.jpeg"
+            }
+          ],
+          "id": 871213,
+          "name": "Karl F. Jaeger",
+          "org_key": "karl-jaeger",
+          "org_parent": "michael-klump",
+          "org_title": "Vice Chairman",
+          "profile_picture": "/media/images/user-profile/b14de1811d374682b5e7189320f78ef8.jpeg"
+        }
+      ],
+      "id": 871212,
+      "name": "Michael A. Klump",
+      "org_key": "michael-klump",
+      "org_parent": null,
+      "org_title": "Founder and Chairman",
+      "profile_picture": "/media/images/user-profile/8dd89ae19fcd4ca48bb510e60c330c00.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "institution": {
+    "group_code": "PG1 Restaurants",
+    "id": 32167,
+    "name": "PG1 Restaurants",
+    "public_id": "4jvnx"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MG",
+      "children": [
+        {
+          "abbreviation": "CB",
+          "children": [],
+          "id": 971180,
+          "name": "Cliff Brown",
+          "org_key": "cliff-brown",
+          "org_parent": "mookie-golden",
+          "org_title": "Founder/ President",
+          "profile_picture": "/media/images/user-profile/adc90d1cd650421c8e80a19db6f26571.jpeg"
+        }
+      ],
+      "id": 971179,
+      "name": "Mookie Golden",
+      "org_key": "mookie-golden",
+      "org_parent": null,
+      "org_title": "Founder / CEO",
+      "profile_picture": "/media/images/user-profile/935a812bf72242679a90d744b9d9d12e.jpeg"
+    },
+    {
+      "abbreviation": "AC",
+      "children": [],
+      "id": 914902,
+      "name": "Andy Curde",
+      "org_key": "andy-curde",
+      "org_parent": null,
+      "org_title": "Franchisee",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "CD",
+      "children": [],
+      "id": 914785,
+      "name": "Chris Daniels",
+      "org_key": "chris-daniels",
+      "org_parent": null,
+      "org_title": "Franchisee",
+      "profile_picture": "/media/images/user-profile/ff1843d3153a4a5996487bf19289f855.jpeg"
+    },
+    {
+      "abbreviation": "WP",
+      "children": [],
+      "id": 914814,
+      "name": "William G. Pannill",
+      "org_key": "william-g.-pannill",
+      "org_parent": null,
+      "org_title": "Franchisee",
+      "profile_picture": null
+    }
+  ]
+}

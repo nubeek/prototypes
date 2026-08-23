@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "International Restaurant Management Group",
+    "id": 4690,
+    "name": "International Restaurant Management Group",
+    "public_id": "4z27"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "HY",
+      "children": [
+        {
+          "abbreviation": "EC",
+          "children": [],
+          "id": 921944,
+          "name": "emma choy",
+          "org_key": "emma-choy",
+          "org_parent": "hoi-sang-kelly-yeung",
+          "org_title": "Director of Franchising",
+          "profile_picture": null
+        }
+      ],
+      "id": 921943,
+      "name": "Hoi Sang \u201cKelly\u201d Yeung",
+      "org_key": "hoi-sang-kelly-yeung",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

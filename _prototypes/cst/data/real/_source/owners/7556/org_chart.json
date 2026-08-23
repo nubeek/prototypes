@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "MDC Restaurants, LLC",
+    "id": 9621,
+    "name": "MDC Restaurants, LLC",
+    "public_id": "7556"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "VE",
+      "children": [],
+      "id": 138679,
+      "name": "Vincent F Eupierre",
+      "org_key": "vincent-f-eupierre",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

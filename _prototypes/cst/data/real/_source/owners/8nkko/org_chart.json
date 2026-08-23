@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "SSCP Management",
+    "id": 27671,
+    "name": "SSCP Management",
+    "public_id": "8nkko"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "SD",
+      "children": [],
+      "id": 965080,
+      "name": "Sunil Dharod",
+      "org_key": "sunil-dharod",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

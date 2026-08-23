@@ -1,0 +1,412 @@
+{
+  "institution": {
+    "group_code": "GPS Hospitality",
+    "id": 955,
+    "name": "GPS Hospitality",
+    "public_id": "qxjw"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "TG",
+      "children": [
+        {
+          "abbreviation": "ML",
+          "children": [
+            {
+              "abbreviation": "AM",
+              "children": [],
+              "id": 871920,
+              "name": "Amelia McDonald",
+              "org_key": "amelia-mcDonald",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Administration",
+              "profile_picture": "/media/images/user-profile/c9ecae3d428e4599b704e7309d9fd340.jpeg"
+            },
+            {
+              "abbreviation": "AO",
+              "children": [],
+              "id": 871922,
+              "name": "Angie Occhipinti",
+              "org_key": "angieocchipinti",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Development",
+              "profile_picture": "/media/images/user-profile/810dd9e80f2747e49985fa257288a618.jpeg"
+            },
+            {
+              "abbreviation": "BF",
+              "children": [],
+              "id": 871899,
+              "name": "Beth Fisher",
+              "org_key": "beth-fisher",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/49452ff16c2b43dc945f2c32e4b4bff0.jpeg"
+            },
+            {
+              "abbreviation": "BG",
+              "children": [],
+              "id": 871900,
+              "name": "Bobby Garner",
+              "org_key": "bobby-garner",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/1f6d517329f34591acb79eeefe298ef5.jpeg"
+            },
+            {
+              "abbreviation": "BA",
+              "children": [],
+              "id": 871887,
+              "name": "Brian Arnold",
+              "org_key": "brian-arnold",
+              "org_parent": "michael-lippert",
+              "org_title": "Chief Development Officer",
+              "profile_picture": "/media/images/user-profile/8d041643092841ad8134ac9139dc285c.jpeg"
+            },
+            {
+              "abbreviation": "BR",
+              "children": [],
+              "id": 871923,
+              "name": "Bryan Rohr",
+              "org_key": "bryan-rohr",
+              "org_parent": "michael-lippert",
+              "org_title": "Controller",
+              "profile_picture": "/media/images/user-profile/b9021c23a7a547ac88d4ad23440a2fe4.jpeg"
+            },
+            {
+              "abbreviation": "CG",
+              "children": [],
+              "id": 871891,
+              "name": "Carmen Gianguzzo",
+              "org_key": "carmen-gianguzzo",
+              "org_parent": "michael-lippert",
+              "org_title": "Vice President of Operations",
+              "profile_picture": "/media/images/user-profile/afdd1f61f08f4d4f895374ea7708e24e.jpeg"
+            },
+            {
+              "abbreviation": "CB",
+              "children": [],
+              "id": 871896,
+              "name": "Chantell Bernard",
+              "org_key": "chantell-bernard",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/c16c7a182bc34a4888ca945b63680160.jpeg"
+            },
+            {
+              "abbreviation": "CC",
+              "children": [],
+              "id": 871898,
+              "name": "Charles Colbert",
+              "org_key": "charles-colbert",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/c754076d939944d7b624937de8fd015f.jpeg"
+            },
+            {
+              "abbreviation": "CW",
+              "children": [],
+              "id": 871924,
+              "name": "Christy Wasdin",
+              "org_key": "christy-wasdin",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Payroll & HRIS",
+              "profile_picture": "/media/images/user-profile/7d9ff8fd31f1490fa2b479a130d19f13.jpeg"
+            },
+            {
+              "abbreviation": "EB",
+              "children": [],
+              "id": 871897,
+              "name": "Elizabeth Boggs",
+              "org_key": "elizabeth-boggs",
+              "org_parent": "michael-lippert",
+              "org_title": "District Manager",
+              "profile_picture": "/media/images/user-profile/1e15fb5528344a0291d0ba8d7c7ecd15.jpeg"
+            },
+            {
+              "abbreviation": "GT",
+              "children": [],
+              "id": 871893,
+              "name": "Gary Thomas",
+              "org_key": "garyjthomas",
+              "org_parent": "michael-lippert",
+              "org_title": "Vice President of Operations Support",
+              "profile_picture": "/media/images/user-profile/0d41be2bcd684a4d9d2849194acbf6c1.jpeg"
+            },
+            {
+              "abbreviation": "GC",
+              "children": [],
+              "id": 871912,
+              "name": "Greg Comer",
+              "org_key": "greg-comer",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations Support & Training, Popeyes",
+              "profile_picture": "/media/images/user-profile/57dfb55395b7403fbe5b868df721961f.jpeg"
+            },
+            {
+              "abbreviation": "JF",
+              "children": [],
+              "id": 871915,
+              "name": "Jen Forbes",
+              "org_key": "jen-forbes",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Leadership Development & Culture",
+              "profile_picture": "/media/images/user-profile/c93dc015c56e432aba9600dd066af64c.jpeg"
+            },
+            {
+              "abbreviation": "JS",
+              "children": [],
+              "id": 871905,
+              "name": "Jessica Sommerfeldt",
+              "org_key": "jess-sommerfeldt",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/442cb4c8494a40ce93c893bf7ec9386d.jpeg"
+            },
+            {
+              "abbreviation": "JB",
+              "children": [],
+              "id": 871910,
+              "name": "Jim Barlow",
+              "org_key": "jim-barlow",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of IT",
+              "profile_picture": "/media/images/user-profile/6051de79d262435aaedb09a1bb00d9b6.jpeg"
+            },
+            {
+              "abbreviation": "JW",
+              "children": [],
+              "id": 871894,
+              "name": "Joe Waller",
+              "org_key": "joe-waller",
+              "org_parent": "michael-lippert",
+              "org_title": "Vice President of Operations",
+              "profile_picture": "/media/images/user-profile/51a9d8e96921445e8d9bcc9a878e00c1.jpeg"
+            },
+            {
+              "abbreviation": "JH",
+              "children": [],
+              "id": 871917,
+              "name": "Julie Henshaw",
+              "org_key": "julie-henshaw",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of of Licensing & Contracts",
+              "profile_picture": "/media/images/user-profile/d72004f11fcc4ba68e951790445366ef.jpeg"
+            },
+            {
+              "abbreviation": "KR",
+              "children": [],
+              "id": 871904,
+              "name": "Kevin Ray",
+              "org_key": "kevin-ray",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/252b550c192f4c7e8f31824d09a03577.jpeg"
+            },
+            {
+              "abbreviation": "LG",
+              "children": [],
+              "id": 871916,
+              "name": "Lisa Grier",
+              "org_key": "lisa-grier",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Communications",
+              "profile_picture": "/media/images/user-profile/07df8c701fc04ac29501d36c62132dd8.jpeg"
+            },
+            {
+              "abbreviation": "MK",
+              "children": [],
+              "id": 871888,
+              "name": "Mike Kovac",
+              "org_key": "mikekovac1",
+              "org_parent": "michael-lippert",
+              "org_title": "COO, Pizza Hut Division",
+              "profile_picture": "/media/images/user-profile/96e00689622d46bfb1755ddc2691707d.jpeg"
+            },
+            {
+              "abbreviation": "NM",
+              "children": [],
+              "id": 871903,
+              "name": "Nick Myhre",
+              "org_key": "nick-myhre",
+              "org_parent": "michael-lippert",
+              "org_title": "Region Vice President",
+              "profile_picture": "/media/images/user-profile/6f703b6601f64c408b8b43b4992ce902.jpeg"
+            },
+            {
+              "abbreviation": "RN",
+              "children": [],
+              "id": 871921,
+              "name": "Reid Neumann",
+              "org_key": "reid-neumann",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Marketing",
+              "profile_picture": "/media/images/user-profile/737e235d67a74ab6a376daf40033cd78.jpeg"
+            },
+            {
+              "abbreviation": "RW",
+              "children": [],
+              "id": 871909,
+              "name": "Roger Wood",
+              "org_key": "roger-wood",
+              "org_parent": "michael-lippert",
+              "org_title": "Region Vice President",
+              "profile_picture": "/media/images/user-profile/9c5c051f0dac4450bbd4723f15037952.jpeg"
+            },
+            {
+              "abbreviation": "SD",
+              "children": [],
+              "id": 871914,
+              "name": "Sally Detter",
+              "org_key": "sdetter",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Risk Management",
+              "profile_picture": "/media/images/user-profile/039a72cc73cd46af88603ff6ec368650.jpeg"
+            },
+            {
+              "abbreviation": "SJ",
+              "children": [],
+              "id": 871886,
+              "name": "Scott Jasinski",
+              "org_key": "scott-jasinski",
+              "org_parent": "michael-lippert",
+              "org_title": "Chief Financial Officer",
+              "profile_picture": "/media/images/user-profile/2c37f5df63ee4193847fd24567c21cdf.jpeg"
+            },
+            {
+              "abbreviation": "SW",
+              "children": [],
+              "id": 871907,
+              "name": "Sheila Washington",
+              "org_key": "sheila-washington",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/de530c2f050042248f452929d654388b.jpeg"
+            },
+            {
+              "abbreviation": "SM",
+              "children": [],
+              "id": 871902,
+              "name": "Shelly McKinnon",
+              "org_key": "shelly-mcKinnon",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/1959c3f3b234435498c0b3d0ea1b093e.jpeg"
+            },
+            {
+              "abbreviation": "SS",
+              "children": [],
+              "id": 871892,
+              "name": "Stephanie Skidmore",
+              "org_key": "skidmore-stephanie",
+              "org_parent": "michael-lippert",
+              "org_title": "VP of Legal",
+              "profile_picture": "/media/images/user-profile/9f5ee02e55724b98aa71d4ed0784c4f1.jpeg"
+            },
+            {
+              "abbreviation": "TH",
+              "children": [],
+              "id": 871918,
+              "name": "Tiffany Howard",
+              "org_key": "tiffany-howard",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Benefits",
+              "profile_picture": "/media/images/user-profile/500b3b8348404b5ebbac23be2542f9af.jpeg"
+            },
+            {
+              "abbreviation": "TB",
+              "children": [],
+              "id": 871889,
+              "name": "Todd Bennett",
+              "org_key": "todd-b",
+              "org_parent": "michael-lippert",
+              "org_title": "Vice President, Financial Planning & Analysis",
+              "profile_picture": "/media/images/user-profile/eed702c1540644b99019da05b329baa0.jpeg"
+            },
+            {
+              "abbreviation": "TJ",
+              "children": [],
+              "id": 871919,
+              "name": "Todd Jackson",
+              "org_key": "jacksontoddj",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Real Estate",
+              "profile_picture": "/media/images/user-profile/4ec11f2a4ef147dbb56f21d7a18531d1.jpeg"
+            },
+            {
+              "abbreviation": "TB",
+              "children": [],
+              "id": 871911,
+              "name": "Tom Bradley",
+              "org_key": "tom-bradley",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Lease Administration",
+              "profile_picture": "/media/images/user-profile/6865fba84e734f5abd5a3c5c1da56274.jpeg"
+            },
+            {
+              "abbreviation": "TW",
+              "children": [],
+              "id": 871908,
+              "name": "Tom Wilson",
+              "org_key": "tom-wilson",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/6946241cb25f430098e9068dccdd6f19.jpeg"
+            },
+            {
+              "abbreviation": "TF",
+              "children": [],
+              "id": 871890,
+              "name": "Trish Farley",
+              "org_key": "trish-farley",
+              "org_parent": "michael-lippert",
+              "org_title": "Senior Vice President of Finance",
+              "profile_picture": "/media/images/user-profile/e39718a934e243d8a393f06bf3ce68d0.jpeg"
+            },
+            {
+              "abbreviation": "TT",
+              "children": [],
+              "id": 871906,
+              "name": "Troy Theriot",
+              "org_key": "troy-theriot",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/0cb2f00f6fdb4482a72f99ab311f1539.jpeg"
+            },
+            {
+              "abbreviation": "VV",
+              "children": [],
+              "id": 871895,
+              "name": "Vickie Volan",
+              "org_key": "vickievolan",
+              "org_parent": "michael-lippert",
+              "org_title": "Vice President of Human Resources",
+              "profile_picture": "/media/images/user-profile/c91972530d0f4663872ce764f4a0832b.jpeg"
+            },
+            {
+              "abbreviation": "WJ",
+              "children": [],
+              "id": 871901,
+              "name": "Wendell Jones",
+              "org_key": "wendell-jones",
+              "org_parent": "michael-lippert",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/bc99b80695f44c45ad00b35428f5ed19.jpeg"
+            }
+          ],
+          "id": 871885,
+          "name": "Michael Lippert",
+          "org_key": "michael-lippert",
+          "org_parent": "tom-garrett",
+          "org_title": "President",
+          "profile_picture": "/media/images/user-profile/563f66da4a9847a7b4ef0232d53f4b12.jpeg"
+        }
+      ],
+      "id": 871884,
+      "name": "Tom Garrett",
+      "org_key": "tom-garrett",
+      "org_parent": null,
+      "org_title": "Chief Executive Officer & Founder",
+      "profile_picture": "/media/images/user-profile/120844ad892e40ffb074ea2c622367ea.jpeg"
+    }
+  ]
+}

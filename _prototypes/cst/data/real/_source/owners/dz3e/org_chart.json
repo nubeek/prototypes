@@ -1,0 +1,191 @@
+{
+  "institution": {
+    "group_code": "G0259-SBJ",
+    "id": 13,
+    "name": "SBJ",
+    "public_id": "dz3e"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GS",
+      "children": [
+        {
+          "abbreviation": "AB",
+          "children": [],
+          "id": 871782,
+          "name": "Alex Brigino",
+          "org_key": "alex-brigino",
+          "org_parent": "gus-spanos",
+          "org_title": "Associate",
+          "profile_picture": "/media/images/user-profile/4a94b72ba50e4fcb9c35a9245792a142.jpeg"
+        },
+        {
+          "abbreviation": "BL",
+          "children": [],
+          "id": 871789,
+          "name": "Ben Landis",
+          "org_key": "benjamin-landis",
+          "org_parent": "gus-spanos",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/91bd822ff9094568948696897bfceebb.jpeg"
+        },
+        {
+          "abbreviation": "BS",
+          "children": [],
+          "id": 871795,
+          "name": "Bhairvee Shavdia",
+          "org_key": "shavdia",
+          "org_parent": "gus-spanos",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/b1663a9296e34f76ae0d4f5ee1abbdfd.jpeg"
+        },
+        {
+          "abbreviation": "BJ",
+          "children": [],
+          "id": 871788,
+          "name": "Bill Jesse",
+          "org_key": "bill-jesse",
+          "org_parent": "gus-spanos",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/b1641d02faa443bc9ca5e8eb0a26a47f.jpeg"
+        },
+        {
+          "abbreviation": "CW",
+          "children": [],
+          "id": 871796,
+          "name": "Christian Ward",
+          "org_key": "christian-ward-cpa",
+          "org_parent": "gus-spanos",
+          "org_title": "Chief Financial Officer & Chief Compliance Officer",
+          "profile_picture": "/media/images/user-profile/ebbb3677a32546888de943ec7d4bb4fe.jpeg"
+        },
+        {
+          "abbreviation": "ER",
+          "children": [],
+          "id": 871793,
+          "name": "Erin Reger",
+          "org_key": "erin-reger",
+          "org_parent": "gus-spanos",
+          "org_title": "Senior Associate",
+          "profile_picture": "/media/images/user-profile/ac93494b999244e7a1232f29ae75e734.jpeg"
+        },
+        {
+          "abbreviation": "JL",
+          "children": [],
+          "id": 871790,
+          "name": "Jennifer Lin",
+          "org_key": "jennifer-lin",
+          "org_parent": "gus-spanos",
+          "org_title": "Controller",
+          "profile_picture": "/media/images/user-profile/76b3aca84e8a4363bc28b831fdcb0d8d.jpeg"
+        },
+        {
+          "abbreviation": "JS",
+          "children": [],
+          "id": 871794,
+          "name": "Joe Scudiero",
+          "org_key": "joseph-scudiero",
+          "org_parent": "gus-spanos",
+          "org_title": "Vice President",
+          "profile_picture": "/media/images/user-profile/0df02179126a4ac08fc70feba37611bc.jpeg"
+        },
+        {
+          "abbreviation": "JD",
+          "children": [],
+          "id": 871785,
+          "name": "John Dahlgren",
+          "org_key": "dahlgrenjohn",
+          "org_parent": "gus-spanos",
+          "org_title": "Vice President, Talent",
+          "profile_picture": "/media/images/user-profile/ea15074f4a8248c78c34a1ac2e60ce9a.jpeg"
+        },
+        {
+          "abbreviation": "KW",
+          "children": [],
+          "id": 871797,
+          "name": "Katelyn Wood",
+          "org_key": "katelyn-wood",
+          "org_parent": "gus-spanos",
+          "org_title": "Operations Manager",
+          "profile_picture": "/media/images/user-profile/fe259e8983ff4fe5953d1fa3549fbcb6.jpeg"
+        },
+        {
+          "abbreviation": "MC",
+          "children": [],
+          "id": 871784,
+          "name": "Matt Cole",
+          "org_key": "matt-cole",
+          "org_parent": "gus-spanos",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/7b275d69f37644fd9711e24b690d280e.jpeg"
+        },
+        {
+          "abbreviation": "NF",
+          "children": [],
+          "id": 871786,
+          "name": "Nicola Forman",
+          "org_key": "nicola-beaumont-forman",
+          "org_parent": "gus-spanos",
+          "org_title": "Vice President, Growth Strategy",
+          "profile_picture": "/media/images/user-profile/56c723c2fda94f1190543dc71791e8b1.jpeg"
+        },
+        {
+          "abbreviation": "NL",
+          "children": [],
+          "id": 871791,
+          "name": "Nicolas Lopez",
+          "org_key": "nicolaslopez",
+          "org_parent": "gus-spanos",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/e60149329b334f749cc2c539ed57ec49.jpeg"
+        },
+        {
+          "abbreviation": "PM",
+          "children": [],
+          "id": 871792,
+          "name": "Patrick Muller",
+          "org_key": "patrick-m",
+          "org_parent": "gus-spanos",
+          "org_title": "Principal",
+          "profile_picture": "/media/images/user-profile/28e36f8b942848ec92cca997cdea337d.jpeg"
+        },
+        {
+          "abbreviation": "PH",
+          "children": [],
+          "id": 871787,
+          "name": "Porter Hall",
+          "org_key": "porterhall",
+          "org_parent": "gus-spanos",
+          "org_title": "Principal",
+          "profile_picture": "/media/images/user-profile/ac1b49e158a84883a6b5dcc00cc6f4dc.jpeg"
+        },
+        {
+          "abbreviation": "TC",
+          "children": [],
+          "id": 871783,
+          "name": "Taylor Caswell-Chen",
+          "org_key": "taylor-caswell-chen",
+          "org_parent": "gus-spanos",
+          "org_title": "Vice President",
+          "profile_picture": "/media/images/user-profile/ddb4f7b0e81449a19b299483cd0490cf.jpeg"
+        },
+        {
+          "abbreviation": "TB",
+          "children": [],
+          "id": 871781,
+          "name": "Tom Barber",
+          "org_key": "thomas-b",
+          "org_parent": "gus-spanos",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/31b2e164b78f46f69ac156eb5fe927aa.jpeg"
+        }
+      ],
+      "id": 157374,
+      "name": "Gus Spanos",
+      "org_key": "gus-spanos",
+      "org_parent": null,
+      "org_title": "Managing Director",
+      "profile_picture": "/media/images/user-profile/d42d1bc44f2c4bf89d2e3175341b452f.jpeg"
+    }
+  ]
+}

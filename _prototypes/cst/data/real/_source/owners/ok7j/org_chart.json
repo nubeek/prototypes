@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "EYM Diner",
+    "id": 9577,
+    "name": "EYM Diner",
+    "public_id": "ok7j"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "ED",
+      "children": [],
+      "id": 138734,
+      "name": "Eduardo Diaz",
+      "org_key": "eduardo-diaz",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

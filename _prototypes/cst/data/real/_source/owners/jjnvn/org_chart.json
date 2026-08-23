@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "The Rose Group",
+    "id": 27673,
+    "name": "The Rose Group",
+    "public_id": "jjnvn"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "HR",
+      "children": [],
+      "id": 965083,
+      "name": "Harry Rose",
+      "org_key": "harry-rose",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

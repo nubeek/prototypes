@@ -49,6 +49,7 @@ if (tableBody) {
 
       checkbox.closest("tr[data-location-row-id]")?.classList.toggle("is-checked", checkbox.checked);
       syncLocationHeaderCheckboxState(displayedLocations);
+      syncOwnersMapRowSelectionHighlight();
       return;
     }
 
@@ -63,6 +64,7 @@ if (tableBody) {
 
     checkbox.closest("tr[data-owner-index]")?.classList.toggle("is-checked", checkbox.checked);
     syncFranchiseeHeaderCheckboxState(displayedFranchisees);
+    syncOwnersMapRowSelectionHighlight();
   });
 
   tableBody.addEventListener("click", (event) => {
@@ -159,6 +161,12 @@ if (tableBody) {
       return;
     }
 
+    const franchiseWefranchLink = event.target.closest(".franchise-wefranch-link");
+    if (franchiseWefranchLink) {
+      event.stopPropagation();
+      return;
+    }
+
     const locationRow = event.target.closest("tr[data-owner-index][data-unit-index]");
     if (currentTableView === "locations" && locationRow) {
       event.stopPropagation();
@@ -213,6 +221,7 @@ if (franchiseesTable) {
 
       renderLocations(displayedLocations);
       syncSortHeaders();
+      syncOwnersMapRowSelectionHighlight();
       return;
     }
 
@@ -226,6 +235,7 @@ if (franchiseesTable) {
 
     renderFranchisees(displayedFranchisees);
     syncSortHeaders();
+    syncOwnersMapRowSelectionHighlight();
   });
 }
 
@@ -277,9 +287,7 @@ if (ownerFilterSelect) {
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
     syncOwnerExcludeState();
-    syncMapLocationFilter();
     refreshFilteredViews();
-    refitOpenMapToVisibleLocations();
     syncOpenOrgPanelWithSelection();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });
@@ -321,9 +329,7 @@ if (categoryFilterSelect) {
     excludedCategoryValues = getFilterSelectExcludedValues(categoryFilterSelect);
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
-    syncMapLocationFilter();
     refreshFilteredViews();
-    refitOpenMapToVisibleLocations();
     syncOpenOrgPanelWithSelection();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });
@@ -344,84 +350,13 @@ getFranchiseeRatingRadios().forEach((radio) => {
   });
 });
 
-if (unitsMinRange) {
-  unitsMinRange.addEventListener("input", () => {
-    setUnitsFilterRange(unitsMinRange.value, selectedUnitsMax, { changed: "min", refresh: true });
-  });
-}
-
-if (unitsMaxRange) {
-  unitsMaxRange.addEventListener("input", () => {
-    setUnitsFilterRange(selectedUnitsMin, unitsMaxRange.value, { changed: "max", refresh: true });
-  });
-}
-
-if (unitsMinInput) {
-  unitsMinInput.addEventListener("change", () => {
-    setUnitsFilterRange(unitsMinInput.value, selectedUnitsMax, { changed: "min", refresh: true });
-  });
-}
-
-if (unitsMaxInput) {
-  unitsMaxInput.addEventListener("change", () => {
-    setUnitsFilterRange(selectedUnitsMin, unitsMaxInput.value, { changed: "max", refresh: true });
-  });
-}
-
-if (contactsMinRange) {
-  contactsMinRange.addEventListener("input", () => {
-    setContactsFilterRange(contactsMinRange.value, selectedContactsMax, { changed: "min", refresh: true });
-  });
-}
-
-if (contactsMaxRange) {
-  contactsMaxRange.addEventListener("input", () => {
-    setContactsFilterRange(selectedContactsMin, contactsMaxRange.value, { changed: "max", refresh: true });
-  });
-}
-
-if (contactsMinInput) {
-  contactsMinInput.addEventListener("change", () => {
-    setContactsFilterRange(contactsMinInput.value, selectedContactsMax, { changed: "min", refresh: true });
-  });
-}
-
-if (contactsMaxInput) {
-  contactsMaxInput.addEventListener("change", () => {
-    setContactsFilterRange(selectedContactsMin, contactsMaxInput.value, { changed: "max", refresh: true });
-  });
-}
-
-if (netWorthMinRange) {
-  netWorthMinRange.addEventListener("input", () => {
-    setNetWorthFilterRange(netWorthMinRange.value, selectedNetWorthMax, { changed: "min", refresh: true });
-  });
-}
-
-if (netWorthMaxRange) {
-  netWorthMaxRange.addEventListener("input", () => {
-    setNetWorthFilterRange(selectedNetWorthMin, netWorthMaxRange.value, { changed: "max", refresh: true });
-  });
-}
-
-if (netWorthMinInput) {
-  netWorthMinInput.addEventListener("change", () => {
-    setNetWorthFilterRange(getFilterNumberInputValue(netWorthMinInput), selectedNetWorthMax, { changed: "min", refresh: true });
-  });
-}
-
-if (netWorthMaxInput) {
-  netWorthMaxInput.addEventListener("change", () => {
-    setNetWorthFilterRange(selectedNetWorthMin, getFilterNumberInputValue(netWorthMaxInput), { changed: "max", refresh: true });
-  });
-}
-
 if (radiusToggle) {
   radiusToggle.addEventListener("change", () => {
     setRadiusFilterEnabled(radiusToggle.checked, { refresh: true });
   });
 }
 
+initRangeFilterControls();
 initRadiusFilterControls();
 
 syncStatusFilterStates();
@@ -464,9 +399,7 @@ if (franchiseFilterSelect) {
     excludedFranchiseIndexes = getFilterSelectExcludedValues(franchiseFilterSelect);
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
-    syncMapLocationFilter();
     refreshFilteredViews();
-    refitOpenMapToVisibleLocations();
     syncOpenOrgPanelWithSelection();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });
@@ -489,10 +422,7 @@ if (readerEditQueryBtn) {
 }
 
 if (tableHeadingSummary) {
-  tableHeadingSummary.addEventListener("click", (event) => {
-    const filterTrigger = event.target.closest(".table-heading-summary__value[data-filter-section]");
-    if (!filterTrigger) return;
-
+  const openSummaryFilter = (filterTrigger) => {
     const sectionKey = filterTrigger.dataset.filterSection;
     if (!sectionKey) return;
 
@@ -503,6 +433,20 @@ if (tableHeadingSummary) {
 
     setFilterPanelOpen(true);
     expandCstFilterSectionOnly?.(sectionKey);
+  };
+
+  tableHeadingSummary.addEventListener("click", (event) => {
+    const filterTrigger = event.target.closest(".table-heading-summary__value[data-filter-section]");
+    if (!filterTrigger) return;
+    openSummaryFilter(filterTrigger);
+  });
+
+  tableHeadingSummary.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const filterTrigger = event.target.closest(".table-heading-summary__value[data-filter-section]");
+    if (!filterTrigger) return;
+    event.preventDefault();
+    openSummaryFilter(filterTrigger);
   });
 }
 
@@ -516,9 +460,7 @@ if (toolbarSearchInput) {
     }
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
-    syncMapLocationFilter();
     refreshFilteredViews();
-    refitOpenMapToVisibleLocations();
     syncOpenOrgPanelWithSelection();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });

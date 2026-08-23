@@ -1,0 +1,103 @@
+{
+  "institution": {
+    "group_code": "Kamal Singh",
+    "id": 115,
+    "name": "Kamal Singh",
+    "public_id": "e17m"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "KS",
+      "children": [
+        {
+          "abbreviation": "MR",
+          "children": [
+            {
+              "abbreviation": "RR",
+              "children": [
+                {
+                  "abbreviation": "GB",
+                  "children": [],
+                  "id": 871209,
+                  "name": "Gregory Bradford",
+                  "org_key": "gregory-bradford",
+                  "org_parent": "rachel-robinson",
+                  "org_title": "Market Director - Taco Bell",
+                  "profile_picture": "/media/images/user-profile/929b55951a0849bca1f4c7606b90d94e.jpeg"
+                },
+                {
+                  "abbreviation": "MC",
+                  "children": [],
+                  "id": 871488,
+                  "name": "Marco Cerda",
+                  "org_key": "marco-cerda",
+                  "org_parent": "rachel-robinson",
+                  "org_title": "Regional Director - Sonic",
+                  "profile_picture": "/media/images/user-profile/48a50f72063c49cd9b772335734b9bbc.jpeg"
+                },
+                {
+                  "abbreviation": "RA",
+                  "children": [],
+                  "id": 871208,
+                  "name": "Rosie Archiniaco",
+                  "org_key": "rosie-archiniaco",
+                  "org_parent": "rachel-robinson",
+                  "org_title": "Region Director - Pizza Hut",
+                  "profile_picture": "/media/images/user-profile/d4849be022a046548f15187f9a6a182f.jpeg"
+                },
+                {
+                  "abbreviation": "TE",
+                  "children": [],
+                  "id": 871210,
+                  "name": "Ted Edwards",
+                  "org_key": "ted-edwards",
+                  "org_parent": "rachel-robinson",
+                  "org_title": "Market Director - KFC",
+                  "profile_picture": "/media/images/user-profile/869710a185f34275b60a76dc8bf83ff8.jpeg"
+                }
+              ],
+              "id": 871206,
+              "name": "Rachel Robinson",
+              "org_key": "rachel-robinson",
+              "org_parent": "mickrosckowff",
+              "org_title": "Vice President of Operations",
+              "profile_picture": "/media/images/user-profile/f7dceb2be8624c0992cdf61d8aa4a9cb.jpeg"
+            },
+            {
+              "abbreviation": "CM",
+              "children": [],
+              "id": 871204,
+              "name": "Candice Moore",
+              "org_key": "candice-moore",
+              "org_parent": "mickrosckowff",
+              "org_title": "VP of Human Resources",
+              "profile_picture": "/media/images/user-profile/db8714b34ba24ceda7805ad7ddd478ea.jpeg"
+            },
+            {
+              "abbreviation": "CM",
+              "children": [],
+              "id": 871487,
+              "name": "Cristal Mu\u00f1oz",
+              "org_key": "cristal-mu\u00f1oz",
+              "org_parent": "mickrosckowff",
+              "org_title": "Finance Director",
+              "profile_picture": "/media/images/user-profile/9f40c3c134b144c8913bebd8eb2cf44e.jpeg"
+            }
+          ],
+          "id": 871203,
+          "name": "Mick Rosckowff",
+          "org_key": "mickrosckowff",
+          "org_parent": "singh-kamal",
+          "org_title": "Cofounder, Partner and COO",
+          "profile_picture": "/media/images/user-profile/d0b390f546254d40a854e76f97236568.jpeg"
+        }
+      ],
+      "id": 871202,
+      "name": "Kamal Singh",
+      "org_key": "singh-kamal",
+      "org_parent": null,
+      "org_title": "Founder and President",
+      "profile_picture": "/media/images/user-profile/c6f48fbc6cc44132b3fffaf23db76cf5.jpeg"
+    }
+  ]
+}

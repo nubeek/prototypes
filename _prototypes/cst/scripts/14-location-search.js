@@ -681,24 +681,44 @@ function getLocationRecordCoordinates(location) {
   return { latitude, longitude };
 }
 
+const locationRecordRegionCodeCache = new Map();
+
 function getLocationRecordRegionCode(location) {
+  const cacheKey = [
+    location?.stateCode || "",
+    location?.state || "",
+    location?.label || location?.location || ""
+  ].join("\u0001");
+  if (locationRecordRegionCodeCache.has(cacheKey)) {
+    return locationRecordRegionCodeCache.get(cacheKey);
+  }
+
+  let regionCode = "";
+
   if (location?.stateCode) {
     const fromStateCode = getCstRegionCodeFromLabel(location.stateCode) || String(location.stateCode).toUpperCase();
-    if (CST_REGION_CENTERS[fromStateCode] || CST_REGION_BOUNDS[fromStateCode]) return fromStateCode;
+    if (CST_REGION_CENTERS[fromStateCode] || CST_REGION_BOUNDS[fromStateCode]) {
+      regionCode = fromStateCode;
+    }
   }
 
-  if (location?.state) {
+  if (!regionCode && location?.state) {
     const fromState = getCstRegionCodeFromLabel(location.state) || String(location.state).toUpperCase();
-    if (CST_REGION_CENTERS[fromState] || CST_REGION_BOUNDS[fromState]) return fromState;
+    if (CST_REGION_CENTERS[fromState] || CST_REGION_BOUNDS[fromState]) {
+      regionCode = fromState;
+    }
   }
 
-  const locationLabel = stripCstLocationCountrySuffix(location?.label || location?.location || "");
-  const parts = locationLabel.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length >= 2) {
-    return getCstRegionCodeFromLabel(parts[parts.length - 1]);
+  if (!regionCode) {
+    const locationLabel = stripCstLocationCountrySuffix(location?.label || location?.location || "");
+    const parts = locationLabel.split(",").map((part) => part.trim()).filter(Boolean);
+    regionCode = parts.length >= 2
+      ? getCstRegionCodeFromLabel(parts[parts.length - 1])
+      : getCstRegionCodeFromLabel(locationLabel);
   }
 
-  return getCstRegionCodeFromLabel(locationLabel);
+  locationRecordRegionCodeCache.set(cacheKey, regionCode);
+  return regionCode;
 }
 
 function locationRecordMatchesRegionLabel(location, regionCode, searchLabel = "") {
@@ -1272,6 +1292,7 @@ window.cstLocationSearch = {
   reverseGeocode: reverseGeocodeCstCoordinates,
   fromRegionCode: createCstLocationResultFromRegionCode,
   fromLabel: createCstLocationResultFromLabel,
+  getRegionCode: getLocationRecordRegionCode,
   matchesLocation: locationRecordMatchesSearch,
   shouldAutoEnableRadius: shouldAutoEnableRadiusForLocation,
   getAutoRadiusMiles: getAutoRadiusMilesForLocation,

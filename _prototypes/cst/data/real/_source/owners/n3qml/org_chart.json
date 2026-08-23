@@ -1,0 +1,40 @@
+{
+  "institution": {
+    "group_code": "Opportunity Pancakes LLC",
+    "id": 25077,
+    "name": "Opportunity Pancakes LLC",
+    "public_id": "n3qml"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "JB",
+      "children": [],
+      "id": 963094,
+      "name": "Jason Brown",
+      "org_key": "jason-brown",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "OA",
+      "children": [],
+      "id": 963093,
+      "name": "Omar Ascha",
+      "org_key": "omar-ascha",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "TF",
+      "children": [],
+      "id": 963092,
+      "name": "Timothy Furr",
+      "org_key": "timothy-furr",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/a370441f93574f6bb781661f8a8761f2.jpeg"
+    }
+  ]
+}

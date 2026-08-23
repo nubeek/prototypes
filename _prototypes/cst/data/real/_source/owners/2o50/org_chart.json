@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Applegreen",
+    "id": 964,
+    "name": "Applegreen",
+    "public_id": "2o50"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "EP",
+      "children": [],
+      "id": 929405,
+      "name": "Elizabeth Pierce",
+      "org_key": "elizabeth-pierce",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/f795fe86d2a644b5bce9150b80d33bb2.jpeg"
+    }
+  ]
+}

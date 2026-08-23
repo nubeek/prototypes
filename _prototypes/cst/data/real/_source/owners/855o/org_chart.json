@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Meyer Metz Restaurants, LLC",
+    "id": 9622,
+    "name": "Meyer Metz Restaurants, LLC",
+    "public_id": "855o"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MC",
+      "children": [],
+      "id": 16134,
+      "name": "Metz, John C",
+      "org_key": "john-c-metz",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/6a02c2af25894963989a3d10a431381b.jpeg"
+    }
+  ]
+}

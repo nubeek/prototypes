@@ -1,0 +1,41 @@
+{
+  "institution": {
+    "group_code": "Chaac Foods Restaurants",
+    "id": 17955,
+    "name": "Chaac Foods Restaurants",
+    "public_id": "qxvzn"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "LI",
+      "children": [
+        {
+          "abbreviation": "LI",
+          "children": [],
+          "id": 622172,
+          "name": "Lesslie Ibarguengoytia",
+          "org_key": "lesslie-ibarguengoytia",
+          "org_parent": "luis-ibarguengoytia",
+          "org_title": "VP of Treasury",
+          "profile_picture": "/media/images/user-profile/686ef4411ad342e294d1f4442c22c552.jpeg"
+        },
+        {
+          "abbreviation": "MT",
+          "children": [],
+          "id": 939889,
+          "name": "Michele Turner",
+          "org_key": "michele-turner",
+          "org_parent": "luis-ibarguengoytia",
+          "org_title": "COO",
+          "profile_picture": "/media/images/user-profile/a99004963cf249668d21d8963640dce8.jpeg"
+        }
+      ],
+      "id": 939888,
+      "name": "Luis Ibarguengoytia",
+      "org_key": "luis-ibarguengoytia",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/29cfee315fa14de7b2fa6b0973436cf3.jpeg"
+    }
+  ]
+}

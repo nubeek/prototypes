@@ -1,0 +1,62 @@
+{
+  "institution": {
+    "group_code": "Tabbassum Mumtaz",
+    "id": 106,
+    "name": "Tabbassum Mumtaz",
+    "public_id": "epm6"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "TM",
+      "children": [
+        {
+          "abbreviation": "RA",
+          "children": [
+            {
+              "abbreviation": "BC",
+              "children": [],
+              "id": 921596,
+              "name": "Beth Collins",
+              "org_key": "beth-collins",
+              "org_parent": "ryan-androes",
+              "org_title": "Brand President",
+              "profile_picture": "/media/images/user-profile/9c167e44e74849f183acac354514211c.jpeg"
+            },
+            {
+              "abbreviation": "HG",
+              "children": [],
+              "id": 921595,
+              "name": "Hector Gomez",
+              "org_key": "hector-gomez",
+              "org_parent": "ryan-androes",
+              "org_title": "COO",
+              "profile_picture": "/media/images/user-profile/86699590014f4b5698481a047b3c3e72.jpeg"
+            },
+            {
+              "abbreviation": "KF",
+              "children": [],
+              "id": 921594,
+              "name": "Kevin Falconer",
+              "org_key": "kevin-falconer",
+              "org_parent": "ryan-androes",
+              "org_title": "Chief Development Officer",
+              "profile_picture": "/media/images/user-profile/61f60f3455c8423ab64f349d6f2a6166.jpeg"
+            }
+          ],
+          "id": 921593,
+          "name": "Ryan Androes",
+          "org_key": "ryan-androes",
+          "org_parent": "abbassum-mumtaz",
+          "org_title": "President",
+          "profile_picture": "/media/images/user-profile/b1460d49abb94c48ae496290c9a7bc27.jpeg"
+        }
+      ],
+      "id": 921592,
+      "name": "Tabbassum Mumtaz",
+      "org_key": "abbassum-mumtaz",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/4044c71b8849423eb08eb7c32f2196f9.jpeg"
+    }
+  ]
+}

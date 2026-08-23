@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "GEORGE R MICHELL_MCD",
+    "id": 4714,
+    "name": "GEORGE R MICHELL_MCD",
+    "public_id": "0om3"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GM",
+      "children": [],
+      "id": 939893,
+      "name": "George Michell",
+      "org_key": "george-r-michell",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

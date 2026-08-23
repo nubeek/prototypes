@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "Gilligan Oil",
+    "id": 9684,
+    "name": "Gilligan Oil",
+    "public_id": "yx40"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "PG",
+      "children": [
+        {
+          "abbreviation": "BG",
+          "children": [],
+          "id": 921785,
+          "name": "Bob Gierhart",
+          "org_key": "bob-gierhart",
+          "org_parent": "patrick-gilligan",
+          "org_title": "Director Of Operations",
+          "profile_picture": null
+        }
+      ],
+      "id": 921784,
+      "name": "Patrick Gilligan",
+      "org_key": "patrick-gilligan",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/06f44dff83a84c72a5c1e41344dcadff.jpeg"
+    }
+  ]
+}

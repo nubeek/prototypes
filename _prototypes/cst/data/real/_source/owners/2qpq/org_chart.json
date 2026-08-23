@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Liberty Restaurants",
+    "id": 4688,
+    "name": "Liberty Restaurants",
+    "public_id": "2qpq"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "LS",
+      "children": [],
+      "id": 921909,
+      "name": "Laddi Singh",
+      "org_key": "laddi-singh",
+      "org_parent": null,
+      "org_title": "Franchise",
+      "profile_picture": "/media/images/user-profile/7a04426eeb6b4bca99d2eec0f9eb1adf.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "institution": {
+    "group_code": "Tomey Group LLC",
+    "id": 20570,
+    "name": "Tomey Group LLC",
+    "public_id": "80p9n"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "AT",
+      "children": [
+        {
+          "abbreviation": "AC",
+          "children": [],
+          "id": 944486,
+          "name": "Amy Cosola",
+          "org_key": "amy-cosola",
+          "org_parent": "anthony-tomey",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/2cc8c218873941d7b5ddc3cf7f6f7070.jpeg"
+        },
+        {
+          "abbreviation": "CS",
+          "children": [],
+          "id": 944490,
+          "name": "Christine Sullivan",
+          "org_key": "christinetomey",
+          "org_parent": "anthony-tomey",
+          "org_title": "",
+          "profile_picture": "/media/images/user-profile/534252e904ff457db84080167f1477a8.jpeg"
+        },
+        {
+          "abbreviation": "FT",
+          "children": [],
+          "id": 944489,
+          "name": "Fawzi Tomey",
+          "org_key": "fawzi-tomey",
+          "org_parent": "anthony-tomey",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "MT",
+          "children": [],
+          "id": 944485,
+          "name": "Michael Tomey",
+          "org_key": "michael-tomey",
+          "org_parent": "anthony-tomey",
+          "org_title": "CFO",
+          "profile_picture": "/media/images/user-profile/b38eae32dceb443db43c0ce5d63d8af5.jpeg"
+        },
+        {
+          "abbreviation": "RS",
+          "children": [],
+          "id": 944488,
+          "name": "Ryan Sullivan",
+          "org_key": "ryan-sullivan",
+          "org_parent": "anthony-tomey",
+          "org_title": "",
+          "profile_picture": null
+        }
+      ],
+      "id": 967502,
+      "name": "Anthony Tomey",
+      "org_key": "anthony-tomey",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

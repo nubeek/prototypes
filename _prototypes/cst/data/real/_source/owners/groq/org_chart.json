@@ -1,0 +1,62 @@
+{
+  "institution": {
+    "group_code": "Estate Freeland",
+    "id": 108,
+    "name": "Estate Freeland",
+    "public_id": "groq"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "TF",
+      "children": [
+        {
+          "abbreviation": "TH",
+          "children": [
+            {
+              "abbreviation": "AQ",
+              "children": [],
+              "id": 871201,
+              "name": "Andrew Qualiato",
+              "org_key": "andrew-qualiato",
+              "org_parent": "todd-hollman",
+              "org_title": "Head of Talent Acquisition for Freeland Group Restaurants",
+              "profile_picture": "/media/images/user-profile/61c0ddcabf10478ebd5860289f97b12b.jpeg"
+            },
+            {
+              "abbreviation": "RW",
+              "children": [],
+              "id": 871199,
+              "name": "Rebecca Worrell",
+              "org_key": "rebeccaworrell",
+              "org_parent": "todd-hollman",
+              "org_title": "Director of Development and Real Estate",
+              "profile_picture": "/media/images/user-profile/3e6c7b9d5f0142eca25cf3573d0aa1fd.jpeg"
+            },
+            {
+              "abbreviation": "RM",
+              "children": [],
+              "id": 871200,
+              "name": "Reena McKee",
+              "org_key": "reena-mckee",
+              "org_parent": "todd-hollman",
+              "org_title": "Vice President of Finance at Freeland Group Restaurants",
+              "profile_picture": "/media/images/user-profile/9c3052b8f443400f823ac5e6b92de580.jpeg"
+            }
+          ],
+          "id": 871197,
+          "name": "Todd Hollman",
+          "org_key": "todd-hollman",
+          "org_parent": "tyler-freeland",
+          "org_title": "CEO/COO",
+          "profile_picture": "/media/images/user-profile/4da4dc6297e146daa09eb6b3c7045c2a.jpeg"
+        }
+      ],
+      "id": 169606,
+      "name": "Tyler Freeland",
+      "org_key": "tyler-freeland",
+      "org_parent": null,
+      "org_title": "Franchisee & Managing Partner",
+      "profile_picture": null
+    }
+  ]
+}

@@ -115,6 +115,9 @@
       return;
     }
 
+    histogramBars.closest(".filter-range-histogram")
+      ?.style.setProperty("--histogram-bins", String(binCount));
+
     const minRange = track.querySelector(".range-input-min");
     const maxRange = track.querySelector(".range-input-max");
     const rangeMin = Number(minRange?.min ?? 0);
@@ -192,6 +195,10 @@
     const minInput = numberInputs[0];
     const maxInput = numberInputs[1];
 
+    if (!minRange || !maxRange) {
+      return;
+    }
+
     const syncFromNumberInput = (numberInput, rangeInput) => {
       const rangeMin = Number(rangeInput.min);
       const rangeMax = Number(rangeInput.max);
@@ -229,12 +236,18 @@
       numberInput.addEventListener("change", () => syncFromNumberInput(numberInput, rangeInput));
     };
 
-    const handleRangeInput = () => {
+    const previewRange = () => {
+      syncRangeTrack(track);
+    };
+
+    const commitRange = () => {
       syncRangeTrack(track, { onSync: onChange });
     };
 
-    minRange?.addEventListener("input", handleRangeInput);
-    maxRange?.addEventListener("input", handleRangeInput);
+    minRange?.addEventListener("input", previewRange);
+    maxRange?.addEventListener("input", previewRange);
+    minRange?.addEventListener("change", commitRange);
+    maxRange?.addEventListener("change", commitRange);
     if (minInput) bindNumberInput(minInput, minRange);
     if (maxInput) bindNumberInput(maxInput, maxRange);
     syncRangeTrack(track);

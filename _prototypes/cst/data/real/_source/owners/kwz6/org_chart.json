@@ -1,0 +1,41 @@
+{
+  "institution": {
+    "group_code": "Janjer Enterprises, Inc.",
+    "id": 973,
+    "name": "Janjer Enterprises, Inc.",
+    "public_id": "kwz6"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "JF",
+      "children": [
+        {
+          "abbreviation": "MB",
+          "children": [],
+          "id": 921761,
+          "name": "Mike Burke",
+          "org_key": "mike-burke",
+          "org_parent": "jon-friedlander",
+          "org_title": "COO",
+          "profile_picture": "/media/images/user-profile/7201ede3da3b47d0826d6685b49734ae.jpeg"
+        },
+        {
+          "abbreviation": "RS",
+          "children": [],
+          "id": 921762,
+          "name": "Rodney Saunders",
+          "org_key": "rodney-saunders",
+          "org_parent": "jon-friedlander",
+          "org_title": "CFO & Chief Development Officer",
+          "profile_picture": "/media/images/user-profile/011823fecee14c80be1e9b070dda289b.jpeg"
+        }
+      ],
+      "id": 921760,
+      "name": "Jon Friedlander",
+      "org_key": "jon-friedlander",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/7107fc94a4934fed91fb5d14c2c0b339.jpeg"
+    }
+  ]
+}

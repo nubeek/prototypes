@@ -61,6 +61,53 @@ function getContactsColumn(owner) {
   `;
 }
 
+function getFranchiseLogoTile(franchise) {
+  const url = typeof getFranchiseWefranchUrl === "function" ? getFranchiseWefranchUrl(franchise) : "";
+  const inner = `
+    <span class="franchise-logo-fallback">${getInitials(franchise)}</span>
+    <img
+      src="${getFranchiseLogoSrc(franchise)}"
+      alt=""
+      onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+    >
+  `;
+
+  if (!url) {
+    return `
+      <span class="ui-tile franchise-logo" data-tooltip="${franchise}">
+        ${inner}
+      </span>
+    `;
+  }
+
+  return `
+    <a
+      class="ui-tile franchise-logo franchise-wefranch-link"
+      href="${url}"
+      target="_blank"
+      rel="noreferrer noopener"
+      data-tooltip="${franchise}"
+      aria-label="Open ${franchise} on wefranch"
+    >
+      ${inner}
+    </a>
+  `;
+}
+
+function getFranchiseNameMarkup(franchise) {
+  const url = typeof getFranchiseWefranchUrl === "function" ? getFranchiseWefranchUrl(franchise) : "";
+  if (!url) return `<span class="franchise-name">${franchise}</span>`;
+
+  return `
+    <a
+      class="franchise-name franchise-wefranch-link"
+      href="${url}"
+      target="_blank"
+      rel="noreferrer noopener"
+    >${franchise}</a>
+  `;
+}
+
 function getFranchiseLogosColumn(owner, { showNames = false, containerTag = "div" } = {}) {
   const franchises = getOwnerFranchises(owner);
 
@@ -72,18 +119,8 @@ function getFranchiseLogosColumn(owner, { showNames = false, containerTag = "div
     <${containerTag} class="franchise-logos ${showNames ? "franchise-logos-with-names" : ""}" role="list" aria-label="${franchises.join(", ")}">
       ${franchises.map((franchise) => `
         <span class="franchise-item" role="listitem" aria-label="${franchise}">
-          <span
-            class="ui-tile franchise-logo"
-            data-tooltip="${franchise}"
-          >
-            <span class="franchise-logo-fallback">${getInitials(franchise)}</span>
-            <img
-              src="${getFranchiseLogoSrc(franchise)}"
-              alt=""
-              onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
-            >
-          </span>
-          ${showNames ? `<span class="franchise-name">${franchise}</span>` : ""}
+          ${getFranchiseLogoTile(franchise)}
+          ${showNames ? getFranchiseNameMarkup(franchise) : ""}
         </span>
       `).join("")}
     </${containerTag}>
@@ -344,7 +381,7 @@ function isDatasetSelectorView(tableView = currentTableView) {
 }
 
 const LOCATION_TABLE_HEADERS = [
-  { header: locationNumberColumnHeader, label: "", sortKey: "", width: "64px" },
+  { header: locationNumberColumnHeader, label: "", sortKey: "", width: "48px" },
   { header: ownerColumnHeader, label: "Name", sortKey: "contactName", width: "220px" },
   { header: contactColumnHeader, label: "Location", sortKey: "location", width: "220px" },
   { header: combinedContactsHeader, label: "Contact email", sortKey: "email", width: "220px" },
@@ -507,7 +544,7 @@ function syncFranchiseesTableView() {
   franchiseesTable?.classList.add("has-row-select");
   tableWrap?.classList.remove("is-locations-view");
   if (locationNumberColumnHeader) {
-    setMainTableHeader(locationNumberColumnHeader, { label: "", sortKey: "", width: "64px" });
+    setMainTableHeader(locationNumberColumnHeader, { label: "", sortKey: "", width: "48px" });
   }
 }
 
@@ -540,6 +577,7 @@ function setMainTableView(nextView) {
   syncDatasetSelectorState();
   syncToolbarViewState();
   applySort();
+  syncOwnersMapRowSelectionHighlight();
   tableWrap?.scrollTo({ top: 0, left: 0, behavior: "auto" });
   datasetSelectorApi?.close();
 }
@@ -654,7 +692,12 @@ function getOwnerLocationRows(owner) {
   const fallbackCategory = owner.category || "Fitness";
 
   return ownerUnits.map((unit, unitIndex) => {
-    const franchise = unit.franchise || fallbackFranchise;
+    // A unit inherits every brand its owner is a franchisee of, unless the unit
+    // itself names one.
+    const unitFranchises = Array.isArray(unit.franchises) && unit.franchises.length
+      ? unit.franchises
+      : [unit.franchise || fallbackFranchise];
+    const franchise = unitFranchises.join(", ");
     const category = unit.category || fallbackCategory;
     return {
       id: unit.id || `${owner.originalIndex}-${unitIndex}`,
@@ -676,7 +719,7 @@ function getOwnerLocationRows(owner) {
       category,
       categories: [category],
       franchise,
-      franchises: [franchise]
+      franchises: unitFranchises
     };
   });
 }
@@ -995,30 +1038,19 @@ function getDatasetNameCellMarkup(row) {
 }
 
 function getDatasetFranchiseCellMarkup(row) {
-  if (row.isProspectDataset) {
-    if (!row.franchises.length) {
-      return getDatasetCellValueMarkup("");
-    }
-
-    const showNames = row.franchises.length === 1;
-    return `
-      <span class="dataset-franchise-cell">
-        ${getFranchiseLogosColumn(
-          { franchises: row.franchises, franchise: row.franchise },
-          { showNames, containerTag: "span" }
-        )}
-      </span>
-    `;
+  if (!row.franchises.length) {
+    return getDatasetCellValueMarkup("");
   }
 
-  return getLocationCellProfileAction(
-    row,
-    getFranchiseLogosColumn(
-      { ...row.owner, franchises: row.franchises, franchise: row.franchise },
-      { showNames: true, containerTag: "span" }
-    ),
-    `Open profile for ${row.name} from ${row.franchise}`
-  );
+  const showNames = row.isProspectDataset ? row.franchises.length === 1 : true;
+  return `
+    <span class="dataset-franchise-cell">
+      ${getFranchiseLogosColumn(
+        { franchises: row.franchises, franchise: row.franchise },
+        { showNames, containerTag: "span" }
+      )}
+    </span>
+  `;
 }
 
 function getDatasetInstitutionCellMarkup(row) {
@@ -1267,6 +1299,40 @@ function cycleSortState(sortKey, { additive = false } = {}) {
   }
 }
 
+const ownerLocationRegionCodeCache = new Map();
+
+function getOwnerLocationRegionCodes(owner) {
+  const ownerIndex = owner.originalIndex;
+  const cached = ownerLocationRegionCodeCache.get(ownerIndex);
+  if (cached) return cached;
+
+  const codes = new Set();
+  const ownerLocations = window.ownerLocationsData?.[ownerIndex]?.locations || [];
+  ownerLocations.forEach((location) => {
+    const regionCode = window.cstLocationSearch?.getRegionCode?.(location);
+    if (regionCode) codes.add(regionCode);
+  });
+  ownerLocationRegionCodeCache.set(ownerIndex, codes);
+  return codes;
+}
+
+function getRegionOnlyIncludedStateCodes(locationLabels = selectedLocationLabels) {
+  const searches = selectedLocationSearches.length
+    ? selectedLocationSearches
+    : locationLabels
+      .map((label) => window.cstLocationSearch?.fromLabel?.(label))
+      .filter(Boolean);
+
+  if (!searches.length) return null;
+  if (!searches.every((search) => typeof isRegionOnlyLocationSearch === "function"
+    ? isRegionOnlyLocationSearch(search)
+    : search?.geoLevel === "region" && search?.stateCode)) {
+    return null;
+  }
+
+  return searches.map((search) => search.stateCode).filter(Boolean);
+}
+
 function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
   const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
 
@@ -1275,6 +1341,12 @@ function ownerHasLocationLabel(owner, locationLabels = selectedLocationLabels) {
   }
 
   if (selectedLocationSearches.length || locationLabels.length) {
+    const regionCodes = getRegionOnlyIncludedStateCodes(locationLabels);
+    if (regionCodes?.length) {
+      const ownerCodes = getOwnerLocationRegionCodes(owner);
+      return regionCodes.some((code) => ownerCodes.has(code));
+    }
+
     return ownerLocations.some((location) => locationRecordMatchesIncludedSelection(location));
   }
 
@@ -1622,7 +1694,7 @@ function wrapTableHeadingSummaryValue(value, filterSection) {
   }
 
   const safeSection = escapeTableHeadingSummaryHtml(filterSection);
-  return `<button class="table-heading-summary__value" type="button" data-filter-section="${safeSection}">${safeValue}</button>`;
+  return `<span class="table-heading-summary__value" role="button" tabindex="0" data-filter-section="${safeSection}">${safeValue}</span>`;
 }
 
 function renderTableHeadingSummaryPhrase(phrase, highlight) {
@@ -2316,14 +2388,21 @@ function renderActiveTable() {
   }
 }
 
+function isCstSplashCoveringWorkspace() {
+  if (!card?.classList.contains("is-splash-open")) return false;
+  const splash = document.getElementById("cstSplash");
+  return Boolean(splash && !splash.hidden);
+}
+
 function applySort() {
   tableSortStates[currentTableView] = cloneSortState(sortState);
+  const deferTableRender = isCstSplashCoveringWorkspace();
   if (isDatasetTableView()) {
     sortLocations();
-    renderLocations(displayedLocations);
+    if (!deferTableRender) renderLocations(displayedLocations);
   } else {
     sortFranchisees();
-    renderFranchisees(displayedFranchisees);
+    if (!deferTableRender) renderFranchisees(displayedFranchisees);
   }
   syncDatasetSelectorState();
   syncToolbarViewState();
@@ -2343,19 +2422,116 @@ function syncStickyNameColumnDivider() {
   tableWrap.classList.toggle("is-header-row-overlap", hasVerticalOverflow && hasTopOverlap);
 }
 
-const CST_TABLE_ENTER_DURATION_MS = 280;
+const CST_TABLE_ENTER_DURATION_MS = 340;
 const CST_TABLE_ENTER_MAX_MS = 2000;
 const CST_TABLE_ENTER_MIN_STAGGER_MS = 14;
 const CST_TABLE_ENTER_MAX_STAGGER_MS = 48;
 const CST_TABLE_ENTER_MAX_TARGETS = 120;
+const CST_TABLE_LOADING_TIMEOUT_MS = 5000;
 
 let cstTableEnterPending = false;
 let cstTableEnterAnimationToken = 0;
 let cstTableEnterFinishTimer = null;
 let cstTableEnterActiveTargets = [];
+let cstTableLoadingTimeout = null;
+let cstWorkspaceRevealMapReady = false;
+
+function getCstTableLoadingElement() {
+  return document.getElementById("cstTableLoading");
+}
+
+function isCstTableLoadingVisible() {
+  const loadingEl = getCstTableLoadingElement();
+  return Boolean(loadingEl && !loadingEl.hidden);
+}
+
+function isCstTableEnterWaitingForMap() {
+  return cstTableEnterPending || isCstTableLoadingVisible();
+}
+
+function canCstWorkspaceRevealPlay() {
+  return !card?.classList.contains("is-splash-open")
+    && !card?.classList.contains("is-splash-hiding-workspace");
+}
+
+function showCstTableLoading() {
+  const loadingEl = getCstTableLoadingElement();
+  if (!loadingEl) return;
+
+  loadingEl.hidden = false;
+  loadingEl.classList.remove("is-hiding");
+  loadingEl.setAttribute("aria-busy", "true");
+  cstWorkspaceRevealMapReady = false;
+
+  if (cstTableLoadingTimeout) {
+    window.clearTimeout(cstTableLoadingTimeout);
+  }
+  cstTableLoadingTimeout = window.setTimeout(() => {
+    markCstWorkspaceMapReadyToReveal();
+  }, CST_TABLE_LOADING_TIMEOUT_MS);
+}
+
+function hideCstTableLoading({ immediate = false } = {}) {
+  const loadingEl = getCstTableLoadingElement();
+  if (cstTableLoadingTimeout) {
+    window.clearTimeout(cstTableLoadingTimeout);
+    cstTableLoadingTimeout = null;
+  }
+  if (!loadingEl) return;
+
+  loadingEl.hidden = true;
+  loadingEl.classList.remove("is-hiding");
+  loadingEl.setAttribute("aria-busy", "false");
+}
+
+function notifyCstTableEnterStarted() {
+  const start = ownersMapRevealWhenTableEnters;
+  ownersMapRevealWhenTableEnters = null;
+  start?.();
+}
 
 function markCstTableEnterPending() {
   cstTableEnterPending = true;
+}
+
+function shouldCstResultsShowLoading() {
+  if (typeof isRestoringViewSettings !== "undefined" && isRestoringViewSettings) return false;
+  if (card?.classList.contains("is-splash-open")) return false;
+  return card?.classList.contains("is-map-open") && getCurrentPanelMode() === "map";
+}
+
+function beginCstResultsLoading() {
+  if (!shouldCstResultsShowLoading()) return false;
+  markCstTableEnterPending();
+  showCstTableLoading();
+  return true;
+}
+
+function markCstWorkspaceMapReadyToReveal(beginSweep) {
+  if (typeof beginSweep === "function") {
+    ownersMapRevealWhenTableEnters = beginSweep;
+  }
+  cstWorkspaceRevealMapReady = true;
+  tryStartCstMatchedReveal();
+}
+
+function tryStartCstMatchedReveal() {
+  if (!cstWorkspaceRevealMapReady) return;
+  if (!canCstWorkspaceRevealPlay()) return;
+
+  if (cstTableEnterPending && tableWrap) {
+    armCstTableEnterAnimation();
+  }
+
+  hideCstTableLoading({ immediate: true });
+
+  if (cstTableEnterPending) {
+    const token = ++cstTableEnterAnimationToken;
+    playCstTableEnterAnimation(token);
+    return;
+  }
+
+  notifyCstTableEnterStarted();
 }
 
 function collectCstTableEnterRows() {
@@ -2381,8 +2557,11 @@ function finishCstTableEnterAnimation(targets = cstTableEnterActiveTargets) {
 
 function cancelCstTableEnterAnimation() {
   cstTableEnterPending = false;
+  cstWorkspaceRevealMapReady = false;
+  ownersMapRevealWhenTableEnters = null;
   cstTableEnterAnimationToken += 1;
   finishCstTableEnterAnimation(cstTableEnterActiveTargets);
+  hideCstTableLoading({ immediate: true });
 }
 
 function getCstTableEnterStagger(rowCount) {
@@ -2428,6 +2607,7 @@ function playCstTableEnterAnimation(token = cstTableEnterAnimationToken) {
   const targets = alreadyArmed ? cstTableEnterActiveTargets : armCstTableEnterAnimation();
   if (!targets.length) {
     cstTableEnterPending = false;
+    notifyCstTableEnterStarted();
     return;
   }
 
@@ -2435,6 +2615,7 @@ function playCstTableEnterAnimation(token = cstTableEnterAnimationToken) {
 
   if (usesReducedMotion?.() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     tableWrap.classList.add("is-entering-active");
+    notifyCstTableEnterStarted();
     cstTableEnterFinishTimer = window.setTimeout(
       () => finishCstTableEnterAnimation(targets),
       0
@@ -2446,6 +2627,7 @@ function playCstTableEnterAnimation(token = cstTableEnterAnimationToken) {
     requestAnimationFrame(() => {
       if (token !== cstTableEnterAnimationToken) return;
       tableWrap.classList.add("is-entering-active");
+      notifyCstTableEnterStarted();
     });
   });
 
@@ -2460,10 +2642,8 @@ function playCstTableEnterAnimation(token = cstTableEnterAnimationToken) {
 
 function scheduleCstTableEnterAnimation() {
   if (!cstTableEnterPending || !tableWrap) return;
-  if (card?.classList.contains("is-splash-hiding-workspace")) {
-    armCstTableEnterAnimation();
-    return;
-  }
+  if (card?.classList.contains("is-splash-hiding-workspace")) return;
+  if (isCstTableLoadingVisible()) return;
 
   const token = ++cstTableEnterAnimationToken;
   requestAnimationFrame(() => {
@@ -2476,16 +2656,20 @@ function scheduleCstTableEnterAnimation() {
 
 function maybeScheduleCstTableEnterAnimation() {
   if (!cstTableEnterPending) return;
-  if (card?.classList.contains("is-splash-hiding-workspace")) {
-    armCstTableEnterAnimation();
-    return;
-  }
+  if (card?.classList.contains("is-splash-hiding-workspace")) return;
+  if (isCstTableLoadingVisible()) return;
   scheduleCstTableEnterAnimation();
 }
 
 window.markCstTableEnterPending = markCstTableEnterPending;
 window.scheduleCstTableEnterAnimation = scheduleCstTableEnterAnimation;
 window.cancelCstTableEnterAnimation = cancelCstTableEnterAnimation;
+window.showCstTableLoading = showCstTableLoading;
+window.hideCstTableLoading = hideCstTableLoading;
+window.beginCstResultsLoading = beginCstResultsLoading;
+window.isCstTableEnterWaitingForMap = isCstTableEnterWaitingForMap;
+window.markCstWorkspaceMapReadyToReveal = markCstWorkspaceMapReadyToReveal;
+window.tryStartCstMatchedReveal = tryStartCstMatchedReveal;
 
 initTableHeadingSort();
 

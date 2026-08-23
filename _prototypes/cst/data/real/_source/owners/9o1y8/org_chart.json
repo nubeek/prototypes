@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "PCRK Group",
+    "id": 16871,
+    "name": "PCRK Group",
+    "public_id": "9o1y8"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "RF",
+      "children": [],
+      "id": 934446,
+      "name": "Robert J. Fish",
+      "org_key": "robert-j.-fish",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/231365b9b0384acca62541d9c34633e6.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,423 @@
+{
+  "institution": {
+    "group_code": "G0256-TRILANTIC",
+    "id": 1,
+    "name": "Trilantic Capital Management",
+    "public_id": "dkwd"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DJ",
+      "children": [
+        {
+          "abbreviation": "EA",
+          "children": [
+            {
+              "abbreviation": "CE",
+              "children": [],
+              "id": 866816,
+              "name": "Cramer Eaves",
+              "org_key": "cramer-eaves",
+              "org_parent": "elliot-attie",
+              "org_title": "AVP, Fund Finance",
+              "profile_picture": "/media/images/user-profile/8e3e98543d874915a0fa19ac1ef2873f.jpeg"
+            },
+            {
+              "abbreviation": "IV",
+              "children": [],
+              "id": 866826,
+              "name": "Imari Valentin",
+              "org_key": "imari-valentin",
+              "org_parent": "elliot-attie",
+              "org_title": "VP, Fund Finance",
+              "profile_picture": "/media/images/user-profile/e3fb46f6973d456f89c63432fa98f6d4.jpeg"
+            },
+            {
+              "abbreviation": "MC",
+              "children": [],
+              "id": 866838,
+              "name": "Matthew Close",
+              "org_key": "matthew-close",
+              "org_parent": "elliot-attie",
+              "org_title": "VP, Management Company Finance",
+              "profile_picture": "/media/images/user-profile/536a9161c6944a93b98a5969bb56f14e.jpeg"
+            },
+            {
+              "abbreviation": "MA",
+              "children": [],
+              "id": 866839,
+              "name": "Max Almodovar",
+              "org_key": "max-almodovar",
+              "org_parent": "elliot-attie",
+              "org_title": "Managing Director, Fund Finance",
+              "profile_picture": "/media/images/user-profile/649a7d53554d4609935392f0bd51845b.jpeg"
+            },
+            {
+              "abbreviation": "PV",
+              "children": [],
+              "id": 866844,
+              "name": "Priyanka Vig",
+              "org_key": "priyanka-vig",
+              "org_parent": "elliot-attie",
+              "org_title": "Vice President, Fund Finance",
+              "profile_picture": "/media/images/user-profile/304cd4a1accb45f4ad68d5e15d5cb4be.jpeg"
+            }
+          ],
+          "id": 866819,
+          "name": "Elliot Attie",
+          "org_key": "elliot-attie",
+          "org_parent": "danny-james",
+          "org_title": "Chief Financial Officer",
+          "profile_picture": "/media/images/user-profile/a26fe475ddee4958abde3d4602e039e4.jpeg"
+        },
+        {
+          "abbreviation": "ES",
+          "children": [
+            {
+              "abbreviation": "JS",
+              "children": [],
+              "id": 866829,
+              "name": "Julia Sidford",
+              "org_key": "julia-sidford",
+              "org_parent": "erin-schneider",
+              "org_title": "Executive Assistant to the Chairman",
+              "profile_picture": "/media/images/user-profile/cd7136b998da4f82b73a8e46e17d4a14.jpeg"
+            },
+            {
+              "abbreviation": "KR",
+              "children": [],
+              "id": 866832,
+              "name": "Kristin Remus",
+              "org_key": "krisitn-remus",
+              "org_parent": "erin-schneider",
+              "org_title": "Senior Executive Assistant to the Chairman",
+              "profile_picture": "/media/images/user-profile/2be3a62508cd43cab92895fea7ef72d0.jpeg"
+            },
+            {
+              "abbreviation": "LS",
+              "children": [],
+              "id": 866836,
+              "name": "Lisa Sullivan",
+              "org_key": "lisa-sullivan",
+              "org_parent": "erin-schneider",
+              "org_title": "Executive Assistant",
+              "profile_picture": "/media/images/user-profile/193048a717b84df19b22d6238265a123.jpeg"
+            },
+            {
+              "abbreviation": "PC",
+              "children": [],
+              "id": 866843,
+              "name": "Patricia Cornejo",
+              "org_key": "patricia-cornejo",
+              "org_parent": "erin-schneider",
+              "org_title": "Receptionist",
+              "profile_picture": "/media/images/user-profile/b9075f782e664d6eabda9b06016ad80e.jpeg"
+            }
+          ],
+          "id": 866820,
+          "name": "Erin Schneider",
+          "org_key": "erin-schneider",
+          "org_parent": "danny-james",
+          "org_title": "Head Executive Assistant",
+          "profile_picture": "/media/images/user-profile/5bddb141c9bf4324aaf779ad30613b28.jpeg"
+        },
+        {
+          "abbreviation": "AA",
+          "children": [],
+          "id": 866813,
+          "name": "Alex Abril",
+          "org_key": "alex-abril",
+          "org_parent": "danny-james",
+          "org_title": "Vice President of Technology",
+          "profile_picture": "/media/images/user-profile/7374a69cde0543f29e5fc7400dc10b13.jpeg"
+        },
+        {
+          "abbreviation": "AM",
+          "children": [],
+          "id": 866814,
+          "name": "Amanda Misch",
+          "org_key": "amanda-demaio-misch",
+          "org_parent": "danny-james",
+          "org_title": "SVP, Compliance and Legal",
+          "profile_picture": "/media/images/user-profile/4130091a3a0147d68520408317e97eee.jpeg"
+        },
+        {
+          "abbreviation": "CF",
+          "children": [],
+          "id": 866812,
+          "name": "Charles Fleischmann",
+          "org_key": "charles-fleischmann",
+          "org_parent": "danny-james",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/98aee3f4ba114292ba2b7dfb92a62128.jpeg"
+        },
+        {
+          "abbreviation": "CA",
+          "children": [],
+          "id": 575122,
+          "name": "Charlie Ayres",
+          "org_key": "charles-ayres",
+          "org_parent": "danny-james",
+          "org_title": "Chairman",
+          "profile_picture": "/media/images/user-profile/da9fda85460e4304ad4ee532c45f9e6c.jpeg"
+        },
+        {
+          "abbreviation": "CT",
+          "children": [],
+          "id": 866815,
+          "name": "Charnell Thomas",
+          "org_key": "charnell-thomas",
+          "org_parent": "danny-james",
+          "org_title": "Executive Assistant",
+          "profile_picture": "/media/images/user-profile/99abfe8f98964736b9d36f5cddd822b6.jpeg"
+        },
+        {
+          "abbreviation": "DC",
+          "children": [],
+          "id": 866818,
+          "name": "David Coriell",
+          "org_key": "david-coriell",
+          "org_parent": "danny-james",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/e7deb6751a0e437bb3dc565330f502e6.jpeg"
+        },
+        {
+          "abbreviation": "GR",
+          "children": [],
+          "id": 866821,
+          "name": "Giulianna Ruiz",
+          "org_key": "giulianna-ruiz",
+          "org_parent": "danny-james",
+          "org_title": "Partner, General Counsel",
+          "profile_picture": "/media/images/user-profile/c5d01999153144728a23606eb1e0b2a2.jpeg"
+        },
+        {
+          "abbreviation": "GT",
+          "children": [],
+          "id": 866823,
+          "name": "Grace Taylor",
+          "org_key": "grace-taylor",
+          "org_parent": "danny-james",
+          "org_title": "Associate",
+          "profile_picture": "/media/images/user-profile/3e800a1f04bc450b834ea557424e53ed.jpeg"
+        },
+        {
+          "abbreviation": "GD",
+          "children": [],
+          "id": 866822,
+          "name": "Grady Davis",
+          "org_key": "grady-davis",
+          "org_parent": "danny-james",
+          "org_title": "Associate",
+          "profile_picture": "/media/images/user-profile/edd5a5ff445f4bd7b1e533485a2a7388.jpeg"
+        },
+        {
+          "abbreviation": "HC",
+          "children": [],
+          "id": 866824,
+          "name": "Harry Crosby",
+          "org_key": "harry-crosby",
+          "org_parent": "danny-james",
+          "org_title": "Partner, Business Development",
+          "profile_picture": "/media/images/user-profile/566af5118c734b118b161bf6336f7d1c.jpeg"
+        },
+        {
+          "abbreviation": "HK",
+          "children": [],
+          "id": 866825,
+          "name": "Hunter Kingsbury",
+          "org_key": "hunter-kingsbury",
+          "org_parent": "danny-james",
+          "org_title": "Associate",
+          "profile_picture": "/media/images/user-profile/84371f5205bb4f9eb74c05498c42c32b.jpeg"
+        },
+        {
+          "abbreviation": "JM",
+          "children": [],
+          "id": 575141,
+          "name": "Jamie Manges",
+          "org_key": "jamie-manges",
+          "org_parent": "danny-james",
+          "org_title": "Senior Advisor",
+          "profile_picture": "/media/images/user-profile/94664db4d6254e4daa1608b4835b9892.jpeg"
+        },
+        {
+          "abbreviation": "JL",
+          "children": [],
+          "id": 866827,
+          "name": "Jeremy Lynch",
+          "org_key": "jeremy-lynch",
+          "org_parent": "danny-james",
+          "org_title": "Partner, Executive Committee Member",
+          "profile_picture": "/media/images/user-profile/6c6c23a257ed44ff91b8c44897926afd.jpeg"
+        },
+        {
+          "abbreviation": "JK",
+          "children": [],
+          "id": 866828,
+          "name": "Jerick Kuznia",
+          "org_key": "jerick-kuznia",
+          "org_parent": "danny-james",
+          "org_title": "Associate",
+          "profile_picture": "/media/images/user-profile/50db09eca46a40dc801962e6415783be.jpeg"
+        },
+        {
+          "abbreviation": "JC",
+          "children": [],
+          "id": 866830,
+          "name": "Justin Clonts",
+          "org_key": "justin-clonts",
+          "org_parent": "danny-james",
+          "org_title": "Vice President",
+          "profile_picture": "/media/images/user-profile/849c6a32f9fc4eb8bfe0bb21d547d9be.jpeg"
+        },
+        {
+          "abbreviation": "KP",
+          "children": [],
+          "id": 866831,
+          "name": "Kento Perera",
+          "org_key": "kento-perera",
+          "org_parent": "danny-james",
+          "org_title": "Associate",
+          "profile_picture": "/media/images/user-profile/768dc204f30449f7ae4a5b74390133d0.jpeg"
+        },
+        {
+          "abbreviation": "LZ",
+          "children": [],
+          "id": 866833,
+          "name": "Li Zhang",
+          "org_key": "li-zhang",
+          "org_parent": "danny-james",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/f98f9f18dfdd4103858f9e3d6305c837.jpeg"
+        },
+        {
+          "abbreviation": "LL",
+          "children": [],
+          "id": 866834,
+          "name": "Lily Laurencio",
+          "org_key": "lily-laurencio",
+          "org_parent": "danny-james",
+          "org_title": "Associate",
+          "profile_picture": "/media/images/user-profile/018881e7337f48939d9eaa1b5ecab984.jpeg"
+        },
+        {
+          "abbreviation": "LD",
+          "children": [],
+          "id": 575125,
+          "name": "Linda Due",
+          "org_key": "linda-due",
+          "org_parent": "danny-james",
+          "org_title": "Vice President, Investor Relations",
+          "profile_picture": "/media/images/user-profile/6076b6a6d0934950947f51f52cd7053b.jpeg"
+        },
+        {
+          "abbreviation": "LT",
+          "children": [],
+          "id": 866835,
+          "name": "Lindsay Ting",
+          "org_key": "lindsay-ting",
+          "org_parent": "danny-james",
+          "org_title": "Managing Director",
+          "profile_picture": "/media/images/user-profile/0c5050e97f4348e0883b94574849525d.jpeg"
+        },
+        {
+          "abbreviation": "LR",
+          "children": [],
+          "id": 575153,
+          "name": "Luke Rossi",
+          "org_key": "luke-rossi",
+          "org_parent": "danny-james",
+          "org_title": "Principal",
+          "profile_picture": "/media/images/user-profile/266807bac2c54043abf99f83b0d6d476.jpeg"
+        },
+        {
+          "abbreviation": "MB",
+          "children": [],
+          "id": 866837,
+          "name": "Matthew Blossom",
+          "org_key": "matthew-blossom",
+          "org_parent": "danny-james",
+          "org_title": "Senior Associate",
+          "profile_picture": "/media/images/user-profile/7366761b404545db8729ecb30142e707.jpeg"
+        },
+        {
+          "abbreviation": "MD",
+          "children": [],
+          "id": 866840,
+          "name": "Michelle DeMonte",
+          "org_key": "michelle-demonte",
+          "org_parent": "danny-james",
+          "org_title": "Vice President, Facilities",
+          "profile_picture": "/media/images/user-profile/23a0aef28c184d93b617f1af41d92ffd.jpeg"
+        },
+        {
+          "abbreviation": "MQ",
+          "children": [],
+          "id": 575150,
+          "name": "Mike Qu",
+          "org_key": "mike-qu",
+          "org_parent": "danny-james",
+          "org_title": "Principal",
+          "profile_picture": "/media/images/user-profile/87cdff23cf1144e09a7b9c0fcc54f4de.jpeg"
+        },
+        {
+          "abbreviation": "MT",
+          "children": [],
+          "id": 866841,
+          "name": "Mike Tyler",
+          "org_key": "mike-tyler",
+          "org_parent": "danny-james",
+          "org_title": "Vice President",
+          "profile_picture": "/media/images/user-profile/035b231dc061464db9ab501ff2c5b4e2.jpeg"
+        },
+        {
+          "abbreviation": "NK",
+          "children": [],
+          "id": 866842,
+          "name": "Natalie Knipp",
+          "org_key": "natalie-knipp",
+          "org_parent": "danny-james",
+          "org_title": "Principal",
+          "profile_picture": "/media/images/user-profile/abf32d416f294845b749e70c5d503db9.jpeg"
+        },
+        {
+          "abbreviation": "SS",
+          "children": [],
+          "id": 866845,
+          "name": "Sushene Swenson",
+          "org_key": "sushene-swenson",
+          "org_parent": "danny-james",
+          "org_title": "Managing Director, Admin & Operations",
+          "profile_picture": "/media/images/user-profile/f2280c83953a4741aad59db4c0ee28e5.jpeg"
+        },
+        {
+          "abbreviation": "TG",
+          "children": [],
+          "id": 866846,
+          "name": "Taylor Gladd",
+          "org_key": "taylor-gladd",
+          "org_parent": "danny-james",
+          "org_title": "Associate",
+          "profile_picture": "/media/images/user-profile/7005e3f106c948baaa940aaabe585cb5.jpeg"
+        },
+        {
+          "abbreviation": "TR",
+          "children": [],
+          "id": 575152,
+          "name": "Ted Rosenwasser",
+          "org_key": "ted-rosenwasser",
+          "org_parent": "danny-james",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/27eca27401704f0e98de74cf3b5e56cf.jpeg"
+        }
+      ],
+      "id": 866817,
+      "name": "Danny James",
+      "org_key": "danny-james",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/3814e7b3f3ec41e88a4c1a0b4dcc4fc8.jpeg"
+    }
+  ]
+}

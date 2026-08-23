@@ -1,0 +1,102 @@
+{
+  "institution": {
+    "group_code": "G0238-EASYMILEFITNESS",
+    "id": 14,
+    "name": "Easy Mile Fitness",
+    "public_id": "g07d"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "PA",
+      "children": [
+        {
+          "abbreviation": "JP",
+          "children": [],
+          "id": 871805,
+          "name": "John Patino",
+          "org_key": "john-patino",
+          "org_parent": "philipmamato",
+          "org_title": "Sr. Director of Construction & Facilities",
+          "profile_picture": "/media/images/user-profile/8a4e29a842b0496d91acab482ae76e86.jpeg"
+        },
+        {
+          "abbreviation": "KR",
+          "children": [],
+          "id": 871806,
+          "name": "Keishla Tejedor Rodriguez",
+          "org_key": "keishla-tejedor-rodriguez",
+          "org_parent": "philipmamato",
+          "org_title": "Director of Operations (PR)",
+          "profile_picture": "/media/images/user-profile/9b2cd23523b44cd5a7f58bebb6c6b39a.jpeg"
+        },
+        {
+          "abbreviation": "MC",
+          "children": [],
+          "id": 871801,
+          "name": "Mandi Castagnola",
+          "org_key": "mandi-castagnola",
+          "org_parent": "philipmamato",
+          "org_title": "Director of Operations (US/CAN)",
+          "profile_picture": "/media/images/user-profile/b8c91a62ca4341758653d94f2bfbf685.jpeg"
+        },
+        {
+          "abbreviation": "MP",
+          "children": [],
+          "id": 871804,
+          "name": "Mike Paone",
+          "org_key": "michael-paone",
+          "org_parent": "philipmamato",
+          "org_title": "Marketing Director",
+          "profile_picture": "/media/images/user-profile/e2f77e6a6bca4894913cc9fdb416bc3c.jpeg"
+        },
+        {
+          "abbreviation": "NN",
+          "children": [],
+          "id": 871803,
+          "name": "Nancy Noj",
+          "org_key": "nancy-noj-phr-shrm-cp",
+          "org_parent": "philipmamato",
+          "org_title": "Director of Human Resources",
+          "profile_picture": "/media/images/user-profile/d7b50e30e1ae40b19c84a6d692e3f686.jpeg"
+        },
+        {
+          "abbreviation": "TJ",
+          "children": [],
+          "id": 871802,
+          "name": "Tom\u00e1s J.",
+          "org_key": "tomas-j",
+          "org_parent": "philipmamato",
+          "org_title": "Director of Real Estate Development",
+          "profile_picture": "/media/images/user-profile/fbad776dcbcd469ead3e4c6178b19e03.jpeg"
+        }
+      ],
+      "id": 871799,
+      "name": "Philip Amato",
+      "org_key": "philipmamato",
+      "org_parent": null,
+      "org_title": "COO & Managing Partner",
+      "profile_picture": "/media/images/user-profile/f92c72ec61a74fd8b0512d9f5a36a69b.jpeg"
+    },
+    {
+      "abbreviation": "PA",
+      "children": [
+        {
+          "abbreviation": "DB",
+          "children": [],
+          "id": 871800,
+          "name": "Dave Bauer",
+          "org_key": "dave-bauer-cma",
+          "org_parent": "peter-amato",
+          "org_title": "Sr. Director of Finance",
+          "profile_picture": "/media/images/user-profile/53f606dcebf8426ab54dce52b1b039d2.jpeg"
+        }
+      ],
+      "id": 871798,
+      "name": "Peter Amato",
+      "org_key": "peter-amato",
+      "org_parent": null,
+      "org_title": "CFO & Managing Partner",
+      "profile_picture": "/media/images/user-profile/c175526e42e04992994d269f0247e35e.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "institution": {
+    "group_code": "ROMULUS RESTAURANTS, L.L.C.",
+    "id": 25073,
+    "name": "ROMULUS RESTAURANTS, L.L.C.",
+    "public_id": "jvm8y"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "CS",
+      "children": [
+        {
+          "abbreviation": "CP",
+          "children": [],
+          "id": 963089,
+          "name": "Christopher Pew",
+          "org_key": "christopher-pew",
+          "org_parent": "chris-sumners",
+          "org_title": "",
+          "profile_picture": "/media/images/user-profile/7d49a927b6d74ee0a14133d2051141c7.jpeg"
+        },
+        {
+          "abbreviation": "JP",
+          "children": [],
+          "id": 963087,
+          "name": "Jonathan D. Perez",
+          "org_key": "jonathan-perez",
+          "org_parent": "chris-sumners",
+          "org_title": "Chief Legal and Administrative Officer",
+          "profile_picture": "/media/images/user-profile/f38f955bc2b6461b9e1f539e7d9575d2.jpeg"
+        },
+        {
+          "abbreviation": "JS",
+          "children": [],
+          "id": 963090,
+          "name": "Joshua Sumners",
+          "org_key": "joshua-sumners",
+          "org_parent": "chris-sumners",
+          "org_title": "Director of Catering",
+          "profile_picture": "/media/images/user-profile/39dfc14e2b224cf782bdd4ada4e184c7.jpeg"
+        },
+        {
+          "abbreviation": "KB",
+          "children": [],
+          "id": 914970,
+          "name": "Kevin Brown",
+          "org_key": "kevin-brown",
+          "org_parent": "chris-sumners",
+          "org_title": "CFO",
+          "profile_picture": "/media/images/user-profile/27233487bb2b43b4bd81a8517351330f.jpeg"
+        },
+        {
+          "abbreviation": "MM",
+          "children": [],
+          "id": 963088,
+          "name": "Max Milisci",
+          "org_key": "max-milisci",
+          "org_parent": "chris-sumners",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "NP",
+          "children": [],
+          "id": 963086,
+          "name": "Nicholas Perry",
+          "org_key": "nicholas-perry",
+          "org_parent": "chris-sumners",
+          "org_title": "COO",
+          "profile_picture": "/media/images/user-profile/dd21747a764d4660a0809a508a61e3c1.jpeg"
+        }
+      ],
+      "id": 963085,
+      "name": "Chris Sumners",
+      "org_key": "chris-sumners",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/c30363e38a934af99869ceb292d13916.jpeg"
+    }
+  ]
+}

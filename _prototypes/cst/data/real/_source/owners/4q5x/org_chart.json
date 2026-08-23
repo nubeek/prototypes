@@ -1,0 +1,41 @@
+{
+  "institution": {
+    "group_code": "Sailormen, Inc.",
+    "id": 966,
+    "name": "Sailormen, Inc.",
+    "public_id": "4q5x"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "KN",
+      "children": [
+        {
+          "abbreviation": "MR",
+          "children": [],
+          "id": 921635,
+          "name": "Mark Reineri",
+          "org_key": "mark-reineri",
+          "org_parent": "kara-nordstrom",
+          "org_title": "COO",
+          "profile_picture": "/media/images/user-profile/30a1fc18cf9740c5bb32566b1b304648.jpeg"
+        },
+        {
+          "abbreviation": "TD",
+          "children": [],
+          "id": 921636,
+          "name": "Tim Donnellan",
+          "org_key": "tim-donnellan",
+          "org_parent": "kara-nordstrom",
+          "org_title": "",
+          "profile_picture": null
+        }
+      ],
+      "id": 921634,
+      "name": "Kara Nordstrom",
+      "org_key": "kara-nordstrom",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/256563078ae24b23b52f7500ccbdd4c5.jpeg"
+    }
+  ]
+}

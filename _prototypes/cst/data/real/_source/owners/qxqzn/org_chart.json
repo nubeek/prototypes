@@ -1,0 +1,242 @@
+{
+  "institution": {
+    "group_code": "WKS Restaurant Group",
+    "id": 17379,
+    "name": "WKS Restaurant Group",
+    "public_id": "qxqzn"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "RS",
+      "children": [
+        {
+          "abbreviation": "JS",
+          "children": [
+            {
+              "abbreviation": "AF",
+              "children": [],
+              "id": 938252,
+              "name": "Andrew Feinour",
+              "org_key": "andrew-feinour",
+              "org_parent": "jay-spongberg",
+              "org_title": "President, Clockwork Construction, Inc",
+              "profile_picture": "/media/images/user-profile/775c9e18e1c4458db66d3c361245692c.jpeg"
+            },
+            {
+              "abbreviation": "BS",
+              "children": [],
+              "id": 938267,
+              "name": "Brian Spongberg",
+              "org_key": "brianspongberg",
+              "org_parent": "jay-spongberg",
+              "org_title": "Marketing",
+              "profile_picture": "/media/images/user-profile/58d319432e5f45bc85e95340aa7cbe7a.jpeg"
+            },
+            {
+              "abbreviation": "CO",
+              "children": [],
+              "id": 938257,
+              "name": "Carlos Ortiz",
+              "org_key": "carlos-ortiz",
+              "org_parent": "jay-spongberg",
+              "org_title": "President, WKS Frosty Corporation",
+              "profile_picture": "/media/images/user-profile/ba7231c2feaa4fcea0cd5c72019f73a9.jpeg"
+            },
+            {
+              "abbreviation": "DB",
+              "children": [],
+              "id": 938258,
+              "name": "Dan Boose",
+              "org_key": "dan-boose",
+              "org_parent": "jay-spongberg",
+              "org_title": "President, Sunrise Restaurants LLC",
+              "profile_picture": "/media/images/user-profile/b03036eb35524900ac48daadca9b3f18.jpeg"
+            },
+            {
+              "abbreviation": "DD",
+              "children": [],
+              "id": 938263,
+              "name": "David Din",
+              "org_key": "david-din",
+              "org_parent": "jay-spongberg",
+              "org_title": "Controller",
+              "profile_picture": "/media/images/user-profile/c07ff7edf3124f69a8a7b7baa9f0e9b0.jpeg"
+            },
+            {
+              "abbreviation": "DR",
+              "children": [],
+              "id": 938256,
+              "name": "David Reif",
+              "org_key": "david-reif",
+              "org_parent": "jay-spongberg",
+              "org_title": "Vice President of Real Estate and Development",
+              "profile_picture": "/media/images/user-profile/217755f4c5484268b6ba22149e93394b.jpeg"
+            },
+            {
+              "abbreviation": "GC",
+              "children": [],
+              "id": 938264,
+              "name": "George Cottrell",
+              "org_key": "george-cottrell",
+              "org_parent": "jay-spongberg",
+              "org_title": "Treasurer",
+              "profile_picture": "/media/images/user-profile/3126dfd96b734ed19f4dee4948f3dff2.jpeg"
+            },
+            {
+              "abbreviation": "JH",
+              "children": [],
+              "id": 938254,
+              "name": "Jason Hudock",
+              "org_key": "jason-hudock",
+              "org_parent": "jay-spongberg",
+              "org_title": "Vice President of Financial Planning & Analysis",
+              "profile_picture": "/media/images/user-profile/630ce480367647af924c85ca9e56ae4b.jpeg"
+            },
+            {
+              "abbreviation": "JF",
+              "children": [],
+              "id": 938260,
+              "name": "Jeff Fernley",
+              "org_key": "jeff-fernley",
+              "org_parent": "jay-spongberg",
+              "org_title": "Vice President of Operations, El Pollo Loco",
+              "profile_picture": "/media/images/user-profile/c9346f9239d3401c95fccf12cf70ec3d.jpeg"
+            },
+            {
+              "abbreviation": "JL",
+              "children": [],
+              "id": 938253,
+              "name": "Jessica Lao",
+              "org_key": "jessica-lao",
+              "org_parent": "jay-spongberg",
+              "org_title": "Vice President of Accounting",
+              "profile_picture": "/media/images/user-profile/d1b3182d365449ef8be8de536173ce6a.jpeg"
+            },
+            {
+              "abbreviation": "KO",
+              "children": [],
+              "id": 938265,
+              "name": "Karla Ortiz",
+              "org_key": "karlaortiz21",
+              "org_parent": "jay-spongberg",
+              "org_title": "Marketing Manager",
+              "profile_picture": "/media/images/user-profile/382933433fbf44628f199c813451c3dd.jpeg"
+            },
+            {
+              "abbreviation": "MS",
+              "children": [],
+              "id": 938251,
+              "name": "Mike Simmons",
+              "org_key": "mike-simmons",
+              "org_parent": "jay-spongberg",
+              "org_title": "Senior Vice President, Human Resources, Risk, & Legal",
+              "profile_picture": "/media/images/user-profile/84468d8ebdff455ca911700498aaa114.jpeg"
+            },
+            {
+              "abbreviation": "MH",
+              "children": [],
+              "id": 938259,
+              "name": "Mireya Hern\u00e1ndez",
+              "org_key": "mireya-hern\u00e1ndez",
+              "org_parent": "jay-spongberg",
+              "org_title": "Vice President of Operations, W.K.S. Krispy Kreme LLC",
+              "profile_picture": "/media/images/user-profile/5a26db6e558842db94e29dd417b8b7e2.jpeg"
+            },
+            {
+              "abbreviation": "RK",
+              "children": [],
+              "id": 938255,
+              "name": "Rich Kindred",
+              "org_key": "rich-kindred",
+              "org_parent": "jay-spongberg",
+              "org_title": "Vice President of Facilities",
+              "profile_picture": "/media/images/user-profile/9c6061ca779945e9850323e87cd502e3.jpeg"
+            },
+            {
+              "abbreviation": "ST",
+              "children": [],
+              "id": 938266,
+              "name": "Sandy Thibodeaux",
+              "org_key": "sandy-thibodeaux",
+              "org_parent": "jay-spongberg",
+              "org_title": "Benefits Manager",
+              "profile_picture": "/media/images/user-profile/8fc1875f49b140efb65ddd6dc984cc2e.jpeg"
+            },
+            {
+              "abbreviation": "TC",
+              "children": [],
+              "id": 938262,
+              "name": "Tammy Clemmons",
+              "org_key": "tammy-clemmons",
+              "org_parent": "jay-spongberg",
+              "org_title": "Operations Manager",
+              "profile_picture": null
+            },
+            {
+              "abbreviation": "TF",
+              "children": [],
+              "id": 938250,
+              "name": "Trevor Fitzgerald",
+              "org_key": "trevor-fitzgerald",
+              "org_parent": "jay-spongberg",
+              "org_title": "Senior Vice President of Innovation & Technology",
+              "profile_picture": "/media/images/user-profile/af65f79602b24957abba43dc2a438119.jpeg"
+            },
+            {
+              "abbreviation": "VJ",
+              "children": [],
+              "id": 938261,
+              "name": "Veronica Jimenez",
+              "org_key": "veronica-jimenez",
+              "org_parent": "jay-spongberg",
+              "org_title": "Payroll Manager",
+              "profile_picture": null
+            }
+          ],
+          "id": 938248,
+          "name": "Jay Spongberg",
+          "org_key": "jay-spongberg",
+          "org_parent": "roland-c-spongberg",
+          "org_title": "Senior Vice President & Chief Operations Officer",
+          "profile_picture": "/media/images/user-profile/712442667cf14b39b77b6d2bbb5073b5.jpeg"
+        },
+        {
+          "abbreviation": "DP",
+          "children": [],
+          "id": 938246,
+          "name": "Debi Pellegrino",
+          "org_key": "debi-pellegrino",
+          "org_parent": "roland-c-spongberg",
+          "org_title": "Chief of Staff to the CEO",
+          "profile_picture": "/media/images/user-profile/524547515b5b4c93b034220436166b0e.jpeg"
+        },
+        {
+          "abbreviation": "PT",
+          "children": [],
+          "id": 938247,
+          "name": "Paul Tanner",
+          "org_key": "paul-tanner",
+          "org_parent": "roland-c-spongberg",
+          "org_title": "Chief Investment Officer",
+          "profile_picture": "/media/images/user-profile/cbe222195ab4463fa62eb2c70b9cb0bf.jpeg"
+        },
+        {
+          "abbreviation": "SM",
+          "children": [],
+          "id": 938249,
+          "name": "Sharon Moeller",
+          "org_key": "sharon-moeller",
+          "org_parent": "roland-c-spongberg",
+          "org_title": "Chief Financial Officer",
+          "profile_picture": "/media/images/user-profile/f39b2e8a6c3b4377956f8f77123836b5.jpeg"
+        }
+      ],
+      "id": 138817,
+      "name": "Roland C Spongberg",
+      "org_key": "roland-c-spongberg",
+      "org_parent": null,
+      "org_title": "President & Chief Executive Officer",
+      "profile_picture": "/media/images/user-profile/507a9001459c4e3e9b2e46f44dafe877.jpeg"
+    }
+  ]
+}

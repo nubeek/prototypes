@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "American West Restaurant Group",
+    "id": 16869,
+    "name": "American West Restaurant Group",
+    "public_id": "7j1x6"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GE",
+      "children": [
+        {
+          "abbreviation": "KF",
+          "children": [],
+          "id": 934444,
+          "name": "Kamil Finan",
+          "org_key": "kamil-finan",
+          "org_parent": "gene-erdman",
+          "org_title": "VP of Operations",
+          "profile_picture": "/media/images/user-profile/562374294ef943ab862484e4faf0782d.jpeg"
+        }
+      ],
+      "id": 934443,
+      "name": "Gene Erdman",
+      "org_key": "gene-erdman",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/1739df3c55534267a5bd76800977e448.jpeg"
+    }
+  ]
+}

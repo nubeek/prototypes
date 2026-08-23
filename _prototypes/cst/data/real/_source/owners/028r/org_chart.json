@@ -1,0 +1,51 @@
+{
+  "institution": {
+    "group_code": "Eyas Hospitality Group",
+    "id": 962,
+    "name": "Eyas Hospitality Group",
+    "public_id": "028r"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "TF",
+      "children": [
+        {
+          "abbreviation": "JK",
+          "children": [],
+          "id": 919384,
+          "name": "John Kaufman",
+          "org_key": "john-kaufman",
+          "org_parent": "timothy-foley",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/775788a4dbcb44f6a83e45977ae0aeac.jpeg"
+        },
+        {
+          "abbreviation": "PG",
+          "children": [],
+          "id": 919386,
+          "name": "Philip Gay",
+          "org_key": "philip-gay",
+          "org_parent": "timothy-foley",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/e6b3e8e957234cc8a94e27508b18fbb1.jpeg"
+        },
+        {
+          "abbreviation": "TH",
+          "children": [],
+          "id": 919385,
+          "name": "Terry Hawk",
+          "org_key": "terry-hawk",
+          "org_parent": "timothy-foley",
+          "org_title": "Vice President Of Operations",
+          "profile_picture": "/media/images/user-profile/06306080a0db4b389a1574d36df3a0f0.jpeg"
+        }
+      ],
+      "id": 919288,
+      "name": "Timothy Foley",
+      "org_key": "timothy-foley",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/5cd4a58bed4c49499b367120fa5c8f44.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "institution": {
+    "group_code": "DYNE Hospitality Group",
+    "id": 16360,
+    "name": "DYNE Hospitality Group",
+    "public_id": "yqj9x"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GJ",
+      "children": [],
+      "id": 79969,
+      "name": "Glen Johnson",
+      "org_key": "glen-johnson",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "NC",
+      "children": [],
+      "id": 933479,
+      "name": "Nicholas \"Nick\" Crouch",
+      "org_key": "nicholas-nick-crouch",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

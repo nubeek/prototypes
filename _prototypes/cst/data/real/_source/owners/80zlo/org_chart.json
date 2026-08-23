@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "North American Wax Company",
+    "id": 18622,
+    "name": "North American Wax Company",
+    "public_id": "80zlo"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "TC",
+      "children": [],
+      "id": 919355,
+      "name": "Thomas S. Cook",
+      "org_key": "thomas-s.-cook",
+      "org_parent": null,
+      "org_title": "Franchisee",
+      "profile_picture": "/media/images/user-profile/40c9b74cb8e94faa97cfde4d144529b0.jpeg"
+    }
+  ]
+}

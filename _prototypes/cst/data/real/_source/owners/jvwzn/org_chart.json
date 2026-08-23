@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Cambridge Spa Group",
+    "id": 16872,
+    "name": "Cambridge Spa Group",
+    "public_id": "jvwzn"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "JB",
+      "children": [],
+      "id": 934447,
+      "name": "Jill \"Gillian\" Bechtel",
+      "org_key": "jill-bechtel",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/f94fb1b5bcbd42a28b3c01d40d57d751.jpeg"
+    }
+  ]
+}

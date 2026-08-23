@@ -1,0 +1,153 @@
+{
+  "institution": {
+    "group_code": "Quality Brand Group",
+    "id": 15450,
+    "name": "Quality Brand Group",
+    "public_id": "ll3oq"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "AJ",
+      "children": [
+        {
+          "abbreviation": "PD",
+          "children": [
+            {
+              "abbreviation": "AL",
+              "children": [],
+              "id": 931158,
+              "name": "Adam Lewis",
+              "org_key": "adam-lewis",
+              "org_parent": "patrick-droesch",
+              "org_title": "IT Manager",
+              "profile_picture": "/media/images/user-profile/f8faa20d4cda44c6915f1ab86f08b53a.jpeg"
+            },
+            {
+              "abbreviation": "AG",
+              "children": [],
+              "id": 931157,
+              "name": "Ashleigh Griffith",
+              "org_key": "atgriffith",
+              "org_parent": "patrick-droesch",
+              "org_title": "Senior Marketing Manager",
+              "profile_picture": "/media/images/user-profile/e0dda36cc41349809270e3640ac3bd53.jpeg"
+            },
+            {
+              "abbreviation": "JV",
+              "children": [],
+              "id": 931153,
+              "name": "Jim Valerio",
+              "org_key": "jim-valerio",
+              "org_parent": "patrick-droesch",
+              "org_title": "Director of Facilities",
+              "profile_picture": "/media/images/user-profile/a44235b6d08e4075a101c2b89e2eb50b.jpeg"
+            },
+            {
+              "abbreviation": "PN",
+              "children": [],
+              "id": 931151,
+              "name": "Pieter Niehaus",
+              "org_key": "pieter-niehaus",
+              "org_parent": "patrick-droesch",
+              "org_title": "Vice President \u2013 Development",
+              "profile_picture": "/media/images/user-profile/93c5afb3c7a34cdfb1514032af207677.jpeg"
+            },
+            {
+              "abbreviation": "RP",
+              "children": [],
+              "id": 931152,
+              "name": "Richie Perkins",
+              "org_key": "richard-perkins",
+              "org_parent": "patrick-droesch",
+              "org_title": "Vice President \u2013 East",
+              "profile_picture": "/media/images/user-profile/8f758ea0fefc4f84a1f25a1d4b6c8dde.jpeg"
+            },
+            {
+              "abbreviation": "SM",
+              "children": [],
+              "id": 931155,
+              "name": "Scott Mickelson",
+              "org_key": "scott-mickelson",
+              "org_parent": "patrick-droesch",
+              "org_title": "Director of Construction",
+              "profile_picture": "/media/images/user-profile/7195ce95177f4f048a09161c8bd7616c.jpeg"
+            },
+            {
+              "abbreviation": "SL",
+              "children": [],
+              "id": 931156,
+              "name": "Suzan Lanni",
+              "org_key": "suzan-lanni",
+              "org_parent": "patrick-droesch",
+              "org_title": "Director of HR",
+              "profile_picture": "/media/images/user-profile/fc92e1dd10a34146a7b2a4d49e04c5a5.jpeg"
+            }
+          ],
+          "id": 931150,
+          "name": "Patrick Droesch",
+          "org_key": "patrick-droesch",
+          "org_parent": "ann-johnson",
+          "org_title": "COO",
+          "profile_picture": "/media/images/user-profile/8150995a22294ea6a0684b79b0049091.jpeg"
+        },
+        {
+          "abbreviation": "AV",
+          "children": [
+            {
+              "abbreviation": "RG",
+              "children": [],
+              "id": 931154,
+              "name": "Rob Greenberg",
+              "org_key": "rob-greenberg",
+              "org_parent": "anthony-vinci",
+              "org_title": "Director of Finance",
+              "profile_picture": "/media/images/user-profile/3a7d6ce80d864963a0c4c4422f0ae07e.jpeg"
+            }
+          ],
+          "id": 931149,
+          "name": "Anthony Vinci",
+          "org_key": "anthony-vinci",
+          "org_parent": "ann-johnson",
+          "org_title": "CFO",
+          "profile_picture": "/media/images/user-profile/92da6756b3b94d22ab88044d18864ee0.jpeg"
+        },
+        {
+          "abbreviation": "PK",
+          "children": [],
+          "id": 931146,
+          "name": "Peter Kirsch",
+          "org_key": "peter-kirsch",
+          "org_parent": "ann-johnson",
+          "org_title": "Board Member",
+          "profile_picture": "/media/images/user-profile/5b50b7a169924c11a18c5164cf8b8ce2.jpeg"
+        },
+        {
+          "abbreviation": "TN",
+          "children": [],
+          "id": 931147,
+          "name": "Tim Nolan",
+          "org_key": "tim-nolan",
+          "org_parent": "ann-johnson",
+          "org_title": "Board Member",
+          "profile_picture": "/media/images/user-profile/9d70cb0e082c487cb7acbc5fcc2c87a9.jpeg"
+        }
+      ],
+      "id": 931148,
+      "name": "Ann Johnson",
+      "org_key": "ann-johnson",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/3b267f773e5041ec8cd50a732ab4475a.jpeg"
+    },
+    {
+      "abbreviation": "HH",
+      "children": [],
+      "id": 929395,
+      "name": "Henry Huth",
+      "org_key": "henry-huth",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/a4b7cd78a8b341a9b92f09ed267fcb8a.jpeg"
+    }
+  ]
+}

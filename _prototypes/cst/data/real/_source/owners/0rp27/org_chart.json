@@ -1,0 +1,101 @@
+{
+  "institution": {
+    "group_code": "The Jones group BWW",
+    "id": 27687,
+    "name": "The Jones group BWW",
+    "public_id": "0rp27"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "BJ",
+      "children": [
+        {
+          "abbreviation": "AS",
+          "children": [],
+          "id": 965248,
+          "name": "Autumn Seprodi",
+          "org_key": "autumn-seprodi",
+          "org_parent": "brandon-jones",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "BG",
+          "children": [],
+          "id": 965253,
+          "name": "Bob Gupton",
+          "org_key": "bob-gupton",
+          "org_parent": "brandon-jones",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "JM",
+          "children": [],
+          "id": 965246,
+          "name": "Jason Mate",
+          "org_key": "jason-mate",
+          "org_parent": "brandon-jones",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "JC",
+          "children": [],
+          "id": 965255,
+          "name": "Jeff Claude",
+          "org_key": "jeff-claude",
+          "org_parent": "brandon-jones",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "JS",
+          "children": [],
+          "id": 965251,
+          "name": "Jeff Smith",
+          "org_key": "jeff-smith",
+          "org_parent": "brandon-jones",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "JC",
+          "children": [],
+          "id": 965256,
+          "name": "Jen Cunningham",
+          "org_key": "jen-cunningham",
+          "org_parent": "brandon-jones",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "JC",
+          "children": [],
+          "id": 965247,
+          "name": "Jon Curtis",
+          "org_key": "jon-curtis",
+          "org_parent": "brandon-jones",
+          "org_title": "",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "MP",
+          "children": [],
+          "id": 965257,
+          "name": "Misty Phillips",
+          "org_key": "misty-phillips",
+          "org_parent": "brandon-jones",
+          "org_title": "",
+          "profile_picture": null
+        }
+      ],
+      "id": 965245,
+      "name": "Brandon Jones",
+      "org_key": "brandon-jones",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

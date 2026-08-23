@@ -704,6 +704,10 @@
             </div>
             <p id="tableHeadingSummary" aria-live="polite">Showing 0 franchisees.</p>
           </header>
+          <div class="cst-table-loading" id="cstTableLoading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading data" hidden>
+            <div class="cst-table-loading__spinner" aria-hidden="true"></div>
+            <p class="cst-table-loading__label">Loading data...</p>
+          </div>
           <div class="table-wrap" id="tableWrap">
         <table>
           <thead>
@@ -949,12 +953,17 @@
     </section>
   </div>
 
-  <script src="data/owners.js"></script>
-  <script src="data/locations.js"></script>
+  <script src="data/franchise-brands.js"></script>
+  <script src="data/location-centers.js"></script>
+  <script src="data/default/owners.js"></script>
+  <script src="data/default/unit-locations.js"></script>
   <script src="data/prospect-datasets.js"></script>
   <script src="data/saved-searches.js"></script>
-  <script src="data/org-chart.js"></script>
+  <script src="data/default/org-chart.js"></script>
+  <script src="data/real/owners.js"></script>
+  <script src="data/real/place-labels.js"></script>
   <script src="../../scripts/cst-env.js"></script>
+  <script src="data/real/overlay.js"></script>
   <script src="../shared/filter/radius-control.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>

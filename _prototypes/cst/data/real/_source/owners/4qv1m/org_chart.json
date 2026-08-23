@@ -1,0 +1,30 @@
+{
+  "institution": {
+    "group_code": "Southpaw",
+    "id": 17966,
+    "name": "Southpaw",
+    "public_id": "4qv1m"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "EW",
+      "children": [],
+      "id": 939892,
+      "name": "Erica Spector Wishnow",
+      "org_key": "erica-spector-wishnow",
+      "org_parent": null,
+      "org_title": "Co-Founder and Co-CEO",
+      "profile_picture": "/media/images/user-profile/8781b138e45149b7b03a748f7495eb39.jpeg"
+    },
+    {
+      "abbreviation": "JW",
+      "children": [],
+      "id": 939891,
+      "name": "Judd Wishnow",
+      "org_key": "judd-wishnow",
+      "org_parent": null,
+      "org_title": "Co-Founder and Co-CEO",
+      "profile_picture": "/media/images/user-profile/f814a639a3ee42d198623ae1e9c85cad.jpeg"
+    }
+  ]
+}

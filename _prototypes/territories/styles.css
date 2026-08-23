@@ -2275,9 +2275,21 @@ a.territory-info-card__action.is-disabled {
 }
 
 .territory-crossroad__popular-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
   width: 100%;
   padding-top: 24px;
   padding-bottom: 32px;
+}
+
+.territory-crossroad__popular-scroll:has(> .territory-crossroad__popular-empty:not([hidden])) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.territory-crossroad__popular-scroll:has(> .territory-crossroad__popular-empty:not([hidden])) .territory-crossroad__scope-stack {
+  display: none;
 }
 
 .territory-crossroad__scope-stack {
@@ -2335,8 +2347,11 @@ a.territory-info-card__action.is-disabled {
 }
 
 .territory-crossroad__popular-empty {
-  margin-top: 96px;
-  margin-inline: auto;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
   max-width: 600px;
   color: var(--color-text-muted);
   font-size: 20px;

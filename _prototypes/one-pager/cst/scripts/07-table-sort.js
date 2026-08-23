@@ -321,7 +321,7 @@ function isDatasetTableView(tableView = currentTableView) {
 }
 
 const LOCATION_TABLE_HEADERS = [
-  { header: locationNumberColumnHeader, label: "", sortKey: "", width: "64px" },
+  { header: locationNumberColumnHeader, label: "", sortKey: "", width: "48px" },
   { header: ownerColumnHeader, label: "Name", sortKey: "contactName", width: "220px" },
   { header: contactColumnHeader, label: "Location", sortKey: "location", width: "220px" },
   { header: combinedContactsHeader, label: "Contact email", sortKey: "email", width: "220px" },

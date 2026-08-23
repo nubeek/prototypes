@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Yadav Enterprises, Inc.",
+    "id": 9679,
+    "name": "Yadav Enterprises, Inc.",
+    "public_id": "qmwv"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "AY",
+      "children": [],
+      "id": 922097,
+      "name": "Anil Yadav",
+      "org_key": "anil-yadav",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

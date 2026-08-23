@@ -1,4 +1,4 @@
-// Synced with _prototypes/cst/data/locations.js water exclusion masks.
+// Synced with _prototypes/cst/data/default/unit-locations.js water exclusion masks.
 window.NORTH_AMERICA_WATER_EXCLUSION_POLYGONS = [
   [
     [-133, 60.5],

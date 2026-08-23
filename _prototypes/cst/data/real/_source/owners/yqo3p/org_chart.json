@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Hamra Enterprises",
+    "id": 23937,
+    "name": "Hamra Enterprises",
+    "public_id": "yqo3p"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MH",
+      "children": [],
+      "id": 953559,
+      "name": "Mike Hamra",
+      "org_key": "mike-hamra",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/ce0a914e11834bf68ff38384254dc9cb.jpeg"
+    }
+  ]
+}

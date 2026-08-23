@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "Metro Franchising Commissary LLC",
+    "id": 9688,
+    "name": "Metro Franchising Commissary LLC",
+    "public_id": "25n5"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "SC",
+      "children": [
+        {
+          "abbreviation": "SC",
+          "children": [],
+          "id": 931223,
+          "name": "Scott Campbell",
+          "org_key": "scott-campbell",
+          "org_parent": "stuart-cohen",
+          "org_title": "COO",
+          "profile_picture": "/media/images/user-profile/ea287becf752483fa12ffce8df6dd746.jpeg"
+        }
+      ],
+      "id": 922224,
+      "name": "Stuart Cohen",
+      "org_key": "stuart-cohen",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/1296639b00c84898b3980c5350abf4ad.jpeg"
+    }
+  ]
+}

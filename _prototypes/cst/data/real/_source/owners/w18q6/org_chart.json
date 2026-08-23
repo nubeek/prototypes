@@ -1,0 +1,121 @@
+{
+  "institution": {
+    "group_code": "The Phoenix Organization",
+    "id": 17958,
+    "name": "The Phoenix Organization",
+    "public_id": "w18q6"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GL",
+      "children": [
+        {
+          "abbreviation": "AS",
+          "children": [],
+          "id": 939849,
+          "name": "Ana Shaw",
+          "org_key": "ana-shaw",
+          "org_parent": "glenn-levins",
+          "org_title": "Dir. of Operations & Traning",
+          "profile_picture": "/media/images/user-profile/9a74c17e27d54f4f99e3dd118f72ca89.jpeg"
+        },
+        {
+          "abbreviation": "FA",
+          "children": [],
+          "id": 939855,
+          "name": "Felipe Astudillo",
+          "org_key": "felipe-astudillo",
+          "org_parent": "glenn-levins",
+          "org_title": "Operations Manager",
+          "profile_picture": "/media/images/user-profile/a985ead361d04f2b863c2105ef23d42d.jpeg"
+        },
+        {
+          "abbreviation": "GL",
+          "children": [],
+          "id": 138844,
+          "name": "Gary Levins",
+          "org_key": "gary-levins",
+          "org_parent": "glenn-levins",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/0f403a06376140cea56f6d79e43ba521.jpeg"
+        },
+        {
+          "abbreviation": "GR",
+          "children": [],
+          "id": 939852,
+          "name": "Gary Roskin",
+          "org_key": "gary-roskin",
+          "org_parent": "glenn-levins",
+          "org_title": "Vice president commercial broker",
+          "profile_picture": "/media/images/user-profile/8990654971bb4fff86ceea133727fdd5.jpeg"
+        },
+        {
+          "abbreviation": "JF",
+          "children": [],
+          "id": 939854,
+          "name": "Jackie Finley",
+          "org_key": "jackie-finley",
+          "org_parent": "glenn-levins",
+          "org_title": "Accounts Payable Specialist",
+          "profile_picture": "/media/images/user-profile/7d2a6b5627714e90b79d5fd1ed223f84.jpeg"
+        },
+        {
+          "abbreviation": "JK",
+          "children": [],
+          "id": 939851,
+          "name": "Jonathan Kross",
+          "org_key": "jonathan-kross",
+          "org_parent": "glenn-levins",
+          "org_title": "general counsel",
+          "profile_picture": "/media/images/user-profile/59596b2667a9469b815822585aae88d6.jpeg"
+        },
+        {
+          "abbreviation": "NC",
+          "children": [],
+          "id": 939853,
+          "name": "Nancy Caero",
+          "org_key": "nancy-caero",
+          "org_parent": "glenn-levins",
+          "org_title": "Payroll Manager",
+          "profile_picture": "/media/images/user-profile/b9b07074c4944473ad6ec8d35606102c.jpeg"
+        },
+        {
+          "abbreviation": "PF",
+          "children": [],
+          "id": 939850,
+          "name": "Pam Faber",
+          "org_key": "pam-faber",
+          "org_parent": "glenn-levins",
+          "org_title": "Director of Administration",
+          "profile_picture": "/media/images/user-profile/1e9b1d69af3b4387a3dfc51feb4f577f.jpeg"
+        },
+        {
+          "abbreviation": "RL",
+          "children": [],
+          "id": 939847,
+          "name": "Rachel Levins",
+          "org_key": "rachel-levins",
+          "org_parent": "glenn-levins",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/24c535ee5c8a4328bd12cba74666be42.jpeg"
+        },
+        {
+          "abbreviation": "RB",
+          "children": [],
+          "id": 939848,
+          "name": "Russ Lo Bello",
+          "org_key": "russ-lo-bello",
+          "org_parent": "glenn-levins",
+          "org_title": "Partner",
+          "profile_picture": "/media/images/user-profile/04b40dfa433246ce8c6a7fc14e4c33af.jpeg"
+        }
+      ],
+      "id": 138845,
+      "name": "Glenn Levins",
+      "org_key": "glenn-levins",
+      "org_parent": null,
+      "org_title": "CEO & Partner",
+      "profile_picture": "/media/images/user-profile/194acfd11b4b4f8ab72d3bdbb4e13246.jpeg"
+    }
+  ]
+}

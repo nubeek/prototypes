@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "RRH - Den, LLC",
+    "id": 9648,
+    "name": "RRH - Den, LLC",
+    "public_id": "jy9n"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "CR",
+      "children": [],
+      "id": 138755,
+      "name": "Clyde Rucker",
+      "org_key": "clyde-rucker",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/4a75166da13040f2ae5daf140a8711a6.jpeg"
+    }
+  ]
+}

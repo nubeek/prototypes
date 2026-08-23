@@ -1,0 +1,30 @@
+{
+  "institution": {
+    "group_code": "Aurify Kingstar",
+    "id": 17964,
+    "name": "Aurify Kingstar",
+    "public_id": "2ov04"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "AS",
+      "children": [],
+      "id": 939905,
+      "name": "Andy Stearn",
+      "org_key": "andrew-stern",
+      "org_parent": null,
+      "org_title": "Co-CEO",
+      "profile_picture": "/media/images/user-profile/c8a5cd6679eb49d7b45b2dc61ae05a71.jpeg"
+    },
+    {
+      "abbreviation": "JR",
+      "children": [],
+      "id": 939904,
+      "name": "John Rigos",
+      "org_key": "john-rigos",
+      "org_parent": null,
+      "org_title": "Co-CEO",
+      "profile_picture": "/media/images/user-profile/f184f641c84440ad85b6814f8e183dc8.jpeg"
+    }
+  ]
+}

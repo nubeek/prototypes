@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Rackson Restaurants, LLC",
+    "id": 189,
+    "name": "Rackson Restaurants, LLC",
+    "public_id": "g3v2"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "CJ",
+      "children": [],
+      "id": 910972,
+      "name": "Chris Johnson",
+      "org_key": "chris-johnson",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/e2bf804df3e94e30ad0adeaecea0d18c.jpeg"
+    }
+  ]
+}

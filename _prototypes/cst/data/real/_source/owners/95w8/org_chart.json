@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "Top Line Restaurants, Inc.",
+    "id": 9671,
+    "name": "Top Line Restaurants, Inc.",
+    "public_id": "95w8"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GB",
+      "children": [
+        {
+          "abbreviation": "TB",
+          "children": [],
+          "id": 922092,
+          "name": "Tina Beattie",
+          "org_key": "tina-beattie",
+          "org_parent": "glenn-a-beattie",
+          "org_title": "VP",
+          "profile_picture": "/media/images/user-profile/de8cee4f5b164e3796f3f3f9d07517d0.jpeg"
+        }
+      ],
+      "id": 138861,
+      "name": "Glenn A Beattie",
+      "org_key": "glenn-a-beattie",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/9b4d747e94d04b09955174319df6a3a2.jpeg"
+    }
+  ]
+}

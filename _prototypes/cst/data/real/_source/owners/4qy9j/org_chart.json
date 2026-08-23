@@ -1,0 +1,41 @@
+{
+  "institution": {
+    "group_code": "TL Cannon Management Corp",
+    "id": 27291,
+    "name": "TL Cannon Management Corp",
+    "public_id": "4qy9j"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MF",
+      "children": [
+        {
+          "abbreviation": "JP",
+          "children": [],
+          "id": 964972,
+          "name": "John A. Perry",
+          "org_key": "john-a-perry",
+          "org_parent": "matt-fairbairn",
+          "org_title": "President",
+          "profile_picture": null
+        }
+      ],
+      "id": 964970,
+      "name": "Matt Fairbairn",
+      "org_key": "matt-fairbairn",
+      "org_parent": null,
+      "org_title": "Co-founder",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "DS",
+      "children": [],
+      "id": 964971,
+      "name": "David A. Stein",
+      "org_key": "david-a-stein",
+      "org_parent": null,
+      "org_title": "Co-founder",
+      "profile_picture": null
+    }
+  ]
+}

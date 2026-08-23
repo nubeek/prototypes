@@ -1,0 +1,30 @@
+{
+  "institution": {
+    "group_code": "Aramark Services, Inc.",
+    "id": 9759,
+    "name": "Aramark Services, Inc.",
+    "public_id": "x9mq"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "AS",
+      "children": [],
+      "id": 922208,
+      "name": "Ann Marie Solomon",
+      "org_key": "ann-marie-solomon",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/941184dcbfae4419a308c82a2586d4c7.jpeg"
+    },
+    {
+      "abbreviation": "MW",
+      "children": [],
+      "id": 922207,
+      "name": "Matthew Weiss",
+      "org_key": "matthew-weiss",
+      "org_parent": null,
+      "org_title": "Vice President for Partnership Management",
+      "profile_picture": null
+    }
+  ]
+}

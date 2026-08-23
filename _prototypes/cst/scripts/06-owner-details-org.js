@@ -10,21 +10,34 @@ function renderOwnerDetails(owner) {
   const franchises = getOwnerFranchises(owner);
   const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
   const franchiseMarkup = franchises
-    .map(
-      (franchise) => `
-        <div class="owner-detail-franchise">
-          <span class="ui-tile owner-detail-franchise-logo">
-            <span class="owner-detail-franchise-logo-fallback">${getInitials(franchise)}</span>
-            <img
-              src="${getFranchiseLogoSrc(franchise)}"
-              alt="${franchise} logo"
-              onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
-            >
-          </span>
-          <span>${franchise}</span>
-        </div>
-      `
-    )
+    .map((franchise) => {
+      const url = typeof getFranchiseWefranchUrl === "function" ? getFranchiseWefranchUrl(franchise) : "";
+      const inner = `
+        <span class="ui-tile owner-detail-franchise-logo">
+          <span class="owner-detail-franchise-logo-fallback">${getInitials(franchise)}</span>
+          <img
+            src="${getFranchiseLogoSrc(franchise)}"
+            alt="${franchise} logo"
+            onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+          >
+        </span>
+        <span class="owner-detail-franchise-name">${franchise}</span>
+      `;
+
+      if (!url) {
+        return `<div class="owner-detail-franchise">${inner}</div>`;
+      }
+
+      return `
+        <a
+          class="owner-detail-franchise franchise-wefranch-link"
+          href="${url}"
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Open ${franchise} on wefranch"
+        >${inner}</a>
+      `;
+    })
     .join("");
 
   ownerDetailsPanel.innerHTML = `

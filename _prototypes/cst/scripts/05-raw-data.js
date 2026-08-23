@@ -66,7 +66,9 @@ function getOwnerUnitRows(ownerIndex) {
     lng: unit.lng,
     category: unit.category || ownerCategory,
     categories: [unit.category || ownerCategory],
-    franchises: [unit.franchise || primaryFranchise]
+    franchises: Array.isArray(unit.franchises) && unit.franchises.length
+      ? unit.franchises
+      : [unit.franchise || primaryFranchise]
   }));
 }
 
@@ -150,6 +152,15 @@ function getRawTableHeader(widths = RAW_SIDEBAR_COLUMN_WIDTHS) {
   `;
 }
 
+// An unknown value reads as unknown rather than as an empty cell, matching how
+// the locations table renders missing data.
+function getRawValueMarkup(value, className) {
+  const text = String(value ?? "").trim();
+  if (text) return `<span class="${className}">${text}</span>`;
+
+  return `<span class="${className} dataset-empty-value">-</span>`;
+}
+
 function getRawContactRowMarkup(row, rowIndex) {
   const isLeadSaved = isContactLeadSaved(row.ownerIndex, row.nodeId);
   const isHidden = isContactHidden(row.ownerIndex, row.nodeId);
@@ -188,7 +199,7 @@ function getRawContactRowMarkup(row, rowIndex) {
       </td>
       <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
       <td><span class="raw-phone">${row.phone}</span></td>
-      <td><span class="raw-location">${row.location}</span></td>
+      <td>${getRawValueMarkup(row.location, "raw-location")}</td>
       <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
     </tr>
   `;
@@ -198,10 +209,10 @@ function getRawUnitRowMarkup(row, rowIndex) {
   return `
     <tr class="raw-unit-row" data-owner-index="${row.ownerIndex}" data-unit-row-index="${row.unitIndex}">
       <td class="raw-index-cell">${rowIndex + 1}</td>
-      <td><span class="raw-name">${row.name}</span></td>
-      <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
-      <td><span class="raw-phone">${row.phone}</span></td>
-      <td><span class="raw-location">${row.location}</span></td>
+      <td>${getRawValueMarkup(row.name, "raw-name")}</td>
+      <td>${getRawValueMarkup(row.email, "ui-link ui-ellipsis raw-email")}</td>
+      <td>${getRawValueMarkup(row.phone, "raw-phone")}</td>
+      <td>${getRawValueMarkup(row.location, "raw-location")}</td>
       <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
     </tr>
   `;
@@ -372,6 +383,7 @@ function refreshFilteredViews() {
   if (isDatasetTableView()) {
     locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
   }
+  beginCstResultsLoading?.();
   syncMapLocationFilter();
   applySort();
 

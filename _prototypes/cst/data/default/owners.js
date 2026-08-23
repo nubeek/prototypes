@@ -5,7 +5,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness", "Snap Fitness"],
     contactCount: 15,
     unitCount: 499,
-    logoFilename: "united_fp",
+    logoFilename: "united-fp",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -15,7 +15,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness", "Snap Fitness"],
     contactCount: 12,
     unitCount: 257,
-    logoFilename: "argonne_capital",
+    logoFilename: "argonne-capital",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -25,7 +25,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness", "Snap Fitness"],
     contactCount: 8,
     unitCount: 182,
-    logoFilename: "trilantic_capital_management",
+    logoFilename: "trilantic-capital-management",
     webEnabled: true,
     linkedinEnabled: false
   },
@@ -35,7 +35,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness", "Snap Fitness"],
     contactCount: 8,
     unitCount: 97,
-    logoFilename: "olympus_partners",
+    logoFilename: "olympus-partners",
     webEnabled: true,
     linkedinEnabled: false
   },
@@ -55,7 +55,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 4,
     unitCount: 50,
-    logoFilename: "planet_fitness_corporate",
+    logoFilename: "planet-fitness-corporate",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -65,7 +65,7 @@ const ownerSeedRows = [
     franchiseNames: ["Crunch Fitness"],
     contactCount: 7,
     unitCount: 76,
-    logoFilename: "baseline_mayfair",
+    logoFilename: "baseline-mayfair",
     webEnabled: true,
     linkedinEnabled: false
   },
@@ -75,7 +75,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 6,
     unitCount: 63,
-    logoFilename: "black_duck_partners",
+    logoFilename: "black-duck-partners",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -85,7 +85,7 @@ const ownerSeedRows = [
     franchiseNames: ["Gold's Gym"],
     contactCount: 3,
     unitCount: 41,
-    logoFilename: "easy_mile_fitness",
+    logoFilename: "easy-mile-fitness",
     webEnabled: false,
     linkedinEnabled: false
   },
@@ -95,7 +95,7 @@ const ownerSeedRows = [
     franchiseNames: ["Orangetheory"],
     contactCount: 9,
     unitCount: 118,
-    logoFilename: "epic_fitness",
+    logoFilename: "epic-fitness",
     webEnabled: true,
     linkedinEnabled: false
   },
@@ -105,7 +105,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 11,
     unitCount: 205,
-    logoFilename: "flynn_fitness",
+    logoFilename: "flynn-fitness",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -115,7 +115,7 @@ const ownerSeedRows = [
     franchiseNames: ["Snap Fitness", "Planet Fitness"],
     contactCount: 4,
     unitCount: 34,
-    logoFilename: "ohana_growth_partners",
+    logoFilename: "ohana-growth-partners",
     webEnabled: false,
     linkedinEnabled: true
   },
@@ -145,7 +145,7 @@ const ownerSeedRows = [
     franchiseNames: ["F45 Training"],
     contactCount: 2,
     unitCount: 29,
-    logoFilename: "york_capital_management",
+    logoFilename: "york-capital-management",
     webEnabled: false,
     linkedinEnabled: false
   },
@@ -155,8 +155,8 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 12,
     unitCount: 205,
-    logoFilename: "argonne_capital",
-    logoAsset: "national_fitness_partners.png",
+    logoFilename: "argonne-capital",
+    logoAsset: "national-fitness-partners.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -170,8 +170,8 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 10,
     unitCount: 175,
-    logoFilename: "trilantic_capital_management",
-    logoAsset: "taymax_group.png",
+    logoFilename: "trilantic-capital-management",
+    logoAsset: "taymax-group.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -185,8 +185,8 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 8,
     unitCount: 98,
-    logoFilename: "flynn_fitness",
-    logoAsset: "grand_fitness_partners.png",
+    logoFilename: "flynn-fitness",
+    logoAsset: "grand-fitness-partners.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -200,8 +200,8 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 8,
     unitCount: 90,
-    logoFilename: "olympus_partners",
-    logoAsset: "excel_fitness_holdings.png",
+    logoFilename: "olympus-partners",
+    logoAsset: "excel-fitness-holdings.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -215,8 +215,8 @@ const ownerSeedRows = [
     franchiseNames: ["Crunch Fitness"],
     contactCount: 11,
     unitCount: 115,
-    logoFilename: "baseline_mayfair",
-    logoAsset: "fitness_ventures_llc.png",
+    logoFilename: "baseline-mayfair",
+    logoAsset: "fitness-ventures-llc.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -230,8 +230,8 @@ const ownerSeedRows = [
     franchiseNames: ["Crunch Fitness"],
     contactCount: 9,
     unitCount: 90,
-    logoFilename: "baseline_mayfair",
-    logoAsset: "cr_fitness_holdings.png",
+    logoFilename: "baseline-mayfair",
+    logoAsset: "cr-fitness-holdings.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -246,7 +246,7 @@ const ownerSeedRows = [
     contactCount: 8,
     unitCount: 110,
     logoFilename: "sbj",
-    logoAsset: "riser_fitness.png",
+    logoAsset: "riser-fitness.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -261,7 +261,7 @@ const ownerSeedRows = [
     contactCount: 6,
     unitCount: 61,
     logoFilename: "sbj",
-    logoAsset: "aligned_fitness_holdings.png",
+    logoAsset: "aligned-fitness-holdings.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -275,8 +275,8 @@ const ownerSeedRows = [
     franchiseNames: ["Anytime Fitness"],
     contactCount: 9,
     unitCount: 213,
-    logoFilename: "easy_mile_fitness",
-    logoAsset: "bandon_holdings.png",
+    logoFilename: "easy-mile-fitness",
+    logoAsset: "bandon-holdings.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [
@@ -290,8 +290,8 @@ const ownerSeedRows = [
     franchiseNames: ["Anytime Fitness"],
     contactCount: 7,
     unitCount: 120,
-    logoFilename: "easy_mile_fitness",
-    logoAsset: "omega_fitness.png",
+    logoFilename: "easy-mile-fitness",
+    logoAsset: "omega-fitness.png",
     webEnabled: true,
     linkedinEnabled: true,
     sourceNotes: [

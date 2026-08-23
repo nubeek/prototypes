@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "Trident Holdings LLC",
+    "id": 23479,
+    "name": "Trident Holdings LLC",
+    "public_id": "prlx4"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "CB",
+      "children": [
+        {
+          "abbreviation": "TS",
+          "children": [],
+          "id": 952154,
+          "name": "Tim Stokes",
+          "org_key": "tim-stokes",
+          "org_parent": "chris-benner",
+          "org_title": "CFO",
+          "profile_picture": "/media/images/user-profile/859c1ac933004230945213340ae057e7.jpeg"
+        }
+      ],
+      "id": 951346,
+      "name": "Chris Benner",
+      "org_key": "chris-benner",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/08ca933ca9cc46508f0a3eb2f7949372.jpeg"
+    }
+  ]
+}

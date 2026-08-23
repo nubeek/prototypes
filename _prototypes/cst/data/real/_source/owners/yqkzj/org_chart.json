@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Genesh, Inc",
+    "id": 15460,
+    "name": "Genesh, Inc",
+    "public_id": "yqkzj"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MD",
+      "children": [],
+      "id": 138863,
+      "name": "Mukesh Dharod",
+      "org_key": "mukesh-dharod",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/66ff04c0c1824c8aa6f79cfc0354c74f.jpeg"
+    }
+  ]
+}

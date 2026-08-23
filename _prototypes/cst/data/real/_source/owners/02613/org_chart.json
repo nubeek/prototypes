@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "Doherty Enterprises",
+    "id": 23939,
+    "name": "Doherty Enterprises",
+    "public_id": "02613"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "ED",
+      "children": [
+        {
+          "abbreviation": "BS",
+          "children": [],
+          "id": 965096,
+          "name": "Brittany Jade Sweeney",
+          "org_key": "brittany-jade-sweeney",
+          "org_parent": "edward-doherty",
+          "org_title": "Marketing Manager",
+          "profile_picture": null
+        }
+      ],
+      "id": 953564,
+      "name": "Ed Doherty",
+      "org_key": "edward-doherty",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": null
+    }
+  ]
+}

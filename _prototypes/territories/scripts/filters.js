@@ -40,7 +40,6 @@ const {
   formatCurrencyInputValue,
   getFilterNumberInputValue,
   setFilterNumberInputDisplay,
-  syncRangeTrack,
   bindRangeTrack: bindSharedRangeTrack,
   renderHistogram: renderSharedFilterHistogram,
   setSectionRangeValues
@@ -2162,9 +2161,6 @@ function bindTerritoryFilterControls() {
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const statusCheckboxes = Array.from(document.querySelectorAll(".territory-filter-checkbox"))
     .filter((checkbox) => checkbox.value);
-  const rangeSections = Array.from(document.querySelectorAll(".filter-range-slider"))
-    .map((track) => track.closest(".filter-section"))
-    .filter(Boolean);
 
   categoryFilterSelect?.addEventListener("change", syncAfterPrimaryFilterChange);
   franchiseFilterSelect?.addEventListener("change", syncAfterPrimaryFilterChange);
@@ -2190,23 +2186,6 @@ function bindTerritoryFilterControls() {
     });
   });
 
-  rangeSections.forEach((section) => {
-    const track = section.querySelector(".filter-range-slider");
-    const minRange = track?.querySelector(".range-input-min");
-    const maxRange = track?.querySelector(".range-input-max");
-    const numberInputs = Array.from(section.querySelectorAll(".filter-number-input"));
-
-    minRange?.addEventListener("input", () => {
-      syncRangeTrack(track);
-      refreshTerritoryFilters();
-    });
-    maxRange?.addEventListener("input", () => {
-      syncRangeTrack(track);
-      refreshTerritoryFilters();
-    });
-    numberInputs[0]?.addEventListener("change", refreshTerritoryFilters);
-    numberInputs[1]?.addEventListener("change", refreshTerritoryFilters);
-  });
 }
 
 function filterSectionHasAppliedFilters(section) {

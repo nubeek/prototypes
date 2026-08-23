@@ -1,0 +1,3269 @@
+{
+  "count": 100,
+  "next_page": 2,
+  "page_size": 100,
+  "pages_count": 242,
+  "previous_page": null,
+  "results": [
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        },
+        {
+          "id": 171,
+          "logo_image": "http://localhost:8000/media/images/5889.png",
+          "name": "Panera Bread",
+          "public_id": "g9m0",
+          "slug": "panera-bread"
+        },
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        },
+        {
+          "id": 4667,
+          "logo_image": "http://localhost:8000/media/images/183101.jpg",
+          "name": "Taco Bell Traditional",
+          "public_id": "5zkm",
+          "slug": "taco-bell-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GF",
+        "email": "gflynn@appleamerican.com",
+        "id": 871817,
+        "linkedin_link": null,
+        "name": "Greg Flynn",
+        "org_key": "greg-flynn",
+        "org_title": "Founder, Chairman, and Chief Executive Officer",
+        "phone": "216-525-2775",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/b420c2e9345b426d9e24945bcd39514c.jpeg"
+      },
+      "contacts_count": 23,
+      "group_code": "Flynn Group",
+      "id": 27261,
+      "linkedin_link": "https://www.linkedin.com/company/flynn-restaurants-group/",
+      "name": "Flynn Group",
+      "public_id": "yqy8z",
+      "units_count": 1808,
+      "website": "https://flynn.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        },
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "SD",
+        "email": "sdhanani@gulshaninc.com",
+        "id": 921597,
+        "linkedin_link": null,
+        "name": "Shoukat Dhanani",
+        "org_key": "shoukat-dhanani",
+        "org_title": "Founder & CEO",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/f96d5cc45e5f47d08bf2f263bf1c4646.jpeg"
+      },
+      "contacts_count": 7,
+      "group_code": "Dhanani Group",
+      "id": 15458,
+      "linkedin_link": "https://www.linkedin.com/company/dhanani-group-inc/",
+      "name": "Dhanani Group",
+      "public_id": "w1oxo",
+      "units_count": 1322,
+      "website": "https://dhananigroupinc.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        },
+        {
+          "id": 2343,
+          "logo_image": "http://localhost:8000/media/images/63092.png",
+          "name": "IHOP",
+          "public_id": "5w2j",
+          "slug": "ihop"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GP",
+        "email": "peralesg@sunholdings.net",
+        "id": 921604,
+        "linkedin_link": "https://www.linkedin.com/in/guillermo-perales-a7937b74/",
+        "name": "Guillermo Perales",
+        "org_key": "guillermo-perales",
+        "org_title": "CEO",
+        "phone": "469-682-9843 ext. 241",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/a7aee11244f94106b6a649b519da1033.jpeg"
+      },
+      "contacts_count": 13,
+      "group_code": "Sun Holdings",
+      "id": 957,
+      "linkedin_link": "https://www.linkedin.com/company/cto-sun-holdings/",
+      "name": "Sun Holdings",
+      "public_id": "vvo6",
+      "units_count": 406,
+      "website": "https://www.sunholdings.net"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "TG",
+        "email": "tom.garrett@gpshospitality.com",
+        "id": 871884,
+        "linkedin_link": "https://www.linkedin.com/in/tom-garrett-800426a/",
+        "name": "Tom Garrett",
+        "org_key": "tom-garrett",
+        "org_title": "Chief Executive Officer & Founder",
+        "phone": "770-933-5023",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/120844ad892e40ffb074ea2c622367ea.jpeg"
+      },
+      "contacts_count": 40,
+      "group_code": "GPS Hospitality",
+      "id": 955,
+      "linkedin_link": "https://www.linkedin.com/company/gps-hospitality/",
+      "name": "GPS Hospitality",
+      "public_id": "qxjw",
+      "units_count": 384,
+      "website": "https://www.gpshospitality.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 170,
+          "logo_image": "http://localhost:8000/media/images/1960.png",
+          "name": "Planet Fitness",
+          "public_id": "d8ln",
+          "slug": "planet-fitness"
+        },
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        },
+        {
+          "id": 2343,
+          "logo_image": "http://localhost:8000/media/images/63092.png",
+          "name": "IHOP",
+          "public_id": "5w2j",
+          "slug": "ihop"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MK",
+        "email": "mklump@argonnecapital.com",
+        "id": 871212,
+        "linkedin_link": null,
+        "name": "Michael A. Klump",
+        "org_key": "michael-klump",
+        "org_title": "Founder and Chairman",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/8dd89ae19fcd4ca48bb510e60c330c00.jpeg"
+      },
+      "contacts_count": 16,
+      "group_code": "G0237-ARGONNE",
+      "id": 3,
+      "linkedin_link": "https://www.linkedin.com/company/argonne-capital-group/",
+      "name": "Argonne Capital",
+      "public_id": "emve",
+      "units_count": 366,
+      "website": "https://argonnecapital.com/portfolio-companies/planet-fitness/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 4667,
+          "logo_image": "http://localhost:8000/media/images/183101.jpg",
+          "name": "Taco Bell Traditional",
+          "public_id": "5zkm",
+          "slug": "taco-bell-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "JM",
+        "email": "jmiller@kmaccorp.com",
+        "id": 871330,
+        "linkedin_link": "https://www.linkedin.com/in/jason-miller-2095a086/",
+        "name": "Jason Miller",
+        "org_key": "jason-miller",
+        "org_title": "CFO",
+        "phone": "4695250768",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/4574500f37a747279adf9aea5b0eed55.jpeg"
+      },
+      "contacts_count": 6,
+      "group_code": "K-Mac Enterprises, Inc.",
+      "id": 23943,
+      "linkedin_link": "https://www.linkedin.com/company/k-mac-enterprises-inc/",
+      "name": "K-Mac Enterprises, Inc.",
+      "public_id": "4q68m",
+      "units_count": 354,
+      "website": "https://www.kmaccorp.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 4667,
+          "logo_image": "http://localhost:8000/media/images/183101.jpg",
+          "name": "Taco Bell Traditional",
+          "public_id": "5zkm",
+          "slug": "taco-bell-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "TC",
+        "email": "tcook@pacificbells.com",
+        "id": 953613,
+        "linkedin_link": "https://www.linkedin.com/in/tom-cook-278335121/",
+        "name": "Tom Cook",
+        "org_key": "tom-cook",
+        "org_title": "Founder",
+        "phone": "503-329-7854",
+        "profile_picture": null
+      },
+      "contacts_count": 3,
+      "group_code": "Pacific Bells, LLC",
+      "id": 23945,
+      "linkedin_link": "https://www.linkedin.com/company/pacific-bells/",
+      "name": "Pacific Bells, LLC",
+      "public_id": "6l687",
+      "units_count": 287,
+      "website": "https://pacificbells.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 4667,
+          "logo_image": "http://localhost:8000/media/images/183101.jpg",
+          "name": "Taco Bell Traditional",
+          "public_id": "5zkm",
+          "slug": "taco-bell-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "CL",
+        "email": "clint.lyders@teamlyders.com",
+        "id": 964895,
+        "linkedin_link": "https://www.linkedin.com/in/clint-lyders-petersen-438969a7/",
+        "name": "Clint Lyders-Petersen",
+        "org_key": "clint-lyders-petersen",
+        "org_title": "",
+        "phone": "248-444-4725",
+        "profile_picture": null
+      },
+      "contacts_count": 3,
+      "group_code": "Team Lyders",
+      "id": 27265,
+      "linkedin_link": "https://www.linkedin.com/company/sundance-inc./",
+      "name": "Team Lyders",
+      "public_id": "2orq2",
+      "units_count": 215,
+      "website": "https://www.teamlyders.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GE",
+        "email": "gerdman@awrg.org",
+        "id": 934443,
+        "linkedin_link": "https://www.linkedin.com/in/gene-erdman-4710b15/",
+        "name": "Gene Erdman",
+        "org_key": "gene-erdman",
+        "org_title": "CEO",
+        "phone": "(951) 284-7403",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/1739df3c55534267a5bd76800977e448.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "American West Restaurant Group",
+      "id": 16869,
+      "linkedin_link": "https://www.linkedin.com/company/american-west-restaurant-group/",
+      "name": "American West Restaurant Group",
+      "public_id": "7j1x6",
+      "units_count": 202,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 170,
+          "logo_image": "http://localhost:8000/media/images/1960.png",
+          "name": "Planet Fitness",
+          "public_id": "d8ln",
+          "slug": "planet-fitness"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DJ",
+        "email": "daniel.james@trilanticpartners.com",
+        "id": 866817,
+        "linkedin_link": null,
+        "name": "Danny James",
+        "org_key": "danny-james",
+        "org_title": "CEO",
+        "phone": "212-610-8410",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/3814e7b3f3ec41e88a4c1a0b4dcc4fc8.jpeg"
+      },
+      "contacts_count": 41,
+      "group_code": "G0256-TRILANTIC",
+      "id": 1,
+      "linkedin_link": "https://www.linkedin.com/company/trilantic-capital-partners/",
+      "name": "Trilantic Capital Management",
+      "public_id": "dkwd",
+      "units_count": 189,
+      "website": "https://www.trilanticnorthamerica.com/portfolio/taymax"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        }
+      ],
+      "contact": {
+        "abbreviation": "HH",
+        "email": "hank.huth@qbdunkin.com",
+        "id": 929395,
+        "linkedin_link": "https://www.linkedin.com/in/hank-huth-8881555/",
+        "name": "Henry Huth",
+        "org_key": "henry-huth",
+        "org_title": "",
+        "phone": "(203) 328-2100",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/a4b7cd78a8b341a9b92f09ed267fcb8a.jpeg"
+      },
+      "contacts_count": 14,
+      "group_code": "Quality Brand Group",
+      "id": 15450,
+      "linkedin_link": "https://www.linkedin.com/company/qbgusa/",
+      "name": "Quality Brand Group",
+      "public_id": "ll3oq",
+      "units_count": 162,
+      "website": "https://www.qbgusa.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "LP",
+        "email": "luke.pisors@ambrosiaqsr.com",
+        "id": 871946,
+        "linkedin_link": "https://www.linkedin.com/in/luke-pisors-3a291540/",
+        "name": "Luke Pisors",
+        "org_key": "luke-pisors",
+        "org_title": "Chief Executive Officer",
+        "phone": "503-906-4537",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/8ce14ca3973e467e8d8016424e2d487c.jpeg"
+      },
+      "contacts_count": 16,
+      "group_code": "Ambrosia QSR",
+      "id": 959,
+      "linkedin_link": "https://www.linkedin.com/company/ambrosia-qsr/about/",
+      "name": "Ambrosia QSR",
+      "public_id": "xrqw",
+      "units_count": 160,
+      "website": "https://ambrosiaqsr.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 262,
+          "logo_image": "http://localhost:8000/media/images/2892.png",
+          "name": "Club Pilates Franchise",
+          "public_id": "g035",
+          "slug": "club-pilates-franchise"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DS",
+        "email": "david.schuck@clubpilates.com",
+        "id": 949127,
+        "linkedin_link": null,
+        "name": "David Schuck",
+        "org_key": "david-schuck",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "Schuck, David",
+      "id": 21979,
+      "linkedin_link": null,
+      "name": "Schuck, David",
+      "public_id": "prqpx",
+      "units_count": 152,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 2343,
+          "logo_image": "http://localhost:8000/media/images/63092.png",
+          "name": "IHOP",
+          "public_id": "5w2j",
+          "slug": "ihop"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DE",
+        "email": "denea@srpihop.com",
+        "id": 963084,
+        "linkedin_link": "https://www.linkedin.com/in/daniel-enea-036b692a/",
+        "name": "Daniel Enea",
+        "org_key": "daniel-enea",
+        "org_title": "CEO",
+        "phone": "954.618.6300",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/7551853cc4fa4e8c8e7bc5f24d9da073.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Sunshine Restaurant Partners, LLC",
+      "id": 25071,
+      "linkedin_link": "https://www.linkedin.com/company/myihopjob/",
+      "name": "Sunshine Restaurant Partners, LLC",
+      "public_id": "80w4q",
+      "units_count": 143,
+      "website": "https://ihopsrp.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "KN",
+        "email": "knordstrom@sailormen.com",
+        "id": 921634,
+        "linkedin_link": null,
+        "name": "Kara Nordstrom",
+        "org_key": "kara-nordstrom",
+        "org_title": "CEO",
+        "phone": "305-671-6463",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/256563078ae24b23b52f7500ccbdd4c5.jpeg"
+      },
+      "contacts_count": 3,
+      "group_code": "Sailormen, Inc.",
+      "id": 966,
+      "linkedin_link": "https://www.linkedin.com/company/sailormen-inc/",
+      "name": "Sailormen, Inc.",
+      "public_id": "4q5x",
+      "units_count": 135,
+      "website": "https://sailormen.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 170,
+          "logo_image": "http://localhost:8000/media/images/1960.png",
+          "name": "Planet Fitness",
+          "public_id": "d8ln",
+          "slug": "planet-fitness"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MD",
+        "email": "mcdobrynio@yahoo.com",
+        "id": 871490,
+        "linkedin_link": "https://www.linkedin.com/in/mike-dobrynio-38a7411/",
+        "name": "Mike Dobrynio",
+        "org_key": "mike-dobrynio",
+        "org_title": "Managing Partner",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/00397127c99b47f49085a8826740a694.jpeg"
+      },
+      "contacts_count": 18,
+      "group_code": "G0026-BLACKDUCKPARTNERS",
+      "id": 7,
+      "linkedin_link": "https://www.linkedin.com/company/black-duck-partners/",
+      "name": "Black Duck Partners",
+      "public_id": "dqvg",
+      "units_count": 134,
+      "website": "https://www.blackduckpartners.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        },
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 171,
+          "logo_image": "http://localhost:8000/media/images/5889.png",
+          "name": "Panera Bread",
+          "public_id": "g9m0",
+          "slug": "panera-bread"
+        }
+      ],
+      "contact": {
+        "abbreviation": "EP",
+        "email": "elizabeth.pierce@applegreen.com",
+        "id": 929405,
+        "linkedin_link": "https://www.linkedin.com/in/elizabeth-pierce-ceo/",
+        "name": "Elizabeth Pierce",
+        "org_key": "elizabeth-pierce",
+        "org_title": "",
+        "phone": "(203) 816-1537",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/f795fe86d2a644b5bce9150b80d33bb2.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Applegreen",
+      "id": 964,
+      "linkedin_link": "https://www.linkedin.com/company/applegreen-us-welcome-centers/",
+      "name": "Applegreen",
+      "public_id": "2o50",
+      "units_count": 129,
+      "website": "https://www.applegreen.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MC",
+        "email": "mike@grandmerecapital.com",
+        "id": 869899,
+        "linkedin_link": "https://www.linkedin.com/in/michael-cherney-8713a7a0/",
+        "name": "Michael Cherney",
+        "org_key": "michael-cherney",
+        "org_title": "Chairman & Co-founder",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/27337b3638a14f10a269594fecf27a97.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "Michael Cherney",
+      "id": 95,
+      "linkedin_link": "https://www.linkedin.com/company/gm-restaurant-group/",
+      "name": "Michael Cherney",
+      "public_id": "g908",
+      "units_count": 127,
+      "website": "https://www.gmrestaurantgroup.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "PG",
+        "email": "patgilligan@gilliganoil.com",
+        "id": 921784,
+        "linkedin_link": null,
+        "name": "Patrick Gilligan",
+        "org_key": "patrick-gilligan",
+        "org_title": "",
+        "phone": "513-532-3315",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/06f44dff83a84c72a5c1e41344dcadff.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "Gilligan Oil",
+      "id": 9684,
+      "linkedin_link": null,
+      "name": "Gilligan Oil",
+      "public_id": "yx40",
+      "units_count": 124,
+      "website": "https://www.gilligan-co.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "AL",
+        "email": "a.lakhany@csmgroup.org",
+        "id": 921586,
+        "linkedin_link": "https://www.linkedin.com/in/alilakhany1/",
+        "name": "Ali Lakhany",
+        "org_key": "alilakhany1",
+        "org_title": "CEO",
+        "phone": "713-363-1116",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/a6823e1adcf54fa6940b89f3081f56b9.jpeg"
+      },
+      "contacts_count": 6,
+      "group_code": "Continental Superior Management Groups, L.P.",
+      "id": 967,
+      "linkedin_link": "https://www.linkedin.com/company/csm-restaurant-franchises/",
+      "name": "Continental Superior Management Groups, L.P.",
+      "public_id": "525v",
+      "units_count": 123,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 2343,
+          "logo_image": "http://localhost:8000/media/images/63092.png",
+          "name": "IHOP",
+          "public_id": "5w2j",
+          "slug": "ihop"
+        }
+      ],
+      "contact": {
+        "abbreviation": "CS",
+        "email": "csumners@romulusinc.com",
+        "id": 963085,
+        "linkedin_link": null,
+        "name": "Chris Sumners",
+        "org_key": "chris-sumners",
+        "org_title": "CEO",
+        "phone": "602-582-0555",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/c30363e38a934af99869ceb292d13916.jpeg"
+      },
+      "contacts_count": 7,
+      "group_code": "ROMULUS RESTAURANTS, L.L.C.",
+      "id": 25073,
+      "linkedin_link": "https://www.linkedin.com/company/romulus-restaurants/",
+      "name": "ROMULUS RESTAURANTS, L.L.C.",
+      "public_id": "jvm8y",
+      "units_count": 117,
+      "website": "https://www.romulusinc.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DD",
+        "email": "david@highnoonrg.com",
+        "id": 921921,
+        "linkedin_link": "https://www.linkedin.com/in/david-damato-6482407b/",
+        "name": "David Damato",
+        "org_key": "david-damato",
+        "org_title": "Chairman",
+        "phone": "973-557-3962",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/97349b0949714dc2ac7881dc4125f6b2.jpeg"
+      },
+      "contacts_count": 4,
+      "group_code": "SRG PLK OpCo, LLC.",
+      "id": 968,
+      "linkedin_link": "https://www.linkedin.com/company/high-noon-restaurant-group/",
+      "name": "SRG PLK OpCo, LLC.",
+      "public_id": "6l7z",
+      "units_count": 111,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 4667,
+          "logo_image": "http://localhost:8000/media/images/183101.jpg",
+          "name": "Taco Bell Traditional",
+          "public_id": "5zkm",
+          "slug": "taco-bell-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GH",
+        "email": "ghamer@bgfood.com",
+        "id": 953626,
+        "linkedin_link": "https://www.linkedin.com/in/gregory-hamer-3b19a013/",
+        "name": "Gregory Hamer",
+        "org_key": "gregory-hamer",
+        "org_title": "CEO",
+        "phone": "(504) 384-3333",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/41472a5a3ffd4aa486836e7820aff5df.jpeg"
+      },
+      "contacts_count": 3,
+      "group_code": "B & G Food Enterprises, LLC",
+      "id": 23959,
+      "linkedin_link": null,
+      "name": "B & G Food Enterprises, LLC",
+      "public_id": "w1m46",
+      "units_count": 111,
+      "website": "https://bgfood.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "RS",
+        "email": "roland@wksusa.com",
+        "id": 138817,
+        "linkedin_link": "https://www.linkedin.com/in/roland-spongberg-20891a23/",
+        "name": "Roland C Spongberg",
+        "org_key": "roland-c-spongberg",
+        "org_title": "President & Chief Executive Officer",
+        "phone": "562-425-1402",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/507a9001459c4e3e9b2e46f44dafe877.jpeg"
+      },
+      "contacts_count": 23,
+      "group_code": "WKS Restaurant Group",
+      "id": 17379,
+      "linkedin_link": "https://www.linkedin.com/company/wks-restaurant-group/",
+      "name": "WKS Restaurant Group",
+      "public_id": "qxqzn",
+      "units_count": 108,
+      "website": "https://www.wksusa.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "HY",
+        "email": "kelly.yeung@irmgusa.com",
+        "id": 921943,
+        "linkedin_link": null,
+        "name": "Hoi Sang \u201cKelly\u201d Yeung",
+        "org_key": "hoi-sang-kelly-yeung",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 2,
+      "group_code": "International Restaurant Management Group",
+      "id": 4690,
+      "linkedin_link": "https://www.linkedin.com/company/international-restaurant-management-group/",
+      "name": "International Restaurant Management Group",
+      "public_id": "4z27",
+      "units_count": 104,
+      "website": "https://www.irmgusa.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 209,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/fb8cda59f1704d61b6be84b769f68eff.jpeg",
+          "name": "Buffalo Wild Wings",
+          "public_id": "evml",
+          "slug": "buffalo-wild-wings"
+        }
+      ],
+      "contact": {
+        "abbreviation": "BC",
+        "email": "bcarmody@jktwings.com",
+        "id": 965126,
+        "linkedin_link": null,
+        "name": "Brian Carmody",
+        "org_key": "brian-carmody",
+        "org_title": "COO",
+        "phone": "(678) 601-3451",
+        "profile_picture": null
+      },
+      "contacts_count": 3,
+      "group_code": "Patton Wings",
+      "id": 27681,
+      "linkedin_link": null,
+      "name": "Patton Wings",
+      "public_id": "rjmly",
+      "units_count": 103,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 162,
+          "logo_image": "http://localhost:8000/media/images/1909.png",
+          "name": "Jimmy John's",
+          "public_id": "g09k",
+          "slug": "jimmy-johns"
+        }
+      ],
+      "contact": {
+        "abbreviation": "JF",
+        "email": "jfort@jsfortgroup.com",
+        "id": 942333,
+        "linkedin_link": "https://www.linkedin.com/in/jeffrey-fort-41a5a414/",
+        "name": "Jeffrey Fort",
+        "org_key": "jeffrey-fort",
+        "org_title": "",
+        "phone": "312-919-1911",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/7f68499b27bd456c832e4a1ff1e95597.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "JS Fort Group, Inc.",
+      "id": 19077,
+      "linkedin_link": null,
+      "name": "JS Fort Group, Inc.",
+      "public_id": "oj8oz",
+      "units_count": 102,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 216,
+          "logo_image": "http://localhost:8000/media/images/5506.png",
+          "name": "Massage Envy",
+          "public_id": "d2z2",
+          "slug": "massage-envy"
+        },
+        {
+          "id": 237,
+          "logo_image": "http://localhost:8000/media/images/3905.png",
+          "name": "European Wax Center",
+          "public_id": "dz2m",
+          "slug": "european-wax-center"
+        },
+        {
+          "id": 437,
+          "logo_image": "http://localhost:8000/media/images/5824.png",
+          "name": "Crunch",
+          "public_id": "dz7w",
+          "slug": "crunch"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MD",
+        "email": "mike.drum@atticusfranchise.com",
+        "id": 919329,
+        "linkedin_link": null,
+        "name": "Michael Drum",
+        "org_key": "michael-drum",
+        "org_title": "Franchisee",
+        "phone": "(480) 885-1062",
+        "profile_picture": null
+      },
+      "contacts_count": 2,
+      "group_code": "Atticus Franchise Group",
+      "id": 16870,
+      "linkedin_link": "https://www.linkedin.com/company/atticusfranchisegroup/",
+      "name": "Atticus Franchise Group",
+      "public_id": "801yo",
+      "units_count": 101,
+      "website": "http://www.atticusfranchise.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DB",
+        "email": "dave@bluemontgroup.net",
+        "id": 922214,
+        "linkedin_link": "https://www.linkedin.com/in/dave-baumgartner/",
+        "name": "David Baumgartner",
+        "org_key": "dave-baumgartner",
+        "org_title": "CEO",
+        "phone": "585-409-0527",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/71c1f8a025d5413f93f6a8215d3aa035.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Bluemont Group, LLC",
+      "id": 9685,
+      "linkedin_link": "https://www.linkedin.com/company/bluemontgroupllc/",
+      "name": "Bluemont Group, LLC",
+      "public_id": "zyj3",
+      "units_count": 99,
+      "website": "https://www.bluemontgroup.net/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 2343,
+          "logo_image": "http://localhost:8000/media/images/63092.png",
+          "name": "IHOP",
+          "public_id": "5w2j",
+          "slug": "ihop"
+        }
+      ],
+      "contact": {
+        "abbreviation": "WB",
+        "email": "wburke@bkcfm.com",
+        "id": 921735,
+        "linkedin_link": "https://www.linkedin.com/in/wayne-burke-6a67a256/",
+        "name": "Wayne Burke",
+        "org_key": "wayne-burke",
+        "org_title": "",
+        "phone": "310-755-6276",
+        "profile_picture": null
+      },
+      "contacts_count": 6,
+      "group_code": "California Food Management, LLC",
+      "id": 191,
+      "linkedin_link": null,
+      "name": "California Food Management, LLC",
+      "public_id": "d5v0",
+      "units_count": 96,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        },
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "RP",
+        "email": "rpavia@ta-petro.com",
+        "id": 75857,
+        "linkedin_link": "https://www.linkedin.com/in/rick-pavia/",
+        "name": "Rick Pavia",
+        "org_key": "rick-pavia",
+        "org_title": "Vice President QSR Development & Marketing",
+        "phone": "440-617-8931",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/7e99c225ce8b4af3847ef6a8c8802fc6.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "TA Operating LLC",
+      "id": 250,
+      "linkedin_link": "https://www.linkedin.com/company/travelcenters-of-america/",
+      "name": "TA Operating LLC",
+      "public_id": "gl66",
+      "units_count": 96,
+      "website": "https://www.ta-petro.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 1221,
+          "logo_image": "http://localhost:8000/media/images/46108.png",
+          "name": "Dave's Hot Chicken",
+          "public_id": "7ww6",
+          "slug": "daves-hot-chicken"
+        }
+      ],
+      "contact": {
+        "abbreviation": "CJ",
+        "email": "cjohnson@racksonrestaurants.com",
+        "id": 910972,
+        "linkedin_link": "https://www.linkedin.com/in/crj414/",
+        "name": "Chris Johnson",
+        "org_key": "chris-johnson",
+        "org_title": "",
+        "phone": "908-578-7269",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/e2bf804df3e94e30ad0adeaecea0d18c.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Rackson Restaurants, LLC",
+      "id": 189,
+      "linkedin_link": "https://www.linkedin.com/company/rackson/",
+      "name": "Rackson Restaurants, LLC",
+      "public_id": "g3v2",
+      "units_count": 94,
+      "website": "https://www.racksonrestaurants.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 216,
+          "logo_image": "http://localhost:8000/media/images/5506.png",
+          "name": "Massage Envy",
+          "public_id": "d2z2",
+          "slug": "massage-envy"
+        }
+      ],
+      "contact": {
+        "abbreviation": "RF",
+        "email": "robert.fish@massageenvy.com",
+        "id": 934446,
+        "linkedin_link": "https://www.linkedin.com/in/robert-j-fish-1418a31/",
+        "name": "Robert J. Fish",
+        "org_key": "robert-j.-fish",
+        "org_title": "",
+        "phone": "(1480) 812-3689",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/231365b9b0384acca62541d9c34633e6.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "PCRK Group",
+      "id": 16871,
+      "linkedin_link": "https://www.linkedin.com/company/pcrk-group/",
+      "name": "PCRK Group",
+      "public_id": "9o1y8",
+      "units_count": 94,
+      "website": "https://pcrkgroup.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "LI",
+        "email": "luisfoods@gmail.com",
+        "id": 939888,
+        "linkedin_link": "https://www.linkedin.com/in/luis-ibarguengoytia/",
+        "name": "Luis Ibarguengoytia",
+        "org_key": "luis-ibarguengoytia",
+        "org_title": "CEO",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/29cfee315fa14de7b2fa6b0973436cf3.jpeg"
+      },
+      "contacts_count": 3,
+      "group_code": "Chaac Foods Restaurants",
+      "id": 17955,
+      "linkedin_link": "https://www.linkedin.com/company/chaac-foods-restaurants/",
+      "name": "Chaac Foods Restaurants",
+      "public_id": "qxvzn",
+      "units_count": 93,
+      "website": "http://www.chaacrestaurants.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 229,
+          "logo_image": "http://localhost:8000/media/images/1996.png",
+          "name": "Tropical Smoothie Cafe",
+          "public_id": "go85",
+          "slug": "tropical-smoothie-cafe"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GJ",
+        "email": "gjohnson@dynehg.com",
+        "id": 79969,
+        "linkedin_link": null,
+        "name": "Glen Johnson",
+        "org_key": "glen-johnson",
+        "org_title": "",
+        "phone": "(938) 336-3350",
+        "profile_picture": null
+      },
+      "contacts_count": 2,
+      "group_code": "DYNE Hospitality Group",
+      "id": 16360,
+      "linkedin_link": "https://www.linkedin.com/company/dyne-hospitality-group/",
+      "name": "DYNE Hospitality Group",
+      "public_id": "yqj9x",
+      "units_count": 91,
+      "website": "http://dynehg.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 162,
+          "logo_image": "http://localhost:8000/media/images/1909.png",
+          "name": "Jimmy John's",
+          "public_id": "g09k",
+          "slug": "jimmy-johns"
+        }
+      ],
+      "contact": {
+        "abbreviation": "ML",
+        "email": "marc_largent@yahoo.com",
+        "id": 942369,
+        "linkedin_link": "https://www.linkedin.com/in/marc-largent-990b72b7/",
+        "name": "Marc Largent",
+        "org_key": "marc-largent",
+        "org_title": "CEO",
+        "phone": "(309) 454-2811",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/21d71c4980664e278fdda4a14fb76a83.jpeg"
+      },
+      "contacts_count": 31,
+      "group_code": "Premium Loaves",
+      "id": 20179,
+      "linkedin_link": null,
+      "name": "Premium Loaves",
+      "public_id": "qx3lw",
+      "units_count": 91,
+      "website": "https://premiumloaves.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 172,
+          "logo_image": "http://localhost:8000/media/images/1905.png",
+          "name": "Jersey Mike's",
+          "public_id": "ejz2",
+          "slug": "jersey-mikes"
+        }
+      ],
+      "contact": {
+        "abbreviation": "RB",
+        "email": "rblake8506@aol.com",
+        "id": 914776,
+        "linkedin_link": "https://www.linkedin.com/in/rodger-blake-ward-21737a1a/",
+        "name": "Rodger Blake-Ward",
+        "org_key": "rodger-blake-ward",
+        "org_title": "Franchisee",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "JM - Blake-Ward",
+      "id": 8685,
+      "linkedin_link": null,
+      "name": "JM - Blake-Ward",
+      "public_id": "zvlm",
+      "units_count": 90,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 237,
+          "logo_image": "http://localhost:8000/media/images/3905.png",
+          "name": "European Wax Center",
+          "public_id": "dz2m",
+          "slug": "european-wax-center"
+        }
+      ],
+      "contact": {
+        "abbreviation": "SK",
+        "email": "kaplan@artemislanelp.com",
+        "id": 919302,
+        "linkedin_link": null,
+        "name": "Sam Kaplan",
+        "org_key": "sam-kaplan",
+        "org_title": "Franchisee",
+        "phone": "(203) 826-2827",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "Artemis Wax",
+      "id": 7979,
+      "linkedin_link": null,
+      "name": "Artemis Wax",
+      "public_id": "q9o3",
+      "units_count": 89,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 237,
+          "logo_image": "http://localhost:8000/media/images/3905.png",
+          "name": "European Wax Center",
+          "public_id": "dz2m",
+          "slug": "european-wax-center"
+        }
+      ],
+      "contact": {
+        "abbreviation": "TC",
+        "email": "tom.cook@waxcenter.com",
+        "id": 919355,
+        "linkedin_link": "https://www.linkedin.com/in/tom-cook-65b4a9190/",
+        "name": "Thomas S. Cook",
+        "org_key": "thomas-s.-cook",
+        "org_title": "Franchisee",
+        "phone": "(305) 661-7777",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/40c9b74cb8e94faa97cfde4d144529b0.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "North American Wax Company",
+      "id": 18622,
+      "linkedin_link": "https://www.linkedin.com/company/north-american-wax-co/",
+      "name": "North American Wax Company",
+      "public_id": "80zlo",
+      "units_count": 89,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 170,
+          "logo_image": "http://localhost:8000/media/images/1960.png",
+          "name": "Planet Fitness",
+          "public_id": "d8ln",
+          "slug": "planet-fitness"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GS",
+        "email": "gus@sbjcap.com",
+        "id": 157374,
+        "linkedin_link": "https://www.linkedin.com/in/gus-spanos-71099a13/",
+        "name": "Gus Spanos",
+        "org_key": "gus-spanos",
+        "org_title": "Managing Director",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/d42d1bc44f2c4bf89d2e3175341b452f.jpeg"
+      },
+      "contacts_count": 18,
+      "group_code": "G0259-SBJ",
+      "id": 13,
+      "linkedin_link": "https://www.linkedin.com/company/cdmplanetfitness/",
+      "name": "SBJ",
+      "public_id": "dz3e",
+      "units_count": 88,
+      "website": "https://www.sbjcap.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 171,
+          "logo_image": "http://localhost:8000/media/images/5889.png",
+          "name": "Panera Bread",
+          "public_id": "g9m0",
+          "slug": "panera-bread"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MH",
+        "email": "mhamra@teamhamra.com",
+        "id": 953559,
+        "linkedin_link": "https://www.linkedin.com/in/mike-hamra-a311332a/",
+        "name": "Mike Hamra",
+        "org_key": "mike-hamra",
+        "org_title": "",
+        "phone": "617-872-9595",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/ce0a914e11834bf68ff38384254dc9cb.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Hamra Enterprises",
+      "id": 23937,
+      "linkedin_link": "https://www.linkedin.com/company/hamraenterprises/",
+      "name": "Hamra Enterprises",
+      "public_id": "yqo3p",
+      "units_count": 87,
+      "website": "https://hamraenterprises.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        },
+        {
+          "id": 172,
+          "logo_image": "http://localhost:8000/media/images/1905.png",
+          "name": "Jersey Mike's",
+          "public_id": "ejz2",
+          "slug": "jersey-mikes"
+        }
+      ],
+      "contact": {
+        "abbreviation": "NG",
+        "email": "nathan.garn@splat.com",
+        "id": 929375,
+        "linkedin_link": "https://www.linkedin.com/in/nathan-garn-15a9284/",
+        "name": "Nathan Garn",
+        "org_key": "nathan-garn",
+        "org_title": "CEO",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/988d6580bc1942a19483c9a0a6105fcf.jpeg"
+      },
+      "contacts_count": 14,
+      "group_code": "Sizzling Platter",
+      "id": 15449,
+      "linkedin_link": "https://www.linkedin.com/company/sizzling-platter-llc/",
+      "name": "Sizzling Platter",
+      "public_id": "kwknr",
+      "units_count": 82,
+      "website": "https://sizzlingplatter.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "TM",
+        "email": "tmumtaz@sonic.net",
+        "id": 921592,
+        "linkedin_link": "https://www.linkedin.com/in/tabbassum-mumtaz-77110611/",
+        "name": "Tabbassum Mumtaz",
+        "org_key": "abbassum-mumtaz",
+        "org_title": "CEO",
+        "phone": "(469) 317-3900",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/4044c71b8849423eb08eb7c32f2196f9.jpeg"
+      },
+      "contacts_count": 5,
+      "group_code": "Tabbassum Mumtaz",
+      "id": 106,
+      "linkedin_link": "https://www.linkedin.com/company/ampex-brands-llc/",
+      "name": "Tabbassum Mumtaz",
+      "public_id": "epm6",
+      "units_count": 75,
+      "website": "http://www.ampexbrands.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 170,
+          "logo_image": "http://localhost:8000/media/images/1960.png",
+          "name": "Planet Fitness",
+          "public_id": "d8ln",
+          "slug": "planet-fitness"
+        }
+      ],
+      "contact": {
+        "abbreviation": "PA",
+        "email": "peter@easymilefitness.com",
+        "id": 871798,
+        "linkedin_link": "https://www.linkedin.com/in/peter-amato-b49b02a6/",
+        "name": "Peter Amato",
+        "org_key": "peter-amato",
+        "org_title": "CFO & Managing Partner",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/c175526e42e04992994d269f0247e35e.jpeg"
+      },
+      "contacts_count": 9,
+      "group_code": "G0238-EASYMILEFITNESS",
+      "id": 14,
+      "linkedin_link": "https://www.linkedin.com/company/easy-mile-fitness/",
+      "name": "Easy Mile Fitness",
+      "public_id": "g07d",
+      "units_count": 74,
+      "website": "https://easymilefitness.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MQ",
+        "email": "michael.quinn@jjbbrands.com",
+        "id": 871195,
+        "linkedin_link": "https://www.linkedin.com/in/mike-quinn-64465b50/",
+        "name": "Mike Quinn",
+        "org_key": "mike-quinn",
+        "org_title": "President",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 2,
+      "group_code": "Michael Quinn",
+      "id": 107,
+      "linkedin_link": "https://www.linkedin.com/company/jjb-brands/",
+      "name": "Michael Quinn",
+      "public_id": "dqz3",
+      "units_count": 74,
+      "website": "https://jjbbrands.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        }
+      ],
+      "contact": {
+        "abbreviation": "SC",
+        "email": "scohen@metrofranchising.com",
+        "id": 922224,
+        "linkedin_link": null,
+        "name": "Stuart Cohen",
+        "org_key": "stuart-cohen",
+        "org_title": "CEO",
+        "phone": "312-375-5236",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/1296639b00c84898b3980c5350abf4ad.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "Metro Franchising Commissary LLC",
+      "id": 9688,
+      "linkedin_link": null,
+      "name": "Metro Franchising Commissary LLC",
+      "public_id": "25n5",
+      "units_count": 72,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 237,
+          "logo_image": "http://localhost:8000/media/images/3905.png",
+          "name": "European Wax Center",
+          "public_id": "dz2m",
+          "slug": "european-wax-center"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DP",
+        "email": "dipali.ewc@gmail.com",
+        "id": 919359,
+        "linkedin_link": null,
+        "name": "Dipali Patel",
+        "org_key": "dipali-patel",
+        "org_title": "Franchisee",
+        "phone": "(317) 983-3449",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "Patel Group European Wax Center",
+      "id": 8013,
+      "linkedin_link": null,
+      "name": "Patel Group European Wax Center",
+      "public_id": "z3mm",
+      "units_count": 70,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 171,
+          "logo_image": "http://localhost:8000/media/images/5889.png",
+          "name": "Panera Bread",
+          "public_id": "g9m0",
+          "slug": "panera-bread"
+        },
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        }
+      ],
+      "contact": {
+        "abbreviation": "ED",
+        "email": "edoherty@doherty1.com",
+        "id": 953564,
+        "linkedin_link": "https://www.linkedin.com/in/edward-doherty-849aba425/",
+        "name": "Ed Doherty",
+        "org_key": "edward-doherty",
+        "org_title": "CEO",
+        "phone": "201-818-4669",
+        "profile_picture": null
+      },
+      "contacts_count": 2,
+      "group_code": "Doherty Enterprises",
+      "id": 23939,
+      "linkedin_link": "https://www.linkedin.com/company/doherty-enterprises/",
+      "name": "Doherty Enterprises",
+      "public_id": "02613",
+      "units_count": 70,
+      "website": "https://www.dohertyinc.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        }
+      ],
+      "contact": {
+        "abbreviation": "SD",
+        "email": "sdharod@cspsinc.com",
+        "id": 965080,
+        "linkedin_link": "https://www.linkedin.com/in/sunil-dharod-88000333/",
+        "name": "Sunil Dharod",
+        "org_key": "sunil-dharod",
+        "org_title": "",
+        "phone": "972-644-9494",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "SSCP Management",
+      "id": 27671,
+      "linkedin_link": "https://www.linkedin.com/company/sscpmanagement/",
+      "name": "SSCP Management",
+      "public_id": "8nkko",
+      "units_count": 69,
+      "website": "https://sscpmanagement.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "AY",
+        "email": "anilyadav@sbcglobal.net",
+        "id": 922097,
+        "linkedin_link": null,
+        "name": "Anil Yadav",
+        "org_key": "anil-yadav",
+        "org_title": "",
+        "phone": "510-792-3393",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "Yadav Enterprises, Inc.",
+      "id": 9679,
+      "linkedin_link": null,
+      "name": "Yadav Enterprises, Inc.",
+      "public_id": "qmwv",
+      "units_count": 64,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "TF",
+        "email": "tyler@freelandgroupventures.com",
+        "id": 169606,
+        "linkedin_link": "https://www.linkedin.com/in/tyler-freeland-01670522/",
+        "name": "Tyler Freeland",
+        "org_key": "tyler-freeland",
+        "org_title": "Franchisee & Managing Partner",
+        "phone": "260-341-5278",
+        "profile_picture": null
+      },
+      "contacts_count": 5,
+      "group_code": "Estate Freeland",
+      "id": 108,
+      "linkedin_link": "https://www.linkedin.com/company/freeland-group-restaurants/",
+      "name": "Estate Freeland",
+      "public_id": "groq",
+      "units_count": 63,
+      "website": "https://www.pizzahutfwi.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 296,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/9c04c5d9a96440ac9fc8bc4bc0af96c0.png",
+          "name": "Captain D's",
+          "public_id": "ej83",
+          "slug": "captain-ds"
+        },
+        {
+          "id": 402,
+          "logo_image": "http://localhost:8000/media/images/2982.png",
+          "name": "Phenix Salon Suites",
+          "public_id": "gl0q",
+          "slug": "phenix-salon-suites"
+        }
+      ],
+      "contact": {
+        "abbreviation": "KD",
+        "email": "k.davis10@yahoo.com",
+        "id": 937836,
+        "linkedin_link": null,
+        "name": "Kevin Davis",
+        "org_key": "kevin-davis",
+        "org_title": "",
+        "phone": "(703) 774-5548",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/1bfc78f312c94070893b92bee7bb8d4b.jpeg"
+      },
+      "contacts_count": 3,
+      "group_code": "Amazing Seafood Kitchen LLC",
+      "id": 23483,
+      "linkedin_link": null,
+      "name": "Amazing Seafood Kitchen LLC",
+      "public_id": "w1v7k",
+      "units_count": 62,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 209,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/fb8cda59f1704d61b6be84b769f68eff.jpeg",
+          "name": "Buffalo Wild Wings",
+          "public_id": "evml",
+          "slug": "buffalo-wild-wings"
+        }
+      ],
+      "contact": {
+        "abbreviation": "WH",
+        "email": "whutchinson@anchorpointmg.com",
+        "id": 967355,
+        "linkedin_link": "https://www.linkedin.com/in/wray-hutchinson-40824937/",
+        "name": "Wray Hutchinson",
+        "org_key": "wray-hutchinson",
+        "org_title": "President",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 2,
+      "group_code": "WINGMEN V, LLC",
+      "id": 27685,
+      "linkedin_link": null,
+      "name": "WINGMEN V, LLC",
+      "public_id": "yk1q0",
+      "units_count": 62,
+      "website": "https://worldwidewingsus.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 2343,
+          "logo_image": "http://localhost:8000/media/images/63092.png",
+          "name": "IHOP",
+          "public_id": "5w2j",
+          "slug": "ihop"
+        }
+      ],
+      "contact": {
+        "abbreviation": "TF",
+        "email": "tfurr@opportunityrestaurantgroup.com",
+        "id": 963092,
+        "linkedin_link": "https://www.linkedin.com/in/timothy-furr-b42934127/",
+        "name": "Timothy Furr",
+        "org_key": "timothy-furr",
+        "org_title": "CEO",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/a370441f93574f6bb781661f8a8761f2.jpeg"
+      },
+      "contacts_count": 3,
+      "group_code": "Opportunity Pancakes LLC",
+      "id": 25077,
+      "linkedin_link": null,
+      "name": "Opportunity Pancakes LLC",
+      "public_id": "n3qml",
+      "units_count": 61,
+      "website": "https://opportunityrestaurantgroup.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MS",
+        "email": "mschostak@schostak.com",
+        "id": 964976,
+        "linkedin_link": "https://www.linkedin.com/in/mark-schostak-0a464833/",
+        "name": "Mark Schostak",
+        "org_key": "mark-schostak",
+        "org_title": "",
+        "phone": "248.262.1000",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/e73a3589369346a382b65fd16b2b1a2d.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "TEAM Schostak Family Restaurants",
+      "id": 27347,
+      "linkedin_link": "https://www.linkedin.com/company/team-schostak-family-restaurants/",
+      "name": "TEAM Schostak Family Restaurants",
+      "public_id": "806p3",
+      "units_count": 60,
+      "website": "https://www.teamschostak.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MC",
+        "email": "jmetz@rremc.com",
+        "id": 16134,
+        "linkedin_link": null,
+        "name": "Metz, John C",
+        "org_key": "john-c-metz",
+        "org_title": "",
+        "phone": "561-684-2101",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/6a02c2af25894963989a3d10a431381b.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Meyer Metz Restaurants, LLC",
+      "id": 9622,
+      "linkedin_link": null,
+      "name": "Meyer Metz Restaurants, LLC",
+      "public_id": "855o",
+      "units_count": 59,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 171,
+          "logo_image": "http://localhost:8000/media/images/5889.png",
+          "name": "Panera Bread",
+          "public_id": "g9m0",
+          "slug": "panera-bread"
+        }
+      ],
+      "contact": {
+        "abbreviation": "BL",
+        "email": "blemek@lemekllc.com",
+        "id": 952472,
+        "linkedin_link": null,
+        "name": "Brian J. Lemek",
+        "org_key": "brian-j-lemek",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/e854e7d327534806a725908908fdde17.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Lemek, L.L.C.",
+      "id": 23897,
+      "linkedin_link": null,
+      "name": "Lemek, L.L.C.",
+      "public_id": "jvq0y",
+      "units_count": 59,
+      "website": "https://lemekllc.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DL",
+        "email": "dmldennys@aol.com",
+        "id": 138739,
+        "linkedin_link": null,
+        "name": "Dawn Lafreeda",
+        "org_key": "dawn-lafreeda",
+        "org_title": "",
+        "phone": "(210) 694-0707",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/5762c0d67e734313aac0102bcb960d85.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Den-Tex Central, Inc.",
+      "id": 9558,
+      "linkedin_link": null,
+      "name": "Den-Tex Central, Inc.",
+      "public_id": "wv46",
+      "units_count": 57,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        }
+      ],
+      "contact": {
+        "abbreviation": "FG",
+        "email": "fred@qrcllc.com",
+        "id": 964978,
+        "linkedin_link": "https://www.linkedin.com/in/fred-gustin-165913111/",
+        "name": "Fred Gustin",
+        "org_key": "fred-gustin",
+        "org_title": "",
+        "phone": "205-824-5060",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "QUALITY RESTAURANT CONCEPTS, L.L.C.",
+      "id": 27281,
+      "linkedin_link": "https://www.linkedin.com/company/quality-restaurant-concepts-llc/",
+      "name": "QUALITY RESTAURANT CONCEPTS, L.L.C.",
+      "public_id": "rl7yn",
+      "units_count": 54,
+      "website": "https://www.qrcllc.net/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        }
+      ],
+      "contact": {
+        "abbreviation": "HR",
+        "email": "harry.rose@therosegroup.com",
+        "id": 965083,
+        "linkedin_link": "https://www.linkedin.com/in/harry-rose-b055a141/",
+        "name": "Harry Rose",
+        "org_key": "harry-rose",
+        "org_title": "",
+        "phone": "215-579-9220",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "The Rose Group",
+      "id": 27673,
+      "linkedin_link": "https://www.linkedin.com/company/the-rose-group/",
+      "name": "The Rose Group",
+      "public_id": "jjnvn",
+      "units_count": 54,
+      "website": "https://www.myrosegroup.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        }
+      ],
+      "contact": {
+        "abbreviation": "TF",
+        "email": "timfoley05@gmail.com",
+        "id": 919288,
+        "linkedin_link": "https://www.linkedin.com/in/timothy-foley-90a34a55/",
+        "name": "Timothy Foley",
+        "org_key": "timothy-foley",
+        "org_title": "CEO",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/5cd4a58bed4c49499b367120fa5c8f44.jpeg"
+      },
+      "contacts_count": 4,
+      "group_code": "Eyas Hospitality Group",
+      "id": 962,
+      "linkedin_link": null,
+      "name": "Eyas Hospitality Group",
+      "public_id": "028r",
+      "units_count": 52,
+      "website": "https://www.eyascapital.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MF",
+        "email": "m.fairbairn@mac.com",
+        "id": 964970,
+        "linkedin_link": "https://www.linkedin.com/in/matt-fairbairn-944b729/",
+        "name": "Matt Fairbairn",
+        "org_key": "matt-fairbairn",
+        "org_title": "Co-founder",
+        "phone": "904.273.9558",
+        "profile_picture": null
+      },
+      "contacts_count": 3,
+      "group_code": "TL Cannon Management Corp",
+      "id": 27291,
+      "linkedin_link": null,
+      "name": "TL Cannon Management Corp",
+      "public_id": "4qy9j",
+      "units_count": 52,
+      "website": "https://www.tlcannon.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "AS",
+        "email": "asalas@teamkri.com",
+        "id": 939856,
+        "linkedin_link": null,
+        "name": "Alfredo (Al) Salas",
+        "org_key": "al-salas",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 3,
+      "group_code": "Koning Restaurants International",
+      "id": 17956,
+      "linkedin_link": "https://www.linkedin.com/company/koning-restaurants-international-l.c./",
+      "name": "Koning Restaurants International",
+      "public_id": "rl4oo",
+      "units_count": 51,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        },
+        {
+          "id": 171,
+          "logo_image": "http://localhost:8000/media/images/5889.png",
+          "name": "Panera Bread",
+          "public_id": "g9m0",
+          "slug": "panera-bread"
+        },
+        {
+          "id": 2345,
+          "logo_image": "http://localhost:8000/media/images/60753.png",
+          "name": "Tim Hortons",
+          "public_id": "70j7",
+          "slug": "tim-hortons"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MW",
+        "email": "weiss-matthew@aramark.com",
+        "id": 922207,
+        "linkedin_link": null,
+        "name": "Matthew Weiss",
+        "org_key": "matthew-weiss",
+        "org_title": "Vice President for Partnership Management",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 2,
+      "group_code": "Aramark Services, Inc.",
+      "id": 9759,
+      "linkedin_link": null,
+      "name": "Aramark Services, Inc.",
+      "public_id": "x9mq",
+      "units_count": 50,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        }
+      ],
+      "contact": {
+        "abbreviation": "MD",
+        "email": "mukeshdharod@aol.com",
+        "id": 138863,
+        "linkedin_link": "https://www.linkedin.com/in/mukesh-dharod-2506ba133/",
+        "name": "Mukesh Dharod",
+        "org_key": "mukesh-dharod",
+        "org_title": "CEO",
+        "phone": "913-492-0007",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/66ff04c0c1824c8aa6f79cfc0354c74f.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Genesh, Inc",
+      "id": 15460,
+      "linkedin_link": null,
+      "name": "Genesh, Inc",
+      "public_id": "yqkzj",
+      "units_count": 50,
+      "website": "https://geneshinc.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 296,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/9c04c5d9a96440ac9fc8bc4bc0af96c0.png",
+          "name": "Captain D's",
+          "public_id": "ej83",
+          "slug": "captain-ds"
+        },
+        {
+          "id": 735,
+          "logo_image": "http://localhost:8000/media/images/4519.png",
+          "name": "Slim Chicken's",
+          "public_id": "xrxq",
+          "slug": "slim-chickens"
+        }
+      ],
+      "contact": {
+        "abbreviation": "CB",
+        "email": "chris.benner@tridentholdingsllc.com",
+        "id": 951346,
+        "linkedin_link": "https://www.linkedin.com/in/chris-benner-969280219/",
+        "name": "Chris Benner",
+        "org_key": "chris-benner",
+        "org_title": "",
+        "phone": "(615) 438-8829",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/08ca933ca9cc46508f0a3eb2f7949372.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "Trident Holdings LLC",
+      "id": 23479,
+      "linkedin_link": "https://www.linkedin.com/company/tridentholdingsllc/",
+      "name": "Trident Holdings LLC",
+      "public_id": "prlx4",
+      "units_count": 50,
+      "website": "https://tridentholdingsllc.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 216,
+          "logo_image": "http://localhost:8000/media/images/5506.png",
+          "name": "Massage Envy",
+          "public_id": "d2z2",
+          "slug": "massage-envy"
+        }
+      ],
+      "contact": {
+        "abbreviation": "JS",
+        "email": "joe.szablewski@massageenvy.com",
+        "id": 934448,
+        "linkedin_link": null,
+        "name": "Joe Szablewski",
+        "org_key": "joe-szablewski",
+        "org_title": "",
+        "phone": "(1334) 502-2999",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "Joe Szablewski",
+      "id": 16873,
+      "linkedin_link": null,
+      "name": "Joe Szablewski",
+      "public_id": "kw92w",
+      "units_count": 49,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 172,
+          "logo_image": "http://localhost:8000/media/images/1905.png",
+          "name": "Jersey Mike's",
+          "public_id": "ejz2",
+          "slug": "jersey-mikes"
+        }
+      ],
+      "contact": {
+        "abbreviation": "CD",
+        "email": "chris@pg1restaurants.com",
+        "id": 914785,
+        "linkedin_link": "https://www.linkedin.com/in/chris-daniels-78b09a3b0/",
+        "name": "Chris Daniels",
+        "org_key": "chris-daniels",
+        "org_title": "Franchisee",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/ff1843d3153a4a5996487bf19289f855.jpeg"
+      },
+      "contacts_count": 5,
+      "group_code": "PG1 Restaurants",
+      "id": 32167,
+      "linkedin_link": null,
+      "name": "PG1 Restaurants",
+      "public_id": "4jvnx",
+      "units_count": 49,
+      "website": "https://www.pg1restaurants.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        },
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GL",
+        "email": "glenn@phoenixorganization.com",
+        "id": 138845,
+        "linkedin_link": null,
+        "name": "Glenn Levins",
+        "org_key": "glenn-levins",
+        "org_title": "CEO & Partner",
+        "phone": "(561) 536-3660",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/194acfd11b4b4f8ab72d3bdbb4e13246.jpeg"
+      },
+      "contacts_count": 11,
+      "group_code": "The Phoenix Organization",
+      "id": 17958,
+      "linkedin_link": "https://www.linkedin.com/company/phoenix-organization/",
+      "name": "The Phoenix Organization",
+      "public_id": "w18q6",
+      "units_count": 47,
+      "website": "https://phoenixorganization.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 171,
+          "logo_image": "http://localhost:8000/media/images/5889.png",
+          "name": "Panera Bread",
+          "public_id": "g9m0",
+          "slug": "panera-bread"
+        }
+      ],
+      "contact": {
+        "abbreviation": "PS",
+        "email": "peters@strangcorp.com",
+        "id": 952476,
+        "linkedin_link": "https://www.linkedin.com/in/peter-strang-77791028/",
+        "name": "Peter Strang",
+        "org_key": "peter-strang",
+        "org_title": "",
+        "phone": "216.401.0030",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/e4f8f5528e3c4125907d246d9839c7c1.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Strang Corporation",
+      "id": 23843,
+      "linkedin_link": "https://www.linkedin.com/company/strang-corporation/",
+      "name": "Strang Corporation",
+      "public_id": "4q697",
+      "units_count": 47,
+      "website": "https://strangcorp.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "JF",
+        "email": "jonfriedlander@janjer.com",
+        "id": 921760,
+        "linkedin_link": "https://www.linkedin.com/in/jon-friedlander-513430262/",
+        "name": "Jon Friedlander",
+        "org_key": "jon-friedlander",
+        "org_title": "CEO",
+        "phone": "301-625-5920",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/7107fc94a4934fed91fb5d14c2c0b339.jpeg"
+      },
+      "contacts_count": 3,
+      "group_code": "Janjer Enterprises, Inc.",
+      "id": 973,
+      "linkedin_link": null,
+      "name": "Janjer Enterprises, Inc.",
+      "public_id": "kwz6",
+      "units_count": 45,
+      "website": "https://www.janjer.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "VE",
+        "email": "veupierre@manchadev.com",
+        "id": 138679,
+        "linkedin_link": null,
+        "name": "Vincent F Eupierre",
+        "org_key": "vincent-f-eupierre",
+        "org_title": "",
+        "phone": "951-271-4100",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "MDC Restaurants, LLC",
+      "id": 9621,
+      "linkedin_link": null,
+      "name": "MDC Restaurants, LLC",
+      "public_id": "7556",
+      "units_count": 45,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 162,
+          "logo_image": "http://localhost:8000/media/images/1909.png",
+          "name": "Jimmy John's",
+          "public_id": "g09k",
+          "slug": "jimmy-johns"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DV",
+        "email": "dan@spintheplanet.com",
+        "id": 942356,
+        "linkedin_link": "https://www.linkedin.com/in/dan-vansteenburg-63b52319/",
+        "name": "Dan Vansteenburg",
+        "org_key": "dan-vansteenburg",
+        "org_title": "Founder - CEO",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/c6e53c6db353415aa80b82ae7c988a3d.jpeg"
+      },
+      "contacts_count": 22,
+      "group_code": "Spin the Planet Enterprises",
+      "id": 19078,
+      "linkedin_link": null,
+      "name": "Spin the Planet Enterprises",
+      "public_id": "pr2j9",
+      "units_count": 44,
+      "website": "https://spintheplanet.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 162,
+          "logo_image": "http://localhost:8000/media/images/1909.png",
+          "name": "Jimmy John's",
+          "public_id": "g09k",
+          "slug": "jimmy-johns"
+        }
+      ],
+      "contact": {
+        "abbreviation": "KM",
+        "email": "kevin.james.mulcahy@gmail.com",
+        "id": 942359,
+        "linkedin_link": "https://www.linkedin.com/in/kevin-mulcahy-8b678433/",
+        "name": "Kevin Mulcahy",
+        "org_key": "kevin-mulcahy",
+        "org_title": "Partner",
+        "phone": "203-526-6885",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/af132172d0c6430190dfe8b7a505953b.jpeg"
+      },
+      "contacts_count": 6,
+      "group_code": "MBN Brands",
+      "id": 20178,
+      "linkedin_link": null,
+      "name": "MBN Brands",
+      "public_id": "pr1kx",
+      "units_count": 44,
+      "website": "https://www.mbnbrands.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        }
+      ],
+      "contact": {
+        "abbreviation": "JW",
+        "email": "jwishnow@gmail.com",
+        "id": 939891,
+        "linkedin_link": "https://www.linkedin.com/in/judd-wishnow-4727275/",
+        "name": "Judd Wishnow",
+        "org_key": "judd-wishnow",
+        "org_title": "Co-Founder and Co-CEO",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/f814a639a3ee42d198623ae1e9c85cad.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "Southpaw",
+      "id": 17966,
+      "linkedin_link": "https://www.linkedin.com/company/abdd-capital/",
+      "name": "Southpaw",
+      "public_id": "4qv1m",
+      "units_count": 43,
+      "website": "https://www.southpaw.co/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 142,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/2400f7ed73e7461bb291e8fb50ccfde0.png",
+          "name": "Pizza Hut Traditional",
+          "public_id": "e4wk",
+          "slug": "pizza-hut-traditional"
+        }
+      ],
+      "contact": {
+        "abbreviation": "KS",
+        "email": "kamal.singh@emergeinc.net",
+        "id": 871202,
+        "linkedin_link": "https://www.linkedin.com/in/singh-kamal/",
+        "name": "Kamal Singh",
+        "org_key": "singh-kamal",
+        "org_title": "Founder and President",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/c6f48fbc6cc44132b3fffaf23db76cf5.jpeg"
+      },
+      "contacts_count": 9,
+      "group_code": "Kamal Singh",
+      "id": 115,
+      "linkedin_link": "https://www.linkedin.com/company/emergeinc/",
+      "name": "Kamal Singh",
+      "public_id": "e17m",
+      "units_count": 42,
+      "website": "https://www.emergeinc.net/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 204,
+          "logo_image": "http://localhost:8000/media/images/3595.png",
+          "name": "Orangetheory",
+          "public_id": "dn8m",
+          "slug": "orangetheory"
+        }
+      ],
+      "contact": {
+        "abbreviation": "EG",
+        "email": "egoetsch@l5-fitness.com",
+        "id": 950346,
+        "linkedin_link": "https://www.linkedin.com/in/eric-goetsch/",
+        "name": "Eric Goetsch",
+        "org_key": "eric-goetsch",
+        "org_title": "Brand President",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/31526c0a49a944c7b9939a5718d4efef.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "L5 FITNESS",
+      "id": 6897,
+      "linkedin_link": "https://www.linkedin.com/company/l5-orangetheory/",
+      "name": "L5 FITNESS",
+      "public_id": "k0q4",
+      "units_count": 42,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GG",
+        "email": "garygussel@gmail.com",
+        "id": 922236,
+        "linkedin_link": null,
+        "name": "Gary Gussel",
+        "org_key": "gary-gussel",
+        "org_title": "",
+        "phone": "3864792307",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/b12b8301dcc14f80b3e5fe99e5f3fc4b.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Tmart Operations I, LLC",
+      "id": 9690,
+      "linkedin_link": null,
+      "name": "Tmart Operations I, LLC",
+      "public_id": "45po",
+      "units_count": 42,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "KC",
+        "email": "ali@chunaragroup.com",
+        "id": 942335,
+        "linkedin_link": null,
+        "name": "Kadirali Chunara",
+        "org_key": "kadirali-chunara",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 3,
+      "group_code": "Chunara Group of Companies",
+      "id": 19076,
+      "linkedin_link": null,
+      "name": "Chunara Group of Companies",
+      "public_id": "n32rl",
+      "units_count": 42,
+      "website": "https://www.chunaragroup.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 162,
+          "logo_image": "http://localhost:8000/media/images/1909.png",
+          "name": "Jimmy John's",
+          "public_id": "g09k",
+          "slug": "jimmy-johns"
+        }
+      ],
+      "contact": {
+        "abbreviation": "AT",
+        "email": "anthony@tomeygroup.com\u00b7",
+        "id": 967502,
+        "linkedin_link": "https://www.linkedin.com/in/anthony-tomey-9a1a5246/",
+        "name": "Anthony Tomey",
+        "org_key": "anthony-tomey",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 6,
+      "group_code": "Tomey Group LLC",
+      "id": 20570,
+      "linkedin_link": "https://www.linkedin.com/company/tomey-group-llc/",
+      "name": "Tomey Group LLC",
+      "public_id": "80p9n",
+      "units_count": 42,
+      "website": "https://tomeygroup.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        }
+      ],
+      "contact": {
+        "abbreviation": "EW",
+        "email": "beth.giesler@wolakgroup.net",
+        "id": 929469,
+        "linkedin_link": null,
+        "name": "Edward Wolak",
+        "org_key": "edward-wolak",
+        "org_title": "President and Chief Executive Officer",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/32c9a038e3894c4bb309832a1da5973f.jpeg"
+      },
+      "contacts_count": 33,
+      "group_code": "The Wolak Group",
+      "id": 15457,
+      "linkedin_link": "https://www.linkedin.com/company/the-wolak-group/",
+      "name": "The Wolak Group",
+      "public_id": "vv5wv",
+      "units_count": 41,
+      "website": "https://wolakgroup.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 133,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/0539fd66ab754a5fb2003c039fd255e8.png",
+          "name": "Burger King",
+          "public_id": "ev74",
+          "slug": "burger-king"
+        }
+      ],
+      "contact": {
+        "abbreviation": "SP",
+        "email": "sanjaypatelqsr@gmail.com",
+        "id": 921888,
+        "linkedin_link": "https://www.linkedin.com/in/sanjay-patel-14045827/",
+        "name": "Sanjay Patel",
+        "org_key": "sanjay-patel",
+        "org_title": "Franchisee",
+        "phone": "443-983-1104",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/d680f8d896c7486e80b42ac950662f67.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "Devs Foods",
+      "id": 17957,
+      "linkedin_link": "https://www.linkedin.com/company/devsfoodsparademanagement-llc/",
+      "name": "Devs Foods",
+      "public_id": "vv8q7",
+      "units_count": 41,
+      "website": "https://devsfoods.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DB",
+        "email": "dbeshay@beshayenterprises.com",
+        "id": 921732,
+        "linkedin_link": "https://www.linkedin.com/in/david-beshay-457653218/",
+        "name": "David Beshay",
+        "org_key": "david-beshay",
+        "org_title": "CEO",
+        "phone": "951-816-0189",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/8330ffca13e24dc9928b1248aabf3e8c.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Beshay Enterprises",
+      "id": 9682,
+      "linkedin_link": null,
+      "name": "Beshay Enterprises",
+      "public_id": "wv2k",
+      "units_count": 40,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "ED",
+        "email": "eduardo.diaz@eymfoods.com",
+        "id": 138734,
+        "linkedin_link": null,
+        "name": "Eduardo Diaz",
+        "org_key": "eduardo-diaz",
+        "org_title": "",
+        "phone": "(214) 819-3800",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "EYM Diner",
+      "id": 9577,
+      "linkedin_link": null,
+      "name": "EYM Diner",
+      "public_id": "ok7j",
+      "units_count": 39,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 216,
+          "logo_image": "http://localhost:8000/media/images/5506.png",
+          "name": "Massage Envy",
+          "public_id": "d2z2",
+          "slug": "massage-envy"
+        }
+      ],
+      "contact": {
+        "abbreviation": "JB",
+        "email": "jlillaney@cambridgespa.com",
+        "id": 934447,
+        "linkedin_link": "https://www.linkedin.com/in/jill-bechtel/",
+        "name": "Jill \"Gillian\" Bechtel",
+        "org_key": "jill-bechtel",
+        "org_title": "",
+        "phone": "(1559) 299-7077",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/f94fb1b5bcbd42a28b3c01d40d57d751.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Cambridge Spa Group",
+      "id": 16872,
+      "linkedin_link": "https://www.linkedin.com/company/cambridge-spa-group/",
+      "name": "Cambridge Spa Group",
+      "public_id": "jvwzn",
+      "units_count": 39,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 211,
+          "logo_image": "http://localhost:8000/media/images/subs.jpg",
+          "name": "Firehouse Subs",
+          "public_id": "gxo3",
+          "slug": "firehouse-subs"
+        },
+        {
+          "id": 735,
+          "logo_image": "http://localhost:8000/media/images/4519.png",
+          "name": "Slim Chicken's",
+          "public_id": "xrxq",
+          "slug": "slim-chickens"
+        }
+      ],
+      "contact": {
+        "abbreviation": "LC",
+        "email": "lchandler@firehousesubs.com",
+        "id": 8409,
+        "linkedin_link": "https://www.linkedin.com/in/larry-chandler-06076617/",
+        "name": "Larry Chandler",
+        "org_key": "lchandler",
+        "org_title": "",
+        "phone": "(843) 679-9633",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/6a2c890015354c3a8fc21ab5e6da2b9e.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "TLC Enterprises, LLC",
+      "id": 2136,
+      "linkedin_link": null,
+      "name": "TLC Enterprises, LLC",
+      "public_id": "yvo1",
+      "units_count": 38,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "LS",
+        "email": "libertyrestaurants@gmail.com",
+        "id": 921909,
+        "linkedin_link": "https://www.linkedin.com/in/laddi-singh-2678321b8/",
+        "name": "Laddi Singh",
+        "org_key": "laddi-singh",
+        "org_title": "Franchise",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/7a04426eeb6b4bca99d2eec0f9eb1adf.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Liberty Restaurants",
+      "id": 4688,
+      "linkedin_link": null,
+      "name": "Liberty Restaurants",
+      "public_id": "2qpq",
+      "units_count": 37,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 129,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/a5b8abdc16934ceb871e8593be6636e0.png",
+          "name": "McDonald's",
+          "public_id": "go48",
+          "slug": "mcdonalds"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GM",
+        "email": "george.michell@partners.mcd.com",
+        "id": 939893,
+        "linkedin_link": null,
+        "name": "George Michell",
+        "org_key": "george-r-michell",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "GEORGE R MICHELL_MCD",
+      "id": 4714,
+      "linkedin_link": null,
+      "name": "GEORGE R MICHELL_MCD",
+      "public_id": "0om3",
+      "units_count": 37,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "CR",
+        "email": "clyde.rucker@ruckerrest.com",
+        "id": 138755,
+        "linkedin_link": null,
+        "name": "Clyde Rucker",
+        "org_key": "clyde-rucker",
+        "org_title": "",
+        "phone": "512-339-6101",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/4a75166da13040f2ae5daf140a8711a6.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "RRH - Den, LLC",
+      "id": 9648,
+      "linkedin_link": null,
+      "name": "RRH - Den, LLC",
+      "public_id": "jy9n",
+      "units_count": 37,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GB",
+        "email": "gbri@cox.net",
+        "id": 138861,
+        "linkedin_link": "https://www.linkedin.com/in/glenn-beattie-aab9a892/",
+        "name": "Glenn A Beattie",
+        "org_key": "glenn-a-beattie",
+        "org_title": "CEO",
+        "phone": "480-722-9196",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/9b4d747e94d04b09955174319df6a3a2.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "Top Line Restaurants, Inc.",
+      "id": 9671,
+      "linkedin_link": null,
+      "name": "Top Line Restaurants, Inc.",
+      "public_id": "95w8",
+      "units_count": 37,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 188,
+          "logo_image": "http://localhost:8000/media/images/8530.png",
+          "name": "Applebee's",
+          "public_id": "d2vl",
+          "slug": "applebees"
+        }
+      ],
+      "contact": {
+        "abbreviation": "DP",
+        "email": "dp@natchezoffice.com",
+        "id": 964960,
+        "linkedin_link": null,
+        "name": "David Paradise",
+        "org_key": "david-paradise",
+        "org_title": "",
+        "phone": "601.445.9710",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/f0daa79f5cc24c3b9b437df967c067f2.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Southern River Restaurants, LLC",
+      "id": 27305,
+      "linkedin_link": null,
+      "name": "Southern River Restaurants, LLC",
+      "public_id": "n3z2j",
+      "units_count": 37,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 196,
+          "logo_image": "http://localhost:8000/media/images/4521.png",
+          "name": "Five Guys",
+          "public_id": "ej32",
+          "slug": "five-guys"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "RF",
+        "email": "rick@pspholdings.com",
+        "id": 913269,
+        "linkedin_link": "https://www.linkedin.com/in/rick-fisher-18b3766/",
+        "name": "Rick Fisher",
+        "org_key": "rick-fisher",
+        "org_title": "Founder and CEO",
+        "phone": "703-566-5841",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/0990280de54d4cfba8e2a1e35c19447e.jpeg"
+      },
+      "contacts_count": 4,
+      "group_code": "Princess Street Partners",
+      "id": 4691,
+      "linkedin_link": null,
+      "name": "Princess Street Partners",
+      "public_id": "5z9m",
+      "units_count": 36,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 237,
+          "logo_image": "http://localhost:8000/media/images/3905.png",
+          "name": "European Wax Center",
+          "public_id": "dz2m",
+          "slug": "european-wax-center"
+        }
+      ],
+      "contact": {
+        "abbreviation": "NS",
+        "email": "neerav.m.shah@waxcenter.com",
+        "id": 909908,
+        "linkedin_link": null,
+        "name": "Neerav Shah",
+        "org_key": "neerav-shah",
+        "org_title": "Franchisee",
+        "phone": "(713) 667-2929",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "Neerav Shah",
+      "id": 8091,
+      "linkedin_link": null,
+      "name": "Neerav Shah",
+      "public_id": "5n29",
+      "units_count": 36,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "AK",
+        "email": "ajay.kumar@e2solutions.com",
+        "id": 608756,
+        "linkedin_link": null,
+        "name": "Ajay K Keshap",
+        "org_key": "ajay-k-keshap",
+        "org_title": "",
+        "phone": "818-904-5660",
+        "profile_picture": null
+      },
+      "contacts_count": 2,
+      "group_code": "ASAF Foods Corporation",
+      "id": 9524,
+      "linkedin_link": null,
+      "name": "ASAF Foods Corporation",
+      "public_id": "jy84",
+      "units_count": 36,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 193,
+          "logo_image": "http://localhost:8000/media/images/5149.png",
+          "name": "Denny's",
+          "public_id": "e7zj",
+          "slug": "dennys"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "GM",
+        "email": "raim@earthlink.net",
+        "id": 138758,
+        "linkedin_link": null,
+        "name": "Gurbax Rai Marwah",
+        "org_key": "gurbax-rai-marwah",
+        "org_title": "",
+        "phone": "(562) 777-2249",
+        "profile_picture": "http://localhost:8000/media/images/user-profile/68e9e64f46d242a2a1cb37adae490fbd.jpeg"
+      },
+      "contacts_count": 4,
+      "group_code": "Denco Enterprises, Inc.",
+      "id": 9561,
+      "linkedin_link": null,
+      "name": "Denco Enterprises, Inc.",
+      "public_id": "zy42",
+      "units_count": 36,
+      "website": "https://dencofamily.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 132,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/6357f0ad861140b28694335677b5ef31.jpeg",
+          "name": "Dunkin'",
+          "public_id": "gr3q",
+          "slug": "dunkin"
+        },
+        {
+          "id": 162,
+          "logo_image": "http://localhost:8000/media/images/1909.png",
+          "name": "Jimmy John's",
+          "public_id": "g09k",
+          "slug": "jimmy-johns"
+        },
+        {
+          "id": 272,
+          "logo_image": "http://localhost:8000/media/images/122750.png",
+          "name": "Popeyes Louisiana Kitchen",
+          "public_id": "ej03",
+          "slug": "popeyes-louisiana-kitchen"
+        }
+      ],
+      "contact": {
+        "abbreviation": "SK",
+        "email": "sanjeevkhatau@gmail.com",
+        "id": 157419,
+        "linkedin_link": "https://www.linkedin.com/in/sanjeev-khatau-a6a47b177/",
+        "name": "Sanjeev Khatau",
+        "org_key": "sanjeev-khatau",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/2ff48351b8664ce183b4fbe0107f1742.jpeg"
+      },
+      "contacts_count": 1,
+      "group_code": "Diya & Raishaan Holdings",
+      "id": 20571,
+      "linkedin_link": null,
+      "name": "Diya & Raishaan Holdings",
+      "public_id": "9oq60",
+      "units_count": 35,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 2343,
+          "logo_image": "http://localhost:8000/media/images/63092.png",
+          "name": "IHOP",
+          "public_id": "5w2j",
+          "slug": "ihop"
+        }
+      ],
+      "contact": {
+        "abbreviation": "CT",
+        "email": "cwt@chenegacorp.com",
+        "id": 963091,
+        "linkedin_link": null,
+        "name": "Charles W. Totemoff",
+        "org_key": "charles-w-totemoff",
+        "org_title": "CEO",
+        "phone": "(907) 277\u20135706",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "Chenega Corporation",
+      "id": 25075,
+      "linkedin_link": "https://www.linkedin.com/company/chenega-corporation/",
+      "name": "Chenega Corporation",
+      "public_id": "llokq",
+      "units_count": 35,
+      "website": "https://www.chenega.com/"
+    },
+    {
+      "concepts": [
+        {
+          "id": 209,
+          "logo_image": "http://localhost:8000/media/images/concept/logo/fb8cda59f1704d61b6be84b769f68eff.jpeg",
+          "name": "Buffalo Wild Wings",
+          "public_id": "evml",
+          "slug": "buffalo-wild-wings"
+        }
+      ],
+      "contact": {
+        "abbreviation": "BJ",
+        "email": "brandon@bwjonesgrp.com",
+        "id": 965245,
+        "linkedin_link": null,
+        "name": "Brandon Jones",
+        "org_key": "brandon-jones",
+        "org_title": "",
+        "phone": null,
+        "profile_picture": null
+      },
+      "contacts_count": 9,
+      "group_code": "The Jones group BWW",
+      "id": 27687,
+      "linkedin_link": null,
+      "name": "The Jones group BWW",
+      "public_id": "0rp27",
+      "units_count": 34,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 237,
+          "logo_image": "http://localhost:8000/media/images/3905.png",
+          "name": "European Wax Center",
+          "public_id": "dz2m",
+          "slug": "european-wax-center"
+        }
+      ],
+      "contact": {
+        "abbreviation": "TB",
+        "email": "taylor.bartels@waxcenter.com",
+        "id": 919374,
+        "linkedin_link": null,
+        "name": "Taylor Bartels",
+        "org_key": "taylor-bartels",
+        "org_title": "Franchisee",
+        "phone": "(303) 974-6477",
+        "profile_picture": null
+      },
+      "contacts_count": 1,
+      "group_code": "Taylor Bartels",
+      "id": 7976,
+      "linkedin_link": null,
+      "name": "Taylor Bartels",
+      "public_id": "n5l8",
+      "units_count": 33,
+      "website": null
+    },
+    {
+      "concepts": [
+        {
+          "id": 196,
+          "logo_image": "http://localhost:8000/media/images/4521.png",
+          "name": "Five Guys",
+          "public_id": "ej32",
+          "slug": "five-guys"
+        }
+      ],
+      "contact": {
+        "abbreviation": "JR",
+        "email": "john@aurifybrands.com",
+        "id": 939904,
+        "linkedin_link": "https://www.linkedin.com/in/john-rigos-97593/",
+        "name": "John Rigos",
+        "org_key": "john-rigos",
+        "org_title": "Co-CEO",
+        "phone": null,
+        "profile_picture": "http://localhost:8000/media/images/user-profile/f184f641c84440ad85b6814f8e183dc8.jpeg"
+      },
+      "contacts_count": 2,
+      "group_code": "Aurify Kingstar",
+      "id": 17964,
+      "linkedin_link": null,
+      "name": "Aurify Kingstar",
+      "public_id": "2ov04",
+      "units_count": 33,
+      "website": "https://www.aurifybrands.com/"
+    }
+  ],
+  "total": 24126
+}

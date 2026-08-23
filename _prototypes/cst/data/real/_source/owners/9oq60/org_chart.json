@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Diya & Raishaan Holdings",
+    "id": 20571,
+    "name": "Diya & Raishaan Holdings",
+    "public_id": "9oq60"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "SK",
+      "children": [],
+      "id": 157419,
+      "name": "Sanjeev Khatau",
+      "org_key": "sanjeev-khatau",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/2ff48351b8664ce183b4fbe0107f1742.jpeg"
+    }
+  ]
+}

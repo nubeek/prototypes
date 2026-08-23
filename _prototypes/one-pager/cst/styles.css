@@ -2831,7 +2831,7 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 16px;
   line-height: 1;
 }
@@ -4119,9 +4119,9 @@ tbody tr.is-selected:hover td:first-child {
 
 .locations-table th:first-child,
 .locations-table td:first-child {
-  width: 64px !important;
-  padding-left: 14px;
-  padding-right: 14px;
+  width: 48px !important;
+  padding-left: 11px;
+  padding-right: 11px;
   text-align: center;
 }
 
@@ -5114,6 +5114,12 @@ tbody tr.is-selected:hover td:first-child {
     font-size: 15px;
     padding-left: 10px;
     padding-right: 10px;
+  }
+
+  .table-wrap > table:not(.raw-data-table).locations-table th:first-child,
+  .table-wrap > table:not(.raw-data-table).locations-table td:first-child {
+    padding-left: 11px;
+    padding-right: 11px;
   }
 
   .table-wrap > table:not(.raw-data-table) .th-content {

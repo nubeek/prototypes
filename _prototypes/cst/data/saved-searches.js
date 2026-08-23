@@ -17,7 +17,8 @@
 // snapshot: pre-rendered map image. Regenerate with:
 //   node _prototypes/cst/scripts/generate-splash-snapshots.js
 // view: which table the search opens in ("franchisees" | "candidates" | "locations")
-// ownerCount / unitCount: splash tile metrics; keep in sync when filters change
+// ownerCount / unitCount: metrics captured when the search was saved. Splash
+//   tiles recompute from the loaded roster, so these are informational only.
 
 const CST_SAVED_SEARCHES_STORAGE_KEY = "cst.savedSearches.v1";
 const CST_DELETED_SAVED_SEARCHES_STORAGE_KEY = "cst.deletedSavedSearches.v1";
@@ -128,116 +129,130 @@ function createCstSavedSearchId(title) {
   return `saved-${slug}-${uniquePart}`;
 }
 
-const CST_SAVED_SEARCH_MIDWEST_LOCATIONS = [
-  "Omaha, Nebraska",
-  "Lincoln, Nebraska",
-  "Minneapolis, Minnesota",
-  "Madison, Wisconsin",
-  "Peoria, Illinois",
-  "St. Louis, Missouri",
-  "Kansas City, Missouri",
-  "Wichita, Kansas",
-  "Fargo, North Dakota"
+const CST_SAVED_SEARCH_MIDWEST_STATES = [
+  "Illinois",
+  "Indiana",
+  "Iowa",
+  "Kansas",
+  "Michigan",
+  "Minnesota",
+  "Missouri",
+  "Nebraska",
+  "Ohio",
+  "Wisconsin"
 ];
 
-const CST_SAVED_SEARCH_SOUTHEAST_LOCATIONS = [
-  "Atlanta, Georgia",
-  "Macon, Georgia",
-  "Charlotte, North Carolina",
-  "Greensboro, North Carolina",
-  "Asheville, North Carolina",
-  "Columbia, South Carolina",
-  "Nashville, Tennessee",
-  "Memphis, Tennessee",
-  "Birmingham, Alabama",
-  "Montgomery, Alabama",
-  "Orlando, Florida",
-  "Ocala, Florida",
-  "Louisville, Kentucky"
-];
-
-const CST_SAVED_SEARCH_NORTH_AMERICA_LOCATIONS = [
-  "Toronto, Ontario",
-  "Ottawa, Ontario",
-  "Montreal, Quebec",
-  "Quebec City, Quebec",
-  "Vancouver, British Columbia",
-  "Calgary, Alberta",
-  "Edmonton, Alberta",
-  "Winnipeg, Manitoba",
-  "Mexico City, Mexico",
-  "Monterrey, Nuevo Leon",
-  "Guadalajara, Jalisco",
-  "Tijuana, Baja California",
-  "Queretaro, Queretaro",
-  "Puebla, Puebla",
-  "Hermosillo, Sonora",
-  "Chihuahua, Chihuahua",
-  "Oaxaca, Oaxaca"
+const CST_SAVED_SEARCH_SOUTHEAST_STATES = [
+  "Alabama",
+  "Florida",
+  "Georgia",
+  "Kentucky",
+  "North Carolina",
+  "South Carolina",
+  "Tennessee"
 ];
 
 const CST_BUNDLED_SAVED_SEARCHES = [
   {
-    id: "planet-fitness-at-scale",
-    title: "Planet Fitness at scale",
+    id: "texas-restaurant-groups",
+    title: "Texas Restaurant Groups",
     scope: "public",
-    ownerCount: 6,
-    snapshot: "assets/snapshots/planet-fitness-at-scale.jpg",
+    view: "franchisees",
+    ownerCount: 24,
+    snapshot: "assets/snapshots/texas-restaurant-groups.jpg",
     filters: {
-      franchises: ["Planet Fitness"],
-      units: { min: 100 }
+      locations: ["Texas"],
+      categories: ["Food and Beverage"]
     }
   },
   {
     id: "midwest-operator-groups",
-    title: "Midwest operator groups",
+    title: "Midwest Operator Groups",
     scope: "public",
-    ownerCount: 15,
+    view: "franchisees",
+    ownerCount: 51,
     snapshot: "assets/snapshots/midwest-operator-groups.jpg",
     filters: {
-      locations: CST_SAVED_SEARCH_MIDWEST_LOCATIONS
+      locations: CST_SAVED_SEARCH_MIDWEST_STATES
     }
   },
   {
-    id: "southeast-expansion",
-    title: "Southeast expansion targets",
+    id: "southeast-groups-at-scale",
+    title: "Southeast Groups at Scale",
     scope: "public",
-    ownerCount: 11,
-    snapshot: "assets/snapshots/southeast-expansion.jpg",
+    view: "franchisees",
+    ownerCount: 21,
+    snapshot: "assets/snapshots/southeast-groups-at-scale.jpg",
     filters: {
-      locations: CST_SAVED_SEARCH_SOUTHEAST_LOCATIONS
+      locations: CST_SAVED_SEARCH_SOUTHEAST_STATES,
+      units: { min: 100 }
     }
   },
   {
-    id: "boutique-studio-operators",
-    title: "Boutique studio operators",
+    id: "popeyes-operators",
+    title: "Popeyes Operators",
     scope: "public",
-    ownerCount: 7,
-    snapshot: "assets/snapshots/boutique-studio-operators.jpg",
+    view: "franchisees",
+    ownerCount: 17,
+    snapshot: "assets/snapshots/popeyes-operators.jpg",
     filters: {
-      franchises: ["Club Pilates", "F45 Training", "Orangetheory", "Anytime Fitness"]
+      franchises: ["Popeyes Louisiana Kitchen"]
     }
   },
   {
-    id: "deep-contact-rosters",
-    title: "Deep contact rosters",
+    id: "coffee-and-bakery-brands",
+    title: "Coffee and Bakery Brands",
     scope: "public",
+    view: "franchisees",
+    ownerCount: 19,
+    snapshot: "assets/snapshots/coffee-and-bakery-brands.jpg",
+    filters: {
+      franchises: ["Dunkin'", "Panera Bread", "Tim Hortons"]
+    }
+  },
+  {
+    id: "fitness-groups",
+    title: "Fitness Groups",
+    scope: "public",
+    view: "franchisees",
+    ownerCount: 8,
+    snapshot: "assets/snapshots/fitness-groups.jpg",
+    filters: {
+      categories: ["Fitness"]
+    }
+  },
+  {
+    id: "wellness-operators",
+    title: "Wellness Operators",
+    scope: "public",
+    view: "franchisees",
+    ownerCount: 10,
+    snapshot: "assets/snapshots/wellness-operators.jpg",
+    filters: {
+      categories: ["Health & Wellness"]
+    }
+  },
+  {
+    id: "national-scale-groups",
+    title: "200+ Unit Groups",
+    scope: "public",
+    view: "franchisees",
     ownerCount: 9,
-    snapshot: "assets/snapshots/deep-contact-rosters.jpg",
+    snapshot: "assets/snapshots/national-scale-groups.jpg",
     filters: {
-      contacts: { min: 9 }
+      units: { min: 200 }
     }
   },
   {
-    id: "canada-and-mexico-units",
-    title: "Canada & Mexico units",
+    id: "california-midsize-groups",
+    title: "California Mid-Size Groups",
     scope: "public",
-    ownerCount: 11,
-    unitCount: 739,
-    snapshot: "assets/snapshots/canada-and-mexico-units.jpg",
-    view: "locations",
+    view: "franchisees",
+    ownerCount: 15,
+    snapshot: "assets/snapshots/california-midsize-groups.jpg",
     filters: {
-      locations: CST_SAVED_SEARCH_NORTH_AMERICA_LOCATIONS
+      locations: ["California"],
+      units: { min: 50 }
     }
   }
 ];

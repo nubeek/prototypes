@@ -1,0 +1,194 @@
+{
+  "institution": {
+    "group_code": "G0026-BLACKDUCKPARTNERS",
+    "id": 7,
+    "name": "Black Duck Partners",
+    "public_id": "dqvg"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MD",
+      "children": [
+        {
+          "abbreviation": "DD",
+          "children": [
+            {
+              "abbreviation": "EN",
+              "children": [],
+              "id": 871503,
+              "name": "Erik Nelson",
+              "org_key": "erik-nelson96",
+              "org_parent": "dominic-decoux",
+              "org_title": "Financial Analyst",
+              "profile_picture": "/media/images/user-profile/22be6e49f19243f68a2a053e773fba4a.jpeg"
+            },
+            {
+              "abbreviation": "JK",
+              "children": [],
+              "id": 871492,
+              "name": "Jake Korb",
+              "org_key": "jakekorb",
+              "org_parent": "dominic-decoux",
+              "org_title": "Vice President, Finance",
+              "profile_picture": null
+            }
+          ],
+          "id": 871491,
+          "name": "Dominic DeCoux",
+          "org_key": "dominic-decoux",
+          "org_parent": "mike-dobrynio",
+          "org_title": "CFO",
+          "profile_picture": "/media/images/user-profile/e247e7051e9f44568e5cd29df7511d1e.jpeg"
+        },
+        {
+          "abbreviation": "MM",
+          "children": [
+            {
+              "abbreviation": "SV",
+              "children": [],
+              "id": 871502,
+              "name": "Seng Vang",
+              "org_key": "sengvangg",
+              "org_parent": "maggie-mcreath",
+              "org_title": "Senior Human Resources Generalist",
+              "profile_picture": "/media/images/user-profile/a08d26c9c7794443b658276f802b3189.jpeg"
+            }
+          ],
+          "id": 871505,
+          "name": "Maggie McReath",
+          "org_key": "maggie-mcreath",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Chief People Officer",
+          "profile_picture": "/media/images/user-profile/46494d075c93411194e65bd37b0635e9.jpeg"
+        },
+        {
+          "abbreviation": "MW",
+          "children": [
+            {
+              "abbreviation": "LK",
+              "children": [],
+              "id": 871494,
+              "name": "Lacey Kling",
+              "org_key": "laceykling",
+              "org_parent": "mariza-wells",
+              "org_title": "Operations Manager",
+              "profile_picture": "/media/images/user-profile/24802d6bdd6c42f4a9e7d5fd14e46b8d.jpeg"
+            }
+          ],
+          "id": 871498,
+          "name": "Mariza Wells",
+          "org_key": "mariza-wells",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Director of Operations",
+          "profile_picture": "/media/images/user-profile/ae1d542bd28d4e7faeb8c7362301dfe7.jpeg"
+        },
+        {
+          "abbreviation": "AA",
+          "children": [],
+          "id": 871500,
+          "name": "Angelica Andruss",
+          "org_key": "angelica-andruss",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Regional Manager",
+          "profile_picture": "/media/images/user-profile/6a030fddb5354f27bfad3d042f088dde.jpeg"
+        },
+        {
+          "abbreviation": "EO",
+          "children": [],
+          "id": 871504,
+          "name": "Ericka Ornelas",
+          "org_key": "ericka-ornelas",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Director of Real Estate & Asset Management",
+          "profile_picture": "/media/images/user-profile/e0956c6de3994311acc07c6e3dbeafee.jpeg"
+        },
+        {
+          "abbreviation": "IH",
+          "children": [],
+          "id": 871501,
+          "name": "Ian Howden",
+          "org_key": "ian-howden",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Director of Revenue",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "JH",
+          "children": [],
+          "id": 871493,
+          "name": "Jacob Hietpas",
+          "org_key": "jacob-hietpas",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Chief Strategy & Marketing Officer",
+          "profile_picture": "/media/images/user-profile/50c83fb4f4fc4ead90650edd2ad341ce.jpeg"
+        },
+        {
+          "abbreviation": "JC",
+          "children": [],
+          "id": 871506,
+          "name": "Jordan Coon",
+          "org_key": "jordan-coon",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Director of Operations",
+          "profile_picture": "/media/images/user-profile/153c8c2e3cb042af897d4a6e09e64cf3.jpeg"
+        },
+        {
+          "abbreviation": "LS",
+          "children": [],
+          "id": 871495,
+          "name": "Luke Schwartz",
+          "org_key": "lukeschwartz",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Corporate Development & Real Estate Strategist",
+          "profile_picture": "/media/images/user-profile/80b7b54f333b4c9798db22b4d589448f.jpeg"
+        },
+        {
+          "abbreviation": "RH",
+          "children": [],
+          "id": 871497,
+          "name": "Ryan Hansen",
+          "org_key": "ryan-hansen",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Director Of Construction and Facilities",
+          "profile_picture": "/media/images/user-profile/d5aaa4e3b6474d3ba1e6cc1072a647da.jpeg"
+        },
+        {
+          "abbreviation": "SM",
+          "children": [],
+          "id": 871496,
+          "name": "Shannon Moore",
+          "org_key": "shannon-moore",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Regional Manager",
+          "profile_picture": "/media/images/user-profile/9f3fc55dab9f469992066a38a49cd9b8.jpeg"
+        },
+        {
+          "abbreviation": "SE",
+          "children": [],
+          "id": 871499,
+          "name": "Stu Engelman",
+          "org_key": "stu-engelman",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Business Development Manager",
+          "profile_picture": "/media/images/user-profile/c61fb1233e6c441f96237ade990963c6.jpeg"
+        },
+        {
+          "abbreviation": "TL",
+          "children": [],
+          "id": 871489,
+          "name": "Tim Lennon",
+          "org_key": "tim-lennon",
+          "org_parent": "mike-dobrynio",
+          "org_title": "Owner",
+          "profile_picture": null
+        }
+      ],
+      "id": 871490,
+      "name": "Mike Dobrynio",
+      "org_key": "mike-dobrynio",
+      "org_parent": null,
+      "org_title": "Managing Partner",
+      "profile_picture": "/media/images/user-profile/00397127c99b47f49085a8826740a694.jpeg"
+    }
+  ]
+}

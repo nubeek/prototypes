@@ -233,10 +233,13 @@ function locationRecordMatchesIncludedSelection(location) {
   const hasIncludedLabels = selectedLocationLabels.length > 0;
   if (!hasIncludedSearches && !hasIncludedLabels) return true;
 
-  return (
-    locationRecordMatchesSearchList(location, selectedLocationSearches)
-    || locationRecordMatchesSelectedLabels(location, selectedLocationLabels)
-  );
+  // Labels are already resolved into selectedLocationSearches by the filter
+  // panel and splash restore. Re-parsing every label per unit is redundant.
+  if (hasIncludedSearches) {
+    return locationRecordMatchesSearchList(location, selectedLocationSearches);
+  }
+
+  return locationRecordMatchesSelectedLabels(location, selectedLocationLabels);
 }
 
 function rowMatchesLocationFilter(row) {
@@ -257,6 +260,24 @@ function rowMatchesLocationFilter(row) {
 
   if (!locationRecordMatchesIncludedSelection(location)) return false;
   return locationRecordMatchesStateCap(location);
+}
+
+function getMapPointFranchise(location) {
+  const assigned = String(location.franchise || "").trim();
+  if (assigned && !assigned.includes(",")) return assigned;
+  if (Array.isArray(location.franchises) && location.franchises.length === 1) {
+    return String(location.franchises[0]).trim();
+  }
+  return assigned.split(",")[0].trim();
+}
+
+function mapLocationMatchesSelectedFranchise(location) {
+  if (!selectedFranchiseIndexes.length && !excludedFranchiseIndexes.length) return true;
+
+  const franchise = getMapPointFranchise(location);
+  if (excludedFranchiseIndexes.includes(franchise)) return false;
+  if (!selectedFranchiseIndexes.length) return true;
+  return selectedFranchiseIndexes.includes(franchise);
 }
 
 function mapLocationMatchesSelectedFilter(location) {
@@ -309,16 +330,22 @@ function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
       if (ownerIndex === null && excludedMapOwnerIndexes?.has(index)) return [];
 
       return owner.locations
-        .filter((location) => mapLocationMatchesSelectedFilter(location))
+        .filter((location) => (
+          mapLocationMatchesSelectedFilter(location)
+          && (ownerIndex !== null || mapLocationMatchesSelectedFranchise(location))
+        ))
         .map((location, locationIndex) => ({
           type: "Feature",
           properties: {
             featureId: `${index}-${locationIndex}-${location.lng}-${location.lat}`,
             ownerIndex: index,
+            locationRowId: location.id || `${index}-${locationIndex}`,
             ownerName: owner.ownerName,
             locationLabel: location.label,
-            franchise: location.franchise || "",
-            color: location.color || FRANCHISE_ACCENT_COLOR_FALLBACK
+            franchise: getMapPointFranchise(location),
+            color: (typeof getFranchiseAccentColor === "function"
+              ? getFranchiseAccentColor(getMapPointFranchise(location))
+              : location.color) || FRANCHISE_ACCENT_COLOR_FALLBACK
           },
           geometry: {
             type: "Point",
@@ -694,15 +721,98 @@ function setOwnersMapBusy(isBusy) {
   updateOwnersMapResetVisibility();
 }
 
+function getOwnersMapRowHighlightIds() {
+  if (activeMapOwnerIndex !== null) return null;
+
+  if (typeof isDatasetTableView === "function" && isDatasetTableView()) {
+    if (!selectedLocationRowIds.size) return null;
+    return {
+      property: "locationRowId",
+      ids: [...selectedLocationRowIds]
+    };
+  }
+
+  if (!selectedFranchiseeIndexes.size) return null;
+  return {
+    property: "ownerIndex",
+    ids: [...selectedFranchiseeIndexes]
+  };
+}
+
+function getOwnersMapPointHighlightExpression(selectedValue, dimmedValue) {
+  const highlight = getOwnersMapRowHighlightIds();
+  if (!highlight) return selectedValue;
+
+  const isOwnerIndex = highlight.property === "ownerIndex";
+  const featureValue = isOwnerIndex
+    ? ["to-number", ["get", "ownerIndex"]]
+    : ["to-string", ["get", highlight.property]];
+  const ids = isOwnerIndex
+    ? highlight.ids.map(Number)
+    : highlight.ids.map(String);
+
+  return [
+    "case",
+    ["in", featureValue, ["literal", ids]],
+    selectedValue,
+    dimmedValue
+  ];
+}
+
+function getOwnersMapPointColorExpression() {
+  return getOwnersMapPointHighlightExpression(["get", "color"], MAP_POINT_DIM_COLOR);
+}
+
+function getOwnersMapPointSortKeyExpression() {
+  return getOwnersMapPointHighlightExpression(1, 0);
+}
+
+function getOwnersMapPointSelectedOpacityExpression() {
+  return getOwnersMapPointHighlightExpression(MAP_POINT_OPACITY, MAP_POINT_DIM_OPACITY);
+}
+
 function getOwnersMapPointOpacityExpression() {
-  if (!ownersMapRevealActive) return MAP_POINT_OPACITY;
+  const selectedOpacity = getOwnersMapPointSelectedOpacityExpression();
+  if (!ownersMapRevealActive) return selectedOpacity;
 
   return [
     "case",
     ["boolean", ["feature-state", "reveal"], false],
-    MAP_POINT_OPACITY,
+    selectedOpacity,
     0
   ];
+}
+
+function syncOwnersMapRowSelectionHighlight() {
+  if (!ownersMap?.getLayer("owner-points")) return;
+
+  const color = getOwnersMapPointColorExpression();
+  const sortKey = getOwnersMapPointSortKeyExpression();
+  const transition = {
+    duration: usesReducedMotion() ? 0 : 180,
+    delay: 0
+  };
+
+  ["owner-points", "owner-points-hover"].forEach((layerId) => {
+    if (!ownersMap.getLayer(layerId)) return;
+    ownersMap.setPaintProperty(layerId, "circle-color", color);
+    ownersMap.setPaintProperty(layerId, "circle-color-transition", transition);
+    ownersMap.setLayoutProperty(layerId, "circle-sort-key", sortKey);
+  });
+
+  if (ownersMapRevealActive) {
+    syncOwnersMapPointOpacities();
+    return;
+  }
+
+  const opacity = getOwnersMapPointOpacityExpression();
+  ["owner-points", "owner-points-hover"].forEach((layerId) => {
+    if (!ownersMap.getLayer(layerId)) return;
+    ownersMap.setPaintProperty(layerId, "circle-opacity", opacity);
+    ownersMap.setPaintProperty(layerId, "circle-opacity-transition", transition);
+    ownersMap.setPaintProperty(layerId, "circle-stroke-opacity", opacity);
+    ownersMap.setPaintProperty(layerId, "circle-stroke-opacity-transition", transition);
+  });
 }
 
 function getOwnersMapPointOpacityTransition() {
@@ -776,6 +886,7 @@ function cancelOwnersMapReveal({ hideBusy = false } = {}) {
   }
   ownersMapPendingRevealCollection = null;
   ownersMapPendingPointTransition = "radial";
+  ownersMapRevealWhenTableEnters = null;
   ownersMapRevealToken += 1;
   cancelOwnersMapRevealAnimation();
   ownersMapRevealActive = false;
@@ -958,10 +1069,11 @@ function runOwnersMapOwnerFade(collection, token) {
       if (token !== ownersMapRevealToken) return;
       if (!features.length) {
         finishOwnersMapReveal();
+        markCstWorkspaceMapReadyToReveal?.();
         return;
       }
 
-      fadeInOwnersMapPoints(token);
+      markCstWorkspaceMapReadyToReveal?.(() => fadeInOwnersMapPoints(token));
     };
 
     fitOwnersMapToVisibleLocations({
@@ -1014,12 +1126,13 @@ function runOwnersMapFilterReveal(collection = getOwnersMapPointFeatureCollectio
     if (!shouldReveal) {
       ownersMapBusyHeldForReveal = false;
       setOwnersMapBusy(false);
+      markCstWorkspaceMapReadyToReveal?.();
       return;
     }
 
     whenOwnersMapReadyForReveal(() => {
       if (token !== ownersMapRevealToken) return;
-      startOwnersMapRadialReveal(features, token);
+      markCstWorkspaceMapReadyToReveal?.(() => startOwnersMapRadialReveal(features, token));
     });
   };
 
@@ -1398,6 +1511,7 @@ function syncMapLocationFilter({ pointTransition = "radial" } = {}) {
 
   ownersMapPointHover?.clearHover();
   startOwnersMapFilterReveal(getOwnersMapPointFeatureCollection(), { pointTransition });
+  syncOwnersMapRowSelectionHighlight();
 }
 
 function getActiveSidebarOwnerIndex() {
@@ -1797,10 +1911,12 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
       window.setTimeout(() => {
         resizeOwnersMap();
         syncOwnersMapResetPosition();
-        if (ownersMap?.getSource("owner-points") && (!wasPanelOpen || ownersMapRevealPending)) {
+        if (ownersMap?.getSource("owner-points") && ownersMapRevealPending) {
           startOwnersMapFilterReveal(getOwnersMapPointFeatureCollection());
           return;
         }
+        if (isCstTableEnterWaitingForMap?.()) return;
+        markCstWorkspaceMapReadyToReveal?.();
         if (!isOwnersMapUpdateInFlight()) {
           fitOwnersMapToVisibleLocations();
         }
@@ -2001,10 +2117,14 @@ function createOwnersMap() {
       type: "circle",
       source: "owner-points",
       filter: getMapPointBaseLayerFilter(),
+      layout: {
+        "circle-sort-key": getOwnersMapPointSortKeyExpression()
+      },
       paint: {
         "circle-radius": getMapPointBaseCircleRadiusExpression(),
         "circle-radius-transition": { duration: 180, delay: 0 },
-        "circle-color": ["get", "color"],
+        "circle-color": getOwnersMapPointColorExpression(),
+        "circle-color-transition": { duration: 180, delay: 0 },
         "circle-opacity": getOwnersMapPointOpacityExpression(),
         "circle-opacity-transition": getOwnersMapPointOpacityTransition(),
         "circle-stroke-color": "#ffffff",
@@ -2019,10 +2139,14 @@ function createOwnersMap() {
       type: "circle",
       source: "owner-points",
       filter: getMapPointHoverLayerFilter(),
+      layout: {
+        "circle-sort-key": getOwnersMapPointSortKeyExpression()
+      },
       paint: {
         "circle-radius": getMapPointHoverCircleRadiusExpression(),
         "circle-radius-transition": { duration: 180, delay: 0 },
-        "circle-color": ["get", "color"],
+        "circle-color": getOwnersMapPointColorExpression(),
+        "circle-color-transition": { duration: 180, delay: 0 },
         "circle-opacity": getOwnersMapPointOpacityExpression(),
         "circle-opacity-transition": getOwnersMapPointOpacityTransition(),
         "circle-stroke-color": "#ffffff",

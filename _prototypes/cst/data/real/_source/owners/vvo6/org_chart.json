@@ -1,0 +1,141 @@
+{
+  "institution": {
+    "group_code": "Sun Holdings",
+    "id": 957,
+    "name": "Sun Holdings",
+    "public_id": "vvo6"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GP",
+      "children": [
+        {
+          "abbreviation": "AS",
+          "children": [],
+          "id": 921607,
+          "name": "Anthony Schlemmer",
+          "org_key": "tony-schlemmer",
+          "org_parent": "guillermo-perales",
+          "org_title": "President, QSR Division",
+          "profile_picture": "/media/images/user-profile/6dbaed3488d24fc8ba7ca7b1ec8f751d.jpeg"
+        },
+        {
+          "abbreviation": "CM",
+          "children": [],
+          "id": 921609,
+          "name": "Christian Morath",
+          "org_key": "christian-morath",
+          "org_parent": "guillermo-perales",
+          "org_title": "VP of Operations SE - Arby\u2019s",
+          "profile_picture": "/media/images/user-profile/f213e10f59ca43bbaf24b94c582e126c.jpeg"
+        },
+        {
+          "abbreviation": "DF",
+          "children": [],
+          "id": 921605,
+          "name": "David Fabian",
+          "org_key": "david-fabian",
+          "org_parent": "guillermo-perales",
+          "org_title": "Chief Development Officer",
+          "profile_picture": "/media/images/user-profile/63864d65318c4df39710d5552ed55147.jpeg"
+        },
+        {
+          "abbreviation": "DJ",
+          "children": [],
+          "id": 921610,
+          "name": "Dionna Jeffrey",
+          "org_key": "dionna-jeffrey",
+          "org_parent": "guillermo-perales",
+          "org_title": "VP of Operations - Popeyes",
+          "profile_picture": "/media/images/user-profile/44b451df10a042758c68c8a1ebe05c01.jpeg"
+        },
+        {
+          "abbreviation": "JD",
+          "children": [],
+          "id": 921615,
+          "name": "Jimmy Dang",
+          "org_key": "jimmy-dang",
+          "org_parent": "guillermo-perales",
+          "org_title": "Senior VP of IT",
+          "profile_picture": "/media/images/user-profile/19c624f5789f476482b22b2c5447da3f.jpeg"
+        },
+        {
+          "abbreviation": "JH",
+          "children": [],
+          "id": 921613,
+          "name": "Justin Hart",
+          "org_key": "justin-hart",
+          "org_parent": "guillermo-perales",
+          "org_title": "VP of Operations - McAlister's Deli",
+          "profile_picture": "/media/images/user-profile/6a327cd9f11449d4960c3e77ebd3d842.jpeg"
+        },
+        {
+          "abbreviation": "KC",
+          "children": [],
+          "id": 921611,
+          "name": "Karen Cundiff",
+          "org_key": "karen-cundiff",
+          "org_parent": "guillermo-perales",
+          "org_title": "VP of Operations MW - Arby\u2019s",
+          "profile_picture": "/media/images/user-profile/b78c96448fa0422f8f1acfad044541bc.jpeg"
+        },
+        {
+          "abbreviation": "LM",
+          "children": [],
+          "id": 921614,
+          "name": "Laura McLand",
+          "org_key": "laura-mcland",
+          "org_parent": "guillermo-perales",
+          "org_title": "VP of Human Resources",
+          "profile_picture": "/media/images/user-profile/e97a282e286b406c8cabb8aa6f934ff0.jpeg"
+        },
+        {
+          "abbreviation": "LQ",
+          "children": [],
+          "id": 964692,
+          "name": "Louis Quartochi",
+          "org_key": "louis-quartochi",
+          "org_parent": "guillermo-perales",
+          "org_title": "Vice President Operations - SunCakes",
+          "profile_picture": "/media/images/user-profile/b97a1a0da7c140d592f1cc790d2a3ee2.jpeg"
+        },
+        {
+          "abbreviation": "MZ",
+          "children": [],
+          "id": 921606,
+          "name": "Mike Zmudosky",
+          "org_key": "mike-zmudosky",
+          "org_parent": "guillermo-perales",
+          "org_title": "CFO",
+          "profile_picture": "/media/images/user-profile/7d674d85588c4a93ae67f34ea4029582.jpeg"
+        },
+        {
+          "abbreviation": "RS",
+          "children": [],
+          "id": 921612,
+          "name": "Robert Sanders",
+          "org_key": "robert-sanders",
+          "org_parent": "guillermo-perales",
+          "org_title": "VP of Operations - Taco Bueno",
+          "profile_picture": "/media/images/user-profile/55cb85b305c6474192a92396d79004a1.jpeg"
+        },
+        {
+          "abbreviation": "RC",
+          "children": [],
+          "id": 921608,
+          "name": "Rodney Conant",
+          "org_key": "rodney-conant",
+          "org_parent": "guillermo-perales",
+          "org_title": "President of Operations - Applebee\u2019s\u00ae & Casual Dining",
+          "profile_picture": "/media/images/user-profile/3fc47172d09c4b7b8603eeaf36db85aa.jpeg"
+        }
+      ],
+      "id": 921604,
+      "name": "Guillermo Perales",
+      "org_key": "guillermo-perales",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/a7aee11244f94106b6a649b519da1033.jpeg"
+    }
+  ]
+}

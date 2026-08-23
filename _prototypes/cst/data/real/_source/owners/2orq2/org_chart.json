@@ -1,0 +1,41 @@
+{
+  "institution": {
+    "group_code": "Team Lyders",
+    "id": 27265,
+    "name": "Team Lyders",
+    "public_id": "2orq2"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "CL",
+      "children": [
+        {
+          "abbreviation": "JF",
+          "children": [],
+          "id": 953624,
+          "name": "Jini Foust",
+          "org_key": "jini-foust",
+          "org_parent": "clint-lyders-petersen",
+          "org_title": "COO",
+          "profile_picture": "/media/images/user-profile/6d8bdd392c0b40dd9d98d7dda64cc279.jpeg"
+        }
+      ],
+      "id": 964895,
+      "name": "Clint Lyders-Petersen",
+      "org_key": "clint-lyders-petersen",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "PL",
+      "children": [],
+      "id": 964896,
+      "name": "Peter Lyders-Petersen",
+      "org_key": "peter-lyders-petersen",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

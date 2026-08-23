@@ -1,0 +1,71 @@
+{
+  "institution": {
+    "group_code": "Continental Superior Management Groups, L.P.",
+    "id": 967,
+    "name": "Continental Superior Management Groups, L.P.",
+    "public_id": "525v"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "AL",
+      "children": [
+        {
+          "abbreviation": "EL",
+          "children": [],
+          "id": 921590,
+          "name": "Emad Lakhany",
+          "org_key": "emad-lakhany",
+          "org_parent": "alilakhany1",
+          "org_title": "Chief Development Officer",
+          "profile_picture": "/media/images/user-profile/17e2ef268a6143e48d7f85292c03021a.jpeg"
+        },
+        {
+          "abbreviation": "FS",
+          "children": [],
+          "id": 921589,
+          "name": "Faisal Shah",
+          "org_key": "faisal-shah-csmgroup",
+          "org_parent": "alilakhany1",
+          "org_title": "Chief Legal Officer",
+          "profile_picture": "/media/images/user-profile/111d7580c7a54dd1ad765e660b5a9299.jpeg"
+        },
+        {
+          "abbreviation": "FZ",
+          "children": [],
+          "id": 921591,
+          "name": "Felix Zamikovsky",
+          "org_key": "felix-zamikovsky",
+          "org_parent": "alilakhany1",
+          "org_title": "Head of Real Estate",
+          "profile_picture": "/media/images/user-profile/908f72eeee8f41a48c777080d2adf782.jpeg"
+        },
+        {
+          "abbreviation": "LL",
+          "children": [],
+          "id": 921588,
+          "name": "Lina Lakhany",
+          "org_key": "lina-lakhany",
+          "org_parent": "alilakhany1",
+          "org_title": "Vendor Relations Specialist",
+          "profile_picture": "/media/images/user-profile/96bace548c274cb681b6432d81fa2ae4.jpeg"
+        },
+        {
+          "abbreviation": "SL",
+          "children": [],
+          "id": 921587,
+          "name": "Salma Lakhany",
+          "org_key": "salma-lakhany",
+          "org_parent": "alilakhany1",
+          "org_title": "Co-founder",
+          "profile_picture": null
+        }
+      ],
+      "id": 921586,
+      "name": "Ali Lakhany",
+      "org_key": "alilakhany1",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/a6823e1adcf54fa6940b89f3081f56b9.jpeg"
+    }
+  ]
+}

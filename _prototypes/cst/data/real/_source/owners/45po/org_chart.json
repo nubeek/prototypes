@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Tmart Operations I, LLC",
+    "id": 9690,
+    "name": "Tmart Operations I, LLC",
+    "public_id": "45po"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GG",
+      "children": [],
+      "id": 922236,
+      "name": "Gary Gussel",
+      "org_key": "gary-gussel",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/b12b8301dcc14f80b3e5fe99e5f3fc4b.jpeg"
+    }
+  ]
+}

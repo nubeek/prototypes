@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Southern River Restaurants, LLC",
+    "id": 27305,
+    "name": "Southern River Restaurants, LLC",
+    "public_id": "n3z2j"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DP",
+      "children": [],
+      "id": 964960,
+      "name": "David Paradise",
+      "org_key": "david-paradise",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/f0daa79f5cc24c3b9b437df967c067f2.jpeg"
+    }
+  ]
+}

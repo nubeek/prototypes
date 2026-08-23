@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "TEAM Schostak Family Restaurants",
+    "id": 27347,
+    "name": "TEAM Schostak Family Restaurants",
+    "public_id": "806p3"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MS",
+      "children": [],
+      "id": 964976,
+      "name": "Mark Schostak",
+      "org_key": "mark-schostak",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/e73a3589369346a382b65fd16b2b1a2d.jpeg"
+    }
+  ]
+}

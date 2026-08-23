@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Den-Tex Central, Inc.",
+    "id": 9558,
+    "name": "Den-Tex Central, Inc.",
+    "public_id": "wv46"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DL",
+      "children": [],
+      "id": 138739,
+      "name": "Dawn Lafreeda",
+      "org_key": "dawn-lafreeda",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/5762c0d67e734313aac0102bcb960d85.jpeg"
+    }
+  ]
+}

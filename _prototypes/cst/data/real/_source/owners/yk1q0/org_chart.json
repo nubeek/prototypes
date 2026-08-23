@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "WINGMEN V, LLC",
+    "id": 27685,
+    "name": "WINGMEN V, LLC",
+    "public_id": "yk1q0"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "WH",
+      "children": [],
+      "id": 967355,
+      "name": "Wray Hutchinson",
+      "org_key": "wray-hutchinson",
+      "org_parent": null,
+      "org_title": "President",
+      "profile_picture": null
+    }
+  ]
+}

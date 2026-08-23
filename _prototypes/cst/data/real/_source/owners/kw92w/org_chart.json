@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Joe Szablewski",
+    "id": 16873,
+    "name": "Joe Szablewski",
+    "public_id": "kw92w"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "JS",
+      "children": [],
+      "id": 934448,
+      "name": "Joe Szablewski",
+      "org_key": "joe-szablewski",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

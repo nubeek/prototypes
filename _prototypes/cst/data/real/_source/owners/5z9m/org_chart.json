@@ -1,0 +1,51 @@
+{
+  "institution": {
+    "group_code": "Princess Street Partners",
+    "id": 4691,
+    "name": "Princess Street Partners",
+    "public_id": "5z9m"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "RF",
+      "children": [
+        {
+          "abbreviation": "PF",
+          "children": [],
+          "id": 913270,
+          "name": "Patricia Fisher",
+          "org_key": "patricia-fisher",
+          "org_parent": "rick-fisher",
+          "org_title": "Treasurer",
+          "profile_picture": "/media/images/user-profile/868280bf315240ce8de46cd3fbd22543.jpeg"
+        },
+        {
+          "abbreviation": "RS",
+          "children": [],
+          "id": 913271,
+          "name": "Robert Smith",
+          "org_key": "robert-smith",
+          "org_parent": "rick-fisher",
+          "org_title": "Director of Operations",
+          "profile_picture": "/media/images/user-profile/57b1b32237114bdd8283f029c9b860b7.jpeg"
+        },
+        {
+          "abbreviation": "SM",
+          "children": [],
+          "id": 913272,
+          "name": "Stephanie Mauney",
+          "org_key": "stephanie-mauney",
+          "org_parent": "rick-fisher",
+          "org_title": "Corporate Trainer",
+          "profile_picture": "/media/images/user-profile/f9bbe7731d69402883df5f4d2a3ed537.jpeg"
+        }
+      ],
+      "id": 913269,
+      "name": "Rick Fisher",
+      "org_key": "rick-fisher",
+      "org_parent": null,
+      "org_title": "Founder and CEO",
+      "profile_picture": "/media/images/user-profile/0990280de54d4cfba8e2a1e35c19447e.jpeg"
+    }
+  ]
+}

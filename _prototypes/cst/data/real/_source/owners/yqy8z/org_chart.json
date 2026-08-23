@@ -1,0 +1,243 @@
+{
+  "institution": {
+    "group_code": "Flynn Group",
+    "id": 27261,
+    "name": "Flynn Group",
+    "public_id": "yqy8z"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "GF",
+      "children": [
+        {
+          "abbreviation": "RB",
+          "children": [
+            {
+              "abbreviation": "AK",
+              "children": [
+                {
+                  "abbreviation": "JB",
+                  "children": [],
+                  "id": 901103,
+                  "name": "Jeff Baranco",
+                  "org_key": "jeff-baranco",
+                  "org_parent": "aaron-l-kirkman-fmp",
+                  "org_title": "VP of Operations, Flynn Arby's",
+                  "profile_picture": "/media/images/user-profile/6fea10b66a5c432aa0f186798affb8b8.jpeg"
+                }
+              ],
+              "id": 871824,
+              "name": "Aaron Kirkman",
+              "org_key": "aaron-l-kirkman-fmp",
+              "org_parent": "ronald-bellamy",
+              "org_title": "President, Flynn Arby's",
+              "profile_picture": "/media/images/user-profile/3f1ffec4b7d64a44a2cc26f837982ab4.jpeg"
+            },
+            {
+              "abbreviation": "AF",
+              "children": [],
+              "id": 871829,
+              "name": "Ashley Fenn",
+              "org_key": "amfenn",
+              "org_parent": "ronald-bellamy",
+              "org_title": "VP of Business Insights & Marketing",
+              "profile_picture": "/media/images/user-profile/85ba6af5b41443608a72e9504c2cec4a.jpeg"
+            },
+            {
+              "abbreviation": "BS",
+              "children": [],
+              "id": 871827,
+              "name": "Billy Strunk",
+              "org_key": "williamstrunk",
+              "org_parent": "ronald-bellamy",
+              "org_title": "President, Flynn Support & Integration",
+              "profile_picture": "/media/images/user-profile/d352d2aca3ad44f281a9677c9aa72a08.jpeg"
+            },
+            {
+              "abbreviation": "DK",
+              "children": [],
+              "id": 871825,
+              "name": "Dan Krebsbach",
+              "org_key": "dan-krebsbach",
+              "org_parent": "ronald-bellamy",
+              "org_title": "President, Flynn Applebee's",
+              "profile_picture": "/media/images/user-profile/32986a9375f840fba389a1ab7c9349a9.jpeg"
+            },
+            {
+              "abbreviation": "DR",
+              "children": [],
+              "id": 871832,
+              "name": "Dan Rieger",
+              "org_key": "dan-rieger",
+              "org_parent": "ronald-bellamy",
+              "org_title": "Senior VP of Real Estate and Development",
+              "profile_picture": "/media/images/user-profile/11286637079a43488033e6e056a4da9a.jpeg"
+            },
+            {
+              "abbreviation": "DL",
+              "children": [],
+              "id": 871831,
+              "name": "David Lombardy",
+              "org_key": "david-lombardy",
+              "org_parent": "ronald-bellamy",
+              "org_title": "VP of Enterprise Systems",
+              "profile_picture": "/media/images/user-profile/ec1d5fc1dde0498986dcde1e068c0305.jpeg"
+            },
+            {
+              "abbreviation": "JL",
+              "children": [],
+              "id": 871830,
+              "name": "Jacqueline Lee",
+              "org_key": "jacqueline-lee",
+              "org_parent": "ronald-bellamy",
+              "org_title": "SVP and General Counsel",
+              "profile_picture": "/media/images/user-profile/4467618a0a47405dbc6adb8c5072e1fa.jpeg"
+            },
+            {
+              "abbreviation": "JB",
+              "children": [],
+              "id": 871821,
+              "name": "Jeremy Biser",
+              "org_key": "jeremybiser",
+              "org_parent": "ronald-bellamy",
+              "org_title": "President, Flynn Pizza Hut",
+              "profile_picture": "/media/images/user-profile/8cbecb0105ae47b583a65139f0d1b377.jpeg"
+            },
+            {
+              "abbreviation": "JV",
+              "children": [],
+              "id": 871835,
+              "name": "Jimmy Veazey",
+              "org_key": "jimmy-veazey",
+              "org_parent": "ronald-bellamy",
+              "org_title": "Senior VP of Corporate Development",
+              "profile_picture": "/media/images/user-profile/919a338f2da24e1eab930acd19d37ed5.jpeg"
+            },
+            {
+              "abbreviation": "JR",
+              "children": [],
+              "id": 871833,
+              "name": "John Roe",
+              "org_key": "johnroe",
+              "org_parent": "ronald-bellamy",
+              "org_title": "Senior VP of Brand Technology",
+              "profile_picture": "/media/images/user-profile/98e78d95d54245bdb09d46a8e12279d6.jpeg"
+            },
+            {
+              "abbreviation": "JW",
+              "children": [],
+              "id": 871834,
+              "name": "JP Wiedemer",
+              "org_key": "jp-wiedemer",
+              "org_parent": "ronald-bellamy",
+              "org_title": "Senior VP of Finance and Accounting",
+              "profile_picture": "/media/images/user-profile/5a7fc836b71a4dc08a3341b15b0cd918.jpeg"
+            },
+            {
+              "abbreviation": "KC",
+              "children": [],
+              "id": 871823,
+              "name": "Kelly Cook",
+              "org_key": "kelly-cook",
+              "org_parent": "ronald-bellamy",
+              "org_title": "President, Flynn Panera",
+              "profile_picture": "/media/images/user-profile/7435b7f5cb3141bcb55ba493115296b9.jpeg"
+            },
+            {
+              "abbreviation": "MR",
+              "children": [],
+              "id": 871826,
+              "name": "Mark Romano",
+              "org_key": "mark-romano",
+              "org_parent": "ronald-bellamy",
+              "org_title": "President, Flynn Taco Bell",
+              "profile_picture": "/media/images/user-profile/d86fb90a420f49d6afb130a1a4d39e8c.jpeg"
+            },
+            {
+              "abbreviation": "RC",
+              "children": [],
+              "id": 871822,
+              "name": "Rasheeda Clark",
+              "org_key": "rasheeda-c",
+              "org_parent": "ronald-bellamy",
+              "org_title": "President, Flynn Wendy's",
+              "profile_picture": "/media/images/user-profile/7b5ce3bfb28d4ef59326e61a9ebd6427.jpeg"
+            },
+            {
+              "abbreviation": "RW",
+              "children": [],
+              "id": 871828,
+              "name": "Richard Wallis",
+              "org_key": "richard-wallis",
+              "org_parent": "ronald-bellamy",
+              "org_title": "President, Flynn Group ANZ",
+              "profile_picture": "/media/images/user-profile/2e1faad25c5c46a0b0eed88e6deef863.jpeg"
+            }
+          ],
+          "id": 871819,
+          "name": "Ron Bellamy",
+          "org_key": "ronald-bellamy",
+          "org_parent": "greg-flynn",
+          "org_title": "President, Chief Operating Officer",
+          "profile_picture": "/media/images/user-profile/c8903e83613b43929738e07aaf5da640.jpeg"
+        },
+        {
+          "abbreviation": "BP",
+          "children": [],
+          "id": 964951,
+          "name": "Brad Pettinger",
+          "org_key": "brad-pettinger",
+          "org_parent": "greg-flynn",
+          "org_title": "Apple American (Retired)",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "EC",
+          "children": [],
+          "id": 964950,
+          "name": "Eric Contizano",
+          "org_key": "eric-contizano",
+          "org_parent": "greg-flynn",
+          "org_title": "Market President",
+          "profile_picture": "/media/images/user-profile/0439a40338014f74b468701af2f4517d.jpeg"
+        },
+        {
+          "abbreviation": "LL",
+          "children": [],
+          "id": 871820,
+          "name": "Lauren Leahy",
+          "org_key": "lauren-leahy",
+          "org_parent": "greg-flynn",
+          "org_title": "Chief Transformation Officer",
+          "profile_picture": "/media/images/user-profile/a85b82f07b584c88a909b39743d07b5b.jpeg"
+        },
+        {
+          "abbreviation": "LC",
+          "children": [],
+          "id": 871818,
+          "name": "Lorin Cortina",
+          "org_key": "lorin-cortina",
+          "org_parent": "greg-flynn",
+          "org_title": "Chief Financial Officer",
+          "profile_picture": "/media/images/user-profile/7cd3812658884ba28e5f8a1bf480aa62.jpeg"
+        },
+        {
+          "abbreviation": "PE",
+          "children": [],
+          "id": 931162,
+          "name": "Patrick Eulberg",
+          "org_key": "patrick-eulberg",
+          "org_parent": "greg-flynn",
+          "org_title": "VP of Real Estate",
+          "profile_picture": "/media/images/user-profile/b42bed5265cf495db986f56a70eee364.jpeg"
+        }
+      ],
+      "id": 871817,
+      "name": "Greg Flynn",
+      "org_key": "greg-flynn",
+      "org_parent": null,
+      "org_title": "Founder, Chairman, and Chief Executive Officer",
+      "profile_picture": "/media/images/user-profile/b420c2e9345b426d9e24945bcd39514c.jpeg"
+    }
+  ]
+}

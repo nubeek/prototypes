@@ -1,0 +1,30 @@
+{
+  "institution": {
+    "group_code": "ASAF Foods Corporation",
+    "id": 9524,
+    "name": "ASAF Foods Corporation",
+    "public_id": "jy84"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "AK",
+      "children": [],
+      "id": 608756,
+      "name": "Ajay K Keshap",
+      "org_key": "ajay-k-keshap",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "SP",
+      "children": [],
+      "id": 922028,
+      "name": "Shiela Paras",
+      "org_key": "shiela-paras",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": null
+    }
+  ]
+}

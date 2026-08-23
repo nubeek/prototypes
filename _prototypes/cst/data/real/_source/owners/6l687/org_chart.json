@@ -1,0 +1,40 @@
+{
+  "institution": {
+    "group_code": "Pacific Bells, LLC",
+    "id": 23945,
+    "name": "Pacific Bells, LLC",
+    "public_id": "6l687"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MG",
+      "children": [],
+      "id": 953615,
+      "name": "Maggie Georgilas",
+      "org_key": "maggie-georgilas",
+      "org_parent": null,
+      "org_title": "Director of Real Estate",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "SS",
+      "children": [],
+      "id": 953614,
+      "name": "Scott Shepherd",
+      "org_key": "scott-shepherd",
+      "org_parent": null,
+      "org_title": "President",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "TC",
+      "children": [],
+      "id": 953613,
+      "name": "Tom Cook",
+      "org_key": "tom-cook",
+      "org_parent": null,
+      "org_title": "Founder",
+      "profile_picture": null
+    }
+  ]
+}

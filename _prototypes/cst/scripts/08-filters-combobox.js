@@ -45,6 +45,7 @@ const {
   getFilterNumberInputValue,
   clampRangeValue,
   getNormalizedRange,
+  bindRangeTrack,
   syncRangeFilterControls: syncSharedRangeFilterControls,
   renderHistogram: renderSharedFilterHistogram
 } = window.WefranchFilterRange;
@@ -76,9 +77,7 @@ function syncStatusFilterStates() {
 function refreshRangeFilterResults() {
   activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
-  syncMapLocationFilter();
   refreshFilteredViews();
-  refitOpenMapToVisibleLocations();
   syncOpenOrgPanelWithSelection();
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });
 }
@@ -242,6 +241,36 @@ function setRadiusValue(value, { refresh = false } = {}) {
   }
 }
 
+function initRangeFilterControls() {
+  const unitsTrack = unitsMinRange?.closest(".filter-range-slider");
+  const contactsTrack = contactsMinRange?.closest(".filter-range-slider");
+  const netWorthTrack = netWorthMinRange?.closest(".filter-range-slider");
+
+  if (unitsTrack) {
+    bindRangeTrack(unitsTrack, {
+      onChange: ({ minValue, maxValue }) => {
+        setUnitsFilterRange(minValue, maxValue, { refresh: true });
+      }
+    });
+  }
+
+  if (contactsTrack) {
+    bindRangeTrack(contactsTrack, {
+      onChange: ({ minValue, maxValue }) => {
+        setContactsFilterRange(minValue, maxValue, { refresh: true });
+      }
+    });
+  }
+
+  if (netWorthTrack) {
+    bindRangeTrack(netWorthTrack, {
+      onChange: ({ minValue, maxValue }) => {
+        setNetWorthFilterRange(minValue, maxValue, { refresh: true });
+      }
+    });
+  }
+}
+
 function initRadiusFilterControls() {
   window.WefranchRadiusControl?.initRadiusRangeSlider({
     defaults: RADIUS_FILTER_DEFAULTS,
@@ -319,9 +348,7 @@ function hasAppliedLocationFilters() {
 function refreshLocationFilterResults() {
   activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
-  syncMapLocationFilter();
   refreshFilteredViews();
-  refitOpenMapToVisibleLocations();
   syncOpenOrgPanelWithSelection();
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });
 }
@@ -566,11 +593,9 @@ function resetCstFilterSelections({ refresh = true } = {}) {
   syncContactsFilterControls();
   syncNetWorthFilterControls();
   syncRadiusFilterControls();
-  syncMapLocationFilter();
 
   if (refresh) {
     refreshFilteredViews();
-    refitOpenMapToVisibleLocations();
     syncOpenOrgPanelWithSelection();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   }
@@ -626,9 +651,7 @@ function refreshAfterSectionClear() {
   syncContactsFilterControls();
   syncNetWorthFilterControls();
   syncRadiusFilterControls();
-  syncMapLocationFilter();
   refreshFilteredViews();
-  refitOpenMapToVisibleLocations();
   syncOpenOrgPanelWithSelection();
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });
 }

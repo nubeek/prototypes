@@ -27,6 +27,24 @@ function removeSavedViewSettings() {
   }
 }
 
+// Range sliders are bounded by the loaded roster, so a saved range only means
+// the same thing while those bounds hold. When the roster changes, a range that
+// spanned the old one was never a filter and must not become one.
+function getRestoredRange(saved, defaults) {
+  const bounds = saved?.bounds;
+  if (!saved || !bounds) return defaults;
+
+  const min = Number.isFinite(Number(saved.min)) ? Number(saved.min) : defaults.min;
+  const max = Number.isFinite(Number(saved.max)) ? Number(saved.max) : defaults.max;
+  if (bounds.min === defaults.min && bounds.max === defaults.max) return { min, max };
+  if (min <= bounds.min && max >= bounds.max) return defaults;
+
+  return {
+    min: Math.max(min, defaults.min),
+    max: Math.min(max, defaults.max)
+  };
+}
+
 function getSavedStringArray(value) {
   return Array.isArray(value)
     ? value.map(String).filter(Boolean)
@@ -57,9 +75,12 @@ function getCurrentViewSettings() {
     reduceMotionEnabled,
     savedSearchId: activeSavedSearchId,
     readerMode: readerModeActive,
+    startScreen: Boolean(card?.classList.contains("is-splash-open")),
+    tableView: currentTableView,
     filters: {
       open: Boolean(card?.classList.contains("is-filter-open")),
       sections: getFilterSectionSettings(),
+      search: searchQuery,
       locations: {
         included: selectedLocationLabels,
         excluded: excludedLocationLabels
@@ -81,11 +102,13 @@ function getCurrentViewSettings() {
       statuses: statusFilterInputs.map((checkbox) => checkbox.checked),
       units: {
         min: selectedUnitsMin,
-        max: selectedUnitsMax
+        max: selectedUnitsMax,
+        bounds: unitsFilterDefaults
       },
       contacts: {
         min: selectedContactsMin,
-        max: selectedContactsMax
+        max: selectedContactsMax,
+        bounds: contactsFilterDefaults
       },
       netWorth: {
         min: selectedNetWorthMin,
@@ -167,8 +190,24 @@ function restoreSavedOptionSettings(settings) {
   refreshOwnersMapPointData();
 }
 
+function syncToolbarSearchInput() {
+  if (!toolbarSearchInput) return;
+
+  toolbarSearchInput.value = searchQuery;
+  toolbarSearchInput
+    .closest(".toolbar-search-btn")
+    ?.classList.toggle("is-active-search", Boolean(searchQuery));
+
+  if (toolbarSearchClear) {
+    toolbarSearchClear.hidden = !searchQuery;
+  }
+}
+
 function restoreSavedFilterSelections(settings) {
   const filters = settings?.filters || {};
+
+  searchQuery = String(filters.search || "").trim().toLocaleLowerCase();
+  syncToolbarSearchInput();
 
   setLocationFilterSelections(
     filters.locations?.included,
@@ -194,14 +233,10 @@ function restoreSavedFilterSelections(settings) {
     checkbox.checked = Boolean(savedStatuses[index]);
   });
 
-  setUnitsFilterRange(
-    filters.units?.min ?? unitsFilterDefaults.min,
-    filters.units?.max ?? unitsFilterDefaults.max
-  );
-  setContactsFilterRange(
-    filters.contacts?.min ?? contactsFilterDefaults.min,
-    filters.contacts?.max ?? contactsFilterDefaults.max
-  );
+  const savedUnits = getRestoredRange(filters.units, unitsFilterDefaults);
+  setUnitsFilterRange(savedUnits.min, savedUnits.max);
+  const savedContacts = getRestoredRange(filters.contacts, contactsFilterDefaults);
+  setContactsFilterRange(savedContacts.min, savedContacts.max);
   setNetWorthFilterRange(
     filters.netWorth?.min ?? netWorthFilterDefaults.min,
     filters.netWorth?.max ?? netWorthFilterDefaults.max
@@ -229,7 +264,6 @@ function restoreSavedFilterSelections(settings) {
   syncFilterComboboxes();
   syncStatusFilterStates();
   syncOwnerExcludeState();
-  syncMapLocationFilter();
   refreshFilteredViews();
 }
 
@@ -265,6 +299,17 @@ function clearCstUrlQueryParams() {
 
 function shouldResetCstToSplashOnLoad() {
   return Boolean(window.WefranchReload?.isHardReload);
+}
+
+// A normal reload resumes the previous session, so the start screen only comes
+// back when that session was sitting on it.
+function shouldOpenCstSplashOnLoad() {
+  if (typeof savedViewSettings?.startScreen === "boolean") {
+    return savedViewSettings.startScreen;
+  }
+
+  // Sessions stored before the start-screen flag existed only recorded filters.
+  return getAppliedFilterCount() === 0;
 }
 
 function getCstSavedSearchUrlState() {
@@ -389,6 +434,7 @@ function restoreSavedViewSettings() {
       // mode. Persisting here with empty session fields would drop the id and
       // force the next load into a filter-only edit workspace.
       activeSavedSearchId = savedViewSettings.savedSearchId || null;
+      setMainTableView(savedViewSettings.tableView);
       restoreSavedOptionSettings(savedViewSettings);
       restoreSavedFilterSelections(savedViewSettings);
       restoreSavedPanelSettings(savedViewSettings);

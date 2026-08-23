@@ -1,0 +1,342 @@
+{
+  "institution": {
+    "group_code": "The Wolak Group",
+    "id": 15457,
+    "name": "The Wolak Group",
+    "public_id": "vv5wv"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "EW",
+      "children": [
+        {
+          "abbreviation": "KW",
+          "children": [
+            {
+              "abbreviation": "AH",
+              "children": [],
+              "id": 929473,
+              "name": "Albert Hutchings",
+              "org_key": "albert-hutchings",
+              "org_parent": "kimberly-wolak",
+              "org_title": "General Manager",
+              "profile_picture": "/media/images/user-profile/56ff501c22904b759d4971f9ecb70a19.jpeg"
+            },
+            {
+              "abbreviation": "BO",
+              "children": [],
+              "id": 929485,
+              "name": "Bill Olsen",
+              "org_key": "bill-olsen",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Loss Prevention",
+              "profile_picture": "/media/images/user-profile/b352b7721e4146bf9ad26d7d575a6e9c.jpeg"
+            },
+            {
+              "abbreviation": "BW",
+              "children": [],
+              "id": 929486,
+              "name": "Brian Wettering",
+              "org_key": "brian-wettering",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Systems Director/IT Analyst",
+              "profile_picture": "/media/images/user-profile/3521449925ef41d09c3f9f7787009195.jpeg"
+            },
+            {
+              "abbreviation": "BW",
+              "children": [],
+              "id": 929474,
+              "name": "Britta Woellert",
+              "org_key": "britta-woellert",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Area Manager",
+              "profile_picture": "/media/images/user-profile/33a963fe13ae49a0ba10afe507353721.jpeg"
+            },
+            {
+              "abbreviation": "CD",
+              "children": [],
+              "id": 929475,
+              "name": "Charee Dunkentell",
+              "org_key": "charee-dunkentell",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Director of Training",
+              "profile_picture": "/media/images/user-profile/4ebc7bb74e474c9b9b2626cb2e92f203.jpeg"
+            },
+            {
+              "abbreviation": "DW",
+              "children": [],
+              "id": 929476,
+              "name": "Daniel Webster",
+              "org_key": "daniel-webster",
+              "org_parent": "kimberly-wolak",
+              "org_title": "General Manager",
+              "profile_picture": "/media/images/user-profile/3b1e46e9f7fe47d1a72b6d753f0dbf02.jpeg"
+            },
+            {
+              "abbreviation": "DT",
+              "children": [],
+              "id": 929477,
+              "name": "Darlene Trepasso",
+              "org_key": "darlene-trepasso",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Executive Director of Operating Systems and Staff Support",
+              "profile_picture": "/media/images/user-profile/c4d16ac0f0fc4101b2414d7e5cdfdb8b.jpeg"
+            },
+            {
+              "abbreviation": "DB",
+              "children": [],
+              "id": 929478,
+              "name": "David Brooks",
+              "org_key": "david-brooks",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Financial Analyst and Project Manager \u2013 Maine and New Hampshire",
+              "profile_picture": "/media/images/user-profile/223648edf6f44f2bbb55e2ff860956c1.jpeg"
+            },
+            {
+              "abbreviation": "DS",
+              "children": [],
+              "id": 929479,
+              "name": "Duane Serfass",
+              "org_key": "duane-serfass",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Area Manager",
+              "profile_picture": "/media/images/user-profile/23536392686a45eda21b137d732639ac.jpeg"
+            },
+            {
+              "abbreviation": "GM",
+              "children": [],
+              "id": 929487,
+              "name": "Gina Mironti",
+              "org_key": "gina-mironti",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Human Resources Manager - Field Development & Culture",
+              "profile_picture": "/media/images/user-profile/fcc3643aacb740c7891e361b11815d22.jpeg"
+            },
+            {
+              "abbreviation": "GR",
+              "children": [],
+              "id": 929480,
+              "name": "Guy Ruffo",
+              "org_key": "guy-ruffo",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Executive Director of Operations",
+              "profile_picture": "/media/images/user-profile/a114492772a54012aad440ab5f9e303b.jpeg"
+            },
+            {
+              "abbreviation": "JP",
+              "children": [],
+              "id": 929481,
+              "name": "James Paquette",
+              "org_key": "james-paquette",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Director of Operations",
+              "profile_picture": "/media/images/user-profile/7045c9e31452476d93d2af9e7abdefdb.jpeg"
+            },
+            {
+              "abbreviation": "JT",
+              "children": [],
+              "id": 929488,
+              "name": "Justin Thompson",
+              "org_key": "justin-thompson",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Plant Manager",
+              "profile_picture": "/media/images/user-profile/d242062dd7f84c48846550922d6f27fb.jpeg"
+            },
+            {
+              "abbreviation": "KC",
+              "children": [],
+              "id": 929489,
+              "name": "Kristen Constantino",
+              "org_key": "kristen-constantino",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Human Resources Manager, HR Systems",
+              "profile_picture": "/media/images/user-profile/56ae9570194f4165a3709de892a065ab.jpeg"
+            },
+            {
+              "abbreviation": "LD",
+              "children": [],
+              "id": 929490,
+              "name": "Lacey Dionne",
+              "org_key": "lacey-dionne",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Communications Manager",
+              "profile_picture": "/media/images/user-profile/469928daf4fb4fefa2531a8238408d41.jpeg"
+            },
+            {
+              "abbreviation": "LB",
+              "children": [],
+              "id": 929491,
+              "name": "Leslie Brooks",
+              "org_key": "leslie-brooks",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Office/Accounting Assistant",
+              "profile_picture": "/media/images/user-profile/71d5aeed68fb470c8abd18b9a9024861.jpeg"
+            },
+            {
+              "abbreviation": "MC",
+              "children": [],
+              "id": 929492,
+              "name": "Marcel Calarco",
+              "org_key": "marcel-calarco",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Field Trainer",
+              "profile_picture": "/media/images/user-profile/138d7d268e3441cbaed16b18457edff8.jpeg"
+            },
+            {
+              "abbreviation": "MG",
+              "children": [],
+              "id": 929493,
+              "name": "Michele Gandia",
+              "org_key": "michele-gandia",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Field Trainer",
+              "profile_picture": "/media/images/user-profile/b83398dd137641c5b1beed5967a33f1c.jpeg"
+            },
+            {
+              "abbreviation": "RM",
+              "children": [],
+              "id": 929494,
+              "name": "Raymond McKenney",
+              "org_key": "raymond-mckenney",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Asset Manager",
+              "profile_picture": "/media/images/user-profile/e80e171295744b088da21e76b18076dd.jpeg"
+            },
+            {
+              "abbreviation": "RS",
+              "children": [],
+              "id": 929482,
+              "name": "Rebecca Schweigard",
+              "org_key": "rebecca-schweigard",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Vice President of Restaurant Excellence and People Development",
+              "profile_picture": "/media/images/user-profile/92ebf1318bb74152950eb68a0eb2fd62.jpeg"
+            },
+            {
+              "abbreviation": "SG",
+              "children": [],
+              "id": 929483,
+              "name": "Sandra Gummoe",
+              "org_key": "sandra-gummoe",
+              "org_parent": "kimberly-wolak",
+              "org_title": "General Manager",
+              "profile_picture": "/media/images/user-profile/923e8bb546b641498b9e3f6783cab5ce.jpeg"
+            },
+            {
+              "abbreviation": "SR",
+              "children": [],
+              "id": 929495,
+              "name": "Stephanie Ramirez",
+              "org_key": "stephanie-ramirez",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Human Resources Manager of Benefits and Leave",
+              "profile_picture": "/media/images/user-profile/e337ca7f69614cff9be3318366effd3e.jpeg"
+            },
+            {
+              "abbreviation": "SC",
+              "children": [],
+              "id": 929496,
+              "name": "Steve Csete",
+              "org_key": "steve-csete",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Field Trainer",
+              "profile_picture": "/media/images/user-profile/25cc7d08771d4019bbfd41d07f3996cb.jpeg"
+            },
+            {
+              "abbreviation": "SL",
+              "children": [],
+              "id": 929497,
+              "name": "Steve Libby",
+              "org_key": "steve-libby",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Field Trainer",
+              "profile_picture": "/media/images/user-profile/981826504e40449db1b4bb5d52dd33bd.jpeg"
+            },
+            {
+              "abbreviation": "TB",
+              "children": [],
+              "id": 929498,
+              "name": "Terry Bilodeau",
+              "org_key": "terry-bilodeau",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Director of Loss Prevention",
+              "profile_picture": "/media/images/user-profile/7416ca02d46e4af98d55edb1e96decb7.jpeg"
+            },
+            {
+              "abbreviation": "TP",
+              "children": [],
+              "id": 929499,
+              "name": "Theresa Pratt",
+              "org_key": "theresa-pratt",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Human Resources Manager - Field Recruitment & HR Training",
+              "profile_picture": "/media/images/user-profile/6a31e7772c714a1a92446e32a14516d5.jpeg"
+            },
+            {
+              "abbreviation": "TH",
+              "children": [],
+              "id": 929500,
+              "name": "Tina Harp",
+              "org_key": "tina-harp",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Audit Associate",
+              "profile_picture": "/media/images/user-profile/b72cad517afa40279b5d3a730f3d877c.jpeg"
+            },
+            {
+              "abbreviation": "TB",
+              "children": [],
+              "id": 929501,
+              "name": "Tracy Bice",
+              "org_key": "tracy-bice",
+              "org_parent": "kimberly-wolak",
+              "org_title": "Field Trainer",
+              "profile_picture": "/media/images/user-profile/d2441a9beab047d18f4d519133d19b7e.jpeg"
+            },
+            {
+              "abbreviation": "VL",
+              "children": [],
+              "id": 929484,
+              "name": "Vivian Lyons",
+              "org_key": "vivian-lyons",
+              "org_parent": "kimberly-wolak",
+              "org_title": "General Manager",
+              "profile_picture": "/media/images/user-profile/abc3668a424c4b70916454d80b13d66d.jpeg"
+            }
+          ],
+          "id": 929471,
+          "name": "Kimberly Wolak",
+          "org_key": "kimberly-wolak",
+          "org_parent": "edward-wolak",
+          "org_title": "President / Franchise Owner",
+          "profile_picture": "/media/images/user-profile/e018cb9c869c4beebaa67272cac38605.jpeg"
+        },
+        {
+          "abbreviation": "JP",
+          "children": [],
+          "id": 929470,
+          "name": "Joanne Pearson",
+          "org_key": "joanne-pearson",
+          "org_parent": "edward-wolak",
+          "org_title": "General Counsel/Director of Human Resources",
+          "profile_picture": "/media/images/user-profile/57462428d3e24fc3814ec637b8ce72ac.jpeg"
+        },
+        {
+          "abbreviation": "TS",
+          "children": [],
+          "id": 929472,
+          "name": "Tom Santurri",
+          "org_key": "tom-santurri",
+          "org_parent": "edward-wolak",
+          "org_title": "Franchisee Business Partner",
+          "profile_picture": "/media/images/user-profile/38f4f5f7f70f460096860ad8d3576d06.jpeg"
+        }
+      ],
+      "id": 929469,
+      "name": "Edward Wolak",
+      "org_key": "edward-wolak",
+      "org_parent": null,
+      "org_title": "President and Chief Executive Officer",
+      "profile_picture": "/media/images/user-profile/32c9a038e3894c4bb309832a1da5973f.jpeg"
+    }
+  ]
+}

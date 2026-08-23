@@ -1,0 +1,31 @@
+{
+  "institution": {
+    "group_code": "Michael Quinn",
+    "id": 107,
+    "name": "Michael Quinn",
+    "public_id": "dqz3"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MQ",
+      "children": [
+        {
+          "abbreviation": "JS",
+          "children": [],
+          "id": 637331,
+          "name": "Jason Setzer",
+          "org_key": "jason-setzer",
+          "org_parent": "mike-quinn",
+          "org_title": "Partner/Chief Growth Officer",
+          "profile_picture": null
+        }
+      ],
+      "id": 871195,
+      "name": "Mike Quinn",
+      "org_key": "mike-quinn",
+      "org_parent": null,
+      "org_title": "President",
+      "profile_picture": null
+    }
+  ]
+}

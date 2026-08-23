@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "TLC Enterprises, LLC",
+    "id": 2136,
+    "name": "TLC Enterprises, LLC",
+    "public_id": "yvo1"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "LC",
+      "children": [],
+      "id": 8409,
+      "name": "Larry Chandler",
+      "org_key": "lchandler",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/6a2c890015354c3a8fc21ab5e6da2b9e.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "institution": {
+    "group_code": "Dhanani Group",
+    "id": 15458,
+    "name": "Dhanani Group",
+    "public_id": "w1oxo"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "SD",
+      "children": [
+        {
+          "abbreviation": "UD",
+          "children": [
+            {
+              "abbreviation": "CM",
+              "children": [],
+              "id": 921603,
+              "name": "Chad Magner",
+              "org_key": "chad-magner",
+              "org_parent": "usman-dhanani",
+              "org_title": "Director of Transformation",
+              "profile_picture": "/media/images/user-profile/8c275b0a43c747c79c1809a9408728a2.jpeg"
+            }
+          ],
+          "id": 921600,
+          "name": "Usman Dhanani",
+          "org_key": "usman-dhanani",
+          "org_parent": "shoukat-dhanani",
+          "org_title": "Director",
+          "profile_picture": "/media/images/user-profile/8663f2654d0e417e95f46c62947ece3a.jpeg"
+        },
+        {
+          "abbreviation": "BA",
+          "children": [],
+          "id": 921602,
+          "name": "Bill Ahrens",
+          "org_key": "bill-ahrens",
+          "org_parent": "shoukat-dhanani",
+          "org_title": "CFO",
+          "profile_picture": "/media/images/user-profile/74fc9298fc4a4b21b3b8bff20d14def5.jpeg"
+        },
+        {
+          "abbreviation": "NK",
+          "children": [],
+          "id": 921599,
+          "name": "Nicole Kress",
+          "org_key": "nicolekress",
+          "org_parent": "shoukat-dhanani",
+          "org_title": "Executive Vice President of Operations",
+          "profile_picture": "/media/images/user-profile/d5665945deeb4d48b67bce18d4609ce9.jpeg"
+        },
+        {
+          "abbreviation": "SO",
+          "children": [],
+          "id": 921601,
+          "name": "Scott Owen",
+          "org_key": "scott-owen",
+          "org_parent": "shoukat-dhanani",
+          "org_title": "General Counsel",
+          "profile_picture": "/media/images/user-profile/07c9ce33a7514bb9b9747688cdf9f046.jpeg"
+        }
+      ],
+      "id": 921597,
+      "name": "Shoukat Dhanani",
+      "org_key": "shoukat-dhanani",
+      "org_parent": null,
+      "org_title": "Founder & CEO",
+      "profile_picture": "/media/images/user-profile/f96d5cc45e5f47d08bf2f263bf1c4646.jpeg"
+    },
+    {
+      "abbreviation": "AD",
+      "children": [],
+      "id": 921598,
+      "name": "Amin Dhanani",
+      "org_key": "amin-dhanani",
+      "org_parent": null,
+      "org_title": "Co-CEO",
+      "profile_picture": "/media/images/user-profile/432549529da14d87b232a9a48ed3ba0b.jpeg"
+    }
+  ]
+}

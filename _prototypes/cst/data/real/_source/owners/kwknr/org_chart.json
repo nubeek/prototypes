@@ -1,0 +1,152 @@
+{
+  "institution": {
+    "group_code": "Sizzling Platter",
+    "id": 15449,
+    "name": "Sizzling Platter",
+    "public_id": "kwknr"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "NG",
+      "children": [
+        {
+          "abbreviation": "IM",
+          "children": [
+            {
+              "abbreviation": "AF",
+              "children": [],
+              "id": 931136,
+              "name": "Adam Ferrero",
+              "org_key": "adamferrero",
+              "org_parent": "isaacmorton",
+              "org_title": "Technology Operations Program Manager",
+              "profile_picture": "/media/images/user-profile/8a7ba78a3b524f539572e2194de912de.jpeg"
+            }
+          ],
+          "id": 931133,
+          "name": "Isaac Morton",
+          "org_key": "isaacmorton",
+          "org_parent": "nathan-garn",
+          "org_title": "VP of Information Technology",
+          "profile_picture": "/media/images/user-profile/eb42e03cc4f242e580a7431c22bf7ffe.jpeg"
+        },
+        {
+          "abbreviation": "DT",
+          "children": [],
+          "id": 952449,
+          "name": "David Tresko",
+          "org_key": "david-tresko",
+          "org_parent": "nathan-garn",
+          "org_title": "Chief Revenue Officer",
+          "profile_picture": "/media/images/user-profile/370a2b50453e47439b9a743514331e5b.jpeg"
+        },
+        {
+          "abbreviation": "JB",
+          "children": [],
+          "id": 931134,
+          "name": "Joshua Beckstead",
+          "org_key": "joshua-beckstead",
+          "org_parent": "nathan-garn",
+          "org_title": "Brand Vice President",
+          "profile_picture": "/media/images/user-profile/e91746d377ea4b66bc6afb5d5c34d354.jpeg"
+        },
+        {
+          "abbreviation": "PW",
+          "children": [],
+          "id": 914781,
+          "name": "Pat Wagner",
+          "org_key": "pat-wagner",
+          "org_parent": "nathan-garn",
+          "org_title": "Franchisee",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "RG",
+          "children": [],
+          "id": 929374,
+          "name": "Ray Gantus",
+          "org_key": "ray-gantus",
+          "org_parent": "nathan-garn",
+          "org_title": "Brand President Jamba and Cinnabon at Sizzling Platter, LLC",
+          "profile_picture": "/media/images/user-profile/eb0adeaa685a43aea37035d461c76904.jpeg"
+        }
+      ],
+      "id": 929375,
+      "name": "Nathan Garn",
+      "org_key": "nathan-garn",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/988d6580bc1942a19483c9a0a6105fcf.jpeg"
+    },
+    {
+      "abbreviation": "CG",
+      "children": [],
+      "id": 931140,
+      "name": "Chad Given",
+      "org_key": "chad-given",
+      "org_parent": null,
+      "org_title": "Brand President",
+      "profile_picture": "/media/images/user-profile/8f28a6d2c1f5467a983c21086959358a.jpeg"
+    },
+    {
+      "abbreviation": "DP",
+      "children": [],
+      "id": 931142,
+      "name": "David Pipes",
+      "org_key": "david-pipes",
+      "org_parent": null,
+      "org_title": "Board Director",
+      "profile_picture": "/media/images/user-profile/fdef7767c57d4b379136fb688a45d973.jpeg"
+    },
+    {
+      "abbreviation": "JS",
+      "children": [],
+      "id": 931135,
+      "name": "Jennifer Shurtleff",
+      "org_key": "jennifer-shurtleff",
+      "org_parent": null,
+      "org_title": "Director of Real Estate",
+      "profile_picture": "/media/images/user-profile/099309c79fbd4bc0a1a7370ae0d812e4.jpeg"
+    },
+    {
+      "abbreviation": "JS",
+      "children": [],
+      "id": 931141,
+      "name": "Jeremy Sanchez",
+      "org_key": "jeremy-sanchez",
+      "org_parent": null,
+      "org_title": "Vice President of Human Resources",
+      "profile_picture": "/media/images/user-profile/dbdd593fc82848029d7e0964990c8f5c.jpeg"
+    },
+    {
+      "abbreviation": "JH",
+      "children": [],
+      "id": 931139,
+      "name": "Josh Hill",
+      "org_key": "josh-hill",
+      "org_parent": null,
+      "org_title": "Brand President",
+      "profile_picture": "/media/images/user-profile/d952531b049a4554b63f639393088277.jpeg"
+    },
+    {
+      "abbreviation": "KC",
+      "children": [],
+      "id": 931137,
+      "name": "Kisha Christensen",
+      "org_key": "kisha-christensen",
+      "org_parent": null,
+      "org_title": "Director of Portfolio Management",
+      "profile_picture": "/media/images/user-profile/33fd6b326085472c8de5f42c5d9fdcdf.jpeg"
+    },
+    {
+      "abbreviation": "SG",
+      "children": [],
+      "id": 931138,
+      "name": "Samuel Gray",
+      "org_key": "samuel-gray",
+      "org_parent": null,
+      "org_title": "General Counsel",
+      "profile_picture": "/media/images/user-profile/a2588b0d7a65422e982678e27715c279.jpeg"
+    }
+  ]
+}

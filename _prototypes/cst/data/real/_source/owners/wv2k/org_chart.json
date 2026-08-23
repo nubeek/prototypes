@@ -1,0 +1,20 @@
+{
+  "institution": {
+    "group_code": "Beshay Enterprises",
+    "id": 9682,
+    "name": "Beshay Enterprises",
+    "public_id": "wv2k"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "DB",
+      "children": [],
+      "id": 921732,
+      "name": "David Beshay",
+      "org_key": "david-beshay",
+      "org_parent": null,
+      "org_title": "CEO",
+      "profile_picture": "/media/images/user-profile/8330ffca13e24dc9928b1248aabf3e8c.jpeg"
+    }
+  ]
+}

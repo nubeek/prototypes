@@ -1,0 +1,30 @@
+{
+  "institution": {
+    "group_code": "Atticus Franchise Group",
+    "id": 16870,
+    "name": "Atticus Franchise Group",
+    "public_id": "801yo"
+  },
+  "org_chart": [
+    {
+      "abbreviation": "MD",
+      "children": [],
+      "id": 919329,
+      "name": "Michael Drum",
+      "org_key": "michael-drum",
+      "org_parent": null,
+      "org_title": "Franchisee",
+      "profile_picture": null
+    },
+    {
+      "abbreviation": "MG",
+      "children": [],
+      "id": 934445,
+      "name": "Michael Gonzalez",
+      "org_key": "michael-gonzalez",
+      "org_parent": null,
+      "org_title": "",
+      "profile_picture": "/media/images/user-profile/96aaa5a23e5c4d46b0c57d8f7de07c67.jpeg"
+    }
+  ]
+}
