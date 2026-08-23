@@ -173,11 +173,8 @@
 
   function getOwnerLogoSrc(name, seedLogo) {
     if (seedLogo) return seedLogo;
-    const slug = getOwnerLogoSlug(name);
-    const file = resolveOwnerLogoFile(slug);
-    // Missing marks default to .png so a newly dropped file is requested
-    // under the name the overlay already uses in the table.
-    return `assets/logos/${file || `${slug}.png`}`;
+    const file = resolveOwnerLogoFile(getOwnerLogoSlug(name));
+    return file ? `assets/logos/${file}` : "";
   }
 
   function getDisplayWebsite(url) {
@@ -299,8 +296,6 @@
         categories,
         franchise: franchises.join(", "),
         franchises,
-        // Unmatched owners point at a logo that does not exist, which is what
-        // triggers the initials fallback baked into the table markup.
         logoSrc: getOwnerLogoSrc(dumpOwner.name, seedLogo),
         logoAlt: `${dumpOwner.name} logo`,
         website: getDisplayWebsite(dumpOwner.website),

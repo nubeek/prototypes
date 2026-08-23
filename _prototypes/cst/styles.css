@@ -1871,6 +1871,11 @@ body.reduce-motion .save-lead-note {
   position: relative;
 }
 
+.owner-detail-logo:not(:has(img)) {
+  color: var(--brand-purple);
+  background: rgba(122, 99, 221, 0.12);
+}
+
 .owner-detail-logo img {
   position: absolute;
   inset: 0;
@@ -4237,6 +4242,10 @@ tbody tr.is-checked:hover td:first-child {
   background: rgba(122, 99, 221, 0.12);
 }
 
+.owner-logo-fallback.is-visible {
+  display: inline-flex;
+}
+
 .logo img {
   width: 100%;
   height: 100%;
@@ -6420,6 +6429,22 @@ a.franchise-name:focus-visible {
   background: #e8e8ec;
 }
 
+.cst-splash .target-map.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: linear-gradient(90deg, #e8e8e8 0%, #f3f3f5 42%, #e8e8e8 100%);
+  background-size: 200% 100%;
+  animation: cst-splash-map-skeleton 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes cst-splash-map-skeleton {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 .cst-splash .target-map-img,
 .cst-splash .target-map-points {
   position: absolute;
@@ -6435,6 +6460,13 @@ a.franchise-name:focus-visible {
   height: calc(100% + 4px);
   object-fit: cover;
   object-position: left center;
+  opacity: 1;
+  transition: opacity 240ms ease;
+}
+
+.cst-splash .target-map.is-loading .target-map-img,
+.cst-splash .target-map.is-loading .target-map-points {
+  opacity: 0;
 }
 
 .cst-splash.is-snapshot-export .target-map-img,
@@ -6445,6 +6477,11 @@ a.franchise-name:focus-visible {
   left: 0;
   width: 100%;
   height: 100%;
+  opacity: 1;
+}
+
+.cst-splash.is-snapshot-export .target-map.is-loading::after {
+  display: none;
 }
 
 .cst-splash .target-map-points {
@@ -6614,6 +6651,15 @@ a.franchise-name:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cst-splash .target-map.is-loading::after {
+    animation: none;
+  }
+
+  .cst-splash .target-map-img,
+  .cst-splash .target-map-points {
+    transition: none;
+  }
+
   .cst-table-loading,
   .cst-table-loading.is-hiding {
     transition: none;

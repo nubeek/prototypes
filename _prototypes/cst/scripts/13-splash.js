@@ -676,6 +676,35 @@ function isCstUserCreatedSavedSearch(savedSearch) {
   return Boolean(window.cstSavedSearchStore?.canEdit?.(savedSearch?.id));
 }
 
+function bindCstSplashMapSkeleton(tile) {
+  const map = tile.querySelector(".target-map");
+  if (!map) return;
+
+  const images = [...map.querySelectorAll("img")];
+  if (!images.length || isCstSplashSnapshotGenerateMode()) {
+    map.classList.remove("is-loading");
+    return;
+  }
+
+  let pending = images.filter((image) => !image.complete).length;
+  if (!pending) {
+    map.classList.remove("is-loading");
+    return;
+  }
+
+  const settle = () => {
+    pending -= 1;
+    if (pending > 0) return;
+    map.classList.remove("is-loading");
+  };
+
+  images.forEach((image) => {
+    if (image.complete) return;
+    image.addEventListener("load", settle, { once: true });
+    image.addEventListener("error", settle, { once: true });
+  });
+}
+
 function bindCstSplashTileSettings(tile, savedSearch) {
   const settingsControl = tile.querySelector(".target-settings");
   if (!settingsControl) return;
@@ -739,8 +768,11 @@ function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, poi
         </span>
       `;
 
+  const hasMapImage = Boolean(snapshotImage || baseImage || pointsImage);
+  const mapLoadingClass = hasMapImage && !isCstSplashSnapshotGenerateMode() ? " is-loading" : "";
+
   tile.innerHTML = `
-    <div class="target-map">${snapshotImage}${baseImage}${pointsImage}</div>
+    <div class="target-map${mapLoadingClass}">${snapshotImage}${baseImage}${pointsImage}</div>
     <div class="target-card-title">${escapeCstSplashHtml(savedSearch.title)}</div>
     <div class="target-field target-prospects">
       <span class="target-label">${escapeCstSplashHtml(metric.label)}</span>
@@ -762,6 +794,8 @@ function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, poi
   if (canEditFromSplash) {
     bindCstSplashTileSettings(tile, savedSearch);
   }
+
+  bindCstSplashMapSkeleton(tile);
 
   return tile;
 }
@@ -1587,12 +1621,18 @@ function createCstSplashSuggestionIcon(item) {
   icon.className = "cst-splash__search-suggestion-icon";
   icon.setAttribute("aria-hidden", "true");
 
-  if (item.logoSrc) {
+  if (item.logoSrc || item.logoFallback) {
     icon.classList.add("has-logo");
 
     const fallback = document.createElement("span");
     fallback.className = "cst-splash__search-suggestion-logo-fallback";
     fallback.textContent = item.logoFallback || "";
+    icon.append(fallback);
+
+    if (!item.logoSrc) {
+      icon.classList.add("is-logo-missing");
+      return icon;
+    }
 
     const image = document.createElement("img");
     image.src = item.logoSrc;
@@ -1602,8 +1642,7 @@ function createCstSplashSuggestionIcon(item) {
       image.remove();
       icon.classList.add("is-logo-missing");
     });
-
-    icon.append(fallback, image);
+    icon.append(image);
     return icon;
   }
 

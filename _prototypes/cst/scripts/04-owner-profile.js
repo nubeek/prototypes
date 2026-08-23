@@ -217,10 +217,13 @@ function handleOwnerHeaderViewButton(button) {
 }
 
 function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee panel", linksToDetail = false } = {}) {
+  const ownerLogoImageMarkup = owner.logoSrc
+    ? `<img src="${owner.logoSrc}" alt="" onerror="this.style.display='none'">`
+    : "";
   const logoMarkup = `
     <span class="owner-detail-logo" aria-hidden="true">
       <span>${getInitials(owner.ownerName)}</span>
-      <img src="${owner.logoSrc}" alt="" onerror="this.style.display='none'">
+      ${ownerLogoImageMarkup}
     </span>
   `;
   const titleMarkup = `<span>${owner.ownerName}</span>`;
@@ -247,7 +250,7 @@ function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee 
     : `
       <div class="owner-detail-logo" aria-hidden="true">
         <span>${getInitials(owner.ownerName)}</span>
-        <img src="${owner.logoSrc}" alt="" onerror="this.style.display='none'">
+        ${ownerLogoImageMarkup}
       </div>
       <h2>${owner.ownerName}</h2>
     `;

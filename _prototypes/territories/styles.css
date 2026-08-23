@@ -2461,6 +2461,22 @@ a.territory-info-card__action.is-disabled {
   background: #e8e8ec;
 }
 
+.territory-crossroad .target-map.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: linear-gradient(90deg, #e8e8e8 0%, #f3f3f5 42%, #e8e8e8 100%);
+  background-size: 200% 100%;
+  animation: territory-crossroad-map-skeleton 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes territory-crossroad-map-skeleton {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 .territory-crossroad .target-map-img {
   position: relative;
   z-index: 0;
@@ -2468,6 +2484,8 @@ a.territory-info-card__action.is-disabled {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 1;
+  transition: opacity 240ms ease;
 }
 
 .territory-crossroad .target-map-fill {
@@ -2479,6 +2497,7 @@ a.territory-info-card__action.is-disabled {
   object-fit: cover;
   opacity: 0.72;
   pointer-events: none;
+  transition: opacity 240ms ease;
 }
 
 .territory-crossroad .target-map-borders {
@@ -2489,6 +2508,14 @@ a.territory-info-card__action.is-disabled {
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  opacity: 1;
+  transition: opacity 240ms ease;
+}
+
+.territory-crossroad .target-map.is-loading .target-map-img,
+.territory-crossroad .target-map.is-loading .target-map-fill,
+.territory-crossroad .target-map.is-loading .target-map-borders {
+  opacity: 0;
 }
 
 .territory-crossroad .target-field {
@@ -2691,6 +2718,16 @@ a.territory-info-card__action.is-disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .territory-crossroad .target-map.is-loading::after {
+    animation: none;
+  }
+
+  .territory-crossroad .target-map-img,
+  .territory-crossroad .target-map-fill,
+  .territory-crossroad .target-map-borders {
+    transition: none;
+  }
+
   .save-search-alerts-panel,
   .save-search-alerts-options .filter-check {
     transition: none;

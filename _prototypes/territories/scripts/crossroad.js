@@ -770,6 +770,35 @@ function escapeHtml(value) {
   }[char]));
 }
 
+function bindCrossroadMapSkeleton(tile) {
+  const map = tile.querySelector(".target-map");
+  if (!map) return;
+
+  const images = [...map.querySelectorAll("img")];
+  if (!images.length) {
+    map.classList.remove("is-loading");
+    return;
+  }
+
+  let pending = images.filter((image) => !image.complete).length;
+  if (!pending) {
+    map.classList.remove("is-loading");
+    return;
+  }
+
+  const settle = () => {
+    pending -= 1;
+    if (pending > 0) return;
+    map.classList.remove("is-loading");
+  };
+
+  images.forEach((image) => {
+    if (image.complete) return;
+    image.addEventListener("load", settle, { once: true });
+    image.addEventListener("error", settle, { once: true });
+  });
+}
+
 function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kind = "preset" } = {}) {
   const tile = document.createElement("button");
   tile.type = "button";
@@ -817,8 +846,11 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kin
         </span>
       `;
 
+  const hasMapImage = Boolean(baseImg || fillImg || bordersImg);
+  const mapLoadingClass = hasMapImage ? " is-loading" : "";
+
   tile.innerHTML = `
-    <div class="target-map">${baseImg}${fillImg}${bordersImg}</div>
+    <div class="target-map${mapLoadingClass}">${baseImg}${fillImg}${bordersImg}</div>
     <div class="target-card-title">${escapeHtml(preset.title)}</div>
     <div class="target-field target-prospects">
       <span class="target-label">Territories</span>
@@ -828,6 +860,8 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kin
       </div>
     </div>
   `;
+
+  bindCrossroadMapSkeleton(tile);
 
   return tile;
 }

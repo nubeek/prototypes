@@ -133,12 +133,14 @@ function getLocationOrganizationColumn(row) {
   return `
     <span class="location-organization-cell">
       <span class="ui-tile logo location-organization-logo" aria-hidden="true">
-        <span class="owner-logo-fallback">${getInitials(owner.ownerName)}</span>
-        <img
-          src="${owner.logoSrc}"
-          alt=""
-          onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
-        >
+        <span class="owner-logo-fallback ${owner.logoSrc ? "" : "is-visible"}">${getInitials(owner.ownerName)}</span>
+        ${owner.logoSrc ? `
+          <img
+            src="${owner.logoSrc}"
+            alt=""
+            onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+          >
+        ` : ""}
       </span>
       <span class="location-table-value location-table-organization">${owner.ownerName}</span>
     </span>
@@ -617,12 +619,14 @@ function renderFranchisees(rows) {
           <td>
             <div class="name-cell">
               <div class="ui-tile logo">
-                <span class="owner-logo-fallback">${getInitials(owner.ownerName)}</span>
-                <img
-                  src="${owner.logoSrc}"
-                  alt="${owner.logoAlt}"
-                  onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
-                >
+                <span class="owner-logo-fallback ${owner.logoSrc ? "" : "is-visible"}">${getInitials(owner.ownerName)}</span>
+                ${owner.logoSrc ? `
+                  <img
+                    src="${owner.logoSrc}"
+                    alt="${owner.logoAlt}"
+                    onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+                  >
+                ` : ""}
               </div>
               <div class="owner-meta">
                 <div class="owner-name">${owner.ownerName}</div>
