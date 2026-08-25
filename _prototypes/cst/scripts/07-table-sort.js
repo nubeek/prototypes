@@ -2221,6 +2221,11 @@ function formatTableHeadingSummary(count, singular, plural) {
   return `${html}.`;
 }
 
+const TABLE_HEADING_INFO_COPY = {
+  Franchisees: "Franchisees are not registered Wefranch users and have not opted in to Wefranch communications.",
+  Candidates: "All Candidates are registered Wefranch users and have opted in to Wefranch communications."
+};
+
 function getTableHeadingCopy(tableView = currentTableView) {
   let copy;
 
@@ -2255,14 +2260,25 @@ function getTableHeadingCopy(tableView = currentTableView) {
     copy.title = readerModeSavedSearchTitle;
   }
 
+  copy.info = TABLE_HEADING_INFO_COPY[copy.title] || "";
   return copy;
 }
 
 function updateTableHeading() {
-  const { title, summary } = getTableHeadingCopy();
+  const { title, summary, info } = getTableHeadingCopy();
 
   if (tableHeadingTitle) {
     tableHeadingTitle.textContent = title;
+  }
+
+  if (tableHeadingInfo) {
+    tableHeadingInfo.hidden = !info;
+    if (info) {
+      tableHeadingInfo.dataset.tooltip = info;
+      tableHeadingInfo.setAttribute("aria-label", `About ${title}`);
+    } else {
+      delete tableHeadingInfo.dataset.tooltip;
+    }
   }
 
   if (tableHeadingSummary) {

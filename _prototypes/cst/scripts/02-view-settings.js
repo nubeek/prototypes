@@ -381,6 +381,10 @@ function setReaderMode(isActive, { title = null, savedSearchId = undefined, pers
 
   if (readerModeActive) {
     setFilterPanelOpen(false);
+    datasetSelectorApi?.close();
+    if (typeof closeToolbarDropdowns === "function") {
+      closeToolbarDropdowns();
+    }
   }
   if (filterPanel) {
     filterPanel.inert = readerModeActive;

@@ -71,6 +71,15 @@ const TERRITORY_PASTEL_FILL_OPACITY_HIGH = 0.25;
 const TERRITORY_PASTEL_FILL_HOVER_OPACITY = 0.3;
 const TERRITORY_PASTEL_FILL_HOVER_OPACITY_MID = 0.4;
 const TERRITORY_PASTEL_FILL_HOVER_OPACITY_HIGH = 0.45;
+// White borders grade by how many brand colors stack on the same territory.
+const TERRITORY_PASTEL_WHITE_FILL_OPACITY = 0.5;
+const TERRITORY_PASTEL_WHITE_FILL_OPACITY_MID = 0.4;
+const TERRITORY_PASTEL_WHITE_FILL_OPACITY_HIGH = 0.3;
+const TERRITORY_PASTEL_WHITE_FILL_HOVER_OPACITY = 0.64;
+const TERRITORY_PASTEL_WHITE_FILL_HOVER_OPACITY_MID = 0.54;
+const TERRITORY_PASTEL_WHITE_FILL_HOVER_OPACITY_HIGH = 0.44;
+const TERRITORY_PASTEL_OVERLAY_MID_MIN = 2;
+const TERRITORY_PASTEL_OVERLAY_HIGH_MIN = 3;
 // Pastel still paints at most 5 stacked fills. These thresholds use the full
 // matching occupant count so denser territories read stronger.
 const TERRITORY_PASTEL_FILL_OCCUPANCY_MID_MIN = 6;
@@ -126,10 +135,10 @@ const TERRITORY_PASTEL_COLORS = [
   "#8CCD6C",
   "#8DACF5"
 ];
-const TERRITORY_DENSITY_FILL_OPACITY_MIN = 0.05;
-const TERRITORY_DENSITY_FILL_OPACITY_MAX = 0.72;
+const TERRITORY_DENSITY_FILL_OPACITY_MIN = 0.1;
+const TERRITORY_DENSITY_FILL_OPACITY_MAX = 0.6;
 const TERRITORY_DENSITY_LINE_OPACITY_MIN = 0.2;
-const TERRITORY_DENSITY_LINE_OPACITY_MAX = 0.8;
+const TERRITORY_DENSITY_LINE_OPACITY_MAX = 0.7;
 const TERRITORY_DENSITY_OPACITY_CURVE = 0.7;
 const TERRITORY_DENSITY_FILL_OPACITY_EXPRESSION = ["get", "fillOpacity"];
 const TERRITORY_DENSITY_LINE_OPACITY_EXPRESSION = ["get", "lineOpacity"];
@@ -188,30 +197,63 @@ const TERRITORY_PASTEL_FILL_OCCUPANCY_BUCKET_EXPRESSION = [
   ["feature-state", "occupancyBucket"],
   1
 ];
-const TERRITORY_PASTEL_FILL_OPACITY_EXPRESSION = [
-  "case",
-  ["boolean", ["feature-state", "selected"], false],
-  TERRITORY_FILL_SELECTED_OPACITY,
-  ["boolean", ["feature-state", "hover"], false],
-  [
-    "match",
-    TERRITORY_PASTEL_FILL_OCCUPANCY_BUCKET_EXPRESSION,
-    2,
-    TERRITORY_PASTEL_FILL_HOVER_OPACITY_MID,
-    3,
-    TERRITORY_PASTEL_FILL_HOVER_OPACITY_HIGH,
-    TERRITORY_PASTEL_FILL_HOVER_OPACITY
-  ],
-  [
-    "match",
-    TERRITORY_PASTEL_FILL_OCCUPANCY_BUCKET_EXPRESSION,
-    2,
-    TERRITORY_PASTEL_FILL_OPACITY_MID,
-    3,
-    TERRITORY_PASTEL_FILL_OPACITY_HIGH,
-    TERRITORY_PASTEL_FILL_OPACITY
-  ]
+const TERRITORY_PASTEL_OVERLAY_BUCKET_EXPRESSION = [
+  "coalesce",
+  ["feature-state", "overlayBucket"],
+  1
 ];
+function buildPastelFillOpacityExpression({
+  fill,
+  fillMid,
+  fillHigh,
+  hover,
+  hoverMid,
+  hoverHigh,
+  bucketExpression = TERRITORY_PASTEL_FILL_OCCUPANCY_BUCKET_EXPRESSION
+}) {
+  return [
+    "case",
+    ["boolean", ["feature-state", "selected"], false],
+    TERRITORY_FILL_SELECTED_OPACITY,
+    ["boolean", ["feature-state", "hover"], false],
+    [
+      "match",
+      bucketExpression,
+      2,
+      hoverMid,
+      3,
+      hoverHigh,
+      hover
+    ],
+    [
+      "match",
+      bucketExpression,
+      2,
+      fillMid,
+      3,
+      fillHigh,
+      fill
+    ]
+  ];
+}
+
+const TERRITORY_PASTEL_FILL_OPACITY_EXPRESSION = buildPastelFillOpacityExpression({
+  fill: TERRITORY_PASTEL_FILL_OPACITY,
+  fillMid: TERRITORY_PASTEL_FILL_OPACITY_MID,
+  fillHigh: TERRITORY_PASTEL_FILL_OPACITY_HIGH,
+  hover: TERRITORY_PASTEL_FILL_HOVER_OPACITY,
+  hoverMid: TERRITORY_PASTEL_FILL_HOVER_OPACITY_MID,
+  hoverHigh: TERRITORY_PASTEL_FILL_HOVER_OPACITY_HIGH
+});
+const TERRITORY_PASTEL_WHITE_FILL_OPACITY_EXPRESSION = buildPastelFillOpacityExpression({
+  fill: TERRITORY_PASTEL_WHITE_FILL_OPACITY,
+  fillMid: TERRITORY_PASTEL_WHITE_FILL_OPACITY_MID,
+  fillHigh: TERRITORY_PASTEL_WHITE_FILL_OPACITY_HIGH,
+  hover: TERRITORY_PASTEL_WHITE_FILL_HOVER_OPACITY,
+  hoverMid: TERRITORY_PASTEL_WHITE_FILL_HOVER_OPACITY_MID,
+  hoverHigh: TERRITORY_PASTEL_WHITE_FILL_HOVER_OPACITY_HIGH,
+  bucketExpression: TERRITORY_PASTEL_OVERLAY_BUCKET_EXPRESSION
+});
 const TERRITORY_HATCH_FILL_OPACITY_EXPRESSION = [
   "case",
   ["boolean", ["feature-state", "selected"], false],
@@ -3857,9 +3899,12 @@ function withTerritoryAreaFocusOpacity(activeOpacity, contextOpacity) {
 }
 
 function getTerritoryFillOpacityExpression() {
-  const base = territoryPastelColorsEnabled
-    ? TERRITORY_PASTEL_FILL_OPACITY_EXPRESSION
-    : TERRITORY_FILL_OPACITY_EXPRESSION;
+  let base = TERRITORY_FILL_OPACITY_EXPRESSION;
+  if (territoryPastelColorsEnabled) {
+    base = territoryBorderColorMode === "white"
+      ? TERRITORY_PASTEL_WHITE_FILL_OPACITY_EXPRESSION
+      : TERRITORY_PASTEL_FILL_OPACITY_EXPRESSION;
+  }
   return withTerritoryAreaFocusOpacity(base, TERRITORY_BRAND_AREA_CONTEXT_FILL_OPACITY);
 }
 
@@ -3982,6 +4027,12 @@ function getPastelFillOccupancyBucket(occupantCount) {
   return 1;
 }
 
+function getPastelOverlayBucket(occupantCount) {
+  if (occupantCount >= TERRITORY_PASTEL_OVERLAY_HIGH_MIN) return 3;
+  if (occupantCount >= TERRITORY_PASTEL_OVERLAY_MID_MIN) return 2;
+  return 1;
+}
+
 // Splash card overlays use these with an explicit theme so they match the map
 // without depending on the live map flags being initialized yet.
 function getTerritoryPreviewBrandFillColor(brand, colorMode) {
@@ -3996,8 +4047,14 @@ function getTerritoryPreviewBrandLineColor(brand, colorMode, borderColor) {
   return colorMode === "pastel" ? getPastelLineColor(fillColor) : fillColor;
 }
 
-function getTerritoryPreviewFillOpacity(colorMode, occupantCount) {
+function getTerritoryPreviewFillOpacity(colorMode, occupantCount, borderColor) {
   if (colorMode === "pastel") {
+    if (borderColor === "white") {
+      const overlay = getPastelOverlayBucket(occupantCount);
+      if (overlay >= 3) return TERRITORY_PASTEL_WHITE_FILL_OPACITY_HIGH;
+      if (overlay >= 2) return TERRITORY_PASTEL_WHITE_FILL_OPACITY_MID;
+      return TERRITORY_PASTEL_WHITE_FILL_OPACITY;
+    }
     const bucket = getPastelFillOccupancyBucket(occupantCount);
     if (bucket >= 3) return TERRITORY_PASTEL_FILL_OPACITY_HIGH;
     if (bucket >= 2) return TERRITORY_PASTEL_FILL_OPACITY_MID;
@@ -4018,17 +4075,22 @@ function syncPastelFillOccupancyStates(territoryMap, occupantsByGeoKey) {
   if (!territoryMap || !territoryPastelColorsEnabled || !occupantsByGeoKey?.size) return;
 
   occupantsByGeoKey.forEach((occupants, geoKey) => {
-    const bucket = getPastelFillOccupancyBucket(occupants.length);
+    const occupancyBucket = getPastelFillOccupancyBucket(occupants.length);
+    const overlayBucket = getPastelOverlayBucket(occupants.length);
+    const nextState = `${occupancyBucket}|${overlayBucket}`;
     getShapeOccupants(occupants).forEach((brandId) => {
       const sourceId = `territories-${brandId}`;
       if (!territoryMap.getSource(sourceId)) return;
 
       const stateKey = `${sourceId}:${geoKey}`;
-      if (territoryPastelOccupancyState.get(stateKey) === bucket) return;
+      if (territoryPastelOccupancyState.get(stateKey) === nextState) return;
 
       try {
-        territoryMap.setFeatureState({ source: sourceId, id: geoKey }, { occupancyBucket: bucket });
-        territoryPastelOccupancyState.set(stateKey, bucket);
+        territoryMap.setFeatureState({ source: sourceId, id: geoKey }, {
+          occupancyBucket,
+          overlayBucket
+        });
+        territoryPastelOccupancyState.set(stateKey, nextState);
       } catch (error) {
         // The feature may not exist on this source.
       }
@@ -4108,22 +4170,17 @@ function getVisibleSharedOccupantCount(stateCode) {
   return occupants.filter((occupantId) => matchingKeys.has(`${occupantId}:${stateCode}`)).length;
 }
 
-function getTerritoryDensityCountRange(counts) {
-  if (!counts.length) return { minCount: 0, maxCount: 0 };
-
-  return counts.reduce((range, count) => ({
-    minCount: Math.min(range.minCount, count),
-    maxCount: Math.max(range.maxCount, count)
-  }), { minCount: counts[0], maxCount: counts[0] });
+function getTerritoryDensityMaxCount(counts) {
+  return counts.reduce((maxCount, count) => Math.max(maxCount, count), 0);
 }
 
-function getTerritoryDensityAdjustedRatio(count, minCount, maxCount) {
-  const normalized = (count - minCount) / (maxCount - minCount || 1);
+function getTerritoryDensityAdjustedRatio(count, maxCount) {
+  const normalized = maxCount > 0 ? count / maxCount : 0;
   return Math.pow(Math.max(0, Math.min(1, normalized)), TERRITORY_DENSITY_OPACITY_CURVE);
 }
 
-function getTerritoryDensityOpacities(count, minCount, maxCount) {
-  const adjusted = getTerritoryDensityAdjustedRatio(count, minCount, maxCount);
+function getTerritoryDensityOpacities(count, maxCount) {
+  const adjusted = getTerritoryDensityAdjustedRatio(count, maxCount);
 
   return {
     fillOpacity: TERRITORY_DENSITY_FILL_OPACITY_MIN
@@ -4158,14 +4215,14 @@ function buildTerritoryDensityFeatureCollection(matchingRecords) {
     ...entry,
     brandCount: entry.brandIds.size
   }));
-  const { minCount, maxCount } = getTerritoryDensityCountRange(
+  const maxCount = getTerritoryDensityMaxCount(
     entries.map((entry) => entry.brandCount)
   );
 
   return {
     type: "FeatureCollection",
     features: entries.map((entry) => {
-      const opacities = getTerritoryDensityOpacities(entry.brandCount, minCount, maxCount);
+      const opacities = getTerritoryDensityOpacities(entry.brandCount, maxCount);
 
       return {
         type: "Feature",

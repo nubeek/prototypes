@@ -43,7 +43,7 @@ function writeStoredTerritorySavedSearches(searches) {
 }
 
 function getActiveTerritoryDatasetId() {
-  return window.territoryDatasets?.getActive?.()?.id || "default";
+  return window.territoryDatasets?.getActive?.()?.id || "real";
 }
 
 function normalizeStoredTerritorySavedSearch(entry) {

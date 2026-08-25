@@ -50,86 +50,14 @@
           <img class="toolbar-asset-icon filter-toggle-icon" src="../cst/assets/filters.svg" alt="" aria-hidden="true">
           <span>Filters</span>
         </button>
-        <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="territoryMapToggle" type="button" aria-label="Toggle map" aria-controls="territoryMapPanel" aria-expanded="false" disabled>
+        <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="territoryMapToggle" type="button" data-crossroad-workspace-control aria-label="Toggle map" aria-controls="territoryMapPanel" aria-expanded="false" disabled>
           <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
           <span>Map</span>
         </button>
       </div>
 
       <div class="toolbar-group toolbar-actions">
-        <details class="toolbar-dropdown" id="territoryMenuDropdown">
-          <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
-            <img class="toolbar-asset-icon" src="../cst/assets/menu.svg" alt="" aria-hidden="true">
-            <img class="toolbar-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
-          </summary>
-          <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
-            <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryBrandLogosToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
-              <span class="toolbar-dropdown-label">Brand logos</span>
-              <span class="toolbar-switch" aria-hidden="true"></span>
-            </button>
-            <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true"></div>
-            <div class="toolbar-submenu" data-toolbar-submenu>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="territoryColorsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="territoryColorsSubmenu">
-                <span class="toolbar-dropdown-label">Colors</span>
-                <img class="toolbar-submenu-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
-              </button>
-              <div class="ui-menu toolbar-submenu-menu" id="territoryColorsSubmenu" role="menu" aria-label="Colors">
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-radio-option" id="territoryColorDefaultOption" type="button" role="menuitemradio" aria-checked="true" data-color-mode="density">
-                  <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">Default</span>
-                </button>
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-radio-option" id="territoryColorAccentOption" type="button" role="menuitemradio" aria-checked="false" data-color-mode="accent">
-                  <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">Accent</span>
-                </button>
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-radio-option" id="territoryColorPastelOption" type="button" role="menuitemradio" aria-checked="false" data-color-mode="pastel">
-                  <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">Pastel</span>
-                </button>
-              </div>
-            </div>
-            <div class="toolbar-submenu" data-toolbar-submenu>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="territoryBordersSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="territoryBordersSubmenu">
-                <span class="toolbar-dropdown-label">Borders</span>
-                <img class="toolbar-submenu-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
-              </button>
-              <div class="ui-menu toolbar-submenu-menu" id="territoryBordersSubmenu" role="menu" aria-label="Borders">
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryBordersToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
-                  <span class="toolbar-dropdown-label">Show borders</span>
-                  <span class="toolbar-switch" aria-hidden="true"></span>
-                </button>
-                <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true"></div>
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-radio-option" id="territoryBorderColorDefaultOption" type="button" role="menuitemradio" aria-checked="true" data-border-color="default">
-                  <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">Default</span>
-                </button>
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-radio-option" id="territoryBorderColorWhiteOption" type="button" role="menuitemradio" aria-checked="false" data-border-color="white">
-                  <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">White</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </details>
-        <div class="toolbar-dataset-selector territory-dataset-selector" id="territoryDatasetSelector" data-dataset-active="true">
-          <div class="dataset-selector-field has-selection">
-            <img class="dataset-selector-icon" src="../cst/assets/dataset.svg?v=2" alt="" aria-hidden="true">
-            <button
-              class="dataset-selector-input"
-              id="territoryDatasetSelectorButton"
-              type="button"
-              aria-haspopup="listbox"
-              aria-expanded="false"
-              aria-controls="territoryDatasetSelectorMenu"
-            >Default</button>
-            <img class="toolbar-chevron dataset-selector-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
-            <div class="ui-menu dataset-selector-menu" id="territoryDatasetSelectorMenu" role="listbox" aria-label="Datasets">
-              <div class="dataset-selector-options" id="territoryDatasetSelectorOptions"></div>
-            </div>
-          </div>
-        </div>
-        <span class="toolbar-divider" aria-hidden="true"></span>
-        <label class="toolbar-search-btn toolbar-btn" for="territorySearchInput" role="search">
+        <label class="toolbar-search-btn toolbar-btn" data-crossroad-workspace-control for="territorySearchInput" role="search">
           <img class="toolbar-asset-icon toolbar-search-icon" src="../cst/assets/search.svg" alt="" aria-hidden="true">
           <input
             class="toolbar-search-input"
@@ -164,15 +92,15 @@
                   aria-haspopup="listbox"
                   aria-expanded="false"
                   aria-controls="territoryCrossroadSearchSuggestions"
-                  placeholder="Search by brand, city, county, CBSA, or state..."
-                  aria-label="Search territories by brand or location"
+                  placeholder="Search by location, category or brand..."
+                  aria-label="Search territories by brand, category, or location"
                   aria-describedby="territoryCrossroadSearchFeedback"
                 >
                 <div
                   class="territory-crossroad__search-suggestions"
                   id="territoryCrossroadSearchSuggestions"
                   role="listbox"
-                  aria-label="Brand and location suggestions"
+                  aria-label="Brand, category, and location suggestions"
                   aria-hidden="true"
                 ></div>
                 <button class="territory-crossroad__search-clear" id="territoryCrossroadSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
@@ -888,7 +816,6 @@
   <script src="scripts/brand-panel.js"></script>
   <script src="scripts/map.js"></script>
   <script src="scripts/crossroad.js"></script>
-  <script src="scripts/dataset-selector.js"></script>
   <script src="scripts/save-search-modal.js"></script>
   <script src="scripts/request-info-modal.js"></script>
 </body>

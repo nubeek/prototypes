@@ -1,0 +1,819 @@
+{
+  "id": "snapology",
+  "brand": "Snapology",
+  "category": "Youth Enrichment",
+  "color": "#F5C518",
+  "logo": "assets/logos/snapology.png",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 308375,
+  "franchiseeRating": 0,
+  "profileUrl": "https://www.snapologyfranchising.com/available-territories/",
+  "territories": [
+    {
+      "geoKey": "place:0203000",
+      "geoType": "place",
+      "state": "AK",
+      "name": "Anchorage",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0151000",
+      "geoType": "place",
+      "state": "AL",
+      "name": "Montgomery",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0523290",
+      "geoType": "place",
+      "state": "AR",
+      "name": "Fayetteville",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0541000",
+      "geoType": "place",
+      "state": "AR",
+      "name": "Little Rock",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:0455000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Phoenix",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0465000",
+      "geoType": "place",
+      "state": "AZ",
+      "name": "Scottsdale",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0626000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Fremont",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0644000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Los Angeles",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0664000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "Sacramento",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0666000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "San Diego",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0667000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "San Francisco",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0668000",
+      "geoType": "place",
+      "state": "CA",
+      "name": "San Jose",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0807850",
+      "geoType": "place",
+      "state": "CO",
+      "name": "Boulder",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0812387",
+      "geoType": "place",
+      "state": "CO",
+      "name": "Castle Pines",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0820000",
+      "geoType": "place",
+      "state": "CO",
+      "name": "Denver",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0843000",
+      "geoType": "place",
+      "state": "CO",
+      "name": "Lakewood",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:0937000",
+      "geoType": "place",
+      "state": "CT",
+      "name": "Hartford",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1150000",
+      "geoType": "place",
+      "state": "DC",
+      "name": "Washington",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1021200",
+      "geoType": "place",
+      "state": "DE",
+      "name": "Dover",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1224000",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Fort Lauderdale",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1235000",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Jacksonville",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1238250",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Lakeland",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1245000",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Miami",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1253000",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Orlando",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1271000",
+      "geoType": "place",
+      "state": "FL",
+      "name": "Tampa",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1276600",
+      "geoType": "place",
+      "state": "FL",
+      "name": "West Palm Beach",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1301696",
+      "geoType": "place",
+      "state": "GA",
+      "name": "Alpharetta",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1304000",
+      "geoType": "place",
+      "state": "GA",
+      "name": "Atlanta",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1571550",
+      "geoType": "place",
+      "state": "HI",
+      "name": "Honolulu",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1921000",
+      "geoType": "place",
+      "state": "IA",
+      "name": "Des Moines",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1608830",
+      "geoType": "place",
+      "state": "ID",
+      "name": "Boise",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1714000",
+      "geoType": "place",
+      "state": "IL",
+      "name": "Chicago",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:1772000",
+      "geoType": "place",
+      "state": "IL",
+      "name": "Springfield",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:1836003",
+      "geoType": "place",
+      "state": "IN",
+      "name": "Indianapolis",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2071000",
+      "geoType": "place",
+      "state": "KS",
+      "name": "Topeka",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2128900",
+      "geoType": "place",
+      "state": "KY",
+      "name": "Frankfort",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2205000",
+      "geoType": "place",
+      "state": "LA",
+      "name": "Baton Rouge",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2507000",
+      "geoType": "place",
+      "state": "MA",
+      "name": "Boston",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2401600",
+      "geoType": "place",
+      "state": "MD",
+      "name": "Annapolis",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2404000",
+      "geoType": "place",
+      "state": "MD",
+      "name": "Baltimore",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:2302100",
+      "geoType": "place",
+      "state": "ME",
+      "name": "Augusta",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2603000",
+      "geoType": "place",
+      "state": "MI",
+      "name": "Ann Arbor",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2622000",
+      "geoType": "place",
+      "state": "MI",
+      "name": "Detroit",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:2634000",
+      "geoType": "place",
+      "state": "MI",
+      "name": "Grand Rapids",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:2646000",
+      "geoType": "place",
+      "state": "MI",
+      "name": "Lansing",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2771428",
+      "geoType": "place",
+      "state": "MN",
+      "name": "Minneapolis",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:2758000",
+      "geoType": "place",
+      "state": "MN",
+      "name": "Saint Paul",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2937000",
+      "geoType": "place",
+      "state": "MO",
+      "name": "Jefferson City",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:2938000",
+      "geoType": "place",
+      "state": "MO",
+      "name": "Kansas City",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:2836000",
+      "geoType": "place",
+      "state": "MS",
+      "name": "Jackson",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3035600",
+      "geoType": "place",
+      "state": "MT",
+      "name": "Helena",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3712000",
+      "geoType": "place",
+      "state": "NC",
+      "name": "Charlotte",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:3719000",
+      "geoType": "place",
+      "state": "NC",
+      "name": "Durham",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:3755000",
+      "geoType": "place",
+      "state": "NC",
+      "name": "Raleigh",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3774440",
+      "geoType": "place",
+      "state": "NC",
+      "name": "Wilmington",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:3807200",
+      "geoType": "place",
+      "state": "ND",
+      "name": "Bismarck",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3128000",
+      "geoType": "place",
+      "state": "NE",
+      "name": "Lincoln",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3314200",
+      "geoType": "place",
+      "state": "NH",
+      "name": "Concord",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3474000",
+      "geoType": "place",
+      "state": "NJ",
+      "name": "Trenton",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3502000",
+      "geoType": "place",
+      "state": "NM",
+      "name": "Albuquerque",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:3570500",
+      "geoType": "place",
+      "state": "NM",
+      "name": "Santa Fe",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3209700",
+      "geoType": "place",
+      "state": "NV",
+      "name": "Carson City",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:3651000",
+      "geoType": "place",
+      "state": "NY",
+      "name": "New York",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:3912000",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Canton",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:3915000",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Cincinnati",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:3916000",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Cleveland",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:3918000",
+      "geoType": "place",
+      "state": "OH",
+      "name": "Columbus",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4055000",
+      "geoType": "place",
+      "state": "OK",
+      "name": "Oklahoma City",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4075000",
+      "geoType": "place",
+      "state": "OK",
+      "name": "Tulsa",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4105350",
+      "geoType": "place",
+      "state": "OR",
+      "name": "Beaverton",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4159000",
+      "geoType": "place",
+      "state": "OR",
+      "name": "Portland",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4164900",
+      "geoType": "place",
+      "state": "OR",
+      "name": "Salem",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4232800",
+      "geoType": "place",
+      "state": "PA",
+      "name": "Harrisburg",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4260000",
+      "geoType": "place",
+      "state": "PA",
+      "name": "Philadelphia",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4261000",
+      "geoType": "place",
+      "state": "PA",
+      "name": "Pittsburgh",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4459000",
+      "geoType": "place",
+      "state": "RI",
+      "name": "Providence",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4516000",
+      "geoType": "place",
+      "state": "SC",
+      "name": "Columbia",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4649600",
+      "geoType": "place",
+      "state": "SD",
+      "name": "Pierre",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4740000",
+      "geoType": "place",
+      "state": "TN",
+      "name": "Knoxville",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4752006",
+      "geoType": "place",
+      "state": "TN",
+      "name": "Nashville",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4803000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Amarillo",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4805000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Austin",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4813552",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Cedar Park",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4817000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Corpus Christi",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4819000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Dallas",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4824000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "El Paso",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4827000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Fort Worth",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4827684",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Frisco",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4835000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Houston",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4838476",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Katy",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4845744",
+      "geoType": "place",
+      "state": "TX",
+      "name": "McKinney",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4848072",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Midland",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4856348",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Pearland",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4858016",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Plano",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4863500",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Round Rock",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4865000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "San Antonio",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4869032",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Southlake",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4872656",
+      "geoType": "place",
+      "state": "TX",
+      "name": "The Woodlands",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4876000",
+      "geoType": "place",
+      "state": "TX",
+      "name": "Waco",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4920120",
+      "geoType": "place",
+      "state": "UT",
+      "name": "Draper",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4944320",
+      "geoType": "place",
+      "state": "UT",
+      "name": "Lehi",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:4967000",
+      "geoType": "place",
+      "state": "UT",
+      "name": "Salt Lake City",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:4967440",
+      "geoType": "place",
+      "state": "UT",
+      "name": "Sandy",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:5126496",
+      "geoType": "place",
+      "state": "VA",
+      "name": "Fairfax",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:5129744",
+      "geoType": "place",
+      "state": "VA",
+      "name": "Fredericksburg",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:5135624",
+      "geoType": "place",
+      "state": "VA",
+      "name": "Harrisonburg",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:5157000",
+      "geoType": "place",
+      "state": "VA",
+      "name": "Norfolk",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:5167000",
+      "geoType": "place",
+      "state": "VA",
+      "name": "Richmond",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:5182000",
+      "geoType": "place",
+      "state": "VA",
+      "name": "Virginia Beach",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:5046000",
+      "geoType": "place",
+      "state": "VT",
+      "name": "Montpelier",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:5351300",
+      "geoType": "place",
+      "state": "WA",
+      "name": "Olympia",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:5370000",
+      "geoType": "place",
+      "state": "WA",
+      "name": "Tacoma",
+      "status": "sold"
+    },
+    {
+      "geoKey": "place:5548000",
+      "geoType": "place",
+      "state": "WI",
+      "name": "Madison",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:5414600",
+      "geoType": "place",
+      "state": "WV",
+      "name": "Charleston",
+      "status": "available"
+    },
+    {
+      "geoKey": "place:5613900",
+      "geoType": "place",
+      "state": "WY",
+      "name": "Cheyenne",
+      "status": "available"
+    }
+  ]
+}

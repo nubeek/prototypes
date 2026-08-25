@@ -60,6 +60,7 @@
     { id: "targets", label: "Targets", href: "/_prototypes/targets/" },
     { id: "one-pager", label: "One Pager", href: "/_prototypes/one-pager/" },
   ];
+  const SETTINGS_PAGES = new Set(["prospects", "territories"]);
 
   const STYLES = `
 .proto-nav,
@@ -82,7 +83,9 @@
   overflow: visible;
   pointer-events: none;
   visibility: visible;
+  transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1), margin-left 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+.proto-nav.has-settings { --proto-nav-width: 329px; }
 .proto-nav.is-open { pointer-events: auto; }
 .proto-nav.is-entering { animation: proto-nav-enter 500ms both; }
 .proto-nav.is-leaving { animation: proto-nav-leave 320ms cubic-bezier(0.4, 0, 0.2, 1) both; }
@@ -100,6 +103,7 @@
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 8px 20px rgba(17, 17, 17, 0.03);
+  transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .proto-nav__indicator {
   position: absolute;
@@ -127,6 +131,11 @@
   background: transparent;
   color: #111;
   text-decoration: none;
+  font: inherit;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
 }
 .proto-nav__icon {
   display: block;
@@ -134,6 +143,7 @@
   height: 18px;
   object-fit: contain;
   opacity: 0.42;
+  transition: opacity 180ms ease;
 }
 .proto-nav__item.is-active .proto-nav__icon,
 .proto-nav__item:hover .proto-nav__icon { opacity: 1; }
@@ -209,6 +219,143 @@
 .proto-nav__menu-item[aria-checked="true"] .proto-nav__menu-check { opacity: 1; }
 .proto-nav__menu-item[aria-checked="true"] .proto-nav__menu-label { font-weight: 500; }
 .proto-nav__menu-label { flex: 0 0 auto; white-space: nowrap; }
+.proto-nav__divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 18px;
+  margin: 0 10px;
+  background: rgba(17, 17, 17, 0.12);
+  pointer-events: none;
+}
+.proto-nav__divider[hidden],
+.proto-nav__settings[hidden] { display: none; }
+.proto-nav__item.proto-nav__settings {
+  flex: 0 0 48px;
+  width: 48px;
+}
+.proto-nav.is-settings-open .proto-nav__settings .proto-nav__icon { opacity: 1; }
+.proto-nav__settings-menu {
+  position: absolute;
+  top: auto;
+  right: 6px;
+  bottom: calc(100% + 6px);
+  left: auto;
+  width: max-content;
+  min-width: 200px;
+  margin: 0;
+  padding: 10px 0;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  overflow: visible;
+  z-index: 2;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 160ms ease, bottom 160ms ease, visibility 0s linear 160ms;
+}
+.proto-nav.is-settings-open .proto-nav__settings-menu {
+  bottom: calc(100% + 16px);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 160ms ease, bottom 160ms ease, visibility 0s;
+}
+.proto-nav__settings-divider {
+  height: 0;
+  border-top: 1px solid #ececf0;
+  margin: 10px 16px;
+}
+.proto-nav__settings-switch {
+  width: 22px;
+  height: 16px;
+  border-radius: 999px;
+  background: #b8b8b8;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  flex: 0 0 auto;
+}
+.proto-nav__settings-switch::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+  transform: translateX(0);
+}
+.proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-switch { background: #7a63dd; }
+.proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-switch::before { transform: translateX(6px); }
+.proto-nav__settings-item-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
+.proto-nav__settings-item:disabled { opacity: 0.45; cursor: default; }
+.proto-nav__settings-item.is-end .proto-nav__menu-label { flex: 1 1 auto; }
+.proto-nav__settings-chevron {
+  width: 11px;
+  height: 6px;
+  display: block;
+  flex: 0 0 auto;
+  opacity: 0.6;
+  transform: rotate(-90deg);
+}
+.proto-nav__settings-radio {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #f4f4f4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.proto-nav__settings-radio::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #111;
+  opacity: 0;
+}
+.proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-radio {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e1e1e1;
+}
+.proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-radio::before { opacity: 1; }
+.proto-nav__settings-submenu { position: relative; }
+.proto-nav__settings-submenu::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 100%;
+  bottom: 0;
+  width: 8px;
+}
+.proto-nav__settings-submenu-menu {
+  position: absolute;
+  right: calc(100% + 4px);
+  bottom: -10px;
+  width: max-content;
+  min-width: 196px;
+  margin: 0;
+  padding: 10px 0;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  display: none;
+  z-index: 3;
+  overflow: hidden;
+}
+.proto-nav__settings-submenu.is-open > .proto-nav__settings-submenu-menu,
+.proto-nav__settings-submenu:hover > .proto-nav__settings-submenu-menu { display: block; }
 html.is-proto-nav-shell,
 html.is-proto-nav-shell body {
   overflow: hidden !important;
@@ -249,10 +396,14 @@ iframe[data-proto-nav-shell].is-fading {
 @media (prefers-reduced-motion: reduce) {
   .proto-nav.is-entering,
   .proto-nav.is-leaving { animation: none; }
+  .proto-nav,
+  .proto-nav__bar { transition: none; }
   .proto-nav.is-open { bottom: var(--proto-nav-inset); }
   .proto-nav__indicator { transition: none; }
   .proto-nav__menu,
-  .proto-nav.is-home-open .proto-nav__menu { transition: none; }
+  .proto-nav.is-home-open .proto-nav__menu,
+  .proto-nav__settings-menu,
+  .proto-nav.is-settings-open .proto-nav__settings-menu { transition: none; }
   iframe[data-proto-nav-shell] { transition: none; }
 }
 `;
@@ -364,8 +515,9 @@ iframe[data-proto-nav-shell].is-fading {
     });
   };
 
-  const dismissHomeMenuFromShell = () => {
+  const dismissOverlayMenusFromShell = () => {
     closeHomeMenu();
+    closeSettingsMenu();
   };
 
   const bindShellMenuDismiss = (enabled) => {
@@ -379,13 +531,235 @@ iframe[data-proto-nav-shell].is-fading {
         return;
       }
 
-      if (enabled) {
-        frameDocument.addEventListener("mousedown", dismissHomeMenuFromShell);
-      } else {
-        frameDocument.removeEventListener("mousedown", dismissHomeMenuFromShell);
+      if (enabled && !shellDismissBound) {
+        frameDocument.addEventListener("mousedown", dismissOverlayMenusFromShell);
+        shellDismissBound = true;
+      } else if (!enabled && shellDismissBound) {
+        frameDocument.removeEventListener("mousedown", dismissOverlayMenusFromShell);
+        shellDismissBound = false;
       }
     } catch (error) {
       // Ignore cross-origin frame access.
+    }
+  };
+
+  const syncShellMenuDismiss = () => {
+    bindShellMenuDismiss(isHomeMenuOpen() || isSettingsMenuOpen());
+  };
+
+  const getSettingsApi = () => {
+    try {
+      if (shellFrame?.contentWindow) {
+        return shellFrame.contentWindow.wefranchPrototypeSettings || null;
+      }
+    } catch (error) {
+      return null;
+    }
+
+    return window.wefranchPrototypeSettings || null;
+  };
+
+  const isSettingsMenuOpen = () => Boolean(nav?.classList.contains("is-settings-open"));
+
+  const createSettingsDivider = () => {
+    const divider = document.createElement("div");
+    divider.className = "proto-nav__settings-divider";
+    divider.setAttribute("aria-hidden", "true");
+    return divider;
+  };
+
+  const createSettingsLabel = (text) => {
+    const label = document.createElement("span");
+    label.className = "proto-nav__menu-label";
+    label.textContent = text;
+    return label;
+  };
+
+  const bindSettingsSubmenu = (wrap) => {
+    const trigger = wrap.querySelector("[data-settings-type='submenu']");
+
+    wrap.addEventListener("mouseenter", () => {
+      window.clearTimeout(settingsSubmenuHideTimer);
+      closeSettingsSubmenus(wrap);
+      wrap.classList.add("is-open");
+      trigger?.setAttribute("aria-expanded", "true");
+    });
+
+    wrap.addEventListener("mouseleave", () => {
+      settingsSubmenuHideTimer = window.setTimeout(() => {
+        wrap.classList.remove("is-open");
+        trigger?.setAttribute("aria-expanded", "false");
+      }, 300);
+    });
+  };
+
+  const createSettingsItem = (item) => {
+    if (item.type === "divider") {
+      return createSettingsDivider();
+    }
+
+    if (item.type === "submenu") {
+      const wrap = document.createElement("div");
+      wrap.className = "proto-nav__settings-submenu";
+      wrap.dataset.submenuId = item.id;
+
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "proto-nav__menu-item proto-nav__settings-item is-end";
+      trigger.dataset.settingsId = item.id;
+      trigger.dataset.settingsType = "submenu";
+      trigger.setAttribute("role", "menuitem");
+      trigger.setAttribute("aria-haspopup", "menu");
+      trigger.setAttribute("aria-expanded", "false");
+
+      const chevron = document.createElement("img");
+      chevron.className = "proto-nav__settings-chevron";
+      chevron.src = resolveUrl("/assets/chevron.svg");
+      chevron.alt = "";
+      chevron.setAttribute("aria-hidden", "true");
+      trigger.append(createSettingsLabel(item.label), chevron);
+
+      const nested = document.createElement("div");
+      nested.className = "proto-nav__settings-submenu-menu";
+      nested.setAttribute("role", "menu");
+      nested.setAttribute("aria-label", item.label);
+      (item.items || []).forEach((child) => nested.appendChild(createSettingsItem(child)));
+
+      wrap.append(trigger, nested);
+      bindSettingsSubmenu(wrap);
+      return wrap;
+    }
+
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "proto-nav__menu-item proto-nav__settings-item";
+    option.dataset.settingsId = item.id;
+    if (item.align === "end") {
+      option.classList.add("is-end");
+    }
+
+    const label = createSettingsLabel(item.label);
+
+    if (item.type === "toggle") {
+      option.setAttribute("role", "menuitemcheckbox");
+      option.setAttribute("aria-checked", String(Boolean(item.checked)));
+      const toggle = document.createElement("span");
+      toggle.className = "proto-nav__settings-switch";
+      toggle.setAttribute("aria-hidden", "true");
+      if (item.align === "end") {
+        option.append(label, toggle);
+      } else {
+        option.append(toggle, label);
+      }
+      return option;
+    }
+
+    if (item.type === "radio") {
+      option.setAttribute("role", "menuitemradio");
+      option.setAttribute("aria-checked", String(Boolean(item.checked)));
+      const radio = document.createElement("span");
+      radio.className = "proto-nav__settings-radio";
+      radio.setAttribute("aria-hidden", "true");
+      option.append(radio, label);
+      return option;
+    }
+
+    option.setAttribute("role", "menuitem");
+    if (item.disabled) {
+      option.disabled = true;
+    }
+
+    if (item.icon) {
+      const icon = document.createElement("img");
+      icon.className = "proto-nav__settings-item-icon";
+      icon.src = item.icon;
+      icon.alt = "";
+      icon.setAttribute("aria-hidden", "true");
+      option.appendChild(icon);
+    }
+
+    option.appendChild(label);
+    return option;
+  };
+
+  const closeSettingsSubmenus = (except = null) => {
+    settingsMenu?.querySelectorAll(".proto-nav__settings-submenu").forEach((submenu) => {
+      if (submenu === except) {
+        return;
+      }
+
+      submenu.classList.remove("is-open");
+      submenu.querySelector("[data-settings-type='submenu']")?.setAttribute("aria-expanded", "false");
+    });
+  };
+
+  const renderSettingsItems = ({ restoreSubmenuId = null } = {}) => {
+    if (!settingsMenu) {
+      return;
+    }
+
+    settingsMenu.replaceChildren();
+    const items = getSettingsApi()?.getItems?.() || [];
+    items.forEach((item) => settingsMenu.appendChild(createSettingsItem(item)));
+
+    if (restoreSubmenuId) {
+      const submenu = settingsMenu.querySelector(`[data-submenu-id="${restoreSubmenuId}"]`);
+      const trigger = submenu?.querySelector("[data-settings-type='submenu']");
+      submenu?.classList.add("is-open");
+      trigger?.setAttribute("aria-expanded", "true");
+    }
+  };
+
+  const closeSettingsMenu = () => {
+    const wasOpen = isSettingsMenuOpen();
+    window.clearTimeout(settingsSubmenuHideTimer);
+    closeSettingsSubmenus();
+    nav?.classList.remove("is-settings-open");
+    settingsButton?.classList.remove("is-active");
+    settingsButton?.setAttribute("aria-expanded", "false");
+
+    if (wasOpen) {
+      syncShellMenuDismiss();
+    }
+
+    return wasOpen;
+  };
+
+  const openSettingsMenu = () => {
+    const show = () => {
+      renderSettingsItems();
+      if (!settingsMenu?.childElementCount) {
+        return false;
+      }
+
+      nav?.classList.add("is-settings-open", "has-settings");
+      settingsButton?.classList.add("is-active");
+      settingsButton?.setAttribute("aria-expanded", "true");
+      syncShellMenuDismiss();
+      return true;
+    };
+
+    if (show()) {
+      return;
+    }
+
+    window.setTimeout(show, 120);
+  };
+
+  const syncSettingsControl = (pageId = matchActiveId(window.location.pathname), host = nav) => {
+    const show = SETTINGS_PAGES.has(pageId);
+    host?.classList.toggle("has-settings", show);
+
+    if (settingsDivider) {
+      settingsDivider.hidden = !show;
+    }
+
+    if (settingsButton) {
+      settingsButton.hidden = !show;
+    }
+
+    if (!show) {
+      closeSettingsMenu();
     }
   };
 
@@ -422,6 +796,7 @@ iframe[data-proto-nav-shell].is-fading {
   };
 
   const openHomeMenuAfterSlide = () => {
+    closeSettingsMenu();
     cancelHomeMenuOpen();
     previewHomeSelection();
 
@@ -456,6 +831,7 @@ iframe[data-proto-nav-shell].is-fading {
     setActiveItem(activeItem);
     moveIndicator(activeIndex, { animate });
     syncHomeMenu(pageId);
+    syncSettingsControl(pageId);
   };
 
   const PAGE_FADE_MS = 320;
@@ -556,6 +932,8 @@ iframe[data-proto-nav-shell].is-fading {
 
       if (shellFrame.src !== nextUrl) {
         await loadShellFrame(shellFrame, nextUrl);
+        shellDismissBound = false;
+        syncShellMenuDismiss();
       }
 
       if (push && window.location.href !== nextUrl) {
@@ -624,6 +1002,7 @@ iframe[data-proto-nav-shell].is-fading {
     setActiveItem(nextItem);
     moveIndicator(nextIndex, { animate: !prefersReducedMotion() });
     syncHomeMenu(pageId);
+    syncSettingsControl(pageId);
     showInShell(href);
   };
 
@@ -680,7 +1059,7 @@ iframe[data-proto-nav-shell].is-fading {
         homeDropdown.addEventListener("toggle", () => {
           summary.setAttribute("aria-expanded", String(homeDropdown.open));
           nextNav.classList.toggle("is-home-open", homeDropdown.open);
-          bindShellMenuDismiss(homeDropdown.open);
+          syncShellMenuDismiss();
         });
 
         homeDropdown.appendChild(summary);
@@ -705,11 +1084,79 @@ iframe[data-proto-nav-shell].is-fading {
       return link;
     });
 
+    settingsDivider = document.createElement("span");
+    settingsDivider.className = "proto-nav__divider";
+    settingsDivider.setAttribute("aria-hidden", "true");
+    bar.appendChild(settingsDivider);
+
+    settingsButton = document.createElement("button");
+    settingsButton.type = "button";
+    settingsButton.className = "proto-nav__item proto-nav__settings";
+    settingsButton.setAttribute("aria-label", "Settings");
+    settingsButton.setAttribute("aria-haspopup", "menu");
+    settingsButton.setAttribute("aria-expanded", "false");
+    settingsButton.setAttribute("aria-controls", "proto-nav-settings-menu");
+    settingsButton.title = "Settings";
+    settingsButton.dataset.protoSettings = "";
+    settingsButton.appendChild(createNavIcon({ icon: "settings.svg" }));
+    settingsButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (isSettingsMenuOpen()) {
+        closeSettingsMenu();
+        return;
+      }
+
+      closeHomeMenu();
+      openSettingsMenu();
+    });
+    bar.appendChild(settingsButton);
+
+    settingsMenu = document.createElement("div");
+    settingsMenu.id = "proto-nav-settings-menu";
+    settingsMenu.className = "ui-menu proto-nav__settings-menu";
+    settingsMenu.setAttribute("role", "menu");
+    settingsMenu.setAttribute("aria-label", "Prototype settings");
+
     moveIndicator(activeIndex, { animate: false });
-    nextNav.append(bar, homeMenu);
+    nextNav.append(bar, homeMenu, settingsMenu);
+    syncSettingsControl(pageId, nextNav);
 
     nextNav.addEventListener("click", (event) => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+        return;
+      }
+
+      const setting = event.target.closest("[data-settings-id]");
+      if (setting) {
+        event.preventDefault();
+
+        if (setting.dataset.settingsType === "submenu") {
+          const submenu = setting.closest(".proto-nav__settings-submenu");
+          const shouldOpen = !submenu?.classList.contains("is-open");
+          closeSettingsSubmenus(shouldOpen ? submenu : null);
+          submenu?.classList.toggle("is-open", shouldOpen);
+          setting.setAttribute("aria-expanded", String(shouldOpen));
+          return;
+        }
+
+        const openSubmenuId = setting.closest(".proto-nav__settings-submenu")?.dataset.submenuId || null;
+        const result = getSettingsApi()?.perform?.(setting.dataset.settingsId);
+
+        if (result?.refresh) {
+          window.clearTimeout(settingsSubmenuHideTimer);
+          renderSettingsItems({ restoreSubmenuId: openSubmenuId });
+          return;
+        }
+
+        if (setting.getAttribute("role") === "menuitemcheckbox") {
+          setting.setAttribute("aria-checked", String(Boolean(result?.checked)));
+          return;
+        }
+
+        if (result?.close !== false) {
+          closeSettingsMenu();
+        }
         return;
       }
 
@@ -719,10 +1166,12 @@ iframe[data-proto-nav-shell].is-fading {
 
         if (option.dataset.navPage === matchActiveId(window.location.pathname)) {
           closeHomeMenu();
+          closeSettingsMenu();
           return;
         }
 
         closeHomeMenu({ restore: false });
+        closeSettingsMenu();
         activatePage(option.dataset.navPage, option.href);
         return;
       }
@@ -732,18 +1181,20 @@ iframe[data-proto-nav-shell].is-fading {
         return;
       }
 
-      if (link.closest(".proto-nav__home")) {
+      if (link.closest(".proto-nav__home") || link.hasAttribute("data-proto-settings")) {
         return;
       }
 
       if (link.getAttribute("aria-current") === "page") {
         event.preventDefault();
         closeHomeMenu();
+        closeSettingsMenu();
         return;
       }
 
       event.preventDefault();
       closeHomeMenu({ restore: false });
+      closeSettingsMenu();
       activatePage(link.dataset.navId, link.href);
     });
 
@@ -756,7 +1207,12 @@ iframe[data-proto-nav-shell].is-fading {
   let homeDropdown = null;
   let homeMenu = null;
   let homeMenuOpenTimer = 0;
+  let settingsDivider = null;
+  let settingsButton = null;
+  let settingsMenu = null;
+  let settingsSubmenuHideTimer = 0;
   let shellFrame = null;
+  let shellDismissBound = false;
   let isNavigating = false;
   let pendingUrl = null;
   let isOpen = readOpenState();
@@ -771,6 +1227,7 @@ iframe[data-proto-nav-shell].is-fading {
 
     if (!isOpen) {
       closeHomeMenu({ restore: false });
+      closeSettingsMenu();
     }
 
     nav.classList.toggle("is-open", isOpen);
@@ -821,6 +1278,13 @@ iframe[data-proto-nav-shell].is-fading {
       return;
     }
 
+    if (event.key === "Escape" && isSettingsMenuOpen()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeSettingsMenu();
+      return;
+    }
+
     if (event.key === "Escape" && isHomeMenuOpen()) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -844,6 +1308,11 @@ iframe[data-proto-nav-shell].is-fading {
       return;
     }
 
+    if (event.data.key === "Escape" && isSettingsMenuOpen()) {
+      closeSettingsMenu();
+      return;
+    }
+
     if (event.data.key === "Escape" && isHomeMenuOpen()) {
       closeHomeMenu();
       return;
@@ -856,11 +1325,22 @@ iframe[data-proto-nav-shell].is-fading {
   });
 
   document.addEventListener("mousedown", (event) => {
-    if (homeDropdown?.contains(event.target) || homeMenu?.contains(event.target) || !isHomeMenuOpen()) {
-      return;
+    const inHome = homeDropdown?.contains(event.target) || homeMenu?.contains(event.target);
+    const inSettings = settingsButton?.contains(event.target) || settingsMenu?.contains(event.target);
+
+    if (isHomeMenuOpen() && !inHome) {
+      closeHomeMenu();
     }
 
-    closeHomeMenu();
+    if (isSettingsMenuOpen() && !inSettings) {
+      closeSettingsMenu();
+    }
+  });
+
+  window.addEventListener("wefranch:prototype-settings-ready", () => {
+    if (isSettingsMenuOpen()) {
+      renderSettingsItems();
+    }
   });
 
   window.addEventListener("popstate", () => {

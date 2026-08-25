@@ -1,11 +1,11 @@
 const TERRITORY_DATASET_STORAGE_KEY = "wefranch-territories-list-dataset";
 const TERRITORY_SKIP_CROSSROAD_KEY = "wefranch-territories-list-skip-crossroad";
-const TERRITORY_DEFAULT_DATASET_ID = "default";
+const TERRITORY_DEFAULT_DATASET_ID = "real";
 
 const TERRITORY_DATASETS = {
   default: {
     id: "default",
-    label: "Default",
+    label: "Example States",
     brandFiles: [
       "default/planet-fitness.json",
       "default/subway.json",
@@ -70,7 +70,7 @@ const TERRITORY_DATASETS = {
   },
   large: {
     id: "large",
-    label: "Large",
+    label: "Example CBSAs",
     brandFiles: [
       "large/planet-fitness.json",
       "large/subway.json",
@@ -124,7 +124,7 @@ const TERRITORY_DATASETS = {
   },
   real: {
     id: "real",
-    label: "Real",
+    label: "Default",
     autoFitMap: false,
     mapView: {
       center: [-97.5795, 38.8283],
@@ -143,6 +143,7 @@ const TERRITORY_DATASETS = {
       "real/five-star-painting.json",
       "real/glass-doctor.json",
       "real/housemaster.json",
+      "real/i9-sports.json",
       "real/jantize-america.json",
       "real/junk-king.json",
       "real/launch-family-entertainment.json",
@@ -158,6 +159,7 @@ const TERRITORY_DATASETS = {
       "real/mr-handyman.json",
       "real/mr-rooter.json",
       "real/pepitos-paletas.json",
+      "real/play-street-museum.json",
       "real/pizza-factory.json",
       "real/precision-door-service.json",
       "real/primrose-schools.json",
@@ -165,6 +167,7 @@ const TERRITORY_DATASETS = {
       "real/real-property-management.json",
       "real/see-and-be-kitchen.json",
       "real/shelfgenie.json",
+      "real/snapology.json",
       "real/speed-queen-laundry.json",
       "real/synergy-homecare.json",
       "real/the-grounds-guys.json",
@@ -234,15 +237,6 @@ const TERRITORY_DATASETS = {
 
 const TERRITORY_DATASET_ORDER = ["default", "large", "real"];
 
-function getStoredTerritoryDatasetId() {
-  try {
-    return window.localStorage?.getItem(TERRITORY_DATASET_STORAGE_KEY);
-  } catch (error) {
-    console.warn("Unable to read the selected territory dataset.", error);
-    return null;
-  }
-}
-
 function persistTerritoryDatasetId(datasetId) {
   try {
     window.localStorage?.setItem(TERRITORY_DATASET_STORAGE_KEY, datasetId);
@@ -252,34 +246,16 @@ function persistTerritoryDatasetId(datasetId) {
 }
 
 function getActiveTerritoryDataset() {
-  const storedDatasetId = getStoredTerritoryDatasetId();
-  return TERRITORY_DATASETS[storedDatasetId] || TERRITORY_DATASETS[TERRITORY_DEFAULT_DATASET_ID];
+  return TERRITORY_DATASETS[TERRITORY_DEFAULT_DATASET_ID];
 }
 
-function setActiveTerritoryDataset(datasetId) {
-  const nextDataset = TERRITORY_DATASETS[datasetId];
+function setActiveTerritoryDataset() {
   const currentDataset = getActiveTerritoryDataset();
-  if (!nextDataset || nextDataset.id === currentDataset.id) {
-    return currentDataset;
-  }
-
-  persistTerritoryDatasetId(nextDataset.id);
-
-  if (window.__territoryMapStarted) {
-    try {
-      window.sessionStorage?.setItem(TERRITORY_SKIP_CROSSROAD_KEY, "true");
-    } catch (error) {
-      console.warn("Unable to preserve the territory map view during dataset switching.", error);
-    }
-    window.location.reload();
-    return nextDataset;
-  }
-
-  window.dispatchEvent(new CustomEvent("territorydatasetchange", {
-    detail: { dataset: nextDataset }
-  }));
-  return nextDataset;
+  persistTerritoryDatasetId(currentDataset.id);
+  return currentDataset;
 }
+
+persistTerritoryDatasetId(TERRITORY_DEFAULT_DATASET_ID);
 
 window.territoryDatasets = {
   all: TERRITORY_DATASETS,

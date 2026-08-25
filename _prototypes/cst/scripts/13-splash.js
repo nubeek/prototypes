@@ -26,7 +26,7 @@ const CST_SPLASH_ENTER_DURATION_MS = 320;
 const CST_SPLASH_LEAVE_DURATION_MS = 300;
 const CST_SPLASH_WORKSPACE_HIDE_MS = 240;
 const CST_SPLASH_SUGGESTION_GROUP_LIMIT = 3;
-const CST_SPLASH_SUGGESTION_LIMIT = 9;
+const CST_SPLASH_SUGGESTION_LIMIT = 12;
 const CST_SPLASH_SAVED_INSERT_SHIFT_DURATION_MS = 680;
 const CST_SPLASH_SAVED_INSERT_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
 const CST_SPLASH_SAVED_INSERT_REVEAL_MS = 200;
@@ -1557,6 +1557,48 @@ function setCstSplashSearchFeedback(message = "") {
   feedback.hidden = !message;
 }
 
+function normalizeCstSplashSearchText(value) {
+  return String(value || "")
+    .toLocaleLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getCstSplashCategoryMatchIndex(label, query) {
+  const normalizedLabel = normalizeCstSplashSearchText(label);
+  const normalizedQuery = normalizeCstSplashSearchText(query);
+  if (!normalizedQuery) return -1;
+
+  const index = normalizedLabel.indexOf(normalizedQuery);
+  if (index !== -1) return index;
+
+  const tokens = normalizedQuery.split(/\s+/).filter((token) => (
+    token.length > 1 && token !== "and" && token !== "or"
+  ));
+  if (tokens.length < 2) return -1;
+  if (!tokens.every((token) => normalizedLabel.includes(token))) return -1;
+  return normalizedLabel.indexOf(tokens[0]) + 1000;
+}
+
+function isExactCstSplashSuggestion(item, query) {
+  return normalizeCstSplashSearchText(item?.label) === normalizeCstSplashSearchText(query);
+}
+
+function getCstSplashCategoryPool() {
+  const names = new Set();
+
+  Array.from(categoryFilterSelect?.options || []).forEach((option) => {
+    if (option.value) names.add(option.value);
+  });
+
+  owners.forEach((owner) => {
+    getOwnerCategories(owner).forEach((category) => names.add(category));
+  });
+
+  return [...names].sort((left, right) => left.localeCompare(right));
+}
+
 function getCstSplashLocalSuggestionPool() {
   const brandNames = [...new Set(owners.flatMap((owner) => getOwnerFranchises(owner)))];
 
@@ -1576,6 +1618,12 @@ function getCstSplashLocalSuggestionPool() {
       logoFallback: getInitials(brandName),
       logoSrc: getFranchiseLogoSrc(brandName),
       type: "brand"
+    })),
+    ...getCstSplashCategoryPool().map((categoryName) => ({
+      filters: { categories: [categoryName] },
+      group: "Categories",
+      label: categoryName,
+      type: "category"
     }))
   ];
 }
@@ -1587,7 +1635,9 @@ function getCstSplashLocalSuggestions(query) {
   const matchesByGroup = new Map();
 
   getCstSplashLocalSuggestionPool().forEach((item) => {
-    const matchIndex = item.label.toLocaleLowerCase().indexOf(normalizedQuery);
+    const matchIndex = item.type === "category"
+      ? getCstSplashCategoryMatchIndex(item.label, query)
+      : item.label.toLocaleLowerCase().indexOf(normalizedQuery);
     if (matchIndex === -1) return;
 
     const groupMatches = matchesByGroup.get(item.group) || [];
@@ -1595,7 +1645,7 @@ function getCstSplashLocalSuggestions(query) {
     matchesByGroup.set(item.group, groupMatches);
   });
 
-  return ["Franchisees", "Brands"].flatMap((group) => (
+  return ["Franchisees", "Brands", "Categories"].flatMap((group) => (
     (matchesByGroup.get(group) || [])
       .sort((a, b) => a.matchIndex - b.matchIndex || a.label.localeCompare(b.label))
       .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT)
@@ -1638,6 +1688,10 @@ async function getCstSplashSuggestions(query, { signal } = {}) {
   return [...localSuggestions, ...locationSuggestions].slice(0, CST_SPLASH_SUGGESTION_LIMIT);
 }
 
+const CST_SPLASH_SUGGESTION_ICON_SRCS = {
+  category: "assets/categories.png"
+};
+
 const CST_SPLASH_SUGGESTION_ICONS = {
   location: `<svg viewBox="0 0 16 20" focusable="false"><path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/></svg>`
 };
@@ -1669,6 +1723,13 @@ function createCstSplashSuggestionIcon(item) {
       icon.classList.add("is-logo-missing");
     });
     icon.append(image);
+    return icon;
+  }
+
+  const assetSrc = CST_SPLASH_SUGGESTION_ICON_SRCS[item.type];
+  if (assetSrc) {
+    icon.classList.add("is-category");
+    icon.style.setProperty("--suggestion-icon", `url("${assetSrc}")`);
     return icon;
   }
 
@@ -1831,7 +1892,7 @@ function bindCstSplashSearch() {
       appendSuggestionHeading("Suggestions");
       const status = document.createElement("div");
       status.className = "cst-splash__search-suggestion-status";
-      status.textContent = "No franchisees, brands, or locations match.";
+      status.textContent = "No franchisees, brands, categories, or locations match.";
       suggestions.append(status);
       setSuggestionsOpen(true);
       return;
@@ -1869,14 +1930,15 @@ function bindCstSplashSearch() {
   async function submitFreeTextSearch() {
     const query = input.value.trim();
     if (!query) {
-      setCstSplashSearchFeedback("Enter a franchisee, brand, or location to begin.");
+      setCstSplashSearchFeedback("Enter a franchisee, brand, category, or location to begin.");
       input.focus();
       return;
     }
 
-    const localMatch = getCstSplashLocalSuggestions(query)[0];
-    if (localMatch && localMatch.label.toLocaleLowerCase() === query.toLocaleLowerCase()) {
-      selectSuggestion(localMatch);
+    const localSuggestions = getCstSplashLocalSuggestions(query);
+    const exactLocalMatch = localSuggestions.find((item) => isExactCstSplashSuggestion(item, query));
+    if (exactLocalMatch) {
+      selectSuggestion(exactLocalMatch);
       return;
     }
 
@@ -1886,8 +1948,8 @@ function bindCstSplashSearch() {
       return;
     }
 
-    if (localMatch) {
-      selectSuggestion(localMatch);
+    if (localSuggestions[0]) {
+      selectSuggestion(localSuggestions[0]);
       return;
     }
 
@@ -2092,7 +2154,6 @@ function bindCstSplashEntryPoints() {
   // Reaching for a workspace control in the toolbar means the user is done with
   // the splash, so it steps aside instead of hiding whatever they just opened.
   toolbarSearchInput?.addEventListener("input", dismissOpenCstSplash);
-  datasetSelectorInput?.addEventListener("focus", dismissOpenCstSplash);
   [
     mapToggle,
     orgChartToggle,

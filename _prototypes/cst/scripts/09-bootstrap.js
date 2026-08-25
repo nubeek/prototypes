@@ -249,11 +249,7 @@ if (filterPanel) {
   });
 }
 
-window.WefranchFilterCombobox.bindOutsideClick((event) => {
-  if (datasetSelectorField && !datasetSelectorField.contains(event.target)) {
-    datasetSelectorApi?.close();
-  }
-});
+window.WefranchFilterCombobox.bindOutsideClick();
 
 filterLocationSearchControl = window.cstLocationSearch?.bind({
   variant: "filter",
@@ -419,6 +415,61 @@ if (readerEditQueryBtn) {
   readerEditQueryBtn.addEventListener("click", () => {
     exitReaderMode();
   });
+}
+
+if (tableHeadingInfo) {
+  let tableHeadingInfoTooltip = null;
+
+  const getTableHeadingInfoTooltip = () => {
+    if (!tableHeadingInfoTooltip) {
+      tableHeadingInfoTooltip = document.createElement("div");
+      tableHeadingInfoTooltip.className = "filter-combobox-floating-tooltip table-heading-info-floating-tooltip";
+      tableHeadingInfoTooltip.setAttribute("role", "tooltip");
+    }
+
+    return tableHeadingInfoTooltip;
+  };
+
+  const hideTableHeadingInfoTooltip = () => {
+    tableHeadingInfoTooltip?.classList.remove("is-visible");
+  };
+
+  const showTableHeadingInfoTooltip = () => {
+    const tooltipText = tableHeadingInfo.dataset.tooltip;
+    if (!tooltipText || tableHeadingInfo.hidden) return;
+
+    const tooltip = getTableHeadingInfoTooltip();
+    tooltip.textContent = tooltipText;
+
+    if (!tooltip.isConnected) {
+      document.body.append(tooltip);
+    }
+
+    tooltip.style.left = "0px";
+    tooltip.style.top = "0px";
+    tooltip.classList.add("is-visible");
+    window.fitTooltipToContent?.(tooltip);
+
+    const targetRect = tableHeadingInfo.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportPadding = 8;
+    const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+    const left = Math.min(
+      Math.max(viewportPadding, centeredLeft),
+      window.innerWidth - tooltipRect.width - viewportPadding
+    );
+    const top = Math.max(viewportPadding, targetRect.top - tooltipRect.height - 6);
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+  };
+
+  tableHeadingInfo.addEventListener("mouseenter", showTableHeadingInfoTooltip);
+  tableHeadingInfo.addEventListener("mouseleave", hideTableHeadingInfoTooltip);
+  tableHeadingInfo.addEventListener("focus", showTableHeadingInfoTooltip);
+  tableHeadingInfo.addEventListener("blur", hideTableHeadingInfoTooltip);
+  window.addEventListener("resize", hideTableHeadingInfoTooltip);
+  tableWrap?.addEventListener("scroll", hideTableHeadingInfoTooltip, { passive: true });
 }
 
 if (tableHeadingSummary) {
@@ -648,36 +699,73 @@ if (ownerDetailsPanel) {
   });
 }
 
-if (reduceMotionToggleOption) {
-  reduceMotionToggleOption.addEventListener("click", () => {
+function getPrototypeSettingsIconUrl(fileName) {
+  return new URL(`assets/${fileName}`, window.location.href).href;
+}
+
+function getPrototypeSettingsItems() {
+  return [
+    {
+      id: "reduce-motion",
+      type: "toggle",
+      label: "Reduce motion",
+      checked: Boolean(reduceMotionEnabled)
+    },
+    { type: "divider" },
+    {
+      id: "take-screenshot",
+      type: "action",
+      label: "Take screenshot",
+      icon: getPrototypeSettingsIconUrl("screenshot.svg"),
+      disabled: Boolean(screenshotInProgress)
+    },
+    {
+      id: "reset-view",
+      type: "action",
+      label: "Reset view",
+      icon: getPrototypeSettingsIconUrl("reset.svg")
+    }
+  ];
+}
+
+function performPrototypeSetting(id) {
+  if (id === "reduce-motion") {
     reduceMotionEnabled = !reduceMotionEnabled;
     syncReduceMotionToggleOption();
     syncReduceMotionStateClass();
     persistViewSettings();
-  });
-}
+    return { checked: reduceMotionEnabled };
+  }
 
-if (takeScreenshotOption) {
-  takeScreenshotOption.addEventListener("click", () => {
-    closeToolbarSubmenus();
+  if (id === "take-screenshot") {
     takeViewportScreenshot();
-  });
+    return { close: true };
+  }
+
+  if (id === "reset-view") {
+    resetViewSettings();
+    return { close: true };
+  }
+
+  return null;
 }
 
-if (resetViewOption) {
-  resetViewOption.addEventListener("click", () => {
-    closeToolbarSubmenus();
-    resetViewSettings();
-  });
-}
+window.wefranchPrototypeSettings = {
+  getItems: getPrototypeSettingsItems,
+  perform: performPrototypeSetting
+};
+
+window.dispatchEvent(new CustomEvent("wefranch:prototype-settings-ready"));
 
 const CREATE_TARGET_MODAL_CLOSE_DURATION_MS = 320;
-const CREATE_TARGET_ALERT_TOGGLE_DELAY_MS = 180;
+const DEFAULT_CREATE_TARGET_ALERTS = {
+  enabled: true,
+  notifyAdded: true,
+  notifyModified: true
+};
 let createTargetModalCloseTimeoutId = null;
-let createTargetAlertsOpenTimeoutId = null;
 let editingSavedSearchId = null;
 let pendingCreateTargetAlerts = null;
-let createTargetAlertsPreviewEnabled = false;
 
 function normalizeCreateTargetAlerts(alerts) {
   if (!alerts?.enabled) return null;
@@ -689,86 +777,75 @@ function normalizeCreateTargetAlerts(alerts) {
   };
 }
 
-function getCreateTargetAlertsHelperText() {
-  if (!pendingCreateTargetAlerts) {
-    return "Get notified when this view's data changes";
+function readCreateTargetAlertsFromForm() {
+  return {
+    enabled: true,
+    notifyAdded: Boolean(createTargetNotifyAdded?.checked),
+    notifyModified: Boolean(createTargetNotifyModified?.checked)
+  };
+}
+
+function syncCreateTargetAlertCheckbox(checkbox) {
+  checkbox?.closest(".filter-check")?.classList.toggle("is-checked", Boolean(checkbox?.checked));
+}
+
+function applyCreateTargetAlertCheckboxes(settings) {
+  const source = settings || DEFAULT_CREATE_TARGET_ALERTS;
+
+  if (createTargetNotifyAdded instanceof HTMLInputElement) {
+    createTargetNotifyAdded.checked = Boolean(source.notifyAdded);
   }
-  if (pendingCreateTargetAlerts.notifyAdded && pendingCreateTargetAlerts.notifyModified) {
-    return "New and modified matching data";
+  if (createTargetNotifyModified instanceof HTMLInputElement) {
+    createTargetNotifyModified.checked = Boolean(source.notifyModified);
   }
-  if (pendingCreateTargetAlerts.notifyAdded) {
-    return "New matching data";
-  }
-  if (pendingCreateTargetAlerts.notifyModified) {
-    return "Modified matching data";
-  }
-  return "Alerts on";
+  createTargetNotifyCheckboxes.forEach(syncCreateTargetAlertCheckbox);
 }
 
 function syncCreateTargetAlertsState() {
-  const isEnabled = Boolean(
-    pendingCreateTargetAlerts?.enabled || createTargetAlertsPreviewEnabled
-  );
+  const isEnabled = Boolean(pendingCreateTargetAlerts?.enabled);
+
+  createTargetAlerts?.classList.toggle("is-open", isEnabled);
   createTargetAlertsRow?.classList.toggle("is-enabled", isEnabled);
   createTargetAlertsToggle?.setAttribute("aria-checked", String(isEnabled));
+  createTargetAlertsToggle?.setAttribute("aria-expanded", String(isEnabled));
   createTargetAlertsToggle?.setAttribute(
     "aria-label",
     isEnabled ? "Disable alerts" : "Enable alerts"
   );
   if (createTargetAlertsHelper) {
-    createTargetAlertsHelper.textContent = getCreateTargetAlertsHelperText();
+    createTargetAlertsHelper.textContent = isEnabled
+      ? "Notify me when"
+      : "Get notified when this view's data changes";
   }
-  if (createTargetAlertsEdit) {
-    createTargetAlertsEdit.hidden = !(isEnabled && pendingCreateTargetAlerts?.enabled);
+
+  if (createTargetAlertsPanel) {
+    createTargetAlertsPanel.inert = !isEnabled;
+    createTargetAlertsPanel.setAttribute("aria-hidden", String(!isEnabled));
   }
 }
 
-function openCreateTargetAlertsModal(trigger) {
-  window.cstViewAlertModal?.open?.(trigger, {
-    settings: pendingCreateTargetAlerts,
-    onConfirm(settings) {
-      createTargetAlertsPreviewEnabled = false;
-      pendingCreateTargetAlerts = normalizeCreateTargetAlerts(settings);
-      syncCreateTargetAlertsState();
-    },
-    onCancel() {
-      createTargetAlertsPreviewEnabled = false;
-      syncCreateTargetAlertsState();
-    }
-  });
-}
-
-function animateCreateTargetAlertsOn(trigger) {
-  if (createTargetAlertsOpenTimeoutId) {
-    window.clearTimeout(createTargetAlertsOpenTimeoutId);
-  }
-
-  createTargetAlertsPreviewEnabled = true;
+function setCreateTargetAlerts(alerts) {
+  pendingCreateTargetAlerts = normalizeCreateTargetAlerts(alerts);
+  applyCreateTargetAlertCheckboxes(pendingCreateTargetAlerts || DEFAULT_CREATE_TARGET_ALERTS);
   syncCreateTargetAlertsState();
-  createTargetAlertsOpenTimeoutId = window.setTimeout(() => {
-    createTargetAlertsOpenTimeoutId = null;
-    if (!createTargetModal || createTargetModal.hidden || pendingCreateTargetAlerts?.enabled) {
-      return;
-    }
-    openCreateTargetAlertsModal(trigger);
-  }, CREATE_TARGET_ALERT_TOGGLE_DELAY_MS);
+}
+
+function toggleCreateTargetAlerts() {
+  pendingCreateTargetAlerts = pendingCreateTargetAlerts?.enabled
+    ? null
+    : readCreateTargetAlertsFromForm();
+  syncCreateTargetAlertsState();
 }
 
 function finalizeCreateTargetModalClose() {
   if (!createTargetModal) return;
 
-  if (createTargetAlertsOpenTimeoutId) {
-    window.clearTimeout(createTargetAlertsOpenTimeoutId);
-    createTargetAlertsOpenTimeoutId = null;
-  }
   createTargetModal.classList.remove("is-open", "is-closing");
   createTargetModal.hidden = true;
   createTargetForm?.reset();
   createTargetModalCloseTimeoutId = null;
   editingSavedSearchId = null;
-  pendingCreateTargetAlerts = null;
-  createTargetAlertsPreviewEnabled = false;
-  syncCreateTargetAlertsState();
+  setCreateTargetAlerts(null);
 
   if (lastCreateTargetTrigger instanceof HTMLElement) {
     if (lastCreateTargetTrigger.classList.contains("target-settings")) {
@@ -789,26 +866,20 @@ function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
     window.clearTimeout(createTargetModalCloseTimeoutId);
     createTargetModalCloseTimeoutId = null;
   }
-  if (createTargetAlertsOpenTimeoutId) {
-    window.clearTimeout(createTargetAlertsOpenTimeoutId);
-    createTargetAlertsOpenTimeoutId = null;
-  }
 
   lastCreateTargetTrigger = trigger;
   editingSavedSearchId = savedSearch?.id || null;
-  pendingCreateTargetAlerts = normalizeCreateTargetAlerts(savedSearch?.alerts);
-  createTargetAlertsPreviewEnabled = false;
   createTargetForm?.reset();
   createTargetTitleInput?.setCustomValidity("");
   if (createTargetModalTitle) {
-    createTargetModalTitle.textContent = editingSavedSearchId ? "Edit view" : "Save view";
+    createTargetModalTitle.textContent = editingSavedSearchId ? "Edit search" : "Save search";
   }
   if (deleteSavedViewBtn) {
     deleteSavedViewBtn.hidden = !editingSavedSearchId;
   }
   createTargetModal.querySelector(".target-modal-close")?.setAttribute(
     "aria-label",
-    editingSavedSearchId ? "Close edit view" : "Close save view"
+    editingSavedSearchId ? "Close edit search" : "Close save search"
   );
 
   if (savedSearch) {
@@ -822,7 +893,7 @@ function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
   } else if (createTargetTitleInput) {
     createTargetTitleInput.value = getSuggestedSavedViewTitle();
   }
-  syncCreateTargetAlertsState();
+  setCreateTargetAlerts(savedSearch?.alerts);
 
   createTargetModal.classList.remove("is-closing");
   createTargetModal.hidden = false;
@@ -838,12 +909,6 @@ function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
 function closeCreateTargetModal() {
   if (!createTargetModal || createTargetModal.hidden) return;
 
-  if (createTargetAlertsOpenTimeoutId) {
-    window.clearTimeout(createTargetAlertsOpenTimeoutId);
-    createTargetAlertsOpenTimeoutId = null;
-    createTargetAlertsPreviewEnabled = false;
-    syncCreateTargetAlertsState();
-  }
   if (createTargetModalCloseTimeoutId) {
     window.clearTimeout(createTargetModalCloseTimeoutId);
   }
@@ -875,33 +940,19 @@ if (readerViewSettingsBtn) {
   });
 }
 
-function toggleCreateTargetAlerts(trigger) {
-  if (pendingCreateTargetAlerts?.enabled || createTargetAlertsPreviewEnabled) {
-    if (createTargetAlertsOpenTimeoutId) {
-      window.clearTimeout(createTargetAlertsOpenTimeoutId);
-      createTargetAlertsOpenTimeoutId = null;
-    }
-    pendingCreateTargetAlerts = null;
-    createTargetAlertsPreviewEnabled = false;
-    syncCreateTargetAlertsState();
-    return;
-  }
-
-  animateCreateTargetAlertsOn(trigger);
-}
-
 createTargetAlertsRow?.addEventListener("click", (event) => {
   if (!(event.target instanceof Element)) return;
-  if (event.target.closest("#createTargetAlertsEdit")) return;
+  if (event.target.closest("#createTargetAlertsPanel")) return;
 
-  const trigger = event.target.closest("#createTargetAlertsToggle, #createTargetAlertsDetails") || createTargetAlertsRow;
-  toggleCreateTargetAlerts(trigger);
+  toggleCreateTargetAlerts();
 });
 
-createTargetAlertsEdit?.addEventListener("click", (event) => {
-  event.stopPropagation();
-  if (!pendingCreateTargetAlerts?.enabled) return;
-  openCreateTargetAlertsModal(createTargetAlertsEdit);
+createTargetNotifyCheckboxes.forEach((checkbox) => {
+  checkbox.addEventListener("change", () => {
+    syncCreateTargetAlertCheckbox(checkbox);
+    if (!pendingCreateTargetAlerts?.enabled) return;
+    pendingCreateTargetAlerts = readCreateTargetAlertsFromForm();
+  });
 });
 
 if (createTargetModal) {
@@ -993,6 +1044,7 @@ function closeToolbarSubmenu(submenu, trigger) {
 
 function closeToolbarSubmenus() {
   closeToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
+  closeToolbarSubmenu(toolbarDatasetSubmenu, toolbarDatasetSubmenuTrigger);
 }
 
 function closeToolbarDropdowns(exceptDropdown = null) {
@@ -1030,6 +1082,7 @@ function bindToolbarSubmenu(submenu, trigger) {
 }
 
 bindToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
+bindToolbarSubmenu(toolbarDatasetSubmenu, toolbarDatasetSubmenuTrigger);
 
 if (toolbarDropdowns.length) {
   document.addEventListener("click", (event) => {
@@ -1038,12 +1091,6 @@ if (toolbarDropdowns.length) {
 
     if (openDropdown.contains(event.target)) {
       closeToolbarDropdowns(openDropdown);
-      if (
-        openDropdown === toolbarDropdown &&
-        !toolbarSettingsSubmenu?.contains(event.target)
-      ) {
-        closeToolbarSubmenus();
-      }
       return;
     }
 
@@ -1170,10 +1217,6 @@ if (profileModal) {
 }
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && viewAlertModal && !viewAlertModal.hidden) {
-    window.cstViewAlertModal?.close?.();
-    return;
-  }
   if (event.key === "Escape" && saveLeadModal && !saveLeadModal.hidden) {
     if (saveLeadListSelectorField?.classList.contains("is-open")) {
       saveLeadListSelectorApi?.close();
@@ -1188,11 +1231,6 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key === "Escape" && profileModal && !profileModal.hidden) {
     closePersonProfile();
-    return;
-  }
-  if (event.key === "Escape" && datasetSelectorField?.classList.contains("is-open")) {
-    datasetSelectorApi?.close();
-    datasetSelectorInput?.blur();
     return;
   }
   if (event.key === "Escape" && toolbarDropdowns.some((dropdown) => dropdown.open)) {

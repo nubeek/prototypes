@@ -44,6 +44,9 @@ const CROSSROAD_ACCENT_FILL_OPACITY = 0.42;
 const CROSSROAD_PASTEL_FILL_OPACITY = 0.38;
 const CROSSROAD_PASTEL_FILL_OPACITY_MID = 0.48;
 const CROSSROAD_PASTEL_FILL_OPACITY_HIGH = 0.58;
+const CROSSROAD_PASTEL_WHITE_FILL_OPACITY = 0.5;
+const CROSSROAD_PASTEL_WHITE_FILL_OPACITY_MID = 0.4;
+const CROSSROAD_PASTEL_WHITE_FILL_OPACITY_HIGH = 0.3;
 const CROSSROAD_ACCENT_LINE_OPACITY = 0.72;
 const CROSSROAD_PASTEL_LINE_OPACITY = 0.8;
 const CROSSROAD_WHITE_LINE_OPACITY = 0.88;
@@ -383,9 +386,14 @@ function getCrossroadPreviewLineColor(brand, colorMode, borderColor) {
     || CROSSROAD_DENSITY_BORDER_COLOR;
 }
 
-function getCrossroadPreviewFillOpacity(colorMode, occupantCount) {
+function getCrossroadPreviewFillOpacity(colorMode, occupantCount, borderColor) {
   // Splash cards are tiny, so these stay stronger than the live map's 0.15 fills.
   if (colorMode === "pastel") {
+    if (borderColor === "white") {
+      if (occupantCount >= 3) return CROSSROAD_PASTEL_WHITE_FILL_OPACITY_HIGH;
+      if (occupantCount >= 2) return CROSSROAD_PASTEL_WHITE_FILL_OPACITY_MID;
+      return CROSSROAD_PASTEL_WHITE_FILL_OPACITY;
+    }
     if (occupantCount >= 20) return CROSSROAD_PASTEL_FILL_OPACITY_HIGH;
     if (occupantCount >= 6) return CROSSROAD_PASTEL_FILL_OPACITY_MID;
     return CROSSROAD_PASTEL_FILL_OPACITY;
@@ -482,7 +490,11 @@ function buildFillDataUrl(
     }
 
     const occupantCount = entry.brandIds?.size || 0;
-    const fillOpacity = getCrossroadPreviewFillOpacity(colorMode, occupantCount);
+    const fillOpacity = getCrossroadPreviewFillOpacity(
+      colorMode,
+      occupantCount,
+      theme.borderColor
+    );
     getCrossroadShapeOccupants(entry.brandIds).forEach((brandId) => {
       const fillColor = getCrossroadPreviewFillColor(getCrossroadBrand(brandId), colorMode);
       if (!fillColor) return;
@@ -1500,6 +1512,45 @@ function getCrossroadBrandInitials(name) {
     .toUpperCase();
 }
 
+function normalizeCrossroadSearchText(value) {
+  return String(value || "")
+    .toLocaleLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getCrossroadCategoryMatchIndex(label, query) {
+  const normalizedLabel = normalizeCrossroadSearchText(label);
+  const normalizedQuery = normalizeCrossroadSearchText(query);
+  if (!normalizedQuery) return -1;
+
+  const index = normalizedLabel.indexOf(normalizedQuery);
+  if (index !== -1) return index;
+
+  const tokens = normalizedQuery.split(/\s+/).filter((token) => (
+    token.length > 1 && token !== "and" && token !== "or"
+  ));
+  if (tokens.length < 2) return -1;
+  if (!tokens.every((token) => normalizedLabel.includes(token))) return -1;
+  return normalizedLabel.indexOf(tokens[0]) + 1000;
+}
+
+function isExactCrossroadSuggestion(item, query) {
+  return normalizeCrossroadSearchText(item?.label) === normalizeCrossroadSearchText(query);
+}
+
+function getCrossroadCategoryLabel(value) {
+  return window.territoryCategories?.formatLabel?.(value) || value;
+}
+
+function getCrossroadLocalSuggestions(query) {
+  return [
+    ...getCrossroadBrandSuggestions(query),
+    ...getCrossroadCategorySuggestions(query)
+  ];
+}
+
 function getCrossroadBrandSuggestions(query) {
   const normalizedQuery = normalizeCrossroadLocationQuery(query);
   if (normalizedQuery.length < 2) return [];
@@ -1523,6 +1574,43 @@ function getCrossroadBrandSuggestions(query) {
     .slice(0, CROSSROAD_SEARCH_SUGGESTION_GROUP_LIMIT);
 }
 
+function getCrossroadCategorySuggestions(query) {
+  const normalizedQuery = normalizeCrossroadLocationQuery(query);
+  if (normalizedQuery.length < 2) return [];
+
+  const groups = new Map();
+
+  crossroadTerritoryBrands.forEach((brand) => {
+    const value = String(brand.category || "").trim();
+    if (!value) return;
+
+    const label = getCrossroadCategoryLabel(value);
+    const group = groups.get(label) || {
+      filters: { categories: [] },
+      group: "Categories",
+      label,
+      type: "category",
+      values: []
+    };
+
+    if (!group.values.includes(value)) {
+      group.values.push(value);
+      group.filters.categories.push(value);
+    }
+
+    groups.set(label, group);
+  });
+
+  return [...groups.values()]
+    .map((item) => ({
+      ...item,
+      matchIndex: getCrossroadCategoryMatchIndex(`${item.label} ${item.values.join(" ")}`, query)
+    }))
+    .filter((item) => item.matchIndex !== -1)
+    .sort((left, right) => left.matchIndex - right.matchIndex || left.label.localeCompare(right.label))
+    .slice(0, CROSSROAD_SEARCH_SUGGESTION_GROUP_LIMIT);
+}
+
 function toCrossroadLocationSuggestion(result) {
   if (!result?.label) return null;
 
@@ -1536,9 +1624,9 @@ function toCrossroadLocationSuggestion(result) {
 }
 
 async function getCrossroadSearchSuggestions(query, { signal } = {}) {
-  const brandSuggestions = getCrossroadBrandSuggestions(query);
-  const remainingSlots = Math.max(0, CROSSROAD_SEARCH_SUGGESTION_LIMIT - brandSuggestions.length);
-  if (!remainingSlots) return brandSuggestions;
+  const localSuggestions = getCrossroadLocalSuggestions(query);
+  const remainingSlots = Math.max(0, CROSSROAD_SEARCH_SUGGESTION_LIMIT - localSuggestions.length);
+  if (!remainingSlots) return localSuggestions;
 
   let locationResults = [];
   try {
@@ -1553,8 +1641,12 @@ async function getCrossroadSearchSuggestions(query, { signal } = {}) {
     .filter(Boolean)
     .slice(0, Math.min(CROSSROAD_SEARCH_SUGGESTION_GROUP_LIMIT, remainingSlots));
 
-  return [...brandSuggestions, ...locationSuggestions].slice(0, CROSSROAD_SEARCH_SUGGESTION_LIMIT);
+  return [...localSuggestions, ...locationSuggestions].slice(0, CROSSROAD_SEARCH_SUGGESTION_LIMIT);
 }
+
+const CROSSROAD_SEARCH_SUGGESTION_ICON_SRCS = {
+  category: "assets/categories.png"
+};
 
 const CROSSROAD_SEARCH_SUGGESTION_ICONS = {
   location: `<svg viewBox="0 0 16 20" focusable="false"><path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/></svg>`
@@ -1585,6 +1677,13 @@ function createCrossroadSuggestionIcon(item) {
     return icon;
   }
 
+  const assetSrc = CROSSROAD_SEARCH_SUGGESTION_ICON_SRCS[item.type];
+  if (assetSrc) {
+    icon.classList.add("is-category");
+    icon.style.setProperty("--suggestion-icon", `url("${assetSrc}")`);
+    return icon;
+  }
+
   icon.innerHTML = CROSSROAD_SEARCH_SUGGESTION_ICONS[item.type] || CROSSROAD_SEARCH_SUGGESTION_ICONS.location;
   return icon;
 }
@@ -1595,6 +1694,15 @@ function startCrossroadBrandSearch(item) {
   chooseCrossroadOption({
     type: "new",
     filters: item.filters || { franchises: [item.brandId] }
+  });
+}
+
+function startCrossroadCategorySearch(item) {
+  if (!item?.filters?.categories?.length) return;
+
+  chooseCrossroadOption({
+    type: "new",
+    filters: item.filters
   });
 }
 
@@ -1747,7 +1855,7 @@ function bindCrossroadLocationSearch() {
       appendSuggestionHeading("Suggestions");
       const status = document.createElement("div");
       status.className = "territory-crossroad__search-suggestion-status";
-      status.textContent = "No brands or locations match.";
+      status.textContent = "No brands, categories, or locations match.";
       suggestions.append(status);
       setSuggestionsOpen(true);
       return;
@@ -1767,9 +1875,9 @@ function bindCrossroadLocationSearch() {
   }
 
   function renderSearchingSuggestions(query) {
-    const brandSuggestions = getCrossroadBrandSuggestions(query);
-    if (brandSuggestions.length) {
-      renderSuggestions(brandSuggestions);
+    const localSuggestions = getCrossroadLocalSuggestions(query);
+    if (localSuggestions.length) {
+      renderSuggestions(localSuggestions);
       appendSuggestionHeading("Locations");
       const status = document.createElement("div");
       status.className = "territory-crossroad__search-suggestion-status";
@@ -1814,6 +1922,11 @@ function bindCrossroadLocationSearch() {
 
     if (item.type === "brand") {
       startCrossroadBrandSearch(item);
+      return;
+    }
+
+    if (item.type === "category") {
+      startCrossroadCategorySearch(item);
       return;
     }
 
@@ -1866,7 +1979,7 @@ function bindCrossroadLocationSearch() {
     try {
       const query = input.value;
       if (!query.trim()) {
-        setCrossroadSearchFeedback("Enter a brand, city, county, CBSA, or state to begin.");
+        setCrossroadSearchFeedback("Enter a brand, category, city, county, CBSA, or state to begin.");
         input.focus();
         return;
       }
@@ -1874,7 +1987,7 @@ function bindCrossroadLocationSearch() {
       const locationResult = forcedResult?.locationResult || forcedResult;
       const result = await resolveCrossroadLocationSearch(query, locationResult || selectedSuggestion?.locationResult);
       if (!result) {
-        setCrossroadSearchFeedback("Choose a matching brand or U.S. location from the suggestions.");
+        setCrossroadSearchFeedback("Choose a matching brand, category, or U.S. location from the suggestions.");
         input.focus();
         return;
       }
@@ -1893,14 +2006,15 @@ function bindCrossroadLocationSearch() {
   async function submitCrossroadSearch() {
     const query = input.value.trim();
     if (!query) {
-      setCrossroadSearchFeedback("Enter a brand, city, county, CBSA, or state to begin.");
+      setCrossroadSearchFeedback("Enter a brand, category, city, county, CBSA, or state to begin.");
       input.focus();
       return;
     }
 
-    const brandMatch = getCrossroadBrandSuggestions(query)[0];
-    if (brandMatch && normalizeCrossroadLocationQuery(brandMatch.label) === normalizeCrossroadLocationQuery(query)) {
-      selectSuggestion(brandMatch, { submit: true });
+    const localSuggestions = getCrossroadLocalSuggestions(query);
+    const exactLocalMatch = localSuggestions.find((item) => isExactCrossroadSuggestion(item, query));
+    if (exactLocalMatch) {
+      selectSuggestion(exactLocalMatch, { submit: true });
       return;
     }
 
@@ -1910,12 +2024,12 @@ function bindCrossroadLocationSearch() {
       return;
     }
 
-    if (brandMatch) {
-      selectSuggestion(brandMatch, { submit: true });
+    if (localSuggestions[0]) {
+      selectSuggestion(localSuggestions[0], { submit: true });
       return;
     }
 
-    setCrossroadSearchFeedback("Choose a matching brand or U.S. location from the suggestions.");
+    setCrossroadSearchFeedback("Choose a matching brand, category, or U.S. location from the suggestions.");
     input.focus();
   }
 

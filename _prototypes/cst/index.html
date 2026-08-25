@@ -64,49 +64,37 @@
             <img class="toolbar-asset-icon filter-toggle-icon" src="assets/filters.svg" alt="" aria-hidden="true">
             <span id="filterToggleLabel">Filters</span>
           </button>
+          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="exportBtn" type="button" data-splash-workspace-control aria-label="Export" title="Export">
+            <img class="toolbar-asset-icon toolbar-export-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
+            <span>Export</span>
+          </button>
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="outreachBtn" type="button" data-splash-workspace-control aria-label="Outreach" title="Outreach">
+            <img class="toolbar-asset-icon toolbar-outreach-icon" src="assets/mail.svg" alt="" aria-hidden="true">
+            <span>Outreach</span>
+          </button>
         </div>
 
         <div class="toolbar-group toolbar-actions">
-          <details class="toolbar-dropdown" id="toolbarMenuDropdown">
+          <details class="toolbar-dropdown" id="toolbarMenuDropdown" data-reader-hide>
             <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
               <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
               <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
             </summary>
             <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Export CSV</span>
-              </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="assets/mail.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Email campaign</span>
-              </button>
-              <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-              <div class="toolbar-submenu" data-toolbar-submenu="settings">
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="toolbarSettingsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbarSettingsSubmenu">
-                  <span class="toolbar-dropdown-icon-placeholder" aria-hidden="true"></span>
-                  <span class="toolbar-dropdown-label">Settings</span>
+              <div class="toolbar-submenu" id="datasetSelector" data-toolbar-submenu="dataset" data-dataset-active="false">
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="datasetSelectorTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="datasetSelectorMenu">
+                  <img class="toolbar-dropdown-icon dataset-selector-icon" src="assets/dataset.svg?v=2" alt="" aria-hidden="true">
+                  <span class="toolbar-dropdown-label" id="datasetSelectorLabel">Select dataset</span>
                   <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
                 </button>
-                <div class="ui-menu toolbar-submenu-menu" id="toolbarSettingsSubmenu" role="menu" aria-label="Settings menu">
-                  <button class="ui-menu-item toolbar-dropdown-option" id="reduceMotionToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
-                    <span class="toolbar-switch" aria-hidden="true"></span>
-                    <span class="toolbar-dropdown-label">Reduce motion</span>
-                  </button>
-                  <div class="toolbar-dropdown-divider" aria-hidden="true"></div>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="takeScreenshotOption" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon toolbar-screenshot-icon" src="assets/screenshot.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Take screenshot</span>
-                  </button>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="resetViewOption" type="button" role="menuitem">
-                    <img class="toolbar-dropdown-icon" src="assets/reset.svg" alt="" aria-hidden="true">
-                    <span class="toolbar-dropdown-label">Reset view</span>
-                  </button>
+                <div class="ui-menu toolbar-submenu-menu" id="datasetSelectorMenu" role="menu" aria-label="Datasets">
+                  <div class="dataset-selector-options" id="datasetSelectorOptions"></div>
                 </div>
               </div>
             </div>
           </details>
-          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
+          <span class="toolbar-divider" data-splash-workspace-control data-reader-hide aria-hidden="true"></span>
           <div class="toolbar-tabs segmented-control" data-splash-workspace-control>
             <div class="toolbar-tab-item">
               <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" aria-controls="mapPanel" aria-expanded="false">
@@ -200,31 +188,6 @@
             </div>
           </div>
           <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
-          <div class="toolbar-dataset-selector" id="datasetSelector" data-dataset-active="false" data-splash-workspace-control>
-            <div class="dataset-selector-field">
-              <img class="dataset-selector-icon" src="assets/dataset.svg?v=2" alt="" aria-hidden="true">
-              <input
-                class="dataset-selector-input"
-                id="datasetSelectorInput"
-                type="text"
-                autocomplete="off"
-                spellcheck="false"
-                placeholder="Select dataset..."
-                role="combobox"
-                aria-autocomplete="list"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-                aria-controls="datasetSelectorMenu"
-                aria-label="Select dataset"
-              >
-              <button class="dataset-selector-clear" id="datasetSelectorClear" type="button" hidden aria-label="Clear dataset selection"></button>
-              <img class="toolbar-chevron dataset-selector-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-              <div class="ui-menu dataset-selector-menu" id="datasetSelectorMenu" role="listbox" aria-label="Datasets">
-                <div class="dataset-selector-options" id="datasetSelectorOptions"></div>
-              </div>
-            </div>
-          </div>
-          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
           <label class="toolbar-search-btn toolbar-btn" data-splash-workspace-control for="toolbarSearchInput" role="search">
             <img class="toolbar-asset-icon toolbar-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
             <input
@@ -260,8 +223,8 @@
               aria-haspopup="listbox"
               aria-expanded="false"
               aria-controls="cstSplashSearchSuggestions"
-              placeholder="Search by franchisee, brand, or location..."
-              aria-label="Search franchisees, brands, and locations"
+              placeholder="Search by franchisee, brand, category, or location..."
+              aria-label="Search franchisees, brands, categories, and locations"
               aria-describedby="cstSplashSearchFeedback"
             >
             <div
@@ -648,7 +611,18 @@
           <header class="table-heading">
             <div class="table-heading__row">
               <div class="table-heading__title-group">
-                <h2 id="tableHeadingTitle">Franchisees</h2>
+                <div class="table-heading__title">
+                  <h2 id="tableHeadingTitle">Franchisees</h2>
+                  <button
+                    class="table-heading__info"
+                    id="tableHeadingInfo"
+                    type="button"
+                    aria-label="About Franchisees"
+                    data-tooltip="Franchisees are not registered Wefranch users and have not opted in to Wefranch communications."
+                  >
+                    <img class="table-heading__info-icon" src="assets/info.svg" alt="" aria-hidden="true">
+                  </button>
+                </div>
               </div>
               <div class="table-heading__actions">
                 <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__edit-query" id="readerEditQueryBtn" type="button" data-reader-only aria-label="Filters" title="Filters">
@@ -836,13 +810,13 @@
       <form class="target-modal-form create-target-modal-form" id="createTargetForm">
         <div class="create-target-modal-content">
         <div class="target-modal-header">
-          <h2 class="target-modal-title" id="createTargetModalTitle">Save view</h2>
+          <h2 class="target-modal-title" id="createTargetModalTitle">Save search</h2>
           <div class="target-modal-header-actions">
             <button class="ui-control ui-button-ghost target-modal-delete" id="deleteSavedView" type="button" hidden>
               <img class="target-modal-delete__icon" src="assets/delete.svg" alt="" aria-hidden="true" width="12" height="14">
               Delete
             </button>
-            <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close" type="button" aria-label="Close save view">
+            <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close" type="button" aria-label="Close save search">
               <img src="assets/close.svg" alt="" aria-hidden="true">
             </button>
           </div>
@@ -872,35 +846,47 @@
 
         <div class="target-modal-divider" aria-hidden="true"></div>
 
-        <div class="target-modal-alert-row" id="createTargetAlertsRow">
-          <div class="target-modal-alert-content">
-            <button class="target-modal-alert-details" id="createTargetAlertsDetails" type="button">
-              <span class="target-modal-alert-label">Alerts</span>
-              <span class="target-modal-alert-helper" id="createTargetAlertsHelper">Get notified when this view's data changes</span>
-            </button>
+        <div class="save-view-alerts" id="createTargetAlerts">
+          <div class="target-modal-alert-row" id="createTargetAlertsRow">
+            <div class="target-modal-alert-content">
+              <img class="target-modal-alert-icon" src="assets/alert.svg" alt="" aria-hidden="true" width="16" height="16">
+              <button class="target-modal-alert-details" id="createTargetAlertsDetails" type="button">
+                <span class="target-modal-alert-label">Alerts</span>
+                <span class="target-modal-alert-helper" id="createTargetAlertsHelper">Get notified when this view's data changes</span>
+              </button>
+            </div>
+            <div class="target-modal-alert-actions">
+              <button
+                class="target-modal-alert-switch"
+                id="createTargetAlertsToggle"
+                type="button"
+                role="switch"
+                aria-checked="false"
+                aria-expanded="false"
+                aria-label="Enable alerts"
+                aria-describedby="createTargetAlertsHelper"
+                aria-controls="createTargetAlertsPanel"
+              >
+                <span class="toolbar-switch" aria-hidden="true"></span>
+              </button>
+            </div>
           </div>
-          <div class="target-modal-alert-actions">
-            <button
-              class="target-modal-alert-edit"
-              id="createTargetAlertsEdit"
-              type="button"
-              hidden
-              aria-label="Edit alert"
-              data-tooltip="Edit alert"
-            >
-              <img class="target-modal-alert-edit__icon" src="assets/settings.svg" alt="" aria-hidden="true">
-            </button>
-            <button
-              class="target-modal-alert-switch"
-              id="createTargetAlertsToggle"
-              type="button"
-              role="switch"
-              aria-checked="false"
-              aria-label="Enable alerts"
-              aria-describedby="createTargetAlertsHelper"
-            >
-              <span class="toolbar-switch" aria-hidden="true"></span>
-            </button>
+
+          <div class="save-view-alerts-panel" id="createTargetAlertsPanel" aria-hidden="true" inert>
+            <div class="save-view-alerts-panel__clip">
+              <div class="filter-check-group save-view-alerts-options">
+                <label class="filter-check is-checked">
+                  <input class="save-view-notify-checkbox" type="checkbox" name="notifyAdded" checked>
+                  <span class="filter-checkbox" aria-hidden="true"></span>
+                  <span>New records are added</span>
+                </label>
+                <label class="filter-check is-checked">
+                  <input class="save-view-notify-checkbox" type="checkbox" name="notifyModified" checked>
+                  <span class="filter-checkbox" aria-hidden="true"></span>
+                  <span>Existing records change</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
         </div>
@@ -908,46 +894,6 @@
         <div class="target-modal-actions">
           <button class="ui-control ui-button target-modal-cancel" type="button">Cancel</button>
           <button class="ui-control ui-button ui-button-primary target-modal-save" type="submit">Save</button>
-        </div>
-      </form>
-    </section>
-  </div>
-
-  <div class="profile-modal-overlay target-modal-overlay view-alert-modal-overlay" id="viewAlertModal" hidden>
-    <section class="profile-modal target-modal view-alert-modal" role="dialog" aria-modal="true" aria-labelledby="viewAlertModalTitle">
-      <form class="target-modal-form view-alert-modal-form" id="viewAlertModalForm">
-        <div class="target-modal-header">
-          <h2 class="target-modal-title view-alert-modal-title" id="viewAlertModalTitle">
-            <img class="view-alert-modal-title__icon" src="assets/add-alert.svg" alt="" aria-hidden="true" width="18" height="18">
-            Set up an alert
-          </h2>
-          <div class="target-modal-header-actions">
-            <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close view-alert-modal-close" type="button" aria-label="Close alert setup">
-              <img src="assets/close.svg" alt="" aria-hidden="true">
-            </button>
-          </div>
-        </div>
-        <p class="view-alert-description">We'll notify you when results matching this view change.</p>
-
-        <fieldset class="view-alert-notify">
-          <legend class="view-alert-notify__legend">Notify me when</legend>
-          <div class="filter-check-group view-alert-notify__options">
-            <label class="filter-check is-checked">
-              <input class="view-alert-notify-checkbox" type="checkbox" name="notifyAdded" checked>
-              <span class="filter-checkbox" aria-hidden="true"></span>
-              <span>New records are added</span>
-            </label>
-            <label class="filter-check is-checked">
-              <input class="view-alert-notify-checkbox" type="checkbox" name="notifyModified" checked>
-              <span class="filter-checkbox" aria-hidden="true"></span>
-              <span>Existing records change</span>
-            </label>
-          </div>
-        </fieldset>
-
-        <div class="target-modal-actions view-alert-modal-actions">
-          <button class="ui-control ui-button target-modal-cancel view-alert-modal-cancel" type="button">Cancel</button>
-          <button class="ui-control ui-button ui-button-primary target-modal-save view-alert-modal-save" type="submit">Save alert</button>
         </div>
       </form>
     </section>
@@ -982,7 +928,6 @@
   <script src="scripts/10-dataset-selector.js"></script>
   <script src="scripts/11-save-lead-modal.js"></script>
   <script src="scripts/12-contact-action-tooltips.js"></script>
-  <script src="scripts/15-view-alert-modal.js"></script>
   <script src="scripts/09-bootstrap.js"></script>
   <script src="scripts/13-splash.js"></script>
 </body>

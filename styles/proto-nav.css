@@ -22,6 +22,11 @@
   border: 0;
   overflow: visible;
   pointer-events: none;
+  transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1), margin-left 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.proto-nav.has-settings {
+  --proto-nav-width: 329px;
 }
 
 html.access-granted body.access-locked > .proto-nav:not(.is-open),
@@ -60,6 +65,7 @@ body > .proto-nav:not(.is-open) {
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.7) inset,
     0 8px 20px rgba(17, 17, 17, 0.03);
+  transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .proto-nav__indicator {
@@ -93,6 +99,11 @@ body > .proto-nav:not(.is-open) {
   background: transparent;
   color: #111;
   text-decoration: none;
+  font: inherit;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
 }
 
 .proto-nav__icon {
@@ -217,6 +228,185 @@ body > .proto-nav:not(.is-open) {
   white-space: nowrap;
 }
 
+.proto-nav__divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 18px;
+  margin: 0 10px;
+  background: rgba(17, 17, 17, 0.12);
+  pointer-events: none;
+}
+
+.proto-nav__divider[hidden],
+.proto-nav__settings[hidden] {
+  display: none;
+}
+
+.proto-nav__item.proto-nav__settings {
+  flex: 0 0 48px;
+  width: 48px;
+}
+
+.proto-nav.is-settings-open .proto-nav__settings .proto-nav__icon {
+  opacity: 1;
+}
+
+.proto-nav__settings-menu {
+  position: absolute;
+  top: auto;
+  right: 6px;
+  bottom: calc(100% + 6px);
+  left: auto;
+  width: max-content;
+  min-width: 200px;
+  margin: 0;
+  padding: 10px 0;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  overflow: visible;
+  z-index: 2;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 160ms ease, bottom 160ms ease, visibility 0s linear 160ms;
+}
+
+.proto-nav.is-settings-open .proto-nav__settings-menu {
+  bottom: calc(100% + 16px);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 160ms ease, bottom 160ms ease, visibility 0s;
+}
+
+.proto-nav__settings-divider {
+  height: 0;
+  border-top: 1px solid #ececf0;
+  margin: 10px 16px;
+}
+
+.proto-nav__settings-switch {
+  width: 22px;
+  height: 16px;
+  border-radius: 999px;
+  background: #b8b8b8;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  flex: 0 0 auto;
+}
+
+.proto-nav__settings-switch::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+  transform: translateX(0);
+}
+
+.proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-switch {
+  background: #7a63dd;
+}
+
+.proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-switch::before {
+  transform: translateX(6px);
+}
+
+.proto-nav__settings-item-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
+  opacity: 0.8;
+}
+
+.proto-nav__settings-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.proto-nav__settings-item.is-end .proto-nav__menu-label {
+  flex: 1 1 auto;
+}
+
+.proto-nav__settings-chevron {
+  width: 11px;
+  height: 6px;
+  display: block;
+  flex: 0 0 auto;
+  opacity: 0.6;
+  transform: rotate(-90deg);
+}
+
+.proto-nav__settings-radio {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #f4f4f4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.proto-nav__settings-radio::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #111;
+  opacity: 0;
+}
+
+.proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-radio {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e1e1e1;
+}
+
+.proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-radio::before {
+  opacity: 1;
+}
+
+.proto-nav__settings-submenu {
+  position: relative;
+}
+
+.proto-nav__settings-submenu::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 100%;
+  bottom: 0;
+  width: 8px;
+}
+
+.proto-nav__settings-submenu-menu {
+  position: absolute;
+  right: calc(100% + 4px);
+  bottom: -10px;
+  width: max-content;
+  min-width: 196px;
+  margin: 0;
+  padding: 10px 0;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  display: none;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.proto-nav__settings-submenu.is-open > .proto-nav__settings-submenu-menu,
+.proto-nav__settings-submenu:hover > .proto-nav__settings-submenu-menu {
+  display: block;
+}
+
 @keyframes proto-nav-enter {
   0% {
     bottom: calc(-1 * (var(--proto-nav-height) + 8px));
@@ -275,6 +465,11 @@ iframe[data-proto-nav-shell].is-fading {
     animation: none;
   }
 
+  .proto-nav,
+  .proto-nav__bar {
+    transition: none;
+  }
+
   .proto-nav.is-open {
     bottom: var(--proto-nav-inset);
   }
@@ -284,7 +479,9 @@ iframe[data-proto-nav-shell].is-fading {
   }
 
   .proto-nav__menu,
-  .proto-nav.is-home-open .proto-nav__menu {
+  .proto-nav.is-home-open .proto-nav__menu,
+  .proto-nav__settings-menu,
+  .proto-nav.is-settings-open .proto-nav__settings-menu {
     transition: none;
   }
 

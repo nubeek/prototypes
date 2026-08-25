@@ -13,6 +13,7 @@ const TERRITORIES_DIR = path.resolve(__dirname, "..");
 const REAL_DIR = path.join(TERRITORIES_DIR, "data", "real");
 const GEOMETRY_PATH = path.join(REAL_DIR, "geometry.geojson");
 const TIGER_PLACE_URL = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4/query";
+const TIGER_CDP_URL = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/5/query";
 const SIMPLIFY_TOLERANCE = 0.002;
 const COORDINATE_PRECISION = 4;
 
@@ -203,11 +204,11 @@ function collectPlaceGeoKeysFromBrandFiles() {
   return geoKeys;
 }
 
-async function fetchPlaceFeatures(geoIds) {
+async function fetchPlaceFeatures(geoIds, layerUrl = TIGER_PLACE_URL) {
   if (!geoIds.length) return [];
 
   const where = `GEOID IN (${geoIds.map((id) => `'${id}'`).join(",")})`;
-  const url = new URL(TIGER_PLACE_URL);
+  const url = new URL(layerUrl);
   url.searchParams.set("where", where);
   url.searchParams.set("outFields", "NAME,GEOID,STATE");
   url.searchParams.set("f", "geojson");
@@ -271,6 +272,15 @@ async function main() {
   const fetchedByGeoId = new Map(
     fetchedFeatures.map((feature) => [String(feature.properties?.GEOID), feature])
   );
+
+  const unresolvedGeoIds = geoIds.filter((geoId) => !fetchedByGeoId.has(geoId));
+  for (let index = 0; index < unresolvedGeoIds.length; index += batchSize) {
+    const batch = unresolvedGeoIds.slice(index, index + batchSize);
+    const features = await fetchPlaceFeatures(batch, TIGER_CDP_URL);
+    for (const feature of features) {
+      fetchedByGeoId.set(String(feature.properties?.GEOID), feature);
+    }
+  }
 
   const added = [];
   const stillMissing = [];

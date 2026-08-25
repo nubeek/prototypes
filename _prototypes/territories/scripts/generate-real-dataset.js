@@ -113,7 +113,7 @@ function deriveCategory(concept) {
   const matches = (pattern) => pattern.test(haystack);
 
   if (matches(/\b(entertainment|trampoline|amusement|recreation)\b/)) {
-    return "Entertainment";
+    return "Youth Enrichment";
   }
   if (matches(/\b(restaurant|coffee|pizza|food|beverage|bakery|kitchen|paleta|burger|yoga cafe)\b/)) {
     return "Food & Beverage";
