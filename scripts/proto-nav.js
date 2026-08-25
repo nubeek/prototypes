@@ -46,6 +46,9 @@
 
   const STORAGE_KEY = "wefranch:proto-nav-open";
   const SHELL_STATE = { wefranchProtoNavShell: true };
+  const NAV_SCRIPT_SRC = document.currentScript?.src || "";
+  const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+  const PROTOTYPES_PREFIX = "/_prototypes";
   const ITEMS = [
     { id: "home", label: "Home", icon: "home.svg", href: "/_prototypes/" },
     { id: "prospects", label: "Prospects", icon: "prospects.svg", href: "/_prototypes/cst/" },
@@ -409,15 +412,47 @@ iframe[data-proto-nav-shell].is-fading {
 `;
 
   const getSiteRoot = () => {
+    const scriptSrc = NAV_SCRIPT_SRC
+      || document.querySelector('script[src*="proto-nav.js"]')?.src
+      || "";
+
+    if (scriptSrc) {
+      const scriptPath = new URL(scriptSrc, window.location.href).pathname;
+      const scriptsIndex = scriptPath.lastIndexOf("/scripts/");
+      if (scriptsIndex !== -1) {
+        return scriptPath.slice(0, scriptsIndex);
+      }
+    }
+
     const { pathname } = window.location;
-    const markerIndex = pathname.indexOf("/_prototypes");
+    const markerIndex = pathname.indexOf(PROTOTYPES_PREFIX);
     if (markerIndex !== -1) {
       return pathname.slice(0, markerIndex);
     }
-    return pathname.replace(/\/[^/]*$/, "");
+
+    return "";
   };
 
-  const resolveUrl = (absolutePath) => `${getSiteRoot()}${absolutePath}`;
+  const isPublishedLayout = () => {
+    if (window.location.pathname.includes(PROTOTYPES_PREFIX)) {
+      return false;
+    }
+
+    return !LOCAL_HOSTNAMES.has(window.location.hostname);
+  };
+
+  const rewritePublicPath = (absolutePath) => {
+    if (!isPublishedLayout() || !absolutePath.startsWith(PROTOTYPES_PREFIX)) {
+      return absolutePath;
+    }
+
+    const rest = absolutePath.slice(PROTOTYPES_PREFIX.length);
+    return rest.startsWith("/") ? rest : `/${rest}`;
+  };
+
+  const resolveUrl = (absolutePath) => `${getSiteRoot()}${rewritePublicPath(absolutePath)}`;
+
+  const normalizePath = (value) => value.replace(/\/index\.html$/, "").replace(/\/$/, "") || "/";
 
   const matchActiveId = (pathname) => {
     if (/\/one-pager(?:\/|$)/.test(pathname)) return "one-pager";
@@ -428,8 +463,7 @@ iframe[data-proto-nav-shell].is-fading {
     if (/\/cst(?:\/|$)/.test(pathname)) return "prospects";
     if (
       /\/_prototypes\/?(?:index\.html)?$/.test(pathname) ||
-      pathname === "/" ||
-      (/\/index\.html$/.test(pathname) && !pathname.includes("/_prototypes/"))
+      normalizePath(pathname) === normalizePath(getSiteRoot())
     ) {
       return "home";
     }
