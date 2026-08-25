@@ -26,8 +26,8 @@ const CROSSROAD_SEARCH_SUGGESTION_LIMIT = 9;
 
 let crossroadTerritoryBrands = [];
 
-// Territory preview overlays for splash preset cards: density fills plus crisp
-// borders.
+// Territory preview overlays for splash preset cards. Fills and borders follow
+// the live Colors / Borders theme so we don't bake every combination ahead of time.
 const CROSSROAD_PREVIEW_EXCLUDED_STATES = new Set(["AK", "HI"]);
 const CROSSROAD_PREVIEW_STYLES = {
   state: { borderWidth: 3.5 },
@@ -40,6 +40,20 @@ const CROSSROAD_DENSITY_LOW_OPACITY = 0.3;
 const CROSSROAD_DENSITY_HIGH_OPACITY = 0.72;
 const CROSSROAD_DENSITY_BORDER_COLOR = CROSSROAD_DENSITY_HIGH_COLOR;
 const CROSSROAD_DENSITY_BORDER_OPACITY = 0.42;
+const CROSSROAD_ACCENT_FILL_OPACITY = 0.42;
+const CROSSROAD_PASTEL_FILL_OPACITY = 0.38;
+const CROSSROAD_PASTEL_FILL_OPACITY_MID = 0.48;
+const CROSSROAD_PASTEL_FILL_OPACITY_HIGH = 0.58;
+const CROSSROAD_ACCENT_LINE_OPACITY = 0.72;
+const CROSSROAD_PASTEL_LINE_OPACITY = 0.8;
+const CROSSROAD_WHITE_LINE_OPACITY = 0.88;
+const CROSSROAD_WHITE_BORDER_COLOR = "#ffffff";
+const CROSSROAD_DEFAULT_THEME = {
+  colorMode: "density",
+  borders: true,
+  borderColor: "default"
+};
+const CROSSROAD_SHAPE_MAX_VISIBLE = 5;
 
 /* Web Mercator projection (matches Mapbox center/zoom rendering) --------- */
 
@@ -312,6 +326,82 @@ function buildBaseMapUrl(view = CROSSROAD_DEFAULT_VIEW) {
     + `${lng},${lat},${view.zoom},0/${dimensions}?${params.toString()}`;
 }
 
+function getCrossroadTheme() {
+  const theme = window.territoryFilters?.getVisualizationTheme?.();
+  if (!theme) return { ...CROSSROAD_DEFAULT_THEME };
+
+  return {
+    colorMode: theme.colorMode === "accent" || theme.colorMode === "pastel"
+      ? theme.colorMode
+      : "density",
+    borders: theme.borders !== false,
+    borderColor: theme.borderColor === "white" ? "white" : "default"
+  };
+}
+
+function getCrossroadBrand(brandId) {
+  if (!brandId) return null;
+  return crossroadTerritoryBrands.find((brand) => brand.id === brandId) || null;
+}
+
+function getCrossroadShapeMaxVisible() {
+  return window.territoryMapControls?.getTerritoryShapeMaxVisible?.() || CROSSROAD_SHAPE_MAX_VISIBLE;
+}
+
+function getCrossroadShapeOccupants(brandIds) {
+  if (!brandIds?.size) return [];
+
+  const ordered = [];
+  const seen = new Set();
+  const maxVisible = getCrossroadShapeMaxVisible();
+
+  crossroadTerritoryBrands.forEach((brand) => {
+    if (!brandIds.has(brand.id) || seen.has(brand.id)) return;
+    seen.add(brand.id);
+    ordered.push(brand.id);
+  });
+
+  brandIds.forEach((brandId) => {
+    if (seen.has(brandId)) return;
+    seen.add(brandId);
+    ordered.push(brandId);
+  });
+
+  return ordered.slice(0, maxVisible);
+}
+
+function getCrossroadPreviewFillColor(brand, colorMode) {
+  return window.territoryMapControls?.getTerritoryPreviewBrandFillColor?.(brand, colorMode)
+    || brand?.color
+    || null;
+}
+
+function getCrossroadPreviewLineColor(brand, colorMode, borderColor) {
+  if (borderColor === "white") return CROSSROAD_WHITE_BORDER_COLOR;
+  return window.territoryMapControls?.getTerritoryPreviewBrandLineColor?.(brand, colorMode, borderColor)
+    || brand?.color
+    || CROSSROAD_DENSITY_BORDER_COLOR;
+}
+
+function getCrossroadPreviewFillOpacity(colorMode, occupantCount) {
+  // Splash cards are tiny, so these stay stronger than the live map's 0.15 fills.
+  if (colorMode === "pastel") {
+    if (occupantCount >= 20) return CROSSROAD_PASTEL_FILL_OPACITY_HIGH;
+    if (occupantCount >= 6) return CROSSROAD_PASTEL_FILL_OPACITY_MID;
+    return CROSSROAD_PASTEL_FILL_OPACITY;
+  }
+  return CROSSROAD_ACCENT_FILL_OPACITY;
+}
+
+function getCrossroadPreviewLineOpacity(colorMode, borderColor) {
+  const opacity = window.territoryMapControls?.getTerritoryPreviewLineOpacity?.(colorMode, borderColor);
+  if (Number.isFinite(opacity)) return opacity;
+  if (borderColor === "white") return CROSSROAD_WHITE_LINE_OPACITY;
+  if (colorMode === "pastel") return CROSSROAD_PASTEL_LINE_OPACITY;
+  if (colorMode === "accent") return CROSSROAD_ACCENT_LINE_OPACITY;
+  return CROSSROAD_DENSITY_BORDER_OPACITY;
+}
+
 function getCrossroadPreviewStyle(previewLevel = "state") {
   if (previewLevel === "county") return CROSSROAD_PREVIEW_STYLES.county;
   if (previewLevel === "state") return CROSSROAD_PREVIEW_STYLES.state;
@@ -355,9 +445,16 @@ function interpolateCrossroadValue(start, end, ratio) {
   return start + ((end - start) * Math.min(1, Math.max(0, ratio)));
 }
 
-function buildFillDataUrl(geoIndex, matchedFeatures, previewLevel = "state", view = CROSSROAD_DEFAULT_VIEW) {
+function buildFillDataUrl(
+  geoIndex,
+  matchedFeatures,
+  previewLevel = "state",
+  view = CROSSROAD_DEFAULT_VIEW,
+  theme = CROSSROAD_DEFAULT_THEME
+) {
   const projection = createSnapshotProjection(view);
   const { project, canvasWidth, canvasHeight } = projection;
+  const colorMode = theme.colorMode || "density";
 
   const fillCanvas = document.createElement("canvas");
   fillCanvas.width = canvasWidth;
@@ -366,17 +463,38 @@ function buildFillDataUrl(geoIndex, matchedFeatures, previewLevel = "state", vie
 
   let drewAny = false;
 
-  matchedFeatures.forEach(({ feature, densityColor, densityOpacity }) => {
-    if (shouldExcludeCrossroadFeature(feature, previewLevel)) return;
-    if (!feature?.geometry || !densityColor) return;
+  matchedFeatures.forEach((entry) => {
+    const { feature } = entry;
+    const entryLevel = entry.previewLevel || previewLevel;
+    if (shouldExcludeCrossroadFeature(feature, entryLevel)) return;
+    if (!feature?.geometry) return;
 
-    fillContext.beginPath();
-    traceGeometry(fillContext, feature.geometry, project);
-    fillContext.fillStyle = densityColor;
-    fillContext.globalAlpha = densityOpacity;
-    fillContext.fill("evenodd");
-    fillContext.globalAlpha = 1;
-    drewAny = true;
+    if (colorMode === "density") {
+      if (!entry.densityColor) return;
+      fillContext.beginPath();
+      traceGeometry(fillContext, feature.geometry, project);
+      fillContext.fillStyle = entry.densityColor;
+      fillContext.globalAlpha = entry.densityOpacity;
+      fillContext.fill("evenodd");
+      fillContext.globalAlpha = 1;
+      drewAny = true;
+      return;
+    }
+
+    const occupantCount = entry.brandIds?.size || 0;
+    const fillOpacity = getCrossroadPreviewFillOpacity(colorMode, occupantCount);
+    getCrossroadShapeOccupants(entry.brandIds).forEach((brandId) => {
+      const fillColor = getCrossroadPreviewFillColor(getCrossroadBrand(brandId), colorMode);
+      if (!fillColor) return;
+
+      fillContext.beginPath();
+      traceGeometry(fillContext, feature.geometry, project);
+      fillContext.fillStyle = fillColor;
+      fillContext.globalAlpha = fillOpacity;
+      fillContext.fill("evenodd");
+      fillContext.globalAlpha = 1;
+      drewAny = true;
+    });
   });
 
   if (!drewAny) return "";
@@ -401,11 +519,19 @@ function buildFillDataUrl(geoIndex, matchedFeatures, previewLevel = "state", vie
   return fillCanvas.toDataURL("image/png");
 }
 
-// Draws matched territory outlines as crisp density-colored strokes on a
-// transparent layer so borders read clearly on top of the solid fills.
-function buildBordersDataUrl(matchedFeatures, previewLevel = "state", view = CROSSROAD_DEFAULT_VIEW) {
-  const { borderWidth } = getCrossroadPreviewStyle(previewLevel);
+// Draws matched territory outlines on a transparent layer so borders stay
+// crisp on top of the fills. Color follows the live Borders / Colors theme.
+function buildBordersDataUrl(
+  matchedFeatures,
+  previewLevel = "state",
+  view = CROSSROAD_DEFAULT_VIEW,
+  theme = CROSSROAD_DEFAULT_THEME
+) {
+  if (theme.borders === false) return "";
+
   const { project, canvasWidth, canvasHeight } = createSnapshotProjection(view);
+  const colorMode = theme.colorMode || "density";
+  const borderColor = theme.borderColor || "default";
 
   const canvas = document.createElement("canvas");
   canvas.width = canvasWidth;
@@ -413,18 +539,32 @@ function buildBordersDataUrl(matchedFeatures, previewLevel = "state", view = CRO
   const context = canvas.getContext("2d");
   context.lineJoin = "round";
   context.lineCap = "round";
-  context.lineWidth = borderWidth;
-  context.globalAlpha = CROSSROAD_DENSITY_BORDER_OPACITY;
 
   let drewAny = false;
 
-  matchedFeatures.forEach(({ feature }) => {
-    if (shouldExcludeCrossroadFeature(feature, previewLevel)) return;
+  matchedFeatures.forEach((entry) => {
+    const { feature } = entry;
+    const entryLevel = entry.previewLevel || previewLevel;
+    if (shouldExcludeCrossroadFeature(feature, entryLevel)) return;
     if (!feature?.geometry) return;
 
+    let strokeStyle = CROSSROAD_DENSITY_BORDER_COLOR;
+    let strokeOpacity = CROSSROAD_DENSITY_BORDER_OPACITY;
+
+    if (borderColor === "white") {
+      strokeStyle = CROSSROAD_WHITE_BORDER_COLOR;
+      strokeOpacity = getCrossroadPreviewLineOpacity(colorMode, borderColor);
+    } else if (colorMode !== "density") {
+      const topBrand = getCrossroadBrand(getCrossroadShapeOccupants(entry.brandIds)[0]);
+      strokeStyle = getCrossroadPreviewLineColor(topBrand, colorMode, borderColor);
+      strokeOpacity = getCrossroadPreviewLineOpacity(colorMode, borderColor);
+    }
+
+    context.lineWidth = getCrossroadPreviewStyle(entryLevel).borderWidth;
+    context.globalAlpha = strokeOpacity;
     context.beginPath();
     traceGeometry(context, feature.geometry, project);
-    context.strokeStyle = CROSSROAD_DENSITY_BORDER_COLOR;
+    context.strokeStyle = strokeStyle;
     context.stroke();
     drewAny = true;
   });
@@ -692,18 +832,42 @@ function getCrossroadPreviewFeatureKey(record, previewLevel) {
   return getCrossroadFeatureKey(record);
 }
 
-function buildPresetMatchedFeatures(records, filters, geoIndex, previewLevel) {
+function isCrossroadStateLevelRecord(record) {
+  const geoType = String(record?.geoType || "").toLowerCase();
+  if (geoType === "region" || geoType === "state") return true;
+  if (record?.brandLevel === "county" || record?.brandLevel === "geo") return false;
+  return !record?.geoKey && !record?.fips;
+}
+
+function getCrossroadRecordShapeLevel(record) {
+  const geoType = String(record?.geoType || "").toLowerCase();
+  if (record?.brandLevel === "county" || geoType === "district" || geoType === "county") {
+    return "county";
+  }
+  if (record?.brandLevel === "geo" || record?.geoKey) return "geo";
+  return "state";
+}
+
+function buildPresetMatchedFeatures(records, filters, geoIndex, previewLevel, { excludeStateLevel = false } = {}) {
   const matchedFeatures = new Map();
   const context = createCrossroadMatchContext(filters, geoIndex);
 
   records.forEach((record) => {
     if (!presetMatchesRecord(record, filters, context)) return;
+    if (excludeStateLevel && isCrossroadStateLevelRecord(record)) return;
 
-    const feature = resolveCrossroadPreviewFeature(record, geoIndex, previewLevel);
+    const shapeLevel = excludeStateLevel
+      ? getCrossroadRecordShapeLevel(record)
+      : previewLevel;
+    const feature = excludeStateLevel
+      ? resolveCrossroadFeature(record, geoIndex)
+      : resolveCrossroadPreviewFeature(record, geoIndex, previewLevel);
     if (!feature?.geometry) return;
 
-    const key = getCrossroadPreviewFeatureKey(record, previewLevel);
-    const entry = matchedFeatures.get(key) || { feature, brandIds: new Set() };
+    const key = excludeStateLevel
+      ? getCrossroadFeatureKey(record)
+      : getCrossroadPreviewFeatureKey(record, previewLevel);
+    const entry = matchedFeatures.get(key) || { feature, brandIds: new Set(), previewLevel: shapeLevel };
     entry.brandIds.add(record.brandId);
     matchedFeatures.set(key, entry);
   });
@@ -799,7 +963,7 @@ function bindCrossroadMapSkeleton(tile) {
   });
 }
 
-function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kind = "preset" } = {}) {
+function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kind = "preset", colorMode = "density" } = {}) {
   const tile = document.createElement("button");
   tile.type = "button";
   tile.className = "target-card territory-crossroad__tile territory-crossroad__tile--preset";
@@ -850,7 +1014,7 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kin
   const mapLoadingClass = hasMapImage ? " is-loading" : "";
 
   tile.innerHTML = `
-    <div class="target-map${mapLoadingClass}">${baseImg}${fillImg}${bordersImg}</div>
+    <div class="target-map${mapLoadingClass}" data-color-mode="${escapeHtml(colorMode)}">${baseImg}${fillImg}${bordersImg}</div>
     <div class="target-card-title">${escapeHtml(preset.title)}</div>
     <div class="target-field target-prospects">
       <span class="target-label">Territories</span>
@@ -866,39 +1030,149 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kin
   return tile;
 }
 
-// Shared by bundled presets and user-saved searches: both carry the same
-// `{ id, title, filters }` shape, so the same matching/preview pipeline
-// renders either kind of tile.
-function buildCrossroadTile(entry, records, geoIndex, kind = "preset") {
+// Cached from the last successful renderCrossroadPresetTiles() call so a
+// single new tile (e.g. a just-saved search) can be built for the insertion
+// animation without re-fetching/re-indexing all territory data. Matched
+// preview geometry is also cached so a theme change can rebuild overlays
+// without rematching every search.
+let lastCrossroadRecords = null;
+let lastCrossroadGeoIndex = null;
+const crossroadTilePreviewCache = new Map();
+
+function getCrossroadTileCacheKey(entry, kind) {
+  return `${kind}:${entry.id}`;
+}
+
+function cacheCrossroadTilePreview(entry, kind, preview) {
+  if (!entry?.id) return;
+  crossroadTilePreviewCache.set(getCrossroadTileCacheKey(entry, kind), preview);
+}
+
+function buildCrossroadTilePreview(entry, records, geoIndex) {
   const filters = entry.filters || {};
   const previewLevel = resolveCrossroadPreviewLevel(filters, records, geoIndex);
   const matchedFeatures = buildPresetMatchedFeatures(records, filters, geoIndex, previewLevel);
+  const brandMatchedFeatures = buildPresetMatchedFeatures(
+    records,
+    filters,
+    geoIndex,
+    previewLevel,
+    { excludeStateLevel: true }
+  );
   const snapshotView = resolveCrossroadSnapshotView(filters, matchedFeatures, geoIndex);
-  const baseMapUrl = buildBaseMapUrl(snapshotView);
 
+  return {
+    previewLevel,
+    matchedFeatures,
+    brandMatchedFeatures,
+    snapshotView,
+    counts: computePresetStatusCounts(records, filters, geoIndex)
+  };
+}
+
+function getCrossroadThemeMatchedFeatures(preview, theme) {
+  if (theme.colorMode === "density") {
+    return {
+      features: preview.matchedFeatures,
+      previewLevel: preview.previewLevel
+    };
+  }
+
+  return {
+    features: preview.brandMatchedFeatures || preview.matchedFeatures,
+    previewLevel: "geo"
+  };
+}
+
+function buildCrossroadPreviewOverlayUrls(preview, geoIndex = lastCrossroadGeoIndex) {
+  const theme = getCrossroadTheme();
+  const { features, previewLevel } = getCrossroadThemeMatchedFeatures(preview, theme);
+  const baseMapUrl = buildBaseMapUrl(preview.snapshotView);
   let fillUrl = "";
   let bordersUrl = "";
+
   try {
-    fillUrl = buildFillDataUrl(geoIndex, matchedFeatures, previewLevel, snapshotView);
-    bordersUrl = buildBordersDataUrl(matchedFeatures, previewLevel, snapshotView);
+    fillUrl = buildFillDataUrl(
+      geoIndex,
+      features,
+      previewLevel,
+      preview.snapshotView,
+      theme
+    );
+    bordersUrl = buildBordersDataUrl(
+      features,
+      previewLevel,
+      preview.snapshotView,
+      theme
+    );
   } catch (error) {
     console.warn("Unable to render territory preview.", error);
   }
 
-  return createPresetTile(entry, {
+  return {
     baseMapUrl,
     fillUrl,
     bordersUrl,
-    counts: computePresetStatusCounts(records, filters, geoIndex),
-    kind
+    colorMode: theme.colorMode
+  };
+}
+
+function syncCrossroadTileOverlayImage(map, className, url) {
+  let image = map.querySelector(`.${className}`);
+  if (!url) {
+    image?.remove();
+    return;
+  }
+
+  if (!image) {
+    image = document.createElement("img");
+    image.className = className;
+    image.alt = "";
+    image.setAttribute("aria-hidden", "true");
+    map.append(image);
+  }
+
+  if (image.src !== url) {
+    image.src = url;
+  }
+}
+
+function syncCrossroadTileMapImages(tile, { fillUrl = "", bordersUrl = "", colorMode = "density" } = {}) {
+  const map = tile.querySelector(".target-map");
+  if (!map) return;
+
+  map.dataset.colorMode = colorMode;
+  syncCrossroadTileOverlayImage(map, "target-map-fill", fillUrl);
+  syncCrossroadTileOverlayImage(map, "target-map-borders", bordersUrl);
+}
+
+function refreshCrossroadThemePreviews() {
+  const geoIndex = lastCrossroadGeoIndex;
+  if (!geoIndex || !crossroadTilePreviewCache.size) return;
+
+  document.querySelectorAll("[data-preset-id], [data-saved-search-id]").forEach((tile) => {
+    const kind = tile.dataset.kind || (tile.dataset.savedSearchId ? "saved" : "preset");
+    const id = tile.dataset.savedSearchId || tile.dataset.presetId;
+    const preview = crossroadTilePreviewCache.get(`${kind}:${id}`);
+    if (!preview) return;
+
+    syncCrossroadTileMapImages(tile, buildCrossroadPreviewOverlayUrls(preview, geoIndex));
   });
 }
 
-// Cached from the last successful renderCrossroadPresetTiles() call so a
-// single new tile (e.g. a just-saved search) can be built for the insertion
-// animation without re-fetching/re-indexing all territory data.
-let lastCrossroadRecords = null;
-let lastCrossroadGeoIndex = null;
+// Shared by bundled presets and user-saved searches: both carry the same
+// `{ id, title, filters }` shape, so the same matching/preview pipeline
+// renders either kind of tile.
+function buildCrossroadTile(entry, records, geoIndex, kind = "preset") {
+  const preview = buildCrossroadTilePreview(entry, records, geoIndex);
+  cacheCrossroadTilePreview(entry, kind, preview);
+
+  return createPresetTile(entry, {
+    ...buildCrossroadPreviewOverlayUrls(preview, geoIndex),
+    counts: preview.counts,
+    kind
+  });
+}
 
 function buildCrossroadTileFromCache(entry, kind) {
   if (lastCrossroadRecords && lastCrossroadGeoIndex) {
@@ -910,6 +1184,7 @@ function buildCrossroadTileFromCache(entry, kind) {
 const CROSSROAD_WORKSPACE_HIDE_MS = 240;
 const CROSSROAD_ENTER_STAGGER_MS = 65;
 const CROSSROAD_ENTER_DURATION_MS = 320;
+const CROSSROAD_LEAVE_DURATION_MS = 300;
 const CROSSROAD_SAVED_INSERT_SHIFT_DURATION_MS = 680;
 const CROSSROAD_SAVED_INSERT_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
 const CROSSROAD_SAVED_INSERT_REVEAL_MS = 200;
@@ -919,6 +1194,31 @@ const CROSSROAD_SAVED_DELETE_BLUR_MS = 400;
 const CROSSROAD_SAVED_DELETE_BLUR_PX = 12;
 const CROSSROAD_SAVED_DELETE_SHIFT_DURATION_MS = 680;
 const CROSSROAD_SAVED_DELETE_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
+
+function syncTerritoryCrossroadToolbarDivider(active = null) {
+  const header = document.querySelector(".territory-toolbar.header, .header");
+  const crossroad = document.getElementById("territoryCrossroad");
+  if (!header) return;
+
+  const isOpen = Boolean(
+    crossroad
+    && !crossroad.hidden
+    && document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open")
+  );
+
+  header.classList.toggle(
+    "is-scrolled",
+    Boolean((active ?? isOpen) && crossroad && !crossroad.hidden && crossroad.scrollTop > 0)
+  );
+}
+
+function bindTerritoryCrossroadToolbarDivider() {
+  const crossroad = document.getElementById("territoryCrossroad");
+  if (!crossroad) return;
+
+  crossroad.addEventListener("scroll", () => syncTerritoryCrossroadToolbarDivider(), { passive: true });
+  syncTerritoryCrossroadToolbarDivider();
+}
 
 function canFocusTerritoryCrossroadSearchInput() {
   if (
@@ -993,26 +1293,38 @@ function playTerritoryCrossroadEnterAnimation(crossroad, { focusSearchOnComplete
   );
 }
 
+function setTerritoryCrossroadWorkspaceInert(isInert) {
+  [
+    document.getElementById("territoryFilterPanel"),
+    document.querySelector(".territory-workspace-main")
+  ].forEach((element) => {
+    if (element) element.inert = isInert;
+  });
+}
+
 function dismissTerritoryCrossroad() {
   const shell = document.querySelector(".territory-shell");
   const crossroad = document.getElementById("territoryCrossroad");
 
+  window.territoryFilters?.syncFilterSectionExpansion?.();
   window.territoryFilters?.setPanelOpen?.(true);
   shell?.classList.remove("is-crossroad-open", "is-crossroad-fullscreen", "is-crossroad-hiding-workspace");
+  syncTerritoryCrossroadToolbarDivider(false);
+  setTerritoryCrossroadWorkspaceInert(false);
   window.territoryMapPanel?.setOpen?.(true, { persist: false });
   window.territoryMapPanel?.syncToggleAvailability?.();
   window.territoryMapControls?.updateResetVisibility?.();
 
   if (!crossroad || crossroad.hidden) return;
 
-  crossroad.classList.remove("is-entering", "is-entering-active");
+  crossroad.classList.remove("is-entering", "is-entering-active", "is-preparing-enter");
   crossroad.classList.add("is-leaving");
 
   window.setTimeout(() => {
     if (crossroad.classList.contains("is-leaving")) {
       crossroad.hidden = true;
     }
-  }, 300);
+  }, CROSSROAD_LEAVE_DURATION_MS);
 }
 
 function resetTerritoryCrossroadSearch() {
@@ -1028,53 +1340,38 @@ function showTerritoryCrossroad({ animate = false } = {}) {
 
   if (!crossroad) return;
 
-  window.territoryFilters?.setPanelOpen?.(false);
   resetTerritoryCrossroadSearch();
   window.territoryMapControls?.clearHover?.();
+  shell?.classList.remove("is-crossroad-hiding-workspace");
+  window.territoryFilters?.syncFilterSectionExpansion?.();
+  window.territoryFilters?.setPanelOpen?.(false);
+  setTerritoryCrossroadWorkspaceInert(true);
   crossroad.hidden = false;
   crossroad.classList.remove("is-leaving", "is-entering", "is-entering-active", "is-preparing-enter");
-  shell?.classList.remove("is-crossroad-fullscreen", "is-crossroad-hiding-workspace");
+  shell?.classList.remove("is-crossroad-fullscreen");
   shell?.classList.add("is-crossroad-open");
+  syncTerritoryCrossroadToolbarDivider(true);
   window.territoryCrossroadChoice = null;
   window.territoryMapPanel?.syncToggleAvailability?.();
   window.territoryMapControls?.updateResetVisibility?.();
 
   if (animate) {
     playTerritoryCrossroadEnterAnimation(crossroad, { focusSearchOnComplete: true });
-  } else {
-    requestAnimationFrame(() => {
-      focusTerritoryCrossroadSearchInput();
-    });
-  }
-}
-
-function showTerritoryCrossroadAfterClearAll({ onReveal = null } = {}) {
-  const shell = document.querySelector(".territory-shell");
-  const crossroad = document.getElementById("territoryCrossroad");
-  const reveal = typeof onReveal === "function"
-    ? onReveal
-    : () => showTerritoryCrossroad({ animate: true });
-
-  window.territoryFilters?.setPanelOpen?.(false);
-  resetTerritoryCrossroadSearch();
-  if (!shell || !crossroad) {
-    reveal();
     return;
   }
 
-  crossroad.hidden = true;
-  crossroad.classList.remove("is-leaving", "is-entering", "is-entering-active");
-  window.territoryCrossroadChoice = null;
-  window.territoryMapControls?.clearHover?.();
+  requestAnimationFrame(() => {
+    focusTerritoryCrossroadSearchInput();
+  });
+}
 
-  shell.classList.add("is-crossroad-hiding-workspace", "is-crossroad-open", "is-crossroad-fullscreen");
-  window.territoryMapPanel?.syncToggleAvailability?.();
-  window.territoryMapControls?.updateResetVisibility?.();
+function showTerritoryCrossroadAfterClearAll({ onReveal = null } = {}) {
+  if (typeof onReveal === "function") {
+    onReveal();
+    return;
+  }
 
-  window.setTimeout(() => {
-    shell.classList.remove("is-crossroad-hiding-workspace");
-    reveal();
-  }, CROSSROAD_WORKSPACE_HIDE_MS);
+  showTerritoryCrossroad({ animate: true });
 }
 
 window.showTerritoryCrossroad = showTerritoryCrossroad;
@@ -1862,6 +2159,8 @@ async function loadCrossroadTerritoryData() {
 function revealTerritoryCrossroadEnter(crossroad) {
   if (!crossroad) return;
 
+  setTerritoryCrossroadWorkspaceInert(true);
+  window.territoryFilters?.setPanelOpen?.(false);
   crossroad.classList.remove("is-preparing-enter");
   playTerritoryCrossroadEnterAnimation(crossroad, { focusSearchOnComplete: true });
 }
@@ -1938,6 +2237,7 @@ async function renderCrossroadPresetTiles({ excludeSavedSearchId = null } = {}) 
   const presets = activeDataset.presets || [];
   const savedSearches = getCrossroadSavedSearches()
     .filter((search) => search.id !== excludeSavedSearchId);
+  crossroadTilePreviewCache.clear();
   clearCrossroadScopeGrids();
 
   try {
@@ -2221,7 +2521,8 @@ function revealTerritorySavedSearch(savedSearch) {
 window.territoryCrossroad = {
   deleteSavedSearch: deleteTerritorySavedSearch,
   revealSavedSearch: revealTerritorySavedSearch,
-  revealDeletedSearch: revealDeletedTerritorySavedSearch
+  revealDeletedSearch: revealDeletedTerritorySavedSearch,
+  refreshThemePreviews: refreshCrossroadThemePreviews
 };
 
 function consumeTerritorySkipCrossroad() {
@@ -2238,6 +2539,7 @@ function consumeTerritorySkipCrossroad() {
 async function initTerritoryCrossroad() {
   bindCrossroadLocationSearch();
   bindCrossroadPresetTabs();
+  bindTerritoryCrossroadToolbarDivider();
 
   const featuredGrid = getCrossroadScopeGrid("featured");
   const crossroad = document.getElementById("territoryCrossroad");
@@ -2295,6 +2597,10 @@ window.addEventListener("territory:saved-searches-changed", () => {
   if (!window.__territoryMapStarted) {
     renderCrossroadPresetTiles();
   }
+});
+
+window.addEventListener("territory:theme-changed", () => {
+  refreshCrossroadThemePreviews();
 });
 
 initTerritoryCrossroad();

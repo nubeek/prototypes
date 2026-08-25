@@ -1,0 +1,1288 @@
+{
+  "id": "launch-family-entertainment",
+  "brand": "Launch Family Entertainment",
+  "category": "Entertainment",
+  "color": "#5CBA47",
+  "logo": "assets/logos/launch-family-entertainment.png",
+  "country": "US",
+  "level": "geo",
+  "initialInvestment": 5479138,
+  "franchiseeRating": 0,
+  "profileUrl": "https://wefranch.com/franchise/8n7n/launch-family",
+  "territories": [
+    {
+      "geoKey": "cbsa:13820",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Birmingham-Hoover, AL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:26620",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Huntsville, AL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:33860",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Montgomery, AL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:46220",
+      "geoType": "cbsa",
+      "state": "AL",
+      "name": "Tuscaloosa, AL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22220",
+      "geoType": "cbsa",
+      "state": "AR",
+      "name": "Fayetteville-Springdale-Rogers, AR-MO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22900",
+      "geoType": "cbsa",
+      "state": "AR",
+      "name": "Fort Smith, AR-OK",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:27860",
+      "geoType": "cbsa",
+      "state": "AR",
+      "name": "Jonesboro, AR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:30780",
+      "geoType": "cbsa",
+      "state": "AR",
+      "name": "Little Rock-North Little Rock-Conway, AR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22380",
+      "geoType": "cbsa",
+      "state": "AZ",
+      "name": "Flagstaff, AZ",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:38060",
+      "geoType": "cbsa",
+      "state": "AZ",
+      "name": "Phoenix-Mesa-Scottsdale, AZ",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:46060",
+      "geoType": "cbsa",
+      "state": "AZ",
+      "name": "Tucson, AZ",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:49740",
+      "geoType": "cbsa",
+      "state": "AZ",
+      "name": "Yuma, AZ",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12540",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Bakersfield, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:23420",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Fresno, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31080",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Los Angeles-Long Beach-Anaheim, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40140",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Riverside-San Bernardino-Ontario, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40900",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Sacramento--Roseville--Arden-Arcade, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41500",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "Salinas, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41740",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "San Diego-Carlsbad, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41860",
+      "geoType": "cbsa",
+      "state": "CA",
+      "name": "San Francisco-Oakland-Hayward, CA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14500",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Boulder, CO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:17820",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Colorado Springs, CO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:19740",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Denver-Aurora-Lakewood, CO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22660",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Fort Collins, CO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24300",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Grand Junction, CO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24540",
+      "geoType": "cbsa",
+      "state": "CO",
+      "name": "Greeley, CO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14860",
+      "geoType": "cbsa",
+      "state": "CT",
+      "name": "Bridgeport-Stamford-Norwalk, CT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:25540",
+      "geoType": "cbsa",
+      "state": "CT",
+      "name": "Hartford-West Hartford-East Hartford, CT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:35300",
+      "geoType": "cbsa",
+      "state": "CT",
+      "name": "New Haven-Milford, CT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:47900",
+      "geoType": "cbsa",
+      "state": "DC",
+      "name": "Washington-Arlington-Alexandria, DC-VA-MD-WV",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:20100",
+      "geoType": "cbsa",
+      "state": "DE",
+      "name": "Dover, DE",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:15980",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Cape Coral-Fort Myers, FL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:27260",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Jacksonville, FL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:33100",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Miami-Fort Lauderdale-West Palm Beach, FL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:36740",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Orlando-Kissimmee-Sanford, FL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:45220",
+      "geoType": "cbsa",
+      "state": "FL",
+      "name": "Tallahassee, FL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:10500",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Albany, GA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12060",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Atlanta-Sandy Springs-Roswell, GA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12260",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Augusta-Richmond County, GA-SC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31420",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Macon, GA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:42340",
+      "geoType": "cbsa",
+      "state": "GA",
+      "name": "Savannah, GA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16300",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Cedar Rapids, IA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:19340",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Davenport-Moline-Rock Island, IA-IL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:19780",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Des Moines-West Des Moines, IA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:43580",
+      "geoType": "cbsa",
+      "state": "IA",
+      "name": "Sioux City, IA-NE-SD",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14260",
+      "geoType": "cbsa",
+      "state": "ID",
+      "name": "Boise City, ID",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:26820",
+      "geoType": "cbsa",
+      "state": "ID",
+      "name": "Idaho Falls, ID",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16980",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Chicago-Naperville-Elgin, IL-IN-WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:37900",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Peoria, IL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40420",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Rockford, IL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:44100",
+      "geoType": "cbsa",
+      "state": "IL",
+      "name": "Springfield, IL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:21780",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Evansville, IN-KY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:23060",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Fort Wayne, IN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:26900",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Indianapolis-Carmel-Anderson, IN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:29200",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "Lafayette-West Lafayette, IN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:43780",
+      "geoType": "cbsa",
+      "state": "IN",
+      "name": "South Bend-Mishawaka, IN-MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:29940",
+      "geoType": "cbsa",
+      "state": "KS",
+      "name": "Lawrence, KS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31740",
+      "geoType": "cbsa",
+      "state": "KS",
+      "name": "Manhattan, KS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:45820",
+      "geoType": "cbsa",
+      "state": "KS",
+      "name": "Topeka, KS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:48620",
+      "geoType": "cbsa",
+      "state": "KS",
+      "name": "Wichita, KS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14540",
+      "geoType": "cbsa",
+      "state": "KY",
+      "name": "Bowling Green, KY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:30460",
+      "geoType": "cbsa",
+      "state": "KY",
+      "name": "Lexington-Fayette, KY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31140",
+      "geoType": "cbsa",
+      "state": "KY",
+      "name": "Louisville/Jefferson County, KY-IN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12940",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Baton Rouge, LA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:29180",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Lafayette, LA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:35380",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "New Orleans-Metairie, LA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:43340",
+      "geoType": "cbsa",
+      "state": "LA",
+      "name": "Shreveport-Bossier City, LA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14460",
+      "geoType": "cbsa",
+      "state": "MA",
+      "name": "Boston-Cambridge-Newton, MA-NH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:44140",
+      "geoType": "cbsa",
+      "state": "MA",
+      "name": "Springfield, MA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:49340",
+      "geoType": "cbsa",
+      "state": "MA",
+      "name": "Worcester, MA-CT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12580",
+      "geoType": "cbsa",
+      "state": "MD",
+      "name": "Baltimore-Columbia-Towson, MD",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:25180",
+      "geoType": "cbsa",
+      "state": "MD",
+      "name": "Hagerstown-Martinsburg, MD-WV",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41540",
+      "geoType": "cbsa",
+      "state": "MD",
+      "name": "Salisbury, MD-DE",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12620",
+      "geoType": "cbsa",
+      "state": "ME",
+      "name": "Bangor, ME",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:38860",
+      "geoType": "cbsa",
+      "state": "ME",
+      "name": "Portland-South Portland, ME",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:19820",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Detroit-Warren-Dearborn, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22420",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Flint, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:32100",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Marquette, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:34740",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Muskegon, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:45900",
+      "geoType": "cbsa",
+      "state": "MI",
+      "name": "Traverse City, MI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:20260",
+      "geoType": "cbsa",
+      "state": "MN",
+      "name": "Duluth, MN-WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31860",
+      "geoType": "cbsa",
+      "state": "MN",
+      "name": "Mankato-North Mankato, MN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:33460",
+      "geoType": "cbsa",
+      "state": "MN",
+      "name": "Minneapolis-St. Paul-Bloomington, MN-WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40340",
+      "geoType": "cbsa",
+      "state": "MN",
+      "name": "Rochester, MN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41060",
+      "geoType": "cbsa",
+      "state": "MN",
+      "name": "St. Cloud, MN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:49100",
+      "geoType": "cbsa",
+      "state": "MN",
+      "name": "Winona, MN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:17860",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Columbia, MO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:27900",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Joplin, MO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:28140",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Kansas City, MO-KS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:44180",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "Springfield, MO",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41180",
+      "geoType": "cbsa",
+      "state": "MO",
+      "name": "St. Louis, MO-IL",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:25060",
+      "geoType": "cbsa",
+      "state": "MS",
+      "name": "Gulfport-Biloxi-Pascagoula, MS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:25620",
+      "geoType": "cbsa",
+      "state": "MS",
+      "name": "Hattiesburg, MS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:27140",
+      "geoType": "cbsa",
+      "state": "MS",
+      "name": "Jackson, MS",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:13740",
+      "geoType": "cbsa",
+      "state": "MT",
+      "name": "Billings, MT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:14580",
+      "geoType": "cbsa",
+      "state": "MT",
+      "name": "Bozeman, MT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:33540",
+      "geoType": "cbsa",
+      "state": "MT",
+      "name": "Missoula, MT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16740",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Charlotte-Concord-Gastonia, NC-SC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:20500",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Durham-Chapel Hill, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22180",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Fayetteville, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24660",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Greensboro-High Point, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24780",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Greenville, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:48900",
+      "geoType": "cbsa",
+      "state": "NC",
+      "name": "Wilmington, NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:13900",
+      "geoType": "cbsa",
+      "state": "ND",
+      "name": "Bismarck, ND",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22020",
+      "geoType": "cbsa",
+      "state": "ND",
+      "name": "Fargo, ND-MN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24260",
+      "geoType": "cbsa",
+      "state": "NE",
+      "name": "Grand Island, NE",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:30700",
+      "geoType": "cbsa",
+      "state": "NE",
+      "name": "Lincoln, NE",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:35820",
+      "geoType": "cbsa",
+      "state": "NE",
+      "name": "North Platte, NE",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:36540",
+      "geoType": "cbsa",
+      "state": "NE",
+      "name": "Omaha-Council Bluffs, NE-IA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:18180",
+      "geoType": "cbsa",
+      "state": "NH",
+      "name": "Concord, NH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31700",
+      "geoType": "cbsa",
+      "state": "NH",
+      "name": "Manchester-Nashua, NH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12100",
+      "geoType": "cbsa",
+      "state": "NJ",
+      "name": "Atlantic City-Hammonton, NJ",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:45940",
+      "geoType": "cbsa",
+      "state": "NJ",
+      "name": "Trenton, NJ",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:10740",
+      "geoType": "cbsa",
+      "state": "NM",
+      "name": "Albuquerque, NM",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:22140",
+      "geoType": "cbsa",
+      "state": "NM",
+      "name": "Farmington, NM",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:29740",
+      "geoType": "cbsa",
+      "state": "NM",
+      "name": "Las Cruces, NM",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:29820",
+      "geoType": "cbsa",
+      "state": "NV",
+      "name": "Las Vegas-Henderson-Paradise, NV",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:39900",
+      "geoType": "cbsa",
+      "state": "NV",
+      "name": "Reno, NV",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:10580",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Albany-Schenectady-Troy, NY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:13780",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Binghamton, NY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:15380",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Buffalo-Cheektowaga-Niagara Falls, NY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:35620",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "New York-Newark-Jersey City, NY-NJ-PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40380",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Rochester, NY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:45060",
+      "geoType": "cbsa",
+      "state": "NY",
+      "name": "Syracuse, NY",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:15940",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Canton-Massillon, OH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:17140",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Cincinnati, OH-KY-IN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:17460",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Cleveland-Elyria, OH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:18140",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Columbus, OH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:19380",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Dayton, OH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:45780",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Toledo, OH",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:49660",
+      "geoType": "cbsa",
+      "state": "OH",
+      "name": "Youngstown-Warren-Boardman, OH-PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:30020",
+      "geoType": "cbsa",
+      "state": "OK",
+      "name": "Lawton, OK",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:36420",
+      "geoType": "cbsa",
+      "state": "OK",
+      "name": "Oklahoma City, OK",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:46140",
+      "geoType": "cbsa",
+      "state": "OK",
+      "name": "Tulsa, OK",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:13460",
+      "geoType": "cbsa",
+      "state": "OR",
+      "name": "Bend-Redmond, OR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:21660",
+      "geoType": "cbsa",
+      "state": "OR",
+      "name": "Eugene, OR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:32780",
+      "geoType": "cbsa",
+      "state": "OR",
+      "name": "Medford, OR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:38900",
+      "geoType": "cbsa",
+      "state": "OR",
+      "name": "Portland-Vancouver-Hillsboro, OR-WA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:10900",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Allentown-Bethlehem-Easton, PA-NJ",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:21500",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Erie, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:25420",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Harrisburg-Carlisle, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:27780",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Johnstown, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:37980",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:38300",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Pittsburgh, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:42540",
+      "geoType": "cbsa",
+      "state": "PA",
+      "name": "Scranton--Wilkes-Barre--Hazleton, PA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16700",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Charleston-North Charleston, SC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:17900",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Columbia, SC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24860",
+      "geoType": "cbsa",
+      "state": "SC",
+      "name": "Greenville-Anderson-Mauldin, SC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:10100",
+      "geoType": "cbsa",
+      "state": "SD",
+      "name": "Aberdeen, SD",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:39660",
+      "geoType": "cbsa",
+      "state": "SD",
+      "name": "Rapid City, SD",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:43620",
+      "geoType": "cbsa",
+      "state": "SD",
+      "name": "Sioux Falls, SD",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16860",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Chattanooga, TN-GA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:27180",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Jackson, TN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:28700",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Kingsport-Bristol-Bristol, TN-VA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:28940",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Knoxville, TN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:32820",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Memphis, TN-MS-AR",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:34980",
+      "geoType": "cbsa",
+      "state": "TN",
+      "name": "Nashville-Davidson--Murfreesboro--Franklin, TN",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12420",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Austin-Round Rock, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:19100",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Dallas-Fort Worth-Arlington, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:21340",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "El Paso, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:26420",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "Houston-The Woodlands-Sugar Land, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41700",
+      "geoType": "cbsa",
+      "state": "TX",
+      "name": "San Antonio-New Braunfels, TX",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:39340",
+      "geoType": "cbsa",
+      "state": "UT",
+      "name": "Provo-Orem, UT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:41620",
+      "geoType": "cbsa",
+      "state": "UT",
+      "name": "Salt Lake City, UT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40220",
+      "geoType": "cbsa",
+      "state": "VA",
+      "name": "Roanoke, VA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:47260",
+      "geoType": "cbsa",
+      "state": "VA",
+      "name": "Virginia Beach-Norfolk-Newport News, VA-NC",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:12740",
+      "geoType": "cbsa",
+      "state": "VT",
+      "name": "Barre, VT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:15540",
+      "geoType": "cbsa",
+      "state": "VT",
+      "name": "Burlington-South Burlington, VT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:40860",
+      "geoType": "cbsa",
+      "state": "VT",
+      "name": "Rutland, VT",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:42660",
+      "geoType": "cbsa",
+      "state": "WA",
+      "name": "Seattle-Tacoma-Bellevue, WA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:44060",
+      "geoType": "cbsa",
+      "state": "WA",
+      "name": "Spokane-Spokane Valley, WA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:49420",
+      "geoType": "cbsa",
+      "state": "WA",
+      "name": "Yakima, WA",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:24580",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Green Bay, WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:31540",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Madison, WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:33340",
+      "geoType": "cbsa",
+      "state": "WI",
+      "name": "Milwaukee-Waukesha-West Allis, WI",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16620",
+      "geoType": "cbsa",
+      "state": "WV",
+      "name": "Charleston, WV",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:34060",
+      "geoType": "cbsa",
+      "state": "WV",
+      "name": "Morgantown, WV",
+      "status": "available"
+    },
+    {
+      "geoKey": "cbsa:16940",
+      "geoType": "cbsa",
+      "state": "WY",
+      "name": "Cheyenne, WY",
+      "status": "available"
+    },
+    {
+      "geoKey": "region:02",
+      "geoType": "region",
+      "state": "AK",
+      "name": "Alaska",
+      "status": "sold"
+    },
+    {
+      "geoKey": "region:11",
+      "geoType": "region",
+      "state": "DC",
+      "name": "District of Columbia",
+      "status": "sold"
+    },
+    {
+      "geoKey": "region:15",
+      "geoType": "region",
+      "state": "HI",
+      "name": "Hawaii",
+      "status": "sold"
+    },
+    {
+      "geoKey": "region:44",
+      "geoType": "region",
+      "state": "RI",
+      "name": "Rhode Island",
+      "status": "sold"
+    }
+  ]
+}

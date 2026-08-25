@@ -2512,10 +2512,29 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 14px;
+  padding-bottom: 14px;
   flex: 0 0 auto;
   position: relative;
   z-index: 200;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: #e6e6ea;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 160ms ease;
+}
+
+.card.is-splash-open .header.is-scrolled::after,
+.territory-shell.is-crossroad-open .header.is-scrolled::after {
+  opacity: 1;
 }
 
 h1 {

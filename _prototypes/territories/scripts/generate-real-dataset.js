@@ -25,6 +25,10 @@ const EXCLUDED_BRAND_SLUGS = new Set([
   "firm-lab",
   "wefranch"
 ]);
+const MANUAL_BRAND_FILES = new Set([
+  "cbsa-index.json",
+  "launch-family-entertainment.json"
+]);
 const SIMPLIFY_TOLERANCE = 0.002;
 const COORDINATE_PRECISION = 4;
 
@@ -108,6 +112,9 @@ function deriveCategory(concept) {
 
   const matches = (pattern) => pattern.test(haystack);
 
+  if (matches(/\b(entertainment|trampoline|amusement|recreation)\b/)) {
+    return "Entertainment";
+  }
   if (matches(/\b(restaurant|coffee|pizza|food|beverage|bakery|kitchen|paleta|burger|yoga cafe)\b/)) {
     return "Food & Beverage";
   }
@@ -613,7 +620,7 @@ async function removeOldGeneratedFiles() {
   const logoPathsToRemove = new Set();
 
   await Promise.all(entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".json") && !MANUAL_BRAND_FILES.has(entry.name))
     .map(async (entry) => {
       const filePath = path.join(REAL_DIR, entry.name);
       const brand = JSON.parse(await fsp.readFile(filePath, "utf8"));

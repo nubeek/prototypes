@@ -722,7 +722,7 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
     const territoryInfoButton = document.createElement("button");
     const territoryInfoIcon = document.createElement("img");
     const territoryGeoKey = territory.geoKey || territory.state;
-    const territoryShape = createTerritoryShape(territory.geometry, densityStyle?.color || brand.color, {
+    const territoryShape = createTerritoryShape(territory.geometry, densityStyle?.color || window.territoryMapControls?.getTerritoryBrandPaintColor?.(brand) || brand.color, {
       status: territory.status,
       fillOpacity: densityStyle?.fillOpacity,
       cacheKey: territoryGeoKey

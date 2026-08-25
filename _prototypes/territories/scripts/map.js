@@ -65,6 +65,16 @@ const TERRITORY_MACRODATA_URL = "data/state-macrodata.json";
 const territoryDataCachePromises = new Map();
 const TERRITORY_FILL_OPACITY = 0.15;
 const TERRITORY_FILL_HOVER_OPACITY = 0.3;
+const TERRITORY_PASTEL_FILL_OPACITY = 0.1;
+const TERRITORY_PASTEL_FILL_OPACITY_MID = 0.2;
+const TERRITORY_PASTEL_FILL_OPACITY_HIGH = 0.25;
+const TERRITORY_PASTEL_FILL_HOVER_OPACITY = 0.3;
+const TERRITORY_PASTEL_FILL_HOVER_OPACITY_MID = 0.4;
+const TERRITORY_PASTEL_FILL_HOVER_OPACITY_HIGH = 0.45;
+// Pastel still paints at most 5 stacked fills. These thresholds use the full
+// matching occupant count so denser territories read stronger.
+const TERRITORY_PASTEL_FILL_OCCUPANCY_MID_MIN = 6;
+const TERRITORY_PASTEL_FILL_OCCUPANCY_HIGH_MIN = 20;
 const TERRITORY_FILL_SELECTED_OPACITY = 0.65;
 const TERRITORY_HATCH_FILL_OPACITY = 0.4;
 const TERRITORY_HATCH_FILL_HOVER_OPACITY = 0.65;
@@ -73,12 +83,21 @@ const TERRITORY_HATCH_GAP_PX = 2;
 const TERRITORY_HATCH_PIXEL_RATIO = 2;
 const TERRITORY_LINE_OPACITY = 0.5;
 const TERRITORY_LINE_SELECTED_OPACITY = 0.8;
+const TERRITORY_PASTEL_LINE_OPACITY = 0.4;
+const TERRITORY_PASTEL_LINE_OPACITY_MID = 0.5;
+const TERRITORY_PASTEL_LINE_OPACITY_HIGH = 0.6;
+const TERRITORY_PASTEL_LINE_HOVER_OPACITY = 0.8;
+const TERRITORY_PASTEL_LINE_SELECTED_OPACITY = 0.85;
+const TERRITORY_WHITE_LINE_OPACITY = 0.88;
+const TERRITORY_WHITE_LINE_SELECTED_OPACITY = 1;
 const TERRITORY_LINE_WIDTH = 2;
 // Shared (multi-brand) territories are painted by stacking each brand's own
-// fill/hatch layers. The consolidated shared source only carries an invisible
-// hit layer so hover and click treat the whole territory as one target.
+// fill/hatch layers, up to TERRITORY_SHAPE_MAX_VISIBLE occupants. The
+// consolidated shared source only carries an invisible hit layer so hover
+// and click treat the whole territory as one target.
 const TERRITORY_SHARED_ALL_SOURCE_ID = "territories-shared-all";
 const TERRITORY_SHARED_ALL_HIT_LAYER_ID = "territories-shared-all-hit";
+const TERRITORY_SHAPE_MAX_VISIBLE = 5;
 // Territory outlines carry no detail worth re-tiling past this zoom, so let
 // Mapbox overzoom the cached tiles rather than rebuilding them on every step in.
 const TERRITORY_SOURCE_MAX_ZOOM = 10;
@@ -100,6 +119,13 @@ const TERRITORY_COUNTY_LOGO_MIN_ZOOM = 8;
 // State-level territories are large enough for logos at mid zoom.
 const TERRITORY_STATE_LOGO_MIN_ZOOM = 5;
 const TERRITORY_DENSITY_HIGH_COLOR = "#81599a";
+const TERRITORY_PASTEL_COLORS = [
+  "#F7D06A",
+  "#F9A474",
+  "#D8A0F9",
+  "#8CCD6C",
+  "#8DACF5"
+];
 const TERRITORY_DENSITY_FILL_OPACITY_MIN = 0.05;
 const TERRITORY_DENSITY_FILL_OPACITY_MAX = 0.72;
 const TERRITORY_DENSITY_LINE_OPACITY_MIN = 0.2;
@@ -121,6 +147,11 @@ const TERRITORY_AREA_CONTEXT_OPACITY = 0.15;
 const TERRITORY_AREA_CONTEXT_HOVER_OPACITY = 0.3;
 const TERRITORY_AREA_CONTEXT_LINE_OPACITY = 0.25;
 const TERRITORY_AREA_CONTEXT_LINE_HOVER_OPACITY = 0.4;
+const TERRITORY_BRAND_AREA_CONTEXT_FILL_OPACITY = 0.03;
+const TERRITORY_BRAND_AREA_CONTEXT_LINE_OPACITY = 0.08;
+const TERRITORY_AREA_CONTEXT_FILL_COLOR = "#b4b4b8";
+const TERRITORY_AREA_CONTEXT_LINE_COLOR = "#8d8d93";
+const TERRITORY_CONTEXT_HATCH_IMAGE_ID = "territory-hatch-context";
 const TERRITORY_AREA_FOCUS_OPACITY = 0.5;
 const TERRITORY_AREA_FOCUS_LINE_OPACITY = 0.65;
 const TERRITORY_DENSITY_SOURCE_ID = "territories-density";
@@ -152,6 +183,35 @@ const TERRITORY_FILL_OPACITY_EXPRESSION = [
   TERRITORY_FILL_HOVER_OPACITY,
   TERRITORY_FILL_OPACITY
 ];
+const TERRITORY_PASTEL_FILL_OCCUPANCY_BUCKET_EXPRESSION = [
+  "coalesce",
+  ["feature-state", "occupancyBucket"],
+  1
+];
+const TERRITORY_PASTEL_FILL_OPACITY_EXPRESSION = [
+  "case",
+  ["boolean", ["feature-state", "selected"], false],
+  TERRITORY_FILL_SELECTED_OPACITY,
+  ["boolean", ["feature-state", "hover"], false],
+  [
+    "match",
+    TERRITORY_PASTEL_FILL_OCCUPANCY_BUCKET_EXPRESSION,
+    2,
+    TERRITORY_PASTEL_FILL_HOVER_OPACITY_MID,
+    3,
+    TERRITORY_PASTEL_FILL_HOVER_OPACITY_HIGH,
+    TERRITORY_PASTEL_FILL_HOVER_OPACITY
+  ],
+  [
+    "match",
+    TERRITORY_PASTEL_FILL_OCCUPANCY_BUCKET_EXPRESSION,
+    2,
+    TERRITORY_PASTEL_FILL_OPACITY_MID,
+    3,
+    TERRITORY_PASTEL_FILL_OPACITY_HIGH,
+    TERRITORY_PASTEL_FILL_OPACITY
+  ]
+];
 const TERRITORY_HATCH_FILL_OPACITY_EXPRESSION = [
   "case",
   ["boolean", ["feature-state", "selected"], false],
@@ -165,6 +225,28 @@ const TERRITORY_LINE_OPACITY_EXPRESSION = [
   ["boolean", ["feature-state", "selected"], false],
   TERRITORY_LINE_SELECTED_OPACITY,
   TERRITORY_LINE_OPACITY
+];
+const TERRITORY_PASTEL_LINE_OPACITY_EXPRESSION = [
+  "case",
+  ["boolean", ["feature-state", "selected"], false],
+  TERRITORY_PASTEL_LINE_SELECTED_OPACITY,
+  ["boolean", ["feature-state", "hover"], false],
+  TERRITORY_PASTEL_LINE_HOVER_OPACITY,
+  [
+    "match",
+    TERRITORY_PASTEL_FILL_OCCUPANCY_BUCKET_EXPRESSION,
+    2,
+    TERRITORY_PASTEL_LINE_OPACITY_MID,
+    3,
+    TERRITORY_PASTEL_LINE_OPACITY_HIGH,
+    TERRITORY_PASTEL_LINE_OPACITY
+  ]
+];
+const TERRITORY_WHITE_LINE_OPACITY_EXPRESSION = [
+  "case",
+  ["boolean", ["feature-state", "selected"], false],
+  TERRITORY_WHITE_LINE_SELECTED_OPACITY,
+  TERRITORY_WHITE_LINE_OPACITY
 ];
 
 function withTerritoryRadiusOutsideOpacity(baseOpacity) {
@@ -190,8 +272,19 @@ function withTerritoryRevealOpacity(baseOpacity) {
   ];
 }
 
+function withTerritoryContextHiddenOpacity(baseOpacity) {
+  return [
+    "case",
+    ["boolean", ["feature-state", "contextHidden"], false],
+    0,
+    baseOpacity
+  ];
+}
+
 function withTerritoryLayerOpacity(baseOpacity) {
-  return withTerritoryRevealOpacity(withTerritoryRadiusOutsideOpacity(baseOpacity));
+  return withTerritoryRevealOpacity(
+    withTerritoryRadiusOutsideOpacity(withTerritoryContextHiddenOpacity(baseOpacity))
+  );
 }
 
 function prefersTerritoryReducedMotion() {
@@ -225,8 +318,12 @@ const territoryLayerFilterSignatures = new Map();
 // territories have no dedicated hit target yet.
 let territorySharedConsolidated = null;
 let territoryBaseHoverLayerIds = [];
+const TERRITORY_WHITE_BORDER_COLOR = "#ffffff";
 let territoryBordersEnabled = true;
+let territoryBorderColorMode = "default";
 let territoryDensityEnabled = true;
+let territoryPastelColorsEnabled = false;
+const territoryPastelColorByBrandId = new Map();
 let territoryDensitySignature = null;
 let territoryDensityDataStale = true;
 let territoryBrandLogosEnabled = false;
@@ -242,6 +339,9 @@ let territoryGeoLevel = "state";
 let territoryStateMacrodata = new Map();
 let territoryLastMatchingRecords = null;
 let territoryRenderedRecords = null;
+let territoryOccupantsByGeoKey = new Map();
+const territoryPastelOccupancyState = new Map();
+const territoryContextHiddenState = new Map();
 let territoryRadiusFilter = {
   enabled: false,
   overlay: false,
@@ -1320,10 +1420,23 @@ function getTerritoryInfoFieldId(baseId, { compare = false } = {}) {
   return compare ? `${baseId}Compare` : baseId;
 }
 
-function syncTerritoryInfoBackButton() {
+function syncTerritoryInfoBackButton({ deferMs = 0 } = {}) {
   const backButton = document.getElementById("territoryInfoBack");
   if (!backButton) return;
-  backButton.hidden = !territoryDetailReturnGeoKey;
+
+  const shouldShow = Boolean(territoryDetailReturnGeoKey);
+  backButton.hidden = !shouldShow;
+
+  window.clearTimeout(syncTerritoryInfoBackButton.deferTimer);
+  if (!shouldShow || deferMs <= 0) {
+    backButton.toggleAttribute("inert", !shouldShow);
+    return;
+  }
+
+  backButton.toggleAttribute("inert", true);
+  syncTerritoryInfoBackButton.deferTimer = window.setTimeout(() => {
+    backButton.toggleAttribute("inert", !territoryDetailReturnGeoKey);
+  }, deferMs);
 }
 
 function clearTerritoryDetailReturn() {
@@ -1741,7 +1854,9 @@ function showTerritoryInfoCards(primaryRecord, compareRecord = null) {
 
   const cameFromArea = Boolean(territoryDetailReturnGeoKey);
   const shellVisible = !primaryCard.hidden && primaryCard.classList.contains("is-visible");
-  const animateToDetail = cameFromArea && shellVisible && !primaryCard.classList.contains("is-detail");
+  const animateToDetail = !cameFromArea
+    && shellVisible
+    && !primaryCard.classList.contains("is-detail");
 
   if (!cameFromArea) {
     territoryAreaCardGeoKey = null;
@@ -1761,7 +1876,9 @@ function showTerritoryInfoCards(primaryRecord, compareRecord = null) {
   }
 
   setTerritoryCardPane("detail", { animate: animateToDetail });
-  syncTerritoryInfoBackButton();
+  syncTerritoryInfoBackButton({
+    deferMs: cameFromArea ? TERRITORY_INFO_CARD_SLIDE_MS + 40 : 0
+  });
   stack.hidden = false;
   updateTerritoryMapResetVisibility();
   window.requestAnimationFrame(() => {
@@ -1818,7 +1935,9 @@ function createTerritoryAreaBrandRow(record) {
 
   identity.append(name, status);
   button.append(logo, identity, chevron);
-  button.addEventListener("click", () => {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     window.territoryMapSelection?.select?.(record.brandId, geoKey, { returnToAreaCard: true });
   });
 
@@ -1950,19 +2069,20 @@ function returnToTerritoryAreaCard() {
   const geoKey = territoryDetailReturnGeoKey;
   if (!geoKey) return;
 
-  clearTerritoryDetailReturn();
   selectedTerritoryKey = null;
   compareTerritoryKey = null;
   territoryInfoDismissedKey = null;
-  syncSelectedTerritoryMap({ refreshMapView: false, skipInfoCard: true });
 
   if (!populateTerritoryAreaCard(geoKey)) {
+    clearTerritoryDetailReturn();
     hideTerritoryInfoCard();
     return;
   }
 
   territoryAreaCardGeoKey = geoKey;
   setTerritoryCardPane("area", { animate: true });
+  clearTerritoryDetailReturn();
+  syncSelectedTerritoryMap({ refreshMapView: false, skipInfoCard: true });
   updateTerritoryMapResetVisibility();
 
   window.requestAnimationFrame(() => {
@@ -2019,6 +2139,7 @@ function bindTerritoryInfoCard() {
   if (primaryBack && primaryBack.dataset.bound !== "true") {
     primaryBack.dataset.bound = "true";
     primaryBack.addEventListener("click", () => {
+      if (primaryBack.hasAttribute("inert")) return;
       returnToTerritoryAreaCard();
     });
   }
@@ -2665,6 +2786,28 @@ function setTerritoryDensityHover(territoryMap, geoKey) {
   return true;
 }
 
+// Pastel paints each brand on its own source, and shared territories sit under
+// an invisible hit layer. Hover every occupant so the whole shape lifts like
+// the single density fill / stroke.
+function setPastelTerritoryHover(territoryMap, geoKey, featureId) {
+  if (!territoryMap || !geoKey) return [];
+
+  const hoverId = featureId ?? geoKey;
+  const occupantIds = getShapeOccupants(getVisibleOccupantsForState(geoKey));
+  const featureStates = [];
+
+  occupantIds.forEach((brandId) => {
+    const source = `territories-${brandId}`;
+    if (!territoryMap.getSource(source)) return;
+
+    const featureState = { source, id: hoverId };
+    territoryMap.setFeatureState(featureState, { hover: true });
+    featureStates.push(featureState);
+  });
+
+  return featureStates;
+}
+
 function isTerritoryMarkerFeature(feature) {
   const layerId = feature?.layer?.id || "";
   return layerId.endsWith("-logo");
@@ -2786,7 +2929,7 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
 
   const tooltip = createTerritoryTooltipController(territoryMap);
   let hoveredFeatureKey = null;
-  let hoveredFeatureState = null;
+  let hoveredFeatureStates = [];
   let hoveredBrandHighlight = null;
 
   const clearHoveredFeatureState = () => {
@@ -2795,10 +2938,10 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
       hoveredBrandHighlight = null;
     }
 
-    if (hoveredFeatureState) {
-      territoryMap.setFeatureState(hoveredFeatureState, { hover: false });
-      hoveredFeatureState = null;
-    }
+    hoveredFeatureStates.forEach((featureState) => {
+      territoryMap.setFeatureState(featureState, { hover: false });
+    });
+    hoveredFeatureStates = [];
 
     clearTerritoryDensityHover(territoryMap);
   };
@@ -2837,6 +2980,19 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
       return;
     }
 
+    if (stateCode && territoryPastelColorsEnabled) {
+      const featureId = feature.id ?? stateCode;
+      const nextKey = `pastel-${stateCode}-${featureId}`;
+      if (hoveredFeatureKey === nextKey) return;
+
+      clearHoveredFeatureState();
+      hoveredFeatureStates = setPastelTerritoryHover(territoryMap, stateCode, featureId);
+      if (hoveredFeatureStates.length) {
+        hoveredFeatureKey = nextKey;
+      }
+      return;
+    }
+
     const id = feature.id ?? feature.properties?.state;
     const source = brandId ? `territories-${brandId}` : (feature.source || feature.layer?.source);
 
@@ -2849,7 +3005,7 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
 
     clearHoveredFeatureState();
     territoryMap.setFeatureState(nextState, { hover: true });
-    hoveredFeatureState = nextState;
+    hoveredFeatureStates = [nextState];
     hoveredFeatureKey = nextKey;
   };
 
@@ -3329,6 +3485,9 @@ function syncTerritoryBrandRadiusFadeData(territoryMap, visibleGeoKeys) {
 
     source.setData(nextCollection);
   });
+
+  // setData clears feature-state, including pastel occupancy buckets.
+  territoryPastelOccupancyState.clear();
 }
 
 function syncTerritoryRadiusOutsideFade(territoryMap, matchingRecords = territoryRenderedRecords) {
@@ -3354,6 +3513,8 @@ function syncTerritoryRadiusOutsideFade(territoryMap, matchingRecords = territor
   if (territorySharedConsolidated) {
     territorySharedConsolidated.signature = null;
   }
+
+  syncPastelFillOccupancyStates(territoryMap, territoryOccupantsByGeoKey);
 }
 
 function isCountyLevelBrand(brand) {
@@ -3510,43 +3671,394 @@ function createDiagonalHatchImage(color, {
   };
 }
 
+function clampColorChannel(value) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function hexToHsl({ r, g, b }) {
+  const red = r / 255;
+  const green = g / 255;
+  const blue = b / 255;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const delta = max - min;
+  const lightness = (max + min) / 2;
+  const saturation = delta === 0 ? 0 : delta / (1 - Math.abs((2 * lightness) - 1));
+  let hue = 0;
+
+  if (delta !== 0) {
+    if (max === red) hue = ((green - blue) / delta) % 6;
+    else if (max === green) hue = ((blue - red) / delta) + 2;
+    else hue = ((red - green) / delta) + 4;
+    hue *= 60;
+    if (hue < 0) hue += 360;
+  }
+
+  return { h: hue, s: saturation, l: lightness };
+}
+
+function hslToHex({ h, s, l }) {
+  const hue = ((h % 360) + 360) % 360;
+  const chroma = (1 - Math.abs((2 * l) - 1)) * s;
+  const secondary = chroma * (1 - Math.abs(((hue / 60) % 2) - 1));
+  const match = l - (chroma / 2);
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+
+  if (hue < 60) {
+    red = chroma;
+    green = secondary;
+  } else if (hue < 120) {
+    red = secondary;
+    green = chroma;
+  } else if (hue < 180) {
+    green = chroma;
+    blue = secondary;
+  } else if (hue < 240) {
+    green = secondary;
+    blue = chroma;
+  } else if (hue < 300) {
+    red = secondary;
+    blue = chroma;
+  } else {
+    red = chroma;
+    blue = secondary;
+  }
+
+  const toHex = (channel) => Math.round((channel + match) * 255)
+    .toString(16)
+    .padStart(2, "0");
+
+  return `#${toHex(red)}${toHex(green)}${toHex(blue)}`;
+}
+
+// Pastel fills are light by design. Borders keep the same hue with a
+// modest saturation/lightness nudge so they read without going neon.
+function getPastelLineColor(color) {
+  const hsl = hexToHsl(parseHexColor(color));
+  return hslToHex({
+    h: hsl.h,
+    s: clampColorChannel(Math.min(0.78, hsl.s * 1.04)),
+    l: clampColorChannel(Math.max(0.54, Math.min(0.66, hsl.l * 0.86)))
+  });
+}
+
+function hueDistance(left, right) {
+  const delta = Math.abs(left - right) % 360;
+  return Math.min(delta, 360 - delta);
+}
+
+function rgbDistance(left, right) {
+  const red = left.r - right.r;
+  const green = left.g - right.g;
+  const blue = left.b - right.b;
+  return (red * red) + (green * green) + (blue * blue);
+}
+
+function getNearestPastelColor(color) {
+  const source = parseHexColor(color);
+  const sourceHsl = hexToHsl(source);
+
+  // Near-gray and near-black hues are unstable, so fall back to RGB distance.
+  const useHue = sourceHsl.s >= 0.12 && sourceHsl.l >= 0.08;
+  let bestColor = TERRITORY_PASTEL_COLORS[0];
+  let bestDistance = Infinity;
+
+  TERRITORY_PASTEL_COLORS.forEach((pastel) => {
+    const pastelRgb = parseHexColor(pastel);
+    const distance = useHue
+      ? hueDistance(sourceHsl.h, hexToHsl(pastelRgb).h)
+      : rgbDistance(source, pastelRgb);
+    if (distance < bestDistance) {
+      bestColor = pastel;
+      bestDistance = distance;
+    }
+  });
+
+  return bestColor;
+}
+
+function assignTerritoryPastelColors(brands) {
+  (brands || []).forEach((brand) => {
+    if (!brand?.id) return;
+    territoryPastelColorByBrandId.set(brand.id, getNearestPastelColor(brand.color));
+  });
+}
+
+function getTerritoryBrandPaintColor(brand) {
+  if (!brand) return null;
+  if (territoryPastelColorsEnabled) {
+    if (!territoryPastelColorByBrandId.has(brand.id)) {
+      assignTerritoryPastelColors([brand]);
+    }
+    return territoryPastelColorByBrandId.get(brand.id) || brand.color;
+  }
+  return brand.color;
+}
+
+function getBrandFillColorExpression(brand) {
+  const activeColor = territoryPastelColorsEnabled
+    ? getTerritoryBrandPaintColor(brand)
+    : ["get", "color"];
+  return withTerritoryAreaFocusColor(activeColor, TERRITORY_AREA_CONTEXT_FILL_COLOR);
+}
+
+function getTerritoryBrandLineColor(brand) {
+  if (territoryBorderColorMode === "white") return TERRITORY_WHITE_BORDER_COLOR;
+  const paintColor = getTerritoryBrandPaintColor(brand);
+  if (!paintColor) return null;
+  return territoryPastelColorsEnabled ? getPastelLineColor(paintColor) : paintColor;
+}
+
+function getBrandLineColorExpression(brand) {
+  let activeColor = ["get", "color"];
+  if (territoryBorderColorMode === "white") {
+    activeColor = TERRITORY_WHITE_BORDER_COLOR;
+  } else if (territoryPastelColorsEnabled) {
+    activeColor = getTerritoryBrandLineColor(brand);
+  }
+  return withTerritoryAreaFocusColor(activeColor, TERRITORY_AREA_CONTEXT_LINE_COLOR);
+}
+
+function getTerritoryAreaFocusMatchExpression() {
+  const geoKey = getTerritoryAreaMapHighlightGeoKey();
+  if (!geoKey) return null;
+
+  return [
+    "==",
+    ["coalesce", ["get", "sourceGeoKey"], ["get", "geoKey"]],
+    geoKey
+  ];
+}
+
+function withTerritoryAreaFocusColor(activeColor, contextColor) {
+  const match = getTerritoryAreaFocusMatchExpression();
+  if (!match) return activeColor;
+
+  return [
+    "case",
+    match,
+    activeColor,
+    contextColor
+  ];
+}
+
+function withTerritoryAreaFocusOpacity(activeOpacity, contextOpacity) {
+  const match = getTerritoryAreaFocusMatchExpression();
+  if (!match) return activeOpacity;
+
+  return [
+    "case",
+    match,
+    activeOpacity,
+    contextOpacity
+  ];
+}
+
+function getTerritoryFillOpacityExpression() {
+  const base = territoryPastelColorsEnabled
+    ? TERRITORY_PASTEL_FILL_OPACITY_EXPRESSION
+    : TERRITORY_FILL_OPACITY_EXPRESSION;
+  return withTerritoryAreaFocusOpacity(base, TERRITORY_BRAND_AREA_CONTEXT_FILL_OPACITY);
+}
+
+function getTerritoryHatchOpacityExpression() {
+  return withTerritoryAreaFocusOpacity(
+    TERRITORY_HATCH_FILL_OPACITY_EXPRESSION,
+    TERRITORY_BRAND_AREA_CONTEXT_FILL_OPACITY
+  );
+}
+
+function getTerritoryLineOpacityExpression() {
+  let base = TERRITORY_LINE_OPACITY_EXPRESSION;
+  if (territoryBorderColorMode === "white") {
+    base = TERRITORY_WHITE_LINE_OPACITY_EXPRESSION;
+  } else if (territoryPastelColorsEnabled) {
+    base = TERRITORY_PASTEL_LINE_OPACITY_EXPRESSION;
+  }
+  return withTerritoryAreaFocusOpacity(base, TERRITORY_BRAND_AREA_CONTEXT_LINE_OPACITY);
+}
+
+function getTerritoryColorMode() {
+  if (territoryPastelColorsEnabled) return "pastel";
+  if (territoryDensityEnabled) return "density";
+  return "accent";
+}
+
+function getTerritoryFocusLineColor() {
+  return territoryBorderColorMode === "white"
+    ? TERRITORY_WHITE_BORDER_COLOR
+    : TERRITORY_DENSITY_HIGH_COLOR;
+}
+
+function getBrandHatchPatternExpression(brand) {
+  return withTerritoryAreaFocusColor(
+    `territory-hatch-${brand.id}`,
+    TERRITORY_CONTEXT_HATCH_IMAGE_ID
+  );
+}
+
+function ensureTerritoryContextHatchImage(territoryMap) {
+  if (!territoryMap || territoryMap.hasImage(TERRITORY_CONTEXT_HATCH_IMAGE_ID)) return;
+
+  territoryMap.addImage(
+    TERRITORY_CONTEXT_HATCH_IMAGE_ID,
+    createDiagonalHatchImage(TERRITORY_AREA_CONTEXT_LINE_COLOR),
+    { pixelRatio: TERRITORY_HATCH_PIXEL_RATIO }
+  );
+}
+
 function ensureBrandHatchImage(territoryMap, brand) {
   const imageId = `territory-hatch-${brand.id}`;
-  if (territoryMap.hasImage(imageId)) return imageId;
+  const hatchColor = getTerritoryBrandPaintColor(brand) || brand.color;
+  const hatchImage = createDiagonalHatchImage(hatchColor);
+
+  ensureTerritoryContextHatchImage(territoryMap);
+
+  if (territoryMap.hasImage(imageId)) {
+    territoryMap.updateImage(imageId, hatchImage);
+    return imageId;
+  }
 
   territoryMap.addImage(
     imageId,
-    createDiagonalHatchImage(brand.color),
+    hatchImage,
     { pixelRatio: TERRITORY_HATCH_PIXEL_RATIO }
   );
 
   return imageId;
 }
 
-// Shared territories are drawn by stacking every occupying brand's fill, so a
-// brand shows all of its matching geo keys regardless of who else occupies them.
+function syncTerritoryBrandPaintColors() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap) return;
+
+  if (territoryPastelColorsEnabled) {
+    assignTerritoryPastelColors(territoryBrands);
+  }
+
+  territoryBrands.forEach((brand) => {
+    const layerIds = territoryBrandLayerIds.get(brand.id);
+    if (!layerIds) return;
+
+    const fillColor = getBrandFillColorExpression(brand);
+    const lineColor = getBrandLineColorExpression(brand);
+    const hatchPattern = getBrandHatchPatternExpression(brand);
+    const colorTransition = { duration: 0, delay: 0 };
+    layerIds.geoLayers.forEach((geoLayers) => {
+      if (geoLayers.fillLayerId && territoryMap.getLayer(geoLayers.fillLayerId)) {
+        territoryMap.setPaintProperty(geoLayers.fillLayerId, "fill-color-transition", colorTransition);
+        territoryMap.setPaintProperty(geoLayers.fillLayerId, "fill-color", fillColor);
+      }
+      if (geoLayers.hatchLayerId && territoryMap.getLayer(geoLayers.hatchLayerId)) {
+        territoryMap.setPaintProperty(geoLayers.hatchLayerId, "fill-pattern", hatchPattern);
+      }
+      if (geoLayers.lineLayerId && territoryMap.getLayer(geoLayers.lineLayerId)) {
+        territoryMap.setPaintProperty(geoLayers.lineLayerId, "line-color-transition", colorTransition);
+        territoryMap.setPaintProperty(geoLayers.lineLayerId, "line-opacity-transition", colorTransition);
+        territoryMap.setPaintProperty(geoLayers.lineLayerId, "line-color", lineColor);
+        territoryMap.setPaintProperty(
+          geoLayers.lineLayerId,
+          "line-opacity",
+          withTerritoryLayerOpacity(getTerritoryLineOpacityExpression())
+        );
+      }
+    });
+    ensureBrandHatchImage(territoryMap, brand);
+  });
+}
+
+// Shared territories stack occupant fills and borders in occupancy order.
+// Only the first N brands are painted so overlapping shapes stay readable.
+function getShapeOccupants(visibleOccupants) {
+  if (!visibleOccupants?.length) return [];
+  return visibleOccupants.slice(0, TERRITORY_SHAPE_MAX_VISIBLE);
+}
+
+function getPastelFillOccupancyBucket(occupantCount) {
+  if (occupantCount >= TERRITORY_PASTEL_FILL_OCCUPANCY_HIGH_MIN) return 3;
+  if (occupantCount >= TERRITORY_PASTEL_FILL_OCCUPANCY_MID_MIN) return 2;
+  return 1;
+}
+
+// Splash card overlays use these with an explicit theme so they match the map
+// without depending on the live map flags being initialized yet.
+function getTerritoryPreviewBrandFillColor(brand, colorMode) {
+  if (!brand?.color) return null;
+  return colorMode === "pastel" ? getNearestPastelColor(brand.color) : brand.color;
+}
+
+function getTerritoryPreviewBrandLineColor(brand, colorMode, borderColor) {
+  if (borderColor === "white") return TERRITORY_WHITE_BORDER_COLOR;
+  const fillColor = getTerritoryPreviewBrandFillColor(brand, colorMode);
+  if (!fillColor) return colorMode === "density" ? TERRITORY_DENSITY_HIGH_COLOR : null;
+  return colorMode === "pastel" ? getPastelLineColor(fillColor) : fillColor;
+}
+
+function getTerritoryPreviewFillOpacity(colorMode, occupantCount) {
+  if (colorMode === "pastel") {
+    const bucket = getPastelFillOccupancyBucket(occupantCount);
+    if (bucket >= 3) return TERRITORY_PASTEL_FILL_OPACITY_HIGH;
+    if (bucket >= 2) return TERRITORY_PASTEL_FILL_OPACITY_MID;
+    return TERRITORY_FILL_OPACITY;
+  }
+  if (colorMode === "accent") return TERRITORY_FILL_OPACITY;
+  return null;
+}
+
+function getTerritoryPreviewLineOpacity(colorMode, borderColor) {
+  if (borderColor === "white") return TERRITORY_WHITE_LINE_OPACITY;
+  if (colorMode === "pastel") return TERRITORY_PASTEL_LINE_OPACITY;
+  if (colorMode === "accent") return TERRITORY_LINE_OPACITY;
+  return null;
+}
+
+function syncPastelFillOccupancyStates(territoryMap, occupantsByGeoKey) {
+  if (!territoryMap || !territoryPastelColorsEnabled || !occupantsByGeoKey?.size) return;
+
+  occupantsByGeoKey.forEach((occupants, geoKey) => {
+    const bucket = getPastelFillOccupancyBucket(occupants.length);
+    getShapeOccupants(occupants).forEach((brandId) => {
+      const sourceId = `territories-${brandId}`;
+      if (!territoryMap.getSource(sourceId)) return;
+
+      const stateKey = `${sourceId}:${geoKey}`;
+      if (territoryPastelOccupancyState.get(stateKey) === bucket) return;
+
+      try {
+        territoryMap.setFeatureState({ source: sourceId, id: geoKey }, { occupancyBucket: bucket });
+        territoryPastelOccupancyState.set(stateKey, bucket);
+      } catch (error) {
+        // The feature may not exist on this source.
+      }
+    });
+  });
+}
+
 function getLogoOccupants(visibleOccupants) {
   if (!visibleOccupants?.length) return [];
   return visibleOccupants.slice(0, TERRITORY_LOGO_MAX_VISIBLE);
+}
+
+function appendGeoKeyForBrand(geoKeysByBrand, brandId, geoKey) {
+  const geoKeys = geoKeysByBrand.get(brandId);
+  if (geoKeys) {
+    geoKeys.push(geoKey);
+    return;
+  }
+  geoKeysByBrand.set(brandId, [geoKey]);
 }
 
 // Everything the render pass needs about which territories are visible, derived
 // in a single walk of the matching records. Doing it per brand meant rescanning
 // the whole registry once for the fills and again for the logos.
 function buildTerritoryVisibilityIndex(matchingRecords) {
-  const geoKeysByBrand = new Map();
   const brandIdsByGeoKey = new Map();
 
   matchingRecords.forEach((record) => {
     const geoKey = record.geoKey || record.state;
     if (!geoKey) return;
-
-    const geoKeys = geoKeysByBrand.get(record.brandId);
-    if (geoKeys) {
-      geoKeys.push(geoKey);
-    } else {
-      geoKeysByBrand.set(record.brandId, [geoKey]);
-    }
 
     const brandIds = brandIdsByGeoKey.get(geoKey);
     if (brandIds) {
@@ -3556,8 +4068,10 @@ function buildTerritoryVisibilityIndex(matchingRecords) {
     }
   });
 
-  // Dataset occupancy order decides which brands get a logo slot, so keep it.
+  // Dataset occupancy order decides which brands get a painted shape and
+  // which get a logo slot. Lists and density still see every occupant.
   const occupantsByGeoKey = new Map();
+  const geoKeysByBrand = new Map();
   const logoGeoKeysByBrand = new Map();
 
   brandIdsByGeoKey.forEach((brandIds, geoKey) => {
@@ -3568,13 +4082,11 @@ function buildTerritoryVisibilityIndex(matchingRecords) {
 
     occupantsByGeoKey.set(geoKey, occupants);
 
+    getShapeOccupants(occupants).forEach((brandId) => {
+      appendGeoKeyForBrand(geoKeysByBrand, brandId, geoKey);
+    });
     getLogoOccupants(occupants).forEach((brandId) => {
-      const geoKeys = logoGeoKeysByBrand.get(brandId);
-      if (geoKeys) {
-        geoKeys.push(geoKey);
-      } else {
-        logoGeoKeysByBrand.set(brandId, [geoKey]);
-      }
+      appendGeoKeyForBrand(logoGeoKeysByBrand, brandId, geoKey);
     });
   });
 
@@ -3746,6 +4258,7 @@ function renderTerritoryRecords(matchingRecords) {
 
   const visibility = buildTerritoryVisibilityIndex(matchingRecords);
   const visibleOccupantsByState = visibility.occupantsByGeoKey;
+  territoryOccupantsByGeoKey = visibleOccupantsByState;
   syncTerritoryRadiusOutsideFade(territoryMap, matchingRecords);
   updateTerritoryDensityData(territoryMap, matchingRecords, visibility.visibleGeoKeys);
 
@@ -3795,6 +4308,7 @@ function renderTerritoryRecords(matchingRecords) {
   });
 
   updateConsolidatedSharedTerritories(territoryMap, visibleOccupantsByState);
+  syncPastelFillOccupancyStates(territoryMap, visibleOccupantsByState);
 }
 
 function getSelectedTerritoryRecords(matchingRecords = territoryLastMatchingRecords || territoryRegistry) {
@@ -3813,6 +4327,125 @@ function getSelectedTerritoryRecords(matchingRecords = territoryLastMatchingReco
   return records;
 }
 
+function getVisibleTerritoryRecords(matchingRecords, selectedRecords) {
+  // Keep the current filters while the area card is still live. Narrowing to
+  // the selected record retiles leftover faded territories at default paint.
+  if (selectedRecords.length && territoryAreaCardGeoKey) {
+    return matchingRecords;
+  }
+  return selectedRecords.length ? selectedRecords : matchingRecords;
+}
+
+function getTerritoryIsolatedBrandIds() {
+  if (!territoryAreaCardGeoKey) return null;
+  const selectedRecords = getSelectedTerritoryRecords();
+  if (!selectedRecords.length) return null;
+  return new Set(selectedRecords.map((record) => record.brandId));
+}
+
+function syncTerritorySelectionLayerVisibility() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap) return;
+
+  // Isolation is paint-only. Layout visibility stays with the normal
+  // density / border / logo settings so hidden layers do not rematerialize
+  // at default opacity when returning to the area card.
+  const showFills = !territoryDensityEnabled;
+  const showLines = territoryBordersEnabled && !territoryDensityEnabled;
+  const showLogos = territoryBrandLogosEnabled;
+
+  territoryBrands.forEach((brand) => {
+    const layerIds = territoryBrandLayerIds.get(brand.id);
+    if (!layerIds) return;
+
+    layerIds.geoLayers.forEach((geoLayers) => {
+      if (geoLayers.fillLayerId && territoryMap.getLayer(geoLayers.fillLayerId)) {
+        territoryMap.setLayoutProperty(
+          geoLayers.fillLayerId,
+          "visibility",
+          showFills ? "visible" : "none"
+        );
+      }
+      if (geoLayers.hatchLayerId && territoryMap.getLayer(geoLayers.hatchLayerId)) {
+        territoryMap.setLayoutProperty(
+          geoLayers.hatchLayerId,
+          "visibility",
+          showFills ? "visible" : "none"
+        );
+      }
+      if (geoLayers.lineLayerId && territoryMap.getLayer(geoLayers.lineLayerId)) {
+        territoryMap.setLayoutProperty(
+          geoLayers.lineLayerId,
+          "visibility",
+          showLines ? "visible" : "none"
+        );
+      }
+    });
+
+    if (layerIds.logoLayerId && territoryMap.getLayer(layerIds.logoLayerId)) {
+      territoryMap.setLayoutProperty(
+        layerIds.logoLayerId,
+        "visibility",
+        showLogos ? "visible" : "none"
+      );
+    }
+  });
+}
+
+function setTerritoryContextHiddenState(territoryMap, brandId, geoKey, hidden) {
+  const stateKey = `${brandId}\0${geoKey}`;
+  if (territoryContextHiddenState.get(stateKey) === hidden) return;
+
+  try {
+    territoryMap.setFeatureState(
+      { source: `territories-${brandId}`, id: geoKey },
+      { contextHidden: hidden }
+    );
+    if (territoryMap.getSource(`territories-${brandId}-logos`)) {
+      territoryMap.setFeatureState(
+        { source: `territories-${brandId}-logos`, id: geoKey },
+        { contextHidden: hidden }
+      );
+    }
+    territoryContextHiddenState.set(stateKey, hidden);
+  } catch (error) {
+    // The feature may not exist on this source.
+  }
+}
+
+function syncTerritoryContextHiddenStates() {
+  const territoryMap = window.territoryMap;
+  if (!territoryMap) return;
+
+  const isolatedBrandIds = getTerritoryIsolatedBrandIds();
+  const highlightGeoKey = getTerritoryAreaMapHighlightGeoKey();
+  const hideOthers = Boolean(isolatedBrandIds && highlightGeoKey);
+  const nextHidden = new Set();
+  const records = territoryLastMatchingRecords || territoryRegistry;
+
+  records.forEach((record) => {
+    const geoKey = record.geoKey || record.state;
+    const brandId = record.brandId;
+    if (!geoKey || !brandId) return;
+
+    const hidden = hideOthers && (geoKey !== highlightGeoKey || !isolatedBrandIds.has(brandId));
+    if (hidden) nextHidden.add(`${brandId}\0${geoKey}`);
+    setTerritoryContextHiddenState(territoryMap, brandId, geoKey, hidden);
+  });
+
+  territoryContextHiddenState.forEach((hidden, stateKey) => {
+    if (!hidden || nextHidden.has(stateKey)) return;
+    const separator = stateKey.indexOf("\0");
+    if (separator < 0) return;
+    setTerritoryContextHiddenState(
+      territoryMap,
+      stateKey.slice(0, separator),
+      stateKey.slice(separator + 1),
+      false
+    );
+  });
+}
+
 function getTerritoryOpacityTransition() {
   return territoryRevealActive
     ? { duration: TERRITORY_REVEAL_FADE_MS, delay: 0 }
@@ -3821,12 +4454,10 @@ function getTerritoryOpacityTransition() {
 
 function getTerritoryAreaMapHighlightGeoKey() {
   const card = getTerritoryInfoCardElement();
-  if (
-    !territoryAreaCardGeoKey
-    || !card
-    || card.hidden
-    || card.classList.contains("is-detail")
-  ) {
+  // Keep faded context paint while the area card key is still live. Clearing it
+  // on selectedTerritoryKey / is-detail updates cached tiles to full opacity
+  // before setFilter finishes hiding those territories.
+  if (!territoryAreaCardGeoKey || !card || card.hidden) {
     return null;
   }
 
@@ -3843,7 +4474,9 @@ function getDensityFillColorExpression() {
 
 function getDensityFillOpacityExpression() {
   if (isTerritoryDetailMapHighlightActive()) {
-    return withTerritoryLayerOpacity(TERRITORY_FILL_SELECTED_OPACITY);
+    return withTerritoryLayerOpacity(
+      withTerritoryAreaFocusOpacity(TERRITORY_FILL_SELECTED_OPACITY, 0)
+    );
   }
 
   if (getTerritoryAreaMapHighlightGeoKey()) {
@@ -3864,12 +4497,35 @@ function getDensityFillOpacityExpression() {
 }
 
 function getDensityLineColorExpression() {
-  return TERRITORY_DENSITY_HIGH_COLOR;
+  return territoryBorderColorMode === "white"
+    ? TERRITORY_WHITE_BORDER_COLOR
+    : TERRITORY_DENSITY_HIGH_COLOR;
 }
 
 function getDensityLineOpacityExpression() {
+  if (territoryBorderColorMode === "white") {
+    if (isTerritoryDetailMapHighlightActive()) {
+      return withTerritoryLayerOpacity(
+        withTerritoryAreaFocusOpacity(TERRITORY_WHITE_LINE_SELECTED_OPACITY, 0)
+      );
+    }
+
+    if (getTerritoryAreaMapHighlightGeoKey()) {
+      return withTerritoryLayerOpacity([
+        "case",
+        ["boolean", ["feature-state", "hover"], false],
+        TERRITORY_WHITE_LINE_SELECTED_OPACITY,
+        TERRITORY_WHITE_LINE_OPACITY
+      ]);
+    }
+
+    return withTerritoryLayerOpacity(TERRITORY_WHITE_LINE_OPACITY_EXPRESSION);
+  }
+
   if (isTerritoryDetailMapHighlightActive()) {
-    return withTerritoryLayerOpacity(TERRITORY_LINE_SELECTED_OPACITY);
+    return withTerritoryLayerOpacity(
+      withTerritoryAreaFocusOpacity(TERRITORY_LINE_SELECTED_OPACITY, 0)
+    );
   }
 
   if (getTerritoryAreaMapHighlightGeoKey()) {
@@ -3901,30 +4557,30 @@ function syncTerritoryLayerOpacities() {
 
     layerIds.geoLayers.forEach((geoLayers) => {
       if (geoLayers.fillLayerId && territoryMap.getLayer(geoLayers.fillLayerId)) {
+        territoryMap.setPaintProperty(geoLayers.fillLayerId, "fill-opacity-transition", transition);
         territoryMap.setPaintProperty(
           geoLayers.fillLayerId,
           "fill-opacity",
-          territoryDensityEnabled ? 0 : withTerritoryLayerOpacity(TERRITORY_FILL_OPACITY_EXPRESSION)
+          territoryDensityEnabled ? 0 : withTerritoryLayerOpacity(getTerritoryFillOpacityExpression())
         );
-        territoryMap.setPaintProperty(geoLayers.fillLayerId, "fill-opacity-transition", transition);
       }
 
       if (geoLayers.hatchLayerId && territoryMap.getLayer(geoLayers.hatchLayerId)) {
+        territoryMap.setPaintProperty(geoLayers.hatchLayerId, "fill-opacity-transition", transition);
         territoryMap.setPaintProperty(
           geoLayers.hatchLayerId,
           "fill-opacity",
-          territoryDensityEnabled ? 0 : withTerritoryLayerOpacity(TERRITORY_HATCH_FILL_OPACITY_EXPRESSION)
+          territoryDensityEnabled ? 0 : withTerritoryLayerOpacity(getTerritoryHatchOpacityExpression())
         );
-        territoryMap.setPaintProperty(geoLayers.hatchLayerId, "fill-opacity-transition", transition);
       }
 
       if (geoLayers.lineLayerId && territoryMap.getLayer(geoLayers.lineLayerId)) {
+        territoryMap.setPaintProperty(geoLayers.lineLayerId, "line-opacity-transition", transition);
         territoryMap.setPaintProperty(
           geoLayers.lineLayerId,
           "line-opacity",
-          withTerritoryLayerOpacity(TERRITORY_LINE_OPACITY_EXPRESSION)
+          withTerritoryLayerOpacity(getTerritoryLineOpacityExpression())
         );
-        territoryMap.setPaintProperty(geoLayers.lineLayerId, "line-opacity-transition", transition);
       }
     });
 
@@ -3932,7 +4588,9 @@ function syncTerritoryLayerOpacities() {
       territoryMap.setPaintProperty(
         layerIds.logoLayerId,
         "icon-opacity",
-        withTerritoryRevealOpacity(1)
+        withTerritoryLayerOpacity(
+          withTerritoryAreaFocusOpacity(1, TERRITORY_BRAND_AREA_CONTEXT_LINE_OPACITY)
+        )
       );
       territoryMap.setPaintProperty(layerIds.logoLayerId, "icon-opacity-transition", transition);
     }
@@ -3956,6 +4614,14 @@ function syncTerritoryLayerOpacities() {
     );
   }
 
+  if (territoryMap.getLayer(TERRITORY_AREA_FOCUS_LINE_LAYER_ID)) {
+    territoryMap.setPaintProperty(
+      TERRITORY_AREA_FOCUS_LINE_LAYER_ID,
+      "line-color",
+      getTerritoryFocusLineColor()
+    );
+  }
+
   if (territoryMap.getLayer(TERRITORY_DENSITY_LINE_LAYER_ID)) {
     territoryMap.setPaintProperty(
       TERRITORY_DENSITY_LINE_LAYER_ID,
@@ -3973,6 +4639,9 @@ function syncTerritoryLayerOpacities() {
       transition
     );
   }
+
+  syncTerritorySelectionLayerVisibility();
+  syncTerritoryContextHiddenStates();
 }
 
 function syncTerritoryAreaMapHighlight() {
@@ -4010,6 +4679,7 @@ function syncTerritoryAreaMapHighlight() {
     );
   }
 
+  syncTerritoryBrandPaintColors();
   syncTerritoryLayerOpacities();
 }
 
@@ -4367,7 +5037,7 @@ function applyTerritoryFilters(matchingRecords, { isCancelled } = {}) {
   }
 
   const selectedRecords = getSelectedTerritoryRecords(matchingRecords);
-  const visibleRecords = selectedRecords.length ? selectedRecords : matchingRecords;
+  const visibleRecords = getVisibleTerritoryRecords(matchingRecords, selectedRecords);
   renderTerritoryRecords(visibleRecords);
   window.territoryFilters?.updateSummary?.(matchingRecords.length, territoryRegistry.length);
 
@@ -5574,7 +6244,7 @@ function addTerritoryDensityLayers(territoryMap, beforeLayerId) {
       "line-cap": "round"
     },
     paint: {
-      "line-color": TERRITORY_DENSITY_HIGH_COLOR,
+      "line-color": getTerritoryFocusLineColor(),
       "line-opacity": TERRITORY_AREA_FOCUS_LINE_OPACITY,
       "line-width": TERRITORY_LINE_WIDTH
     }
@@ -5608,7 +6278,7 @@ function addSharedTerritoryLayers(territoryMap, sharedGeoKeys, geoOccupancy, geo
 function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFeatureCollection, logoMeta, excludeFilter) {
   const sourceId = `territories-${brand.id}`;
   const logoLayerId = `${sourceId}-logo`;
-  const hatchImageId = ensureBrandHatchImage(territoryMap, brand);
+  ensureBrandHatchImage(territoryMap, brand);
 
   territoryMap.addSource(sourceId, {
     type: "geojson",
@@ -5638,10 +6308,10 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
       type: "fill",
       source: sourceId,
       paint: {
-        "fill-color": ["get", "color"],
+        "fill-color": getBrandFillColorExpression(brand),
         "fill-opacity": territoryDensityEnabled
           ? 0
-          : withTerritoryLayerOpacity(TERRITORY_FILL_OPACITY_EXPRESSION)
+          : withTerritoryLayerOpacity(getTerritoryFillOpacityExpression())
       }
     };
     const hatchLayer = {
@@ -5649,10 +6319,10 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
       type: "fill",
       source: sourceId,
       paint: {
-        "fill-pattern": hatchImageId,
+        "fill-pattern": getBrandHatchPatternExpression(brand),
         "fill-opacity": territoryDensityEnabled
           ? 0
-          : withTerritoryLayerOpacity(TERRITORY_HATCH_FILL_OPACITY_EXPRESSION)
+          : withTerritoryLayerOpacity(getTerritoryHatchOpacityExpression())
       }
     };
     const lineLayer = {
@@ -5660,8 +6330,8 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
       type: "line",
       source: sourceId,
       paint: {
-        "line-color": ["get", "color"],
-        "line-opacity": withTerritoryLayerOpacity(TERRITORY_LINE_OPACITY_EXPRESSION),
+        "line-color": getBrandLineColorExpression(brand),
+        "line-opacity": withTerritoryLayerOpacity(getTerritoryLineOpacityExpression()),
         "line-width": TERRITORY_LINE_WIDTH
       }
     };
@@ -5730,7 +6400,9 @@ function addBrandTerritoryLayers(territoryMap, brand, featureCollection, logoFea
           "icon-ignore-placement": true
         },
         paint: {
-          "icon-opacity": withTerritoryRevealOpacity(1)
+          "icon-opacity": withTerritoryLayerOpacity(
+            withTerritoryAreaFocusOpacity(1, TERRITORY_BRAND_AREA_CONTEXT_LINE_OPACITY)
+          )
         }
       };
 
@@ -6067,6 +6739,8 @@ function syncTerritoryBorderVisibility() {
         : "none"
     );
   }
+
+  syncTerritorySelectionLayerVisibility();
 }
 
 function setTerritoryBordersVisible(isVisible) {
@@ -6112,13 +6786,53 @@ function syncTerritoryVisualizationLayers({ reapplyFilters = true } = {}) {
   }
 }
 
-function setTerritoryDensityEnabled(isEnabled, { reapplyFilters = true } = {}) {
-  territoryDensityEnabled = Boolean(isEnabled);
+function setTerritoryColorMode(mode, { reapplyFilters = true } = {}) {
+  const nextMode = mode === "accent" || mode === "pastel" ? mode : "density";
+  territoryDensityEnabled = nextMode === "density";
+  territoryPastelColorsEnabled = nextMode === "pastel";
+  if (territoryPastelColorsEnabled) {
+    assignTerritoryPastelColors(territoryBrands);
+  }
+  syncTerritoryBrandPaintColors();
   syncTerritoryVisualizationLayers({ reapplyFilters });
+}
+
+function setTerritoryDensityEnabled(isEnabled, { reapplyFilters = true } = {}) {
+  if (isEnabled) {
+    setTerritoryColorMode("density", { reapplyFilters });
+    return;
+  }
+  if (getTerritoryColorMode() === "density") {
+    setTerritoryColorMode("accent", { reapplyFilters });
+  }
 }
 
 function getTerritoryDensityEnabled() {
   return territoryDensityEnabled;
+}
+
+function setTerritoryPastelColorsEnabled(isEnabled, { reapplyFilters = true } = {}) {
+  if (isEnabled) {
+    setTerritoryColorMode("pastel", { reapplyFilters });
+    return;
+  }
+  if (getTerritoryColorMode() === "pastel") {
+    setTerritoryColorMode("accent", { reapplyFilters });
+  }
+}
+
+function getTerritoryPastelColorsEnabled() {
+  return territoryPastelColorsEnabled;
+}
+
+function setTerritoryBorderColorMode(mode) {
+  territoryBorderColorMode = mode === "white" ? "white" : "default";
+  syncTerritoryBrandPaintColors();
+  syncTerritoryLayerOpacities();
+}
+
+function getTerritoryBorderColorMode() {
+  return territoryBorderColorMode;
 }
 
 function setTerritoryBrandLogosVisible(isVisible) {
@@ -6134,6 +6848,7 @@ function setTerritoryBrandLogosVisible(isVisible) {
       territoryMap.setLayoutProperty(layerIds.logoLayerId, "visibility", visibility);
     }
   });
+  syncTerritorySelectionLayerVisibility();
 }
 
 function getTerritoryBrandLogosVisible() {
@@ -6232,12 +6947,20 @@ function syncSelectedTerritoryMap({ refreshMapView = true, skipInfoCard = false 
 
   clearTerritoryMapHover?.();
   clearSelectedTerritoryFeatureStates();
-  renderTerritoryRecords(selectedRecords.length ? selectedRecords : matchingRecords);
-  setSelectedTerritoryFeatureStates(selectedRecords);
-  syncTerritoryLayerOpacities();
+  const visibleRecords = getVisibleTerritoryRecords(matchingRecords, selectedRecords);
+  syncTerritorySelectionLayerVisibility();
+  if (selectedRecords.length && territoryAreaCardGeoKey) {
+    syncTerritoryLayerOpacities();
+  }
+  renderTerritoryRecords(visibleRecords);
+  if (selectedRecords.length) {
+    setSelectedTerritoryFeatureStates(selectedRecords);
+  }
   window.territoryBrandPanel?.setSelectedTerritory?.(selectedTerritoryKey, compareTerritoryKey);
   if (!skipInfoCard) {
     showTerritoryInfoCards(selectedRecords[0] || null, selectedRecords[1] || null);
+  } else {
+    syncTerritoryLayerOpacities();
   }
 
   if (!selectedTerritoryKey && refreshMapView) {
@@ -6291,7 +7014,7 @@ function applySelectedTerritorySelection() {
     : whenTerritoryMapPanelLayoutSettled();
 
   const selectedRecords = getSelectedTerritoryRecords();
-  if (selectedRecords.length) {
+  if (selectedRecords.length && !territoryDetailReturnGeoKey) {
     mapPanelReady.then(() => {
       scheduleTerritorySelectionMapFocus(selectedRecords);
     });
@@ -6489,8 +7212,20 @@ function focusTerritoryCoordinates(
 window.territoryMapControls = {
   setTerritoryBordersVisible,
   getTerritoryBordersVisible,
+  setTerritoryBorderColorMode,
+  getTerritoryBorderColorMode,
+  setTerritoryColorMode,
+  getTerritoryColorMode,
   setTerritoryDensityEnabled,
   getTerritoryDensityEnabled,
+  setTerritoryPastelColorsEnabled,
+  getTerritoryPastelColorsEnabled,
+  getTerritoryBrandPaintColor,
+  getTerritoryPreviewBrandFillColor,
+  getTerritoryPreviewBrandLineColor,
+  getTerritoryPreviewFillOpacity,
+  getTerritoryPreviewLineOpacity,
+  getTerritoryShapeMaxVisible: () => TERRITORY_SHAPE_MAX_VISIBLE,
   setTerritoryBrandLogosVisible,
   getTerritoryBrandLogosVisible,
   setTerritoryRadiusFilter,

@@ -1330,6 +1330,29 @@ function isCstSplashOpen() {
   return Boolean(card?.classList.contains("is-splash-open"));
 }
 
+function getCstSplashToolbarHeader() {
+  return document.querySelector(".header");
+}
+
+function syncCstSplashToolbarDivider(active = isCstSplashOpen()) {
+  const header = getCstSplashToolbarHeader();
+  const splash = getCstSplashElement();
+  if (!header) return;
+
+  header.classList.toggle(
+    "is-scrolled",
+    Boolean(active && splash && !splash.hidden && splash.scrollTop > 0)
+  );
+}
+
+function bindCstSplashToolbarDivider() {
+  const splash = getCstSplashElement();
+  if (!splash) return;
+
+  splash.addEventListener("scroll", () => syncCstSplashToolbarDivider(), { passive: true });
+  syncCstSplashToolbarDivider();
+}
+
 function canFocusCstSplashSearchInput() {
   if (
     document.body.classList.contains("access-locked")
@@ -1449,6 +1472,7 @@ function showCstSplash({ animate = false } = {}) {
   splash.hidden = false;
   splash.classList.remove("is-leaving", "is-entering", "is-entering-active", "is-preparing-enter");
   syncCstSplashToolbarViewState();
+  syncCstSplashToolbarDivider(true);
   persistViewSettings();
 
   if (animate) {
@@ -1470,6 +1494,7 @@ function dismissCstSplash({ refresh = true } = {}) {
   resetCstFilterSectionsToDefault();
   card?.classList.remove("is-splash-open");
   card?.classList.add("is-splash-hiding-workspace");
+  syncCstSplashToolbarDivider(false);
   setCstSplashWorkspaceInert(false);
   setFilterPanelOpen(true);
   syncCstSplashMapPanelForSplash(false);
@@ -1510,6 +1535,7 @@ function dismissCstSplash({ refresh = true } = {}) {
 function hideCstSplashImmediately() {
   const splash = getCstSplashElement();
   card?.classList.remove("is-splash-open", "is-splash-hiding-workspace");
+  syncCstSplashToolbarDivider(false);
   cancelCstTableEnterAnimation?.();
   setCstSplashWorkspaceInert(false);
   syncToolbarViewState();
@@ -2100,6 +2126,7 @@ function initCstSplash() {
   bindCstSplashSearch();
   bindCstSplashSavedTabs();
   bindCstSplashEntryPoints();
+  bindCstSplashToolbarDivider();
 
   if (isCstSplashSnapshotGenerateMode()) {
     splash.classList.add("is-snapshot-export");

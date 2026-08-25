@@ -8,6 +8,7 @@ const TERRITORY_CATEGORY_LABELS = {
   "Professional Business Services": "Business Services",
   Ecommerce: "E-commerce",
   "Education Programs": "Education & Training",
+  Entertainment: "Entertainment",
   Fitness: "Fitness",
   "Healthcare Services": "Healthcare",
   Pets: "Pet Services",
