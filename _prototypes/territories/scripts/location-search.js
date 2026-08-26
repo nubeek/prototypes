@@ -323,20 +323,20 @@ async function fetchTerritoryMapboxPlaceSuggestions(query, { signal, autocomplet
     .filter(Boolean);
 }
 
-async function fetchTerritoryGeocodingSuggestions(query, { signal, autocomplete = true } = {}) {
+async function fetchTerritoryGeocodingSuggestions(query, { signal, autocomplete = true, limit = TERRITORY_GEOCODING_LIMIT } = {}) {
   const trimmedQuery = String(query || "").trim();
   if (!trimmedQuery || trimmedQuery.length < 2) return [];
 
   const [mapboxMatches, cbsaMatches] = await Promise.all([
     fetchTerritoryMapboxPlaceSuggestions(trimmedQuery, { signal, autocomplete }),
-    searchTerritoryCbsaSuggestions(trimmedQuery, TERRITORY_GEOCODING_LIMIT)
+    searchTerritoryCbsaSuggestions(trimmedQuery, limit)
   ]);
 
   return mergeTerritoryLocationSuggestions({
-    stateMatches: searchTerritoryStateSuggestions(trimmedQuery, TERRITORY_GEOCODING_LIMIT),
+    stateMatches: searchTerritoryStateSuggestions(trimmedQuery, limit),
     mapboxMatches,
     cbsaMatches,
-    limit: TERRITORY_GEOCODING_LIMIT
+    limit
   });
 }
 

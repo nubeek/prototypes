@@ -1331,6 +1331,36 @@ function getMapPointBaseLayerFilter(featureId = null) {
   return ["!=", ["get", "featureId"], featureId];
 }
 
+function fitMapPointTooltipToContent(tooltip) {
+  if (!tooltip) return;
+
+  tooltip.style.width = "max-content";
+
+  const style = getComputedStyle(tooltip);
+  const maxWidth = parseFloat(style.maxWidth);
+  const horizontalExtra =
+    (parseFloat(style.paddingLeft) || 0)
+    + (parseFloat(style.paddingRight) || 0)
+    + (parseFloat(style.borderLeftWidth) || 0)
+    + (parseFloat(style.borderRightWidth) || 0);
+
+  let contentWidth = 0;
+  tooltip.querySelectorAll(
+    ".map-point-tooltip-header, .map-point-tooltip-detail"
+  ).forEach((row) => {
+    contentWidth = Math.max(contentWidth, row.scrollWidth);
+  });
+
+  if (!contentWidth) {
+    tooltip.style.width = "";
+    return;
+  }
+
+  const needed = contentWidth + horizontalExtra;
+  const capped = Number.isFinite(maxWidth) ? Math.min(maxWidth, needed) : needed;
+  tooltip.style.width = `${Math.ceil(capped)}px`;
+}
+
 function createMapPointTooltipController(mapInstance) {
   let tooltipEl = null;
   let activeCoordinates = null;
@@ -1356,19 +1386,52 @@ function createMapPointTooltipController(mapInstance) {
     const ownerName = properties.ownerName || "";
     const locationLabel = properties.locationLabel || "";
     const franchise = properties.franchise || "";
+    const hasHeader = Boolean(franchise);
+    const hasBody = Boolean(ownerName || locationLabel);
 
-    if (ownerName) {
-      const title = document.createElement("div");
-      title.className = "map-point-tooltip-title";
-      title.textContent = ownerName;
-      tooltip.append(title);
+    if (franchise) {
+      const header = document.createElement("div");
+      header.className = "map-point-tooltip-header";
+
+      const logoTile = document.createElement("span");
+      logoTile.className = "ui-tile franchise-logo map-point-tooltip-franchise-logo";
+
+      const fallback = document.createElement("span");
+      fallback.className = "franchise-logo-fallback";
+      fallback.textContent = typeof getInitials === "function" ? getInitials(franchise) : franchise.slice(0, 2);
+
+      const logoImg = document.createElement("img");
+      logoImg.alt = "";
+      if (typeof getFranchiseLogoSrc === "function") {
+        logoImg.src = getFranchiseLogoSrc(franchise);
+      }
+      logoImg.addEventListener("error", () => {
+        logoImg.style.display = "none";
+        fallback.style.display = "inline-flex";
+      });
+
+      logoTile.append(fallback, logoImg);
+
+      const franchiseTitle = document.createElement("div");
+      franchiseTitle.className = "map-point-tooltip-title map-point-tooltip-franchise-name";
+      franchiseTitle.textContent = franchise;
+
+      header.append(logoTile, franchiseTitle);
+      tooltip.append(header);
     }
 
-    if (ownerName && (locationLabel || franchise)) {
+    if (hasHeader && hasBody) {
       const divider = document.createElement("div");
       divider.className = "map-point-tooltip-divider";
       divider.setAttribute("aria-hidden", "true");
       tooltip.append(divider);
+    }
+
+    if (ownerName) {
+      const franchisee = document.createElement("div");
+      franchisee.className = "map-point-tooltip-detail";
+      franchisee.textContent = ownerName;
+      tooltip.append(franchisee);
     }
 
     if (locationLabel) {
@@ -1377,20 +1440,13 @@ function createMapPointTooltipController(mapInstance) {
       location.textContent = locationLabel;
       tooltip.append(location);
     }
-
-    if (franchise) {
-      const franchiseLine = document.createElement("div");
-      franchiseLine.className = "map-point-tooltip-detail";
-      franchiseLine.textContent = franchise;
-      tooltip.append(franchiseLine);
-    }
   };
 
   const positionTooltip = () => {
     if (!activeCoordinates || !isVisible) return;
 
     const tooltip = getTooltip();
-    window.fitTooltipToContent?.(tooltip);
+    fitMapPointTooltipToContent(tooltip);
     const projected = mapInstance.project(activeCoordinates);
     const containerRect = mapInstance.getContainer().getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();

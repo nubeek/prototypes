@@ -127,6 +127,7 @@
     "srg-plk.png",
     "sizzling-platter.png",
     "southpaw.png",
+    "spin-the-planet.png",
     "sscp-management.png",
     "sun-holdings.png",
     "sunshine-restaurant-partners.png",

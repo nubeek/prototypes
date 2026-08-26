@@ -392,7 +392,7 @@
 .territory-brand-panel__heading-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex: 0 0 auto;
 }
 
@@ -2761,7 +2761,7 @@ a.territory-info-card__action.is-disabled {
   display: block;
   width: 11px;
   height: 6px;
-  transform: rotate(-90deg);
+  transform: translateX(1px) rotate(-90deg);
   filter: var(--color-chevron-soft);
   transition: filter var(--transition-fast);
 }

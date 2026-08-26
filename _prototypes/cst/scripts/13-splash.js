@@ -25,8 +25,8 @@ const CST_SPLASH_ENTER_STAGGER_MS = 65;
 const CST_SPLASH_ENTER_DURATION_MS = 320;
 const CST_SPLASH_LEAVE_DURATION_MS = 300;
 const CST_SPLASH_WORKSPACE_HIDE_MS = 240;
+const CST_SPLASH_SUGGESTION_GROUPS = ["Categories", "Franchises", "Franchisees", "Locations"];
 const CST_SPLASH_SUGGESTION_GROUP_LIMIT = 3;
-const CST_SPLASH_SUGGESTION_LIMIT = 12;
 const CST_SPLASH_SAVED_INSERT_SHIFT_DURATION_MS = 680;
 const CST_SPLASH_SAVED_INSERT_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
 const CST_SPLASH_SAVED_INSERT_REVEAL_MS = 200;
@@ -282,6 +282,36 @@ function getCstSplashScopeGrid(scope) {
   return document.querySelector(`[data-splash-grid="${scope}"]`);
 }
 
+function renderCstSplashSavedEmptyState(activeScope) {
+  const emptyState = document.getElementById("cstSplashSavedEmpty");
+  if (!emptyState) return;
+
+  const message = CST_SPLASH_SAVED_EMPTY_MESSAGES[activeScope]
+    || CST_SPLASH_SAVED_EMPTY_MESSAGES.all;
+  const showNewSearchAction = activeScope === "private" || activeScope === "team";
+
+  emptyState.replaceChildren();
+  const messageEl = document.createElement("p");
+  messageEl.className = "cst-splash__saved-empty-message";
+  messageEl.textContent = message;
+  emptyState.append(messageEl);
+
+  if (showNewSearchAction) {
+    const action = document.createElement("button");
+    action.type = "button";
+    action.className = "cst-splash__saved-empty-action ui-text-button";
+    action.dataset.cstSplashNewSearch = "true";
+    action.textContent = "Start new search";
+    emptyState.append(action);
+  }
+}
+
+function openCstSplashNewFranchiseesQuery() {
+  clearCstSavedSearchSession({ persist: false });
+  dismissCstSplash({ refresh: false });
+  applyCstSplashQuery({}, { view: "franchisees" });
+}
+
 function applyCstSplashSavedVisibility() {
   const stack = document.getElementById("cstSplashScopeStack");
   const emptyState = document.getElementById("cstSplashSavedEmpty");
@@ -322,8 +352,7 @@ function applyCstSplashSavedVisibility() {
   });
 
   if (emptyState) {
-    emptyState.textContent = CST_SPLASH_SAVED_EMPTY_MESSAGES[activeScope]
-      || CST_SPLASH_SAVED_EMPTY_MESSAGES.all;
+    renderCstSplashSavedEmptyState(activeScope);
     emptyState.hidden = totalVisible > 0;
   }
 }
@@ -1613,7 +1642,7 @@ function getCstSplashLocalSuggestionPool() {
     })),
     ...brandNames.map((brandName) => ({
       filters: { franchises: [brandName] },
-      group: "Brands",
+      group: "Franchises",
       label: brandName,
       logoFallback: getInitials(brandName),
       logoSrc: getFranchiseLogoSrc(brandName),
@@ -1645,11 +1674,13 @@ function getCstSplashLocalSuggestions(query) {
     matchesByGroup.set(item.group, groupMatches);
   });
 
-  return ["Franchisees", "Brands", "Categories"].flatMap((group) => (
-    (matchesByGroup.get(group) || [])
-      .sort((a, b) => a.matchIndex - b.matchIndex || a.label.localeCompare(b.label))
-      .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT)
-  ));
+  return CST_SPLASH_SUGGESTION_GROUPS
+    .filter((group) => group !== "Locations")
+    .flatMap((group) => (
+      (matchesByGroup.get(group) || [])
+        .sort((a, b) => a.matchIndex - b.matchIndex || a.label.localeCompare(b.label))
+        .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT)
+    ));
 }
 
 function toCstSplashLocationSuggestion(result) {
@@ -1669,12 +1700,13 @@ function toCstSplashLocationSuggestion(result) {
 
 async function getCstSplashSuggestions(query, { signal } = {}) {
   const localSuggestions = getCstSplashLocalSuggestions(query);
-  const remainingSlots = Math.max(0, CST_SPLASH_SUGGESTION_LIMIT - localSuggestions.length);
-  if (!remainingSlots) return localSuggestions;
 
   let locationResults = [];
   try {
-    locationResults = await window.cstLocationSearch?.fetchSuggestions?.(query, { signal }) || [];
+    locationResults = await window.cstLocationSearch?.fetchSuggestions?.(query, {
+      signal,
+      limit: CST_SPLASH_SUGGESTION_GROUP_LIMIT
+    }) || [];
   } catch (error) {
     if (error?.name === "AbortError") throw error;
     locationResults = [];
@@ -1683,9 +1715,9 @@ async function getCstSplashSuggestions(query, { signal } = {}) {
   const locationSuggestions = locationResults
     .map(toCstSplashLocationSuggestion)
     .filter(Boolean)
-    .slice(0, Math.min(CST_SPLASH_SUGGESTION_GROUP_LIMIT, remainingSlots));
+    .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT);
 
-  return [...localSuggestions, ...locationSuggestions].slice(0, CST_SPLASH_SUGGESTION_LIMIT);
+  return [...localSuggestions, ...locationSuggestions];
 }
 
 const CST_SPLASH_SUGGESTION_ICON_SRCS = {
@@ -2099,6 +2131,7 @@ function bindCstSplashSearch() {
 
   syncSearchActions();
 
+  bindCstSplashSearchFloatingTooltip(clearButton);
   bindCstSplashSearchFloatingTooltip(locateButton);
 
   cstSplashSearchController = {
@@ -2111,6 +2144,17 @@ function bindCstSplashSearch() {
       syncSearchActions();
     }
   };
+}
+
+function bindCstSplashSavedEmptyActions() {
+  const emptyState = document.getElementById("cstSplashSavedEmpty");
+  if (!emptyState) return;
+
+  emptyState.addEventListener("click", (event) => {
+    if (!event.target.closest("[data-cst-splash-new-search]")) return;
+    event.preventDefault();
+    openCstSplashNewFranchiseesQuery();
+  });
 }
 
 function bindCstSplashSavedTabs() {
@@ -2186,6 +2230,7 @@ function initCstSplash() {
 
   bindCstSplashSearch();
   bindCstSplashSavedTabs();
+  bindCstSplashSavedEmptyActions();
   bindCstSplashEntryPoints();
   bindCstSplashToolbarDivider();
 

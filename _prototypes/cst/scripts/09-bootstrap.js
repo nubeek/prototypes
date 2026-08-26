@@ -372,6 +372,13 @@ if (clearAllFilters) {
   clearAllFilters.addEventListener("click", clearAllFilterSelections);
 }
 
+if (tableEmptyStateClear) {
+  tableEmptyStateClear.addEventListener("click", () => {
+    clearCstSavedSearchSession({ persist: false });
+    resetCstFilterSelections({ refresh: true });
+  });
+}
+
 if (franchiseFilterSelect) {
   const prospectFranchiseNames = Object.values(window.prospectDatasetsData || {})
     .flatMap((dataset) => dataset.rows || [])
@@ -417,41 +424,47 @@ if (readerEditQueryBtn) {
   });
 }
 
-if (tableHeadingInfo) {
-  let tableHeadingInfoTooltip = null;
+function bindTableHeadingFloatingTooltip(trigger, { tooltipClass = "", onlyBelowWidth } = {}) {
+  if (!trigger?.dataset.tooltip) return;
 
-  const getTableHeadingInfoTooltip = () => {
-    if (!tableHeadingInfoTooltip) {
-      tableHeadingInfoTooltip = document.createElement("div");
-      tableHeadingInfoTooltip.className = "filter-combobox-floating-tooltip table-heading-info-floating-tooltip";
-      tableHeadingInfoTooltip.setAttribute("role", "tooltip");
+  let tooltip = null;
+
+  const shouldShowTooltip = () => (
+    !onlyBelowWidth || window.innerWidth <= onlyBelowWidth
+  );
+
+  const getTooltip = () => {
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.className = `filter-combobox-floating-tooltip${tooltipClass ? ` ${tooltipClass}` : ""}`;
+      tooltip.setAttribute("role", "tooltip");
     }
 
-    return tableHeadingInfoTooltip;
+    return tooltip;
   };
 
-  const hideTableHeadingInfoTooltip = () => {
-    tableHeadingInfoTooltip?.classList.remove("is-visible");
+  const hideTooltip = () => {
+    tooltip?.classList.remove("is-visible");
   };
 
-  const showTableHeadingInfoTooltip = () => {
-    const tooltipText = tableHeadingInfo.dataset.tooltip;
-    if (!tooltipText || tableHeadingInfo.hidden) return;
+  const showTooltip = () => {
+    const tooltipText = trigger.dataset.tooltip;
+    if (!tooltipText || trigger.hidden || !shouldShowTooltip()) return;
 
-    const tooltip = getTableHeadingInfoTooltip();
-    tooltip.textContent = tooltipText;
+    const el = getTooltip();
+    el.textContent = tooltipText;
 
-    if (!tooltip.isConnected) {
-      document.body.append(tooltip);
+    if (!el.isConnected) {
+      document.body.append(el);
     }
 
-    tooltip.style.left = "0px";
-    tooltip.style.top = "0px";
-    tooltip.classList.add("is-visible");
-    window.fitTooltipToContent?.(tooltip);
+    el.style.left = "0px";
+    el.style.top = "0px";
+    el.classList.add("is-visible");
+    window.fitTooltipToContent?.(el);
 
-    const targetRect = tableHeadingInfo.getBoundingClientRect();
-    const tooltipRect = tooltip.getBoundingClientRect();
+    const targetRect = trigger.getBoundingClientRect();
+    const tooltipRect = el.getBoundingClientRect();
     const viewportPadding = 8;
     const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
     const left = Math.min(
@@ -460,17 +473,21 @@ if (tableHeadingInfo) {
     );
     const top = Math.max(viewportPadding, targetRect.top - tooltipRect.height - 6);
 
-    tooltip.style.left = `${left}px`;
-    tooltip.style.top = `${top}px`;
+    el.style.left = `${left}px`;
+    el.style.top = `${top}px`;
   };
 
-  tableHeadingInfo.addEventListener("mouseenter", showTableHeadingInfoTooltip);
-  tableHeadingInfo.addEventListener("mouseleave", hideTableHeadingInfoTooltip);
-  tableHeadingInfo.addEventListener("focus", showTableHeadingInfoTooltip);
-  tableHeadingInfo.addEventListener("blur", hideTableHeadingInfoTooltip);
-  window.addEventListener("resize", hideTableHeadingInfoTooltip);
-  tableWrap?.addEventListener("scroll", hideTableHeadingInfoTooltip, { passive: true });
+  trigger.addEventListener("mouseenter", showTooltip);
+  trigger.addEventListener("mouseleave", hideTooltip);
+  trigger.addEventListener("focus", showTooltip);
+  trigger.addEventListener("blur", hideTooltip);
+  window.addEventListener("resize", hideTooltip);
+  tableWrap?.addEventListener("scroll", hideTooltip, { passive: true });
 }
+
+bindTableHeadingFloatingTooltip(tableHeadingInfo, { tooltipClass: "table-heading-info-floating-tooltip" });
+bindTableHeadingFloatingTooltip(readerEditQueryBtn);
+bindTableHeadingFloatingTooltip(readerViewSettingsBtn, { onlyBelowWidth: 1480 });
 
 if (tableHeadingSummary) {
   const openSummaryFilter = (filterTrigger) => {
@@ -1045,6 +1062,7 @@ function closeToolbarSubmenu(submenu, trigger) {
 function closeToolbarSubmenus() {
   closeToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
   closeToolbarSubmenu(toolbarDatasetSubmenu, toolbarDatasetSubmenuTrigger);
+  closeToolbarSubmenu(toolbarCampaignsSubmenu, toolbarCampaignsSubmenuTrigger);
 }
 
 function closeToolbarDropdowns(exceptDropdown = null) {
@@ -1083,6 +1101,17 @@ function bindToolbarSubmenu(submenu, trigger) {
 
 bindToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
 bindToolbarSubmenu(toolbarDatasetSubmenu, toolbarDatasetSubmenuTrigger);
+bindToolbarSubmenu(toolbarCampaignsSubmenu, toolbarCampaignsSubmenuTrigger);
+
+toolbarDropdowns.forEach((dropdown) => {
+  dropdown.addEventListener("toggle", () => {
+    if (dropdown.open) {
+      closeToolbarDropdowns(dropdown);
+      return;
+    }
+    closeToolbarSubmenus();
+  });
+});
 
 if (toolbarDropdowns.length) {
   document.addEventListener("click", (event) => {

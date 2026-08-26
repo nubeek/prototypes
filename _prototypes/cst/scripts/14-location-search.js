@@ -555,11 +555,11 @@ async function fetchCstMapboxPlaceSuggestions(query, { signal, autocomplete = tr
     .filter(Boolean);
 }
 
-async function fetchCstGeocodingSuggestions(query, { signal, autocomplete = true } = {}) {
+async function fetchCstGeocodingSuggestions(query, { signal, autocomplete = true, limit = CST_GEOCODING_LIMIT } = {}) {
   const trimmedQuery = String(query || "").trim();
   if (!trimmedQuery || trimmedQuery.length < 2) return [];
 
-  const regionMatches = searchCstRegionSuggestions(trimmedQuery, CST_GEOCODING_LIMIT);
+  const regionMatches = searchCstRegionSuggestions(trimmedQuery, limit);
   let mapboxMatches = [];
 
   try {
@@ -572,7 +572,7 @@ async function fetchCstGeocodingSuggestions(query, { signal, autocomplete = true
   return dedupeCstLocationResults([
     ...regionMatches,
     ...mapboxMatches
-  ]).slice(0, CST_GEOCODING_LIMIT);
+  ]).slice(0, limit);
 }
 
 async function reverseGeocodeCstCoordinates(longitude, latitude, { types = "address" } = {}) {

@@ -2360,9 +2360,17 @@ function updateClearFiltersButton() {
     const filtersLabel = hasAppliedFilters
       ? `Filters (${appliedFilterCount})`
       : "Filters";
-    readerEditQueryLabel.textContent = filtersLabel;
     readerEditQueryBtn?.setAttribute("aria-label", filtersLabel);
-    readerEditQueryBtn?.setAttribute("title", filtersLabel);
+
+    if (readerEditQueryCount) {
+      if (hasAppliedFilters) {
+        readerEditQueryCount.textContent = `(${appliedFilterCount})`;
+        readerEditQueryCount.hidden = false;
+      } else {
+        readerEditQueryCount.textContent = "";
+        readerEditQueryCount.hidden = true;
+      }
+    }
   }
 
   persistViewSettings();

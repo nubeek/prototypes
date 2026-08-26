@@ -65,13 +65,40 @@
             <span id="filterToggleLabel">Filters</span>
           </button>
           <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
-          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="exportBtn" type="button" data-splash-workspace-control aria-label="Export" title="Export">
+          <details class="toolbar-dropdown" id="outreachBtn" data-splash-workspace-control>
+            <summary class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" aria-label="Email" title="Email">
+              <img class="toolbar-asset-icon toolbar-outreach-icon" src="assets/mail.svg" alt="" aria-hidden="true">
+              <span>Email</span>
+              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu outreach-dropdown-menu" role="menu" aria-label="Email menu">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/mail-new.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Start new campaign</span>
+              </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="assets/mail-send.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Send custom email</span>
+              </button>
+              <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true"></div>
+              <div class="toolbar-submenu" id="campaignsSubmenu" data-toolbar-submenu="campaigns">
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="campaignsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="campaignsSubmenuMenu">
+                  <span class="toolbar-dropdown-label">Campaigns</span>
+                  <img class="toolbar-submenu-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <div class="ui-menu toolbar-submenu-menu" id="campaignsSubmenuMenu" role="menu" aria-label="Campaigns">
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                    <span class="toolbar-dropdown-label">Browse all...</span>
+                  </button>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                    <span class="toolbar-dropdown-label">Templates</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
+          <button class="ui-control ui-button ui-button-ghost ui-icon-button filter-toggle-btn toolbar-btn" id="exportBtn" type="button" data-splash-workspace-control aria-label="Export" title="Export">
             <img class="toolbar-asset-icon toolbar-export-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
-            <span>Export</span>
-          </button>
-          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="outreachBtn" type="button" data-splash-workspace-control aria-label="Email" title="Email">
-            <img class="toolbar-asset-icon toolbar-outreach-icon" src="assets/mail.svg" alt="" aria-hidden="true">
-            <span>Email</span>
           </button>
         </div>
 
@@ -223,7 +250,7 @@
               aria-haspopup="listbox"
               aria-expanded="false"
               aria-controls="cstSplashSearchSuggestions"
-              placeholder="Search by franchisee, brand, category, or location..."
+              placeholder="Search by location, category or brand..."
               aria-label="Search franchisees, brands, categories, and locations"
               aria-describedby="cstSplashSearchFeedback"
             >
@@ -234,7 +261,7 @@
               aria-label="Search suggestions"
               aria-hidden="true"
             ></div>
-            <button class="cst-splash__search-clear" id="cstSplashSearchClear" type="button" aria-label="Clear search" hidden></button>
+            <button class="cst-splash__search-clear" id="cstSplashSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
             <button class="cst-splash__locate" id="cstSplashLocate" type="button" aria-label="Find prospects near my location" data-tooltip="Find my location">
               <img src="assets/target-me.svg" alt="" aria-hidden="true">
             </button>
@@ -282,7 +309,7 @@
                 <div class="cst-splash__grid" id="cstSplashPublicGrid" data-splash-grid="public"></div>
               </section>
             </div>
-            <p class="cst-splash__saved-empty" id="cstSplashSavedEmpty" hidden>No saved searches match your search.</p>
+            <div class="cst-splash__saved-empty" id="cstSplashSavedEmpty" role="status" hidden></div>
           </div>
         </section>
       </div>
@@ -625,12 +652,14 @@
                 </div>
               </div>
               <div class="table-heading__actions">
-                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__edit-query" id="readerEditQueryBtn" type="button" data-reader-only aria-label="Filters" title="Filters">
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__edit-query" id="readerEditQueryBtn" type="button" data-reader-only aria-label="Filters" data-tooltip="View and edit filters">
                   <img class="table-heading__edit-query-icon" src="assets/filters.svg" alt="" aria-hidden="true">
-                  <span class="table-heading__sort-label" id="readerEditQueryLabel">Filters</span>
+                  <span class="table-heading__sort-label table-heading__edit-query-label" id="readerEditQueryLabel">
+                    <span class="table-heading__edit-query-text">Filters</span><span class="table-heading__edit-query-count" id="readerEditQueryCount" hidden></span>
+                  </span>
                 </button>
                 <span class="table-heading__actions-divider" data-reader-only data-owner-edit-only aria-hidden="true"></span>
-                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__view-settings" id="readerViewSettingsBtn" type="button" data-reader-only data-owner-edit-only aria-label="Edit" title="Edit">
+                <button class="ui-control ui-button-ghost table-heading__sort-toggle table-heading__view-settings" id="readerViewSettingsBtn" type="button" data-reader-only data-owner-edit-only aria-label="Edit saved search" data-tooltip="Edit saved search">
                   <img class="table-heading__view-settings-icon" src="assets/settings.svg" alt="" aria-hidden="true">
                   <span class="table-heading__sort-label">Edit</span>
                 </button>
@@ -691,14 +720,19 @@
               <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 31%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="combinedContactsHeader" data-sort-key="contacts" aria-sort="none" style="width: 12%"><span class="th-content">Contacts <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="locationsColumnHeader" data-sort-key="locations" aria-sort="none" style="width: 12%"><span class="th-content">Units <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-              <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 12%"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+              <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 110px"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="organizationColumnHeader" data-sort-key="ownerName" aria-sort="none" hidden><span class="th-content">Institution <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
               <th class="sortable-header" id="categoryColumnHeader" data-sort-key="category" aria-sort="none" hidden><span class="th-content">Category <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
             </tr>
           </thead>
           <tbody id="franchiseesTableBody"></tbody>
         </table>
-        <p class="table-empty-state" id="tableEmptyState" role="status" hidden>We couldn't find anything matching your query.</p>
+        <div class="table-empty-state" id="tableEmptyState" role="status" hidden>
+          <div class="table-empty-state__content">
+            <p class="table-empty-state__message">We couldn't find anything matching your search.</p>
+            <button class="ui-control ui-link table-empty-state__action" id="tableEmptyStateClear" type="button">Try different search</button>
+          </div>
+        </div>
           </div>
         </div>
 

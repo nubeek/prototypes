@@ -1,6 +1,7 @@
 const tableBody = document.getElementById("franchiseesTableBody");
 const tableWrap = document.getElementById("tableWrap");
 const tableEmptyState = document.getElementById("tableEmptyState");
+const tableEmptyStateClear = document.getElementById("tableEmptyStateClear");
 const tableHeadingTitle = document.getElementById("tableHeadingTitle");
 const tableHeadingInfo = document.getElementById("tableHeadingInfo");
 const tableHeadingSummary = document.getElementById("tableHeadingSummary");
@@ -9,6 +10,7 @@ const filterToggle = document.getElementById("filterToggle");
 const readerBackBtn = document.getElementById("readerBackBtn");
 const readerEditQueryBtn = document.getElementById("readerEditQueryBtn");
 const readerEditQueryLabel = document.getElementById("readerEditQueryLabel");
+const readerEditQueryCount = document.getElementById("readerEditQueryCount");
 const filterToggleLabel = document.getElementById("filterToggleLabel");
 const toolbarSearchInput = document.getElementById("toolbarSearchInput");
 const toolbarSearchClear = document.getElementById("toolbarSearchClear");
@@ -101,6 +103,8 @@ const toolbarSettingsSubmenu = document.querySelector('[data-toolbar-submenu="se
 const toolbarSettingsSubmenuTrigger = document.getElementById("toolbarSettingsSubmenuTrigger");
 const toolbarDatasetSubmenu = document.querySelector('[data-toolbar-submenu="dataset"]');
 const toolbarDatasetSubmenuTrigger = datasetSelectorTrigger;
+const toolbarCampaignsSubmenu = document.querySelector('[data-toolbar-submenu="campaigns"]');
+const toolbarCampaignsSubmenuTrigger = document.getElementById("campaignsSubmenuTrigger");
 const reduceMotionToggleOption = document.getElementById("reduceMotionToggleOption");
 const takeScreenshotOption = document.getElementById("takeScreenshotOption");
 const resetViewOption = document.getElementById("resetViewOption");
@@ -352,7 +356,7 @@ const columnWidths = {
   contact: "31%",
   contacts: "12%",
   locations: "12%",
-  franchise: "12%"
+  franchise: "110px"
 };
 const defaultFilterSectionStates = filterPanel
   ? Array.from(filterPanel.querySelectorAll(".filter-section")).map((section) => (
