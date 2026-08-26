@@ -24,6 +24,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="../cst/styles.css">
+  <link rel="stylesheet" href="../shared/ui/proto-modal.css">
   <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
   <link rel="stylesheet" href="../shared/map/map-pills.css">
   <link rel="stylesheet" href="../shared/ui/scope-tabs.css">
@@ -789,13 +790,16 @@
 
   <div class="profile-modal-overlay target-modal-overlay save-search-modal-overlay" id="requestInfoModal" hidden>
     <section class="profile-modal target-modal save-search-modal request-info-modal" role="dialog" aria-modal="true" aria-labelledby="requestInfoModalTitle">
-      <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close request-info-modal-close" type="button" aria-label="Close request information">
-        <img src="assets/close.svg" alt="" aria-hidden="true">
-      </button>
-
       <form class="target-modal-form request-info-modal-form" id="requestInfoModalForm">
-        <div class="save-search-view save-search-view--form" id="requestInfoFormView">
+        <div class="target-modal-header request-info-modal-header">
           <h2 class="target-modal-title request-info-modal-title" id="requestInfoModalTitle">Request information</h2>
+          <div class="target-modal-header-actions">
+            <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close request-info-modal-close" type="button" aria-label="Close request information">
+              <img src="assets/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div class="save-search-view save-search-view--form" id="requestInfoFormView">
           <p class="save-search-description request-info-description" id="requestInfoDescription">Send your inquiry to the brand owner.</p>
 
           <div class="request-info-name-row">
@@ -863,6 +867,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
   <script src="../../scripts/cst-env.js"></script>
   <script src="../shared/filter/radius-control.js"></script>
+  <script src="../shared/ui/proto-modal.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>
   <script src="../shared/filter/filter-sections.js"></script>

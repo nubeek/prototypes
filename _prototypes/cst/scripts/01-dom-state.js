@@ -79,8 +79,16 @@ const createTargetNotifyModified = createTargetForm?.elements.namedItem("notifyM
 const deleteSavedViewBtn = document.getElementById("deleteSavedView");
 const saveLeadModal = document.getElementById("saveLeadModal");
 const saveLeadModalForm = document.getElementById("saveLeadModalForm");
+const saveLeadContact = document.getElementById("saveLeadContact");
+const saveLeadContactSummary = document.getElementById("saveLeadContactSummary");
+const saveLeadContactFields = document.getElementById("saveLeadContactFields");
 const saveLeadContactName = document.getElementById("saveLeadContactName");
 const saveLeadContactEmail = document.getElementById("saveLeadContactEmail");
+const saveLeadEditDetails = document.getElementById("saveLeadEditDetails");
+const saveLeadFirstName = document.getElementById("saveLeadFirstName");
+const saveLeadSurname = document.getElementById("saveLeadSurname");
+const saveLeadEmail = document.getElementById("saveLeadEmail");
+const saveLeadPhone = document.getElementById("saveLeadPhone");
 const saveLeadListSelector = document.getElementById("saveLeadListSelector");
 const saveLeadListSelectorField = document.getElementById("saveLeadListSelectorField");
 const saveLeadListInput = document.getElementById("saveLeadListInput");
@@ -283,8 +291,6 @@ let globalRawDataViewOpen = false;
 // the hide-panel option, while the sidebar X only clears the selected franchisee.
 let lockedToolbarMode = null;
 let currentPanelLayout = "right";
-let lastProfileModalTrigger = null;
-let lastCreateTargetTrigger = null;
 // Owner-level lead/hide state keyed by owner.originalIndex, representing the
 // owner's main contact. Additional org-chart contacts are tracked per node in
 // the keyed sets below.

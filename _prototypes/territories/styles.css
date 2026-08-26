@@ -545,12 +545,6 @@
   z-index: 1500;
 }
 
-.save-search-modal {
-  width: min(520px, calc(100vw - 48px));
-  border-radius: 16px;
-  padding: 40px;
-}
-
 .save-search-modal-title {
   display: flex;
   align-items: center;
@@ -564,12 +558,6 @@
 
 .save-search-modal .target-modal-delete[hidden] {
   display: none;
-}
-
-.save-search-modal > .profile-modal-close.target-modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
 }
 
 .save-search-modal-title__icon {
@@ -675,16 +663,6 @@
   box-shadow: inset 0 0 0 2px #e7e7e7;
 }
 
-.save-search-modal-actions {
-  margin-top: 32px;
-}
-
-.save-search-modal-actions .target-modal-cancel,
-.save-search-modal-actions .target-modal-save {
-  padding-left: 15px;
-  padding-right: 15px;
-}
-
 .save-search-view[hidden] {
   display: none;
 }
@@ -737,8 +715,20 @@
   overflow: auto;
 }
 
-.request-info-modal-title {
+.request-info-modal .target-modal-header {
   margin-bottom: 12px;
+}
+
+.request-info-modal-title {
+  margin-bottom: 0;
+}
+
+.request-info-modal:has(.save-search-view--success:not([hidden])) .request-info-modal-header {
+  margin-bottom: 0;
+}
+
+.request-info-modal:has(.save-search-view--success:not([hidden])) .request-info-modal-title {
+  visibility: hidden;
 }
 
 .request-info-description {
@@ -843,10 +833,6 @@
   opacity: 0;
   font: inherit;
   cursor: pointer;
-}
-
-.request-info-modal-save {
-  min-width: 132px;
 }
 
 .territory-brand-panel__expand-toggle {

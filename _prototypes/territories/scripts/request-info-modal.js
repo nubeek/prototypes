@@ -1,10 +1,7 @@
-const REQUEST_INFO_MODAL_CLOSE_DURATION_MS = 320;
 const REQUEST_INFO_DEFAULT_DESCRIPTION = "Send your inquiry to the brand owner.";
 const REQUEST_INFO_DEFAULT_SUCCESS = "The brand owner will follow up with you shortly.";
 const requestInfoTerritoryCollator = new Intl.Collator(undefined, { sensitivity: "base" });
 
-let requestInfoModalCloseTimeoutId = null;
-let lastRequestInfoModalTrigger = null;
 let requestInfoContext = { brand: "", territory: "" };
 
 const requestInfoModal = document.getElementById("requestInfoModal");
@@ -197,55 +194,25 @@ function resetRequestInfoModalForm() {
   showRequestInfoFormView();
 }
 
-function finalizeRequestInfoModalClose() {
-  if (!requestInfoModal) return;
-
-  requestInfoModal.classList.remove("is-open", "is-closing");
-  requestInfoModal.hidden = true;
-  resetRequestInfoModalForm();
-  requestInfoModalCloseTimeoutId = null;
-
-  if (lastRequestInfoModalTrigger instanceof HTMLElement) {
-    lastRequestInfoModalTrigger.focus({ preventScroll: true });
+const requestInfoModalApi = window.createProtoModal({
+  overlay: requestInfoModal,
+  closeSelectors: ".request-info-modal-close, .request-info-modal-cancel, .save-search-success__done",
+  onClose() {
+    resetRequestInfoModalForm();
   }
-  lastRequestInfoModalTrigger = null;
-}
+});
 
 function closeRequestInfoModal() {
-  if (!requestInfoModal || requestInfoModal.hidden) return;
-
-  if (requestInfoModalCloseTimeoutId) {
-    window.clearTimeout(requestInfoModalCloseTimeoutId);
-  }
-
-  requestInfoModal.classList.remove("is-open");
-  requestInfoModal.classList.add("is-closing");
-  requestInfoModalCloseTimeoutId = window.setTimeout(
-    finalizeRequestInfoModalClose,
-    REQUEST_INFO_MODAL_CLOSE_DURATION_MS
-  );
+  requestInfoModalApi.close();
 }
 
 function openRequestInfoModal(trigger = null, context = null) {
   if (!requestInfoModal) return;
 
-  if (requestInfoModalCloseTimeoutId) {
-    window.clearTimeout(requestInfoModalCloseTimeoutId);
-    requestInfoModalCloseTimeoutId = null;
-  }
-
-  lastRequestInfoModalTrigger = trigger;
   resetRequestInfoModalForm();
   applyRequestInfoContext(context || getRequestInfoContextFromTrigger(trigger));
-
-  requestInfoModal.classList.remove("is-closing");
-  requestInfoModal.hidden = false;
-  requestInfoModal.classList.remove("is-open");
-
-  window.requestAnimationFrame(() => {
-    if (!requestInfoModal || requestInfoModal.hidden) return;
-    requestInfoModal.classList.add("is-open");
-    requestInfoFirstName?.focus({ preventScroll: true });
+  requestInfoModalApi.open(trigger, {
+    focus: requestInfoFirstName
   });
 }
 
@@ -256,21 +223,6 @@ function openRequestInfoModal(trigger = null, context = null) {
 });
 
 if (requestInfoModal) {
-  requestInfoModal.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element)) return;
-
-    const doneButton = event.target.closest(".save-search-success__done");
-    if (doneButton) {
-      closeRequestInfoModal();
-      return;
-    }
-
-    const closeControl = event.target.closest(".request-info-modal-close, .request-info-modal-cancel");
-    if (closeControl || event.target === requestInfoModal) {
-      closeRequestInfoModal();
-    }
-  });
-
   requestInfoModalForm?.addEventListener("submit", (event) => {
     event.preventDefault();
     showRequestInfoSuccessView();
@@ -286,11 +238,6 @@ if (requestInfoModal) {
     });
   });
 }
-
-document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape" || !requestInfoModal || requestInfoModal.hidden) return;
-  closeRequestInfoModal();
-});
 
 window.territoryRequestInfoModal = {
   open: openRequestInfoModal,

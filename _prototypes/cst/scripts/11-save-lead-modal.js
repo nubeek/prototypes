@@ -1,4 +1,3 @@
-const SAVE_LEAD_MODAL_CLOSE_DURATION_MS = 320;
 const SAVE_LEAD_LIST_PLACEHOLDER = "Select...";
 const SAVE_LEAD_NOTE_LINE_HEIGHT = 24;
 const CRM_LEAD_LISTS = [
@@ -9,8 +8,6 @@ const CRM_LEAD_LISTS = [
   "West coast expansion"
 ];
 
-let saveLeadModalCloseTimeoutId = null;
-let lastSaveLeadModalTrigger = null;
 let pendingSaveLeadOwnerIndex = null;
 let pendingSaveLeadNodeId = null;
 let pendingSaveLeadProspectRowKey = null;
@@ -275,7 +272,7 @@ function getSaveLeadContact(ownerIndex, nodeId, prospectRowKey = null) {
   if (prospectRowKey) {
     const row = getProspectRowByStateKey(prospectRowKey);
     if (!row) return null;
-    return { name: row.name, email: row.email };
+    return { name: row.name, email: row.email, phone: row.phone || "" };
   }
 
   const owner = owners.find((item) => item.originalIndex === ownerIndex);
@@ -284,18 +281,32 @@ function getSaveLeadContact(ownerIndex, nodeId, prospectRowKey = null) {
   if (nodeId) {
     const row = getOwnerRawRows(ownerIndex).find((item) => item.nodeId === nodeId);
     if (row) {
-      return { name: row.name, email: row.email };
+      return { name: row.name, email: row.email, phone: row.phone || "" };
     }
   }
 
   const profile = getPersonProfileFromOwnerContact(ownerIndex);
   if (profile) {
-    return { name: profile.name, email: profile.email };
+    return { name: profile.name, email: profile.email, phone: profile.phone || "" };
   }
 
   return {
     name: owner.contactName || owner.ownerName,
-    email: owner.email || ""
+    email: owner.email || "",
+    phone: owner.phone || ""
+  };
+}
+
+function splitSaveLeadName(name) {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return { firstName: "", surname: "" };
+
+  const spaceIndex = trimmed.indexOf(" ");
+  if (spaceIndex === -1) return { firstName: trimmed, surname: "" };
+
+  return {
+    firstName: trimmed.slice(0, spaceIndex),
+    surname: trimmed.slice(spaceIndex + 1).trim()
   };
 }
 
@@ -317,11 +328,61 @@ function syncSaveLeadNoteHeight() {
   saveLeadNoteField.style.height = `${nextHeight}px`;
 }
 
+function collapseSaveLeadContactFields() {
+  saveLeadContact?.classList.remove("is-editing", "is-expanding");
+  saveLeadContactFields?.setAttribute("hidden", "");
+  saveLeadContactSummary?.removeAttribute("hidden");
+  saveLeadEditDetails?.setAttribute("aria-expanded", "false");
+  if (saveLeadContact) {
+    saveLeadContact.style.height = "";
+  }
+}
+
+function expandSaveLeadContactFields() {
+  if (!saveLeadContact || !saveLeadContactFields || !saveLeadContactSummary) return;
+  if (saveLeadContact.classList.contains("is-editing")) return;
+
+  const skipMotion = document.body.classList.contains("reduce-motion");
+  const startHeight = saveLeadContact.offsetHeight;
+  saveLeadContactSummary.setAttribute("hidden", "");
+  saveLeadContactFields.removeAttribute("hidden");
+  saveLeadContact.classList.add("is-editing");
+  saveLeadEditDetails?.setAttribute("aria-expanded", "true");
+
+  if (skipMotion) {
+    saveLeadFirstName?.focus({ preventScroll: true });
+    return;
+  }
+
+  const endHeight = saveLeadContact.scrollHeight;
+  saveLeadContact.classList.add("is-expanding");
+  saveLeadContact.style.height = `${startHeight}px`;
+
+  window.requestAnimationFrame(() => {
+    if (!saveLeadContact.classList.contains("is-editing")) return;
+    saveLeadContact.style.height = `${endHeight}px`;
+  });
+
+  const finishExpand = (event) => {
+    if (event && event.propertyName !== "height") return;
+    saveLeadContact.removeEventListener("transitionend", finishExpand);
+    window.clearTimeout(finishExpand.timeoutId);
+    saveLeadContact.classList.remove("is-expanding");
+    if (saveLeadContact.classList.contains("is-editing")) {
+      saveLeadContact.style.height = "";
+      saveLeadFirstName?.focus({ preventScroll: true });
+    }
+  };
+  finishExpand.timeoutId = window.setTimeout(finishExpand, 280);
+  saveLeadContact.addEventListener("transitionend", finishExpand);
+}
+
 function resetSaveLeadModalForm() {
   if (!saveLeadModalForm) return;
 
   saveLeadModalForm.reset();
   saveLeadListSelectorApi?.reset();
+  collapseSaveLeadContactFields();
   saveLeadNoteField?.setAttribute("hidden", "");
   saveLeadNoteToggle?.removeAttribute("hidden");
   if (saveLeadNoteField) saveLeadNoteField.value = "";
@@ -329,43 +390,49 @@ function resetSaveLeadModalForm() {
 }
 
 function renderSaveLeadContact(contact) {
-  if (!saveLeadContactName || !saveLeadContactEmail) return;
+  const name = contact?.name || "";
+  const email = contact?.email || "";
+  const phone = contact?.phone || "";
+  const { firstName, surname } = splitSaveLeadName(name);
 
-  saveLeadContactName.textContent = contact?.name || "";
-  saveLeadContactEmail.textContent = contact?.email || "";
+  if (saveLeadContactName) saveLeadContactName.textContent = name;
+  if (saveLeadContactEmail) saveLeadContactEmail.textContent = email;
+  if (saveLeadFirstName) saveLeadFirstName.value = firstName;
+  if (saveLeadSurname) saveLeadSurname.value = surname;
+  if (saveLeadEmail) saveLeadEmail.value = email;
+  if (saveLeadPhone) saveLeadPhone.value = phone;
 }
 
-function finalizeSaveLeadModalClose() {
-  if (!saveLeadModal) return;
-
-  saveLeadListSelectorApi?.close();
-  saveLeadModal.classList.remove("is-open", "is-closing");
-  saveLeadModal.hidden = true;
-  resetSaveLeadModalForm();
-  saveLeadModalCloseTimeoutId = null;
-  pendingSaveLeadOwnerIndex = null;
-  pendingSaveLeadNodeId = null;
-  pendingSaveLeadProspectRowKey = null;
-
-  if (lastSaveLeadModalTrigger instanceof HTMLElement) {
-    lastSaveLeadModalTrigger.focus({ preventScroll: true });
+const saveLeadModalApi = window.createProtoModal({
+  overlay: saveLeadModal,
+  closeSelectors: ".save-lead-modal-close, .save-lead-modal-cancel",
+  onBeforeClose() {
+    saveLeadListSelectorApi?.close();
+  },
+  onClose() {
+    saveLeadListSelectorApi?.close();
+    resetSaveLeadModalForm();
+    pendingSaveLeadOwnerIndex = null;
+    pendingSaveLeadNodeId = null;
+    pendingSaveLeadProspectRowKey = null;
+  },
+  shouldCloseOnEscape() {
+    if (saveLeadListSelectorField?.classList.contains("is-open")) {
+      saveLeadListSelectorApi?.close();
+      return false;
+    }
+    return true;
   }
-  lastSaveLeadModalTrigger = null;
-}
+});
 
 function closeSaveLeadModal() {
-  if (!saveLeadModal || saveLeadModal.hidden) return;
+  saveLeadModalApi.close();
+}
 
-  if (saveLeadModalCloseTimeoutId) {
-    window.clearTimeout(saveLeadModalCloseTimeoutId);
-  }
-
-  saveLeadModal.classList.remove("is-open");
-  saveLeadModal.classList.add("is-closing");
-  saveLeadModalCloseTimeoutId = window.setTimeout(
-    finalizeSaveLeadModalClose,
-    SAVE_LEAD_MODAL_CLOSE_DURATION_MS
-  );
+function revealSaveLeadModal(trigger) {
+  saveLeadModalApi.open(trigger, {
+    focus: saveLeadModal?.querySelector(".save-lead-modal-close")
+  });
 }
 
 function openSaveLeadModal(ownerIndex, nodeId = null, trigger = null, prospectRowKey = null) {
@@ -378,27 +445,12 @@ function openSaveLeadModal(ownerIndex, nodeId = null, trigger = null, prospectRo
     const contact = getSaveLeadContact(null, null, prospectRowKey);
     if (!contact) return;
 
-    if (saveLeadModalCloseTimeoutId) {
-      window.clearTimeout(saveLeadModalCloseTimeoutId);
-      saveLeadModalCloseTimeoutId = null;
-    }
-
     pendingSaveLeadOwnerIndex = null;
     pendingSaveLeadNodeId = null;
     pendingSaveLeadProspectRowKey = prospectRowKey;
-    lastSaveLeadModalTrigger = trigger;
     resetSaveLeadModalForm();
     renderSaveLeadContact(contact);
-
-    saveLeadModal.classList.remove("is-closing");
-    saveLeadModal.hidden = false;
-    saveLeadModal.classList.remove("is-open");
-
-    window.requestAnimationFrame(() => {
-      if (!saveLeadModal || saveLeadModal.hidden) return;
-      saveLeadModal.classList.add("is-open");
-      saveLeadModal.querySelector(".save-lead-modal-close")?.focus({ preventScroll: true });
-    });
+    revealSaveLeadModal(trigger);
     return;
   }
 
@@ -408,27 +460,12 @@ function openSaveLeadModal(ownerIndex, nodeId = null, trigger = null, prospectRo
   const contact = getSaveLeadContact(ownerIndex, nodeId);
   if (!contact) return;
 
-  if (saveLeadModalCloseTimeoutId) {
-    window.clearTimeout(saveLeadModalCloseTimeoutId);
-    saveLeadModalCloseTimeoutId = null;
-  }
-
   pendingSaveLeadOwnerIndex = ownerIndex;
   pendingSaveLeadNodeId = nodeId;
   pendingSaveLeadProspectRowKey = null;
-  lastSaveLeadModalTrigger = trigger;
   resetSaveLeadModalForm();
   renderSaveLeadContact(contact);
-
-  saveLeadModal.classList.remove("is-closing");
-  saveLeadModal.hidden = false;
-  saveLeadModal.classList.remove("is-open");
-
-  window.requestAnimationFrame(() => {
-    if (!saveLeadModal || saveLeadModal.hidden) return;
-    saveLeadModal.classList.add("is-open");
-    saveLeadModal.querySelector(".save-lead-modal-close")?.focus({ preventScroll: true });
-  });
+  revealSaveLeadModal(trigger);
 }
 
 function syncOwnerDetailLeadButton(ownerIndex) {

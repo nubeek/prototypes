@@ -1,4 +1,3 @@
-const SAVE_SEARCH_MODAL_CLOSE_DURATION_MS = 320;
 const DEFAULT_SAVE_SEARCH_ALERTS = {
   enabled: true,
   notifyAvailable: true,
@@ -6,8 +5,6 @@ const DEFAULT_SAVE_SEARCH_ALERTS = {
   notifyBrands: true
 };
 
-let saveSearchModalCloseTimeoutId = null;
-let lastSaveSearchModalTrigger = null;
 let pendingSaveSearchAlerts = null;
 let editingSavedSearchId = null;
 
@@ -114,52 +111,36 @@ function resetSaveSearchModalForm() {
   saveSearchTitleInput?.setCustomValidity("");
 }
 
-function finalizeSaveSearchModalClose() {
-  if (!saveSearchModal) return;
-
-  saveSearchModal.classList.remove("is-open", "is-closing");
-  saveSearchModal.hidden = true;
-  resetSaveSearchModalForm();
-  saveSearchModalCloseTimeoutId = null;
-  editingSavedSearchId = null;
-  if (deleteSavedSearchBtn) deleteSavedSearchBtn.hidden = true;
-  setSaveSearchAlerts(null);
-
-  if (lastSaveSearchModalTrigger instanceof HTMLElement) {
-    if (lastSaveSearchModalTrigger.classList.contains("target-settings")) {
-      lastSaveSearchModalTrigger.blur();
-      lastSaveSearchModalTrigger.closest(".target-card")?.blur();
-    } else {
-      lastSaveSearchModalTrigger.focus({ preventScroll: true });
+const saveSearchModalApi = window.createProtoModal({
+  overlay: saveSearchModal,
+  closeSelectors: ".save-search-modal-close, .save-search-modal-cancel",
+  restoreFocus(trigger) {
+    if (!(trigger instanceof HTMLElement)) return;
+    if (trigger.classList.contains("target-settings")) {
+      trigger.blur();
+      trigger.closest(".target-card")?.blur();
+      return;
     }
+    trigger.focus({ preventScroll: true });
+  },
+  onClose() {
+    resetSaveSearchModalForm();
+    editingSavedSearchId = null;
+    if (deleteSavedSearchBtn) deleteSavedSearchBtn.hidden = true;
+    setSaveSearchAlerts(null);
+  },
+  onOpened() {
+    saveSearchTitleInput?.select?.();
   }
-  lastSaveSearchModalTrigger = null;
-}
+});
 
 function closeSaveSearchModal() {
-  if (!saveSearchModal || saveSearchModal.hidden) return;
-
-  if (saveSearchModalCloseTimeoutId) {
-    window.clearTimeout(saveSearchModalCloseTimeoutId);
-  }
-
-  saveSearchModal.classList.remove("is-open");
-  saveSearchModal.classList.add("is-closing");
-  saveSearchModalCloseTimeoutId = window.setTimeout(
-    finalizeSaveSearchModalClose,
-    SAVE_SEARCH_MODAL_CLOSE_DURATION_MS
-  );
+  saveSearchModalApi.close();
 }
 
 function openSaveSearchModal(trigger = null, { savedSearch = null } = {}) {
   if (!saveSearchModal) return;
 
-  if (saveSearchModalCloseTimeoutId) {
-    window.clearTimeout(saveSearchModalCloseTimeoutId);
-    saveSearchModalCloseTimeoutId = null;
-  }
-
-  lastSaveSearchModalTrigger = trigger;
   editingSavedSearchId = savedSearch?.id || null;
   resetSaveSearchModalForm();
   setSaveSearchAlerts(savedSearch?.alerts);
@@ -178,15 +159,8 @@ function openSaveSearchModal(trigger = null, { savedSearch = null } = {}) {
     saveSearchTitleInput.value = savedSearch?.title || buildSuggestedSaveSearchTitle();
   }
 
-  saveSearchModal.classList.remove("is-closing");
-  saveSearchModal.hidden = false;
-  saveSearchModal.classList.remove("is-open");
-
-  window.requestAnimationFrame(() => {
-    if (!saveSearchModal || saveSearchModal.hidden) return;
-    saveSearchModal.classList.add("is-open");
-    saveSearchTitleInput?.focus({ preventScroll: true });
-    saveSearchTitleInput?.select?.();
+  saveSearchModalApi.open(trigger, {
+    focus: saveSearchTitleInput
   });
 }
 
@@ -210,15 +184,6 @@ saveSearchNotifyCheckboxes.forEach((checkbox) => {
 });
 
 if (saveSearchModal) {
-  saveSearchModal.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element)) return;
-
-    const closeControl = event.target.closest(".save-search-modal-close, .save-search-modal-cancel");
-    if (closeControl || event.target === saveSearchModal) {
-      closeSaveSearchModal();
-    }
-  });
-
   saveSearchModalForm?.addEventListener("submit", (event) => {
     event.preventDefault();
 
@@ -256,7 +221,7 @@ if (saveSearchModal) {
 
     window.setTimeout(() => {
       window.territoryCrossroad?.revealSavedSearch?.(savedSearch);
-    }, SAVE_SEARCH_MODAL_CLOSE_DURATION_MS);
+    }, window.PROTO_MODAL_CLOSE_DURATION_MS);
   });
 
   deleteSavedSearchBtn?.addEventListener("click", () => {
@@ -272,17 +237,12 @@ if (saveSearchModal) {
     closeSaveSearchModal();
     window.setTimeout(() => {
       window.territoryCrossroad?.revealDeletedSearch?.(deletedSearch);
-    }, SAVE_SEARCH_MODAL_CLOSE_DURATION_MS);
+    }, window.PROTO_MODAL_CLOSE_DURATION_MS);
   });
 }
 
 saveSearchTitleInput?.addEventListener("input", () => {
   saveSearchTitleInput.setCustomValidity("");
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape" || !saveSearchModal || saveSearchModal.hidden) return;
-  closeSaveSearchModal();
 });
 
 window.territorySaveSearchModal = {

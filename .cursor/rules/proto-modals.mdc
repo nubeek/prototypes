@@ -1,0 +1,15 @@
+---
+description: Build prototype form dialogs from the shared proto-modal component
+globs: _prototypes/**
+alwaysApply: false
+---
+
+# Prototype modals
+
+When adding or changing a form dialog (title + inline close, body, Cancel/Save), start from `_prototypes/shared/ui/proto-modal.js` and `proto-modal.css`. Do not copy overlay/open/close code from CST or Territories.
+
+- Markup and `createProtoModal()` contract are documented at the top of `proto-modal.js`.
+- Put the X in `.proto-modal-header` next to the title. Never as a sibling above the form.
+- Unique body content stays in the feature. Shared chrome (overlay, card, header, fields, footer) does not.
+- Profile-style cards (centered hero, no title row) still use `createProtoModal()` for open/close; keep `.profile-modal-close` in the corner.
+- Existing pages may still use `profile-modal-*` / `target-modal-*` aliases. New dialogs should use `proto-modal-*`.

@@ -1615,11 +1615,53 @@ function initTerritoryToolbarMenu() {
     submenuHideTimers.delete(submenu);
   };
 
+  const TOOLBAR_SUBMENU_VIEWPORT_GUTTER = 8;
+  const TOOLBAR_SUBMENU_OVERLAP_PX = 4;
+
+  const getToolbarSubmenuMenuWidth = (menu) => {
+    if (menu.offsetWidth) return menu.offsetWidth;
+
+    const { display, visibility, pointerEvents } = menu.style;
+    menu.style.display = "block";
+    menu.style.visibility = "hidden";
+    menu.style.pointerEvents = "none";
+    const width = menu.offsetWidth;
+    menu.style.display = display;
+    menu.style.visibility = visibility;
+    menu.style.pointerEvents = pointerEvents;
+    return width;
+  };
+
+  const positionToolbarSubmenu = (submenu) => {
+    const menu = submenu?.querySelector(":scope > .toolbar-submenu-menu");
+    if (!submenu || !menu) return;
+
+    const submenuRect = submenu.getBoundingClientRect();
+    const menuWidth = getToolbarSubmenuMenuWidth(menu);
+    const rightEdge = submenuRect.right - TOOLBAR_SUBMENU_OVERLAP_PX + menuWidth;
+    const fitsRight = rightEdge <= window.innerWidth - TOOLBAR_SUBMENU_VIEWPORT_GUTTER;
+
+    submenu.classList.toggle("is-submenu-left", !fitsRight);
+  };
+
+  const positionOpenToolbarSubmenus = () => {
+    toolbarSubmenus.forEach(({ root }) => {
+      if (root.classList.contains("is-open")) {
+        positionToolbarSubmenu(root);
+      }
+    });
+  };
+
   const setToolbarSubmenuOpen = (submenu, trigger, isOpen) => {
     if (!submenu || !trigger) return;
     if (isOpen) clearToolbarSubmenuHideTimer(submenu);
     submenu.classList.toggle("is-open", isOpen);
     trigger.setAttribute("aria-expanded", String(isOpen));
+    if (isOpen) {
+      positionToolbarSubmenu(submenu);
+    } else {
+      submenu.classList.remove("is-submenu-left");
+    }
     if (!isOpen && submenu.contains(document.activeElement) && document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
@@ -1697,9 +1739,12 @@ function initTerritoryToolbarMenu() {
     bindToolbarSubmenu(root, trigger);
   });
 
+  window.addEventListener("resize", positionOpenToolbarSubmenus);
+
   toolbarDropdown?.addEventListener("toggle", () => {
     if (toolbarDropdown.open) {
       document.getElementById("territoryBrandSort")?.removeAttribute("open");
+      toolbarSubmenus.forEach(({ root }) => positionToolbarSubmenu(root));
       return;
     }
     closeToolbarSubmenus();

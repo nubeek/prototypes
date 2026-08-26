@@ -774,13 +774,11 @@ window.wefranchPrototypeSettings = {
 
 window.dispatchEvent(new CustomEvent("wefranch:prototype-settings-ready"));
 
-const CREATE_TARGET_MODAL_CLOSE_DURATION_MS = 320;
 const DEFAULT_CREATE_TARGET_ALERTS = {
   enabled: true,
   notifyAdded: true,
   notifyModified: true
 };
-let createTargetModalCloseTimeoutId = null;
 let editingSavedSearchId = null;
 let pendingCreateTargetAlerts = null;
 
@@ -854,37 +852,29 @@ function toggleCreateTargetAlerts() {
   syncCreateTargetAlertsState();
 }
 
-function finalizeCreateTargetModalClose() {
-  if (!createTargetModal) return;
-
-  createTargetModal.classList.remove("is-open", "is-closing");
-  createTargetModal.hidden = true;
-  createTargetForm?.reset();
-  createTargetModalCloseTimeoutId = null;
-  editingSavedSearchId = null;
-  setCreateTargetAlerts(null);
-
-  if (lastCreateTargetTrigger instanceof HTMLElement) {
-    if (lastCreateTargetTrigger.classList.contains("target-settings")) {
-      lastCreateTargetTrigger.blur();
-      lastCreateTargetTrigger.closest(".target-card")?.blur();
-    } else {
-      lastCreateTargetTrigger.focus({ preventScroll: true });
+const createTargetModalApi = window.createProtoModal({
+  overlay: createTargetModal,
+  closeSelectors: ".target-modal-close, .target-modal-cancel",
+  restoreFocus(trigger) {
+    if (!(trigger instanceof HTMLElement)) return;
+    if (trigger.classList.contains("target-settings")) {
+      trigger.blur();
+      trigger.closest(".target-card")?.blur();
+      return;
     }
+    trigger.focus({ preventScroll: true });
+  },
+  onClose() {
+    createTargetForm?.reset();
+    editingSavedSearchId = null;
+    setCreateTargetAlerts(null);
   }
-  lastCreateTargetTrigger = null;
-}
+});
 
 function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
   if (!createTargetModal) return;
   if (savedSearch?.id && !window.cstSavedSearchStore?.canEdit?.(savedSearch.id)) return;
 
-  if (createTargetModalCloseTimeoutId) {
-    window.clearTimeout(createTargetModalCloseTimeoutId);
-    createTargetModalCloseTimeoutId = null;
-  }
-
-  lastCreateTargetTrigger = trigger;
   editingSavedSearchId = savedSearch?.id || null;
   createTargetForm?.reset();
   createTargetTitleInput?.setCustomValidity("");
@@ -912,30 +902,13 @@ function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
   }
   setCreateTargetAlerts(savedSearch?.alerts);
 
-  createTargetModal.classList.remove("is-closing");
-  createTargetModal.hidden = false;
-  createTargetModal.classList.remove("is-open");
-
-  window.requestAnimationFrame(() => {
-    if (!createTargetModal || createTargetModal.hidden) return;
-    createTargetModal.classList.add("is-open");
-    createTargetTitleInput?.focus({ preventScroll: true });
+  createTargetModalApi.open(trigger, {
+    focus: createTargetTitleInput
   });
 }
 
 function closeCreateTargetModal() {
-  if (!createTargetModal || createTargetModal.hidden) return;
-
-  if (createTargetModalCloseTimeoutId) {
-    window.clearTimeout(createTargetModalCloseTimeoutId);
-  }
-
-  createTargetModal.classList.remove("is-open");
-  createTargetModal.classList.add("is-closing");
-  createTargetModalCloseTimeoutId = window.setTimeout(
-    finalizeCreateTargetModalClose,
-    CREATE_TARGET_MODAL_CLOSE_DURATION_MS
-  );
+  createTargetModalApi.close();
 }
 
 window.openCreateTargetModal = openCreateTargetModal;
@@ -972,17 +945,6 @@ createTargetNotifyCheckboxes.forEach((checkbox) => {
   });
 });
 
-if (createTargetModal) {
-  createTargetModal.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element)) return;
-
-    const closeControl = event.target.closest(".target-modal-close, .target-modal-cancel");
-    if (closeControl || event.target === createTargetModal) {
-      closeCreateTargetModal();
-    }
-  });
-}
-
 if (createTargetForm) {
   createTargetForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -1010,7 +972,7 @@ if (createTargetForm) {
     }
 
     const wasEditing = Boolean(editingSavedSearchId);
-    const wasEditingFromSplash = lastCreateTargetTrigger?.classList?.contains("target-settings");
+    const wasEditingFromSplash = createTargetModalApi.getTrigger()?.classList?.contains("target-settings");
     closeCreateTargetModal();
     if (wasEditing) {
       if (!wasEditingFromSplash) {
@@ -1024,7 +986,7 @@ if (createTargetForm) {
 
     window.setTimeout(() => {
       window.cstSplash?.revealSavedSearch?.(savedSearch);
-    }, CREATE_TARGET_MODAL_CLOSE_DURATION_MS);
+    }, window.PROTO_MODAL_CLOSE_DURATION_MS);
   });
 }
 
@@ -1038,21 +1000,63 @@ deleteSavedViewBtn?.addEventListener("click", () => {
     return;
   }
 
-  closeCreateTargetModal();
-  window.setTimeout(() => {
-    window.cstSplash?.revealDeletedSearch?.(deletedSearch);
-  }, CREATE_TARGET_MODAL_CLOSE_DURATION_MS);
+    closeCreateTargetModal();
+    window.setTimeout(() => {
+      window.cstSplash?.revealDeletedSearch?.(deletedSearch);
+    }, window.PROTO_MODAL_CLOSE_DURATION_MS);
 });
 
 createTargetTitleInput?.addEventListener("input", () => {
   createTargetTitleInput.setCustomValidity("");
 });
 
+const TOOLBAR_SUBMENU_VIEWPORT_GUTTER = 8;
+const TOOLBAR_SUBMENU_OVERLAP_PX = 4;
+
+function getToolbarSubmenuMenuWidth(menu) {
+  if (menu.offsetWidth) return menu.offsetWidth;
+
+  const { display, visibility, pointerEvents } = menu.style;
+  menu.style.display = "block";
+  menu.style.visibility = "hidden";
+  menu.style.pointerEvents = "none";
+  const width = menu.offsetWidth;
+  menu.style.display = display;
+  menu.style.visibility = visibility;
+  menu.style.pointerEvents = pointerEvents;
+  return width;
+}
+
+function positionToolbarSubmenu(submenu) {
+  const menu = submenu?.querySelector(":scope > .toolbar-submenu-menu");
+  if (!submenu || !menu) return;
+
+  const submenuRect = submenu.getBoundingClientRect();
+  const menuWidth = getToolbarSubmenuMenuWidth(menu);
+  const rightEdge = submenuRect.right - TOOLBAR_SUBMENU_OVERLAP_PX + menuWidth;
+  const fitsRight = rightEdge <= window.innerWidth - TOOLBAR_SUBMENU_VIEWPORT_GUTTER;
+
+  submenu.classList.toggle("is-submenu-left", !fitsRight);
+}
+
+function positionOpenToolbarSubmenus() {
+  [toolbarSettingsSubmenu, toolbarDatasetSubmenu, toolbarCampaignsSubmenu].forEach((submenu) => {
+    if (submenu?.classList.contains("is-open")) {
+      positionToolbarSubmenu(submenu);
+    }
+  });
+}
+
 function setToolbarSubmenuOpen(submenu, trigger, isOpen) {
   if (!submenu || !trigger) return;
 
   submenu.classList.toggle("is-open", isOpen);
   trigger.setAttribute("aria-expanded", String(isOpen));
+  if (isOpen) {
+    positionToolbarSubmenu(submenu);
+  } else {
+    submenu.classList.remove("is-submenu-left");
+  }
 }
 
 function closeToolbarSubmenu(submenu, trigger) {
@@ -1102,11 +1106,13 @@ function bindToolbarSubmenu(submenu, trigger) {
 bindToolbarSubmenu(toolbarSettingsSubmenu, toolbarSettingsSubmenuTrigger);
 bindToolbarSubmenu(toolbarDatasetSubmenu, toolbarDatasetSubmenuTrigger);
 bindToolbarSubmenu(toolbarCampaignsSubmenu, toolbarCampaignsSubmenuTrigger);
+window.addEventListener("resize", positionOpenToolbarSubmenus);
 
 toolbarDropdowns.forEach((dropdown) => {
   dropdown.addEventListener("toggle", () => {
     if (dropdown.open) {
       closeToolbarDropdowns(dropdown);
+      dropdown.querySelectorAll(".toolbar-submenu").forEach(positionToolbarSubmenu);
       return;
     }
     closeToolbarSubmenus();
@@ -1196,16 +1202,15 @@ if (saveLeadModal) {
   saveLeadModal.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
 
-    const noteToggle = event.target.closest(".save-lead-note-toggle");
-    if (noteToggle) {
-      toggleSaveLeadNoteField();
+    const editDetails = event.target.closest(".save-lead-edit-details");
+    if (editDetails) {
+      expandSaveLeadContactFields();
       return;
     }
 
-    const closeControl = event.target.closest(".save-lead-modal-close, .save-lead-modal-cancel");
-    if (closeControl || event.target === saveLeadModal) {
-      saveLeadListSelectorApi?.close();
-      closeSaveLeadModal();
+    const noteToggle = event.target.closest(".save-lead-note-toggle");
+    if (noteToggle) {
+      toggleSaveLeadNoteField();
     }
   });
 
@@ -1230,43 +1235,23 @@ if (profileModal) {
           refreshContactStateViews();
           syncOwnerDetailLeadButton(ownerIndex);
         } else {
-          const trigger = lastProfileModalTrigger;
+          const trigger = profileModalApi.getTrigger();
           closePersonProfile();
           openSaveLeadModal(ownerIndex, nodeId, trigger);
         }
       }
-      return;
-    }
-
-    const closeControl = event.target.closest(".profile-modal-close, .profile-modal-secondary");
-    if (closeControl || event.target === profileModal) {
-      closePersonProfile();
     }
   });
 }
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && saveLeadModal && !saveLeadModal.hidden) {
-    if (saveLeadListSelectorField?.classList.contains("is-open")) {
-      saveLeadListSelectorApi?.close();
-      return;
-    }
-    closeSaveLeadModal();
+  if (event.key !== "Escape") return;
+  if (saveLeadModalApi?.isVisible() || createTargetModalApi?.isVisible() || profileModalApi?.isVisible()) {
     return;
   }
-  if (event.key === "Escape" && createTargetModal && !createTargetModal.hidden) {
-    closeCreateTargetModal();
-    return;
-  }
-  if (event.key === "Escape" && profileModal && !profileModal.hidden) {
-    closePersonProfile();
-    return;
-  }
-  if (event.key === "Escape" && toolbarDropdowns.some((dropdown) => dropdown.open)) {
+  if (toolbarDropdowns.some((dropdown) => dropdown.open)) {
     closeToolbarSubmenus();
     closeToolbarDropdowns();
   }
-  if (event.key === "Escape") {
-    closeToolbarTabDropdowns();
-  }
+  closeToolbarTabDropdowns();
 });

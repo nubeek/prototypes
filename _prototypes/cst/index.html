@@ -24,6 +24,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../shared/ui/proto-modal.css">
   <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
   <link rel="stylesheet" href="../shared/map/map-pills.css">
   <link rel="stylesheet" href="../shared/ui/scope-tabs.css">
@@ -78,7 +79,7 @@
               </button>
               <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
                 <img class="toolbar-dropdown-icon" src="assets/mail-send.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Send custom email</span>
+                <span class="toolbar-dropdown-label">Send a message...</span>
               </button>
               <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true"></div>
               <div class="toolbar-submenu" id="campaignsSubmenu" data-toolbar-submenu="campaigns">
@@ -769,18 +770,47 @@
 
   <div class="profile-modal-overlay target-modal-overlay save-lead-modal-overlay" id="saveLeadModal" hidden>
     <section class="profile-modal target-modal save-lead-modal" role="dialog" aria-modal="true" aria-labelledby="saveLeadModalTitle">
-      <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close save-lead-modal-close" type="button" aria-label="Close save as lead">
-        <img src="assets/close.svg" alt="" aria-hidden="true">
-      </button>
       <form class="target-modal-form save-lead-modal-form" id="saveLeadModalForm">
-        <h2 class="target-modal-title save-lead-modal-title" id="saveLeadModalTitle">Save as lead</h2>
-
-        <div class="save-lead-contact">
-          <div class="save-lead-contact-details">
-            <p class="save-lead-contact-name" id="saveLeadContactName"></p>
-            <p class="save-lead-contact-email" id="saveLeadContactEmail"></p>
+        <div class="target-modal-header">
+          <h2 class="target-modal-title save-lead-modal-title" id="saveLeadModalTitle">Save as lead</h2>
+          <div class="target-modal-header-actions">
+            <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close save-lead-modal-close" type="button" aria-label="Close save as lead">
+              <img src="assets/close.svg" alt="" aria-hidden="true">
+            </button>
           </div>
-          <button class="ui-control ui-link save-lead-edit-details" type="button" aria-disabled="true" title="Coming soon">Edit details</button>
+        </div>
+
+        <div class="save-lead-contact" id="saveLeadContact">
+          <div class="save-lead-contact-summary" id="saveLeadContactSummary">
+            <div class="save-lead-contact-details">
+              <p class="save-lead-contact-name" id="saveLeadContactName"></p>
+              <p class="save-lead-contact-email" id="saveLeadContactEmail"></p>
+            </div>
+            <button class="ui-control ui-link save-lead-edit-details" id="saveLeadEditDetails" type="button" aria-expanded="false">Edit details</button>
+          </div>
+
+          <div class="save-lead-contact-fields" id="saveLeadContactFields" hidden>
+            <div class="save-lead-name-row">
+              <label class="target-modal-field" for="saveLeadFirstName">
+                <span>First name</span>
+                <input class="target-modal-control target-modal-input" id="saveLeadFirstName" name="firstName" type="text" autocomplete="given-name" placeholder=" ">
+              </label>
+              <label class="target-modal-field" for="saveLeadSurname">
+                <span>Surname</span>
+                <input class="target-modal-control target-modal-input" id="saveLeadSurname" name="surname" type="text" autocomplete="family-name" placeholder=" ">
+              </label>
+            </div>
+
+            <label class="target-modal-field" for="saveLeadEmail">
+              <span>Email</span>
+              <input class="target-modal-control target-modal-input" id="saveLeadEmail" name="email" type="email" autocomplete="email" placeholder=" ">
+            </label>
+
+            <label class="target-modal-field" for="saveLeadPhone">
+              <span>Phone number</span>
+              <input class="target-modal-control target-modal-input" id="saveLeadPhone" name="phone" type="tel" autocomplete="tel" placeholder=" ">
+            </label>
+          </div>
         </div>
 
         <div class="save-lead-divider" aria-hidden="true"></div>
@@ -945,6 +975,7 @@
   <script src="../../scripts/cst-env.js"></script>
   <script src="data/real/overlay.js"></script>
   <script src="../shared/filter/radius-control.js"></script>
+  <script src="../shared/ui/proto-modal.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>
   <script src="../shared/filter/filter-sections.js"></script>

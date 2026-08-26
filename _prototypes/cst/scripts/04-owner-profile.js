@@ -544,34 +544,20 @@ function renderPersonProfile(profile) {
   `;
 }
 
-const PROFILE_MODAL_CLOSE_DURATION_MS = 320;
-let profileModalCloseTimeoutId = null;
-
-function finalizePersonProfileClose() {
-  if (!profileModal) return;
-
-  profileModal.classList.remove("is-open", "is-closing");
-  profileModal.hidden = true;
-  delete profileModal.dataset.ownerIndex;
-  delete profileModal.dataset.nodeId;
-  if (profileModalContent) profileModalContent.innerHTML = "";
-  profileModalCloseTimeoutId = null;
-
-  if (lastProfileModalTrigger instanceof HTMLElement) {
-    lastProfileModalTrigger.focus({ preventScroll: true });
+const profileModalApi = window.createProtoModal({
+  overlay: profileModal,
+  closeSelectors: ".profile-modal-close, .profile-modal-secondary",
+  onClose() {
+    if (!profileModal) return;
+    delete profileModal.dataset.ownerIndex;
+    delete profileModal.dataset.nodeId;
+    if (profileModalContent) profileModalContent.innerHTML = "";
   }
-  lastProfileModalTrigger = null;
-}
+});
 
 function openPersonProfile(profile, trigger = null) {
   if (!profile || !profileModal) return;
 
-  if (profileModalCloseTimeoutId) {
-    window.clearTimeout(profileModalCloseTimeoutId);
-    profileModalCloseTimeoutId = null;
-  }
-  profileModal.classList.remove("is-closing");
-  lastProfileModalTrigger = trigger;
   if (Number.isFinite(profile.ownerIndex)) {
     profileModal.dataset.ownerIndex = String(profile.ownerIndex);
   } else {
@@ -583,22 +569,11 @@ function openPersonProfile(profile, trigger = null) {
     delete profileModal.dataset.nodeId;
   }
   renderPersonProfile(profile);
-  profileModal.hidden = false;
-  profileModal.classList.remove("is-open");
-  window.requestAnimationFrame(() => {
-    if (!profileModal || profileModal.hidden) return;
-    profileModal.classList.add("is-open");
+  profileModalApi.open(trigger, {
+    focus: profileModal.querySelector(".profile-modal-close")
   });
-  profileModal.querySelector(".profile-modal-close")?.focus();
 }
 
 function closePersonProfile() {
-  if (!profileModal || profileModal.hidden) return;
-
-  if (profileModalCloseTimeoutId) {
-    window.clearTimeout(profileModalCloseTimeoutId);
-  }
-  profileModal.classList.remove("is-open");
-  profileModal.classList.add("is-closing");
-  profileModalCloseTimeoutId = window.setTimeout(finalizePersonProfileClose, PROFILE_MODAL_CLOSE_DURATION_MS);
+  profileModalApi.close();
 }
