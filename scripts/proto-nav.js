@@ -934,6 +934,20 @@ iframe[data-proto-nav-shell].is-fading {
     return frame;
   };
 
+  const syncDocumentTitle = () => {
+    try {
+      const frameTitle = shellFrame?.contentDocument?.title?.trim();
+      if (!frameTitle) {
+        return;
+      }
+
+      document.title = frameTitle;
+      shellFrame.title = frameTitle;
+    } catch (error) {
+      // Ignore cross-origin frame access.
+    }
+  };
+
   const loadShellFrame = (frame, url) => new Promise((resolve) => {
     const onLoad = () => {
       frame.removeEventListener("load", onLoad);
@@ -969,6 +983,8 @@ iframe[data-proto-nav-shell].is-fading {
         shellDismissBound = false;
         syncShellMenuDismiss();
       }
+
+      syncDocumentTitle();
 
       if (push && window.location.href !== nextUrl) {
         history.pushState(SHELL_STATE, "", nextUrl);

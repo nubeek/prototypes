@@ -19,12 +19,95 @@
   filter: brightness(0) saturate(100%) invert(93%) sepia(0%) saturate(0%) hue-rotate(155deg) brightness(95%) contrast(89%);
 }
 
-/* Map and list search have no context until the splash closes.
-   Tie visibility to the splash element itself so controls stay hidden on
-   first paint, before crossroad init JS runs. */
-.territory-shell:has(#territoryCrossroad:not([hidden])) [data-crossroad-workspace-control],
-.territory-shell.is-crossroad-open [data-crossroad-workspace-control] {
+/* Filters, map, and list search have no context until the splash closes.
+   Hide via is-crossroad-open only so controls can appear as soon as the
+   splash starts leaving (not when crossroad hidden is set after 300ms). */
+.territory-shell.is-crossroad-open .toolbar-primary [data-crossroad-workspace-control],
+.territory-shell.is-crossroad-open .toolbar-actions [data-crossroad-workspace-control] {
   display: none;
+}
+
+.territory-crossroad-new-search {
+  display: none;
+  flex: 0 0 auto;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  grid-template-columns: 0fr;
+  transition:
+    grid-template-columns 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease;
+}
+
+.territory-shell.is-crossroad-open .territory-crossroad-new-search {
+  display: grid;
+}
+
+.territory-shell.is-crossroad-open.is-crossroad-search-offscreen .territory-crossroad-new-search {
+  grid-template-columns: 1fr;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.territory-crossroad-new-search__clip {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.territory-crossroad-new-search-btn {
+  width: max-content;
+  min-width: 0;
+  height: var(--control-height);
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 500;
+  white-space: nowrap;
+  transform: translateX(-16px);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color var(--transition-fast);
+}
+
+.territory-shell.is-crossroad-search-offscreen .territory-crossroad-new-search-btn {
+  transform: translateX(0);
+}
+
+.territory-crossroad-new-search-btn:hover,
+.territory-crossroad-new-search-btn:focus-visible {
+  background: var(--color-surface-toolbar-hover);
+}
+
+.territory-crossroad-new-search-btn:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.territory-crossroad-new-search-btn img {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  filter: brightness(0) saturate(100%);
+}
+
+.territory-shell:not(.is-crossroad-open) .toolbar-primary [data-crossroad-workspace-control],
+.territory-shell:not(.is-crossroad-open) .toolbar-actions [data-crossroad-workspace-control] {
+  animation: territory-workspace-control-enter 180ms ease both;
+}
+
+@keyframes territory-workspace-control-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .territory-workspace {
@@ -2800,9 +2883,14 @@ a.territory-info-card__action.is-disabled {
   .territory-filter-panel,
   .territory-map-panel,
   .territory-filter-panel .filter-scroll,
-  .territory-filter-panel .filter-actions {
+  .territory-filter-panel .filter-actions,
+  .territory-shell:not(.is-crossroad-open) .toolbar-primary [data-crossroad-workspace-control],
+  .territory-shell:not(.is-crossroad-open) .toolbar-actions [data-crossroad-workspace-control],
+  .territory-crossroad-new-search,
+  .territory-crossroad-new-search-btn {
     transition: none;
     transform: none;
+    animation: none;
   }
 
   .territory-shell.is-crossroad-hiding-workspace .territory-filter-panel,

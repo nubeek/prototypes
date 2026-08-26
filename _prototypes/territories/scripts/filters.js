@@ -12,7 +12,7 @@ const TERRITORY_GEO_LEVEL_FILTER_VALUES = new Set([
 ]);
 let territoryMenuBrandLogosEnabled = false;
 let territoryMenuBordersEnabled = true;
-let territoryMenuColorMode = "density";
+let territoryMenuColorMode = "pastel";
 let territoryMenuBorderColor = "default";
 
 const RADIUS_FILTER_DEFAULTS = {
@@ -215,20 +215,22 @@ function franchiseeRatingFilterIsActive() {
 }
 
 function getTerritoryMenuColorMode() {
-  return TERRITORY_COLOR_MODES.has(territoryMenuColorMode) ? territoryMenuColorMode : "density";
+  if (territoryMenuColorMode === "density" || territoryMenuColorMode === "pastel") {
+    return territoryMenuColorMode;
+  }
+  return "pastel";
 }
 
 function getTerritoryMenuBorderColor() {
   return TERRITORY_BORDER_COLORS.has(territoryMenuBorderColor) ? territoryMenuBorderColor : "default";
 }
 
-function resolveTerritoryColorMode(settings, { usesCurrentDefaults = true } = {}) {
+function resolveTerritoryColorMode(settings) {
   const mapSettings = settings?.settings ?? settings;
-  if (TERRITORY_COLOR_MODES.has(mapSettings?.colorMode)) return mapSettings.colorMode;
-  if (!usesCurrentDefaults) return "density";
-  if (mapSettings?.pastelColors) return "pastel";
-  if (mapSettings?.density === false) return "accent";
-  return "density";
+  if (mapSettings?.colorMode === "density" || mapSettings?.colorMode === "pastel") {
+    return mapSettings.colorMode;
+  }
+  return "pastel";
 }
 
 function resolveTerritoryBorderColor(settings) {
@@ -1041,16 +1043,24 @@ function restoreFilterSectionState(sectionSettings = {}) {
   });
 }
 
+function syncFilterToggleAvailability() {
+  const filterToggle = document.getElementById("territoryFilterToggle");
+  if (!filterToggle) return;
+  filterToggle.disabled = isTerritoryCrossroadOpen();
+}
+
 function setFilterPanelOpen(isOpen) {
   const shell = document.querySelector(".territory-shell");
   const filterPanel = document.querySelector(".territory-filter-panel");
   const filterToggle = document.getElementById("territoryFilterToggle");
   if (!shell || !filterToggle) return;
 
-  shell.classList.toggle("is-filter-open", Boolean(isOpen));
-  filterToggle.classList.toggle("is-active", Boolean(isOpen));
-  filterToggle.setAttribute("aria-expanded", String(Boolean(isOpen)));
-  filterPanel?.setAttribute("aria-hidden", String(!isOpen));
+  const nextOpen = Boolean(isOpen) && !isTerritoryCrossroadOpen();
+  shell.classList.toggle("is-filter-open", nextOpen);
+  filterToggle.classList.toggle("is-active", nextOpen);
+  filterToggle.setAttribute("aria-expanded", String(nextOpen));
+  filterPanel?.setAttribute("aria-hidden", String(!nextOpen));
+  syncFilterToggleAvailability();
 }
 
 function setMapPanelOpenState(isOpen) {
@@ -1150,9 +1160,7 @@ function restoreSelectFiltersFromSaved(settings) {
 
 function applySavedMapSettings() {
   const mapSettings = getCurrentTerritorySettings().settings;
-  const colorMode = TERRITORY_COLOR_MODES.has(mapSettings.colorMode)
-    ? mapSettings.colorMode
-    : "density";
+  const colorMode = getTerritoryMenuColorMode();
 
   window.territoryMapControls?.setTerritoryBrandLogosVisible?.(Boolean(mapSettings.brandLogos));
   window.territoryMapControls?.setTerritoryBordersVisible?.(mapSettings.borders !== false);
@@ -1467,6 +1475,8 @@ function initTerritoryFilters() {
   document.querySelectorAll(".filter-range-slider").forEach(bindRangeTrack);
 
   filterToggle?.addEventListener("click", () => {
+    if (isTerritoryCrossroadOpen()) return;
+
     const isOpen = !shell?.classList.contains("is-filter-open");
     setFilterPanelOpen(isOpen);
 
@@ -1559,54 +1569,25 @@ function initTerritoryFilters() {
 }
 
 function initTerritoryToolbarMenu() {
+  const toolbarDropdown = document.getElementById("territoryMenuDropdown");
+  const territoryBordersToggle = document.getElementById("territoryBordersToggleOption");
+  const colorModeOptions = Array.from(document.querySelectorAll("#territoryColorsSubmenu [data-color-mode]"));
+  const borderColorOptions = Array.from(document.querySelectorAll("#territoryBordersSubmenu [data-border-color]"));
+  const toolbarSubmenus = Array.from(document.querySelectorAll("#territoryMenuDropdown [data-toolbar-submenu]"))
+    .map((submenu) => ({
+      root: submenu,
+      trigger: submenu.querySelector(".toolbar-submenu-trigger")
+    }))
+    .filter((submenu) => submenu.trigger);
+  const toolbarDropdowns = toolbarDropdown ? [toolbarDropdown] : [];
   const savedSettings = savedTerritorySettings?.settings;
   const usesCurrentVisualizationDefaults = savedTerritorySettings?.version >= TERRITORY_SETTINGS_VERSION;
   territoryMenuBrandLogosEnabled = usesCurrentVisualizationDefaults
     ? Boolean(savedSettings?.brandLogos)
     : window.territoryMapControls?.getTerritoryBrandLogosVisible?.() ?? false;
   territoryMenuBordersEnabled = savedSettings?.borders ?? window.territoryMapControls?.getTerritoryBordersVisible?.() ?? true;
-  territoryMenuColorMode = resolveTerritoryColorMode(savedTerritorySettings, {
-    usesCurrentDefaults: usesCurrentVisualizationDefaults
-  });
+  territoryMenuColorMode = resolveTerritoryColorMode(savedTerritorySettings);
   territoryMenuBorderColor = resolveTerritoryBorderColor(savedTerritorySettings);
-
-  const getPrototypeSettingsItems = () => [
-    {
-      id: "brand-logos",
-      type: "toggle",
-      label: "Brand logos",
-      checked: Boolean(territoryMenuBrandLogosEnabled),
-      align: "end"
-    },
-    { type: "divider" },
-    {
-      id: "colors",
-      type: "submenu",
-      label: "Colors",
-      items: [
-        { id: "color-density", type: "radio", label: "Default", checked: territoryMenuColorMode === "density" },
-        { id: "color-accent", type: "radio", label: "Accent", checked: territoryMenuColorMode === "accent" },
-        { id: "color-pastel", type: "radio", label: "Pastel", checked: territoryMenuColorMode === "pastel" }
-      ]
-    },
-    {
-      id: "borders",
-      type: "submenu",
-      label: "Borders",
-      items: [
-        {
-          id: "show-borders",
-          type: "toggle",
-          label: "Show borders",
-          checked: Boolean(territoryMenuBordersEnabled),
-          align: "end"
-        },
-        { type: "divider" },
-        { id: "border-default", type: "radio", label: "Default", checked: territoryMenuBorderColor === "default" },
-        { id: "border-white", type: "radio", label: "White", checked: territoryMenuBorderColor === "white" }
-      ]
-    }
-  ];
 
   const applyTerritoryVisualization = (apply) => {
     try {
@@ -1616,8 +1597,182 @@ function initTerritoryToolbarMenu() {
     }
   };
 
-  const performPrototypeSetting = (id) => {
-    if (id === "brand-logos") {
+  const closeToolbarDropdowns = (exceptDropdown = null) => {
+    toolbarDropdowns.forEach((dropdown) => {
+      if (dropdown === exceptDropdown) return;
+      dropdown.removeAttribute("open");
+    });
+    closeToolbarSubmenus();
+  };
+
+  const TOOLBAR_SUBMENU_HIDE_DELAY_MS = 300;
+  const submenuHideTimers = new WeakMap();
+
+  const clearToolbarSubmenuHideTimer = (submenu) => {
+    const timer = submenuHideTimers.get(submenu);
+    if (!timer) return;
+    window.clearTimeout(timer);
+    submenuHideTimers.delete(submenu);
+  };
+
+  const setToolbarSubmenuOpen = (submenu, trigger, isOpen) => {
+    if (!submenu || !trigger) return;
+    if (isOpen) clearToolbarSubmenuHideTimer(submenu);
+    submenu.classList.toggle("is-open", isOpen);
+    trigger.setAttribute("aria-expanded", String(isOpen));
+    if (!isOpen && submenu.contains(document.activeElement) && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
+  const closeToolbarSubmenu = (submenu, trigger) => {
+    clearToolbarSubmenuHideTimer(submenu);
+    setToolbarSubmenuOpen(submenu, trigger, false);
+  };
+
+  const scheduleToolbarSubmenuClose = (submenu, trigger) => {
+    if (!submenu?.classList.contains("is-open")) return;
+    clearToolbarSubmenuHideTimer(submenu);
+    submenuHideTimers.set(submenu, window.setTimeout(() => {
+      submenuHideTimers.delete(submenu);
+      setToolbarSubmenuOpen(submenu, trigger, false);
+    }, TOOLBAR_SUBMENU_HIDE_DELAY_MS));
+  };
+
+  const closeToolbarSubmenus = (exceptSubmenu = null) => {
+    toolbarSubmenus.forEach(({ root, trigger }) => {
+      if (root === exceptSubmenu) return;
+      closeToolbarSubmenu(root, trigger);
+    });
+  };
+
+  const bindToolbarSubmenu = (submenu, trigger) => {
+    if (!submenu || !trigger) return;
+
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const shouldOpen = !submenu.classList.contains("is-open");
+      closeToolbarSubmenus(shouldOpen ? submenu : null);
+      setToolbarSubmenuOpen(submenu, trigger, shouldOpen);
+    });
+
+    submenu.addEventListener("mouseenter", () => {
+      closeToolbarSubmenus(submenu);
+      setToolbarSubmenuOpen(submenu, trigger, true);
+    });
+
+    submenu.addEventListener("mouseleave", () => {
+      scheduleToolbarSubmenuClose(submenu, trigger);
+    });
+
+    submenu.addEventListener("focusin", () => {
+      closeToolbarSubmenus(submenu);
+      setToolbarSubmenuOpen(submenu, trigger, true);
+    });
+
+    submenu.addEventListener("focusout", (event) => {
+      if (event.relatedTarget instanceof Node && submenu.contains(event.relatedTarget)) return;
+      scheduleToolbarSubmenuClose(submenu, trigger);
+    });
+  };
+
+  const syncTerritoryBordersToggle = () => {
+    territoryBordersToggle?.setAttribute("aria-checked", String(territoryMenuBordersEnabled));
+  };
+
+  const syncTerritoryColorModeOptions = () => {
+    colorModeOptions.forEach((option) => {
+      option.setAttribute("aria-checked", String(option.dataset.colorMode === territoryMenuColorMode));
+    });
+  };
+
+  const syncTerritoryBorderColorOptions = () => {
+    borderColorOptions.forEach((option) => {
+      option.setAttribute("aria-checked", String(option.dataset.borderColor === territoryMenuBorderColor));
+    });
+  };
+
+  toolbarSubmenus.forEach(({ root, trigger }) => {
+    bindToolbarSubmenu(root, trigger);
+  });
+
+  toolbarDropdown?.addEventListener("toggle", () => {
+    if (toolbarDropdown.open) {
+      document.getElementById("territoryBrandSort")?.removeAttribute("open");
+      return;
+    }
+    closeToolbarSubmenus();
+  });
+
+  territoryBordersToggle?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    territoryMenuBordersEnabled = !territoryMenuBordersEnabled;
+    syncTerritoryBordersToggle();
+    persistTerritorySettings();
+    notifyTerritoryThemeChanged();
+    applyTerritoryVisualization(() => {
+      window.territoryMapControls?.setTerritoryBordersVisible?.(territoryMenuBordersEnabled);
+    });
+  });
+
+  colorModeOptions.forEach((option) => {
+    option.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const nextMode = option.dataset.colorMode;
+      if (!TERRITORY_COLOR_MODES.has(nextMode) || nextMode === territoryMenuColorMode) return;
+      territoryMenuColorMode = nextMode;
+      syncTerritoryColorModeOptions();
+      persistTerritorySettings();
+      notifyTerritoryThemeChanged();
+      applyTerritoryVisualization(() => {
+        window.territoryMapControls?.setTerritoryColorMode?.(territoryMenuColorMode);
+      });
+    });
+  });
+
+  borderColorOptions.forEach((option) => {
+    option.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const nextColor = option.dataset.borderColor;
+      if (!TERRITORY_BORDER_COLORS.has(nextColor) || nextColor === territoryMenuBorderColor) return;
+      territoryMenuBorderColor = nextColor;
+      syncTerritoryBorderColorOptions();
+      persistTerritorySettings();
+      notifyTerritoryThemeChanged();
+      applyTerritoryVisualization(() => {
+        window.territoryMapControls?.setTerritoryBorderColorMode?.(territoryMenuBorderColor);
+      });
+    });
+  });
+
+  if (toolbarDropdowns.length) {
+    document.addEventListener("click", (event) => {
+      const openDropdown = toolbarDropdowns.find((dropdown) => dropdown.open);
+      if (!openDropdown) return;
+      if (openDropdown.contains(event.target)) return;
+      closeToolbarDropdowns();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && toolbarDropdowns.some((dropdown) => dropdown.open)) {
+        closeToolbarDropdowns();
+      }
+    });
+  }
+
+  window.wefranchPrototypeSettings = {
+    getItems: () => [
+      {
+        id: "brand-logos",
+        type: "toggle",
+        label: "Brand logos",
+        checked: Boolean(territoryMenuBrandLogosEnabled),
+        align: "end"
+      }
+    ],
+    perform: (id) => {
+      if (id !== "brand-logos") return null;
       territoryMenuBrandLogosEnabled = !territoryMenuBrandLogosEnabled;
       applyTerritoryVisualization(() => {
         window.territoryMapControls?.setTerritoryBrandLogosVisible?.(territoryMenuBrandLogosEnabled);
@@ -1625,54 +1780,12 @@ function initTerritoryToolbarMenu() {
       persistTerritorySettings();
       return { checked: territoryMenuBrandLogosEnabled, close: false, refresh: true };
     }
-
-    if (id === "show-borders") {
-      territoryMenuBordersEnabled = !territoryMenuBordersEnabled;
-      persistTerritorySettings();
-      notifyTerritoryThemeChanged();
-      applyTerritoryVisualization(() => {
-        window.territoryMapControls?.setTerritoryBordersVisible?.(territoryMenuBordersEnabled);
-      });
-      return { checked: territoryMenuBordersEnabled, close: false, refresh: true };
-    }
-
-    if (id === "color-density" || id === "color-accent" || id === "color-pastel") {
-      const nextMode = id.slice("color-".length);
-      if (!TERRITORY_COLOR_MODES.has(nextMode) || nextMode === territoryMenuColorMode) {
-        return { close: false };
-      }
-      territoryMenuColorMode = nextMode;
-      persistTerritorySettings();
-      notifyTerritoryThemeChanged();
-      applyTerritoryVisualization(() => {
-        window.territoryMapControls?.setTerritoryColorMode?.(territoryMenuColorMode);
-      });
-      return { close: false, refresh: true };
-    }
-
-    if (id === "border-default" || id === "border-white") {
-      const nextColor = id.slice("border-".length);
-      if (!TERRITORY_BORDER_COLORS.has(nextColor) || nextColor === territoryMenuBorderColor) {
-        return { close: false };
-      }
-      territoryMenuBorderColor = nextColor;
-      persistTerritorySettings();
-      notifyTerritoryThemeChanged();
-      applyTerritoryVisualization(() => {
-        window.territoryMapControls?.setTerritoryBorderColorMode?.(territoryMenuBorderColor);
-      });
-      return { close: false, refresh: true };
-    }
-
-    return null;
-  };
-
-  window.wefranchPrototypeSettings = {
-    getItems: getPrototypeSettingsItems,
-    perform: performPrototypeSetting
   };
   window.dispatchEvent(new CustomEvent("wefranch:prototype-settings-ready"));
 
+  syncTerritoryBordersToggle();
+  syncTerritoryColorModeOptions();
+  syncTerritoryBorderColorOptions();
   window.territoryMapControls?.setTerritoryBrandLogosVisible?.(territoryMenuBrandLogosEnabled);
   window.territoryMapControls?.setTerritoryBordersVisible?.(territoryMenuBordersEnabled);
   window.territoryMapControls?.setTerritoryColorMode?.(territoryMenuColorMode, { reapplyFilters: false });
@@ -2589,6 +2702,7 @@ window.territoryFilters = {
   getState: getTerritoryFilterState,
   getCurrentPresetFilters: getCurrentTerritoryPresetFilters,
   setPanelOpen: setFilterPanelOpen,
+  syncToggleAvailability: syncFilterToggleAvailability,
   syncFilterComboboxes,
   syncFilterSectionExpansion,
   hydrateOptions: hydrateTerritoryFilterOptions,

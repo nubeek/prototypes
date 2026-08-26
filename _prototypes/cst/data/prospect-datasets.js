@@ -144,7 +144,7 @@ const PROSPECT_LOCATIONS = [
 
 const USER_PROFILE_FRANCHISES = [
   { franchise: "OrangeTheory Fitness", category: "Fitness" },
-  { franchise: "Crumbl Cookies", category: "Food and Beverage" },
+  { franchise: "Crumbl Cookies", category: "Food & Beverage" },
   { franchise: "The Learning Experience", category: "Education & Children" },
   { franchise: "Drybar", category: "Health & Wellness" },
   { franchise: "Ace Handyman Services", category: "Home and Building Services" },
@@ -152,11 +152,11 @@ const USER_PROFILE_FRANCHISES = [
   { franchise: "Mathnasium", category: "Children Programs" },
   { franchise: "MaidPro", category: "Professional Business Services" },
   { franchise: "", category: "Retail Products and Services" },
-  { franchise: "", category: "Food and Beverage" }
+  { franchise: "", category: "Food & Beverage" }
 ];
 
 const SEARCHER_CATEGORIES = [
-  "Food and Beverage",
+  "Food & Beverage",
   "Fitness",
   "Health & Wellness",
   "Home and Building Services",
@@ -172,49 +172,49 @@ const ATHLETE_FRANCHISE_PROFILES = [
     location: "Louisville, Kentucky",
     franchise: "Wendy's, Chili's",
     institution: "Bridgeman Foods",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Shaquille O'Neal",
     location: "Atlanta, Georgia",
     franchise: "Papa John's, Five Guys, Krispy Kreme",
     institution: "Shaq Ventures",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Drew Brees",
     location: "New Orleans, Louisiana",
     franchise: "Jimmy John's, Dunkin'",
     institution: "Brees Dream Foundation",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "LeBron James",
     location: "Los Angeles, California",
     franchise: "Blaze Pizza",
     institution: "LRMR Ventures",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Jamal Mashburn",
     location: "Lexington, Kentucky",
     franchise: "Outback Steakhouse, Papa John's, Dunkin'",
     institution: "Mashburn Family Office",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Phil Mickelson",
     location: "San Diego, California",
     franchise: "Five Guys",
     institution: "",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Ray Mickens",
     location: "Dallas, Texas",
     franchise: "Smoothie King, Starbucks, Qdoba",
     institution: "M2 Concepts",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Bryan Scott",
@@ -228,14 +228,14 @@ const ATHLETE_FRANCHISE_PROFILES = [
     location: "Atlanta, Georgia",
     franchise: "Popeyes Louisiana Kitchen",
     institution: "755 Restaurant Corporation",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Everette Brown",
     location: "Charlotte, North Carolina",
     franchise: "Tropical Smoothie Cafe",
     institution: "",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Cameron Thomas",
@@ -256,28 +256,28 @@ const ATHLETE_FRANCHISE_PROFILES = [
     location: "Denver, Colorado",
     franchise: "Papa John's",
     institution: "Manning Ventures",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Tony McGee",
     location: "Cincinnati, Ohio",
     franchise: "Dunkin'",
     institution: "",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Marcus Burley",
     location: "Richmond, Virginia",
     franchise: "Tropical Smoothie Cafe",
     institution: "",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Donnell Thompson",
     location: "Raleigh, North Carolina",
     franchise: "Popeyes Louisiana Kitchen",
     institution: "Thompson Hospitality Group",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Keith Smith",
@@ -291,21 +291,21 @@ const ATHLETE_FRANCHISE_PROFILES = [
     location: "Oklahoma City, Oklahoma",
     franchise: "Blaze Pizza",
     institution: "",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Brooklynn Lorenzen",
     location: "Salt Lake City, Utah",
     franchise: "Smoothie King",
     institution: "",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   },
   {
     name: "Kris Brown",
     location: "Omaha, Nebraska",
     franchise: "Dunkin'",
     institution: "",
-    category: "Food and Beverage"
+    category: "Food & Beverage"
   }
 ];
 

@@ -29,7 +29,7 @@
   const CONCEPTS_BY_CATEGORY = {
     Fitness: ["Planet Fitness", "Club Pilates Franchise", "Crunch", "Orangetheory"],
     "Health & Wellness": ["European Wax Center", "Massage Envy", "Phenix Salon Suites"],
-    "Food and Beverage": [
+    "Food & Beverage": [
       "Popeyes Louisiana Kitchen", "Dunkin'", "Burger King", "Denny's",
       "Pizza Hut Traditional", "Applebee's", "Panera Bread", "IHOP",
       "Jimmy John's", "Taco Bell Traditional", "Buffalo Wild Wings",

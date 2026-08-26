@@ -4105,6 +4105,40 @@ tbody tr:is(:hover, .is-selected, .is-checked, .is-selected:hover, .is-checked:h
   border-bottom-right-radius: 12px;
 }
 
+tbody tr:is(:hover, .is-selected, .is-checked):has(+ tr:is(:hover, .is-selected, .is-checked)) td:first-child {
+  border-bottom-left-radius: 0;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked):has(+ tr:is(:hover, .is-selected, .is-checked)) td:last-child {
+  border-bottom-right-radius: 0;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked) + tr:is(:hover, .is-selected, .is-checked) td:first-child {
+  border-top-left-radius: 0;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked) + tr:is(:hover, .is-selected, .is-checked) td:last-child {
+  border-top-right-radius: 0;
+}
+
+/* Draw the top divider on the first highlighted row so it follows the
+   rounded corners. The previous row's straight border-bottom would not. */
+tbody tr:not(:is(:hover, .is-selected, .is-checked)):has(+ tr:is(:hover, .is-selected, .is-checked)) td {
+  border-bottom-width: 0;
+}
+
+table:has(> tbody > tr:first-child:is(:hover, .is-selected, .is-checked)) > thead th {
+  border-bottom-width: 0;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked) td {
+  border-top: 1px solid #e9e9ed;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked) + tr:is(:hover, .is-selected, .is-checked) td {
+  border-top: none;
+}
+
 tbody tr:hover {
   background: #f3f3f4;
 }

@@ -302,7 +302,7 @@ if (categoryFilterSelect) {
       "Children Programs",
       "Education & Children",
       "Home and Building Services",
-      "Food and Beverage",
+      "Food & Beverage",
       "Retail Products and Services",
       "Professional Business Services",
       "Health & Wellness",

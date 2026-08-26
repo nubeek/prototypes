@@ -7,7 +7,7 @@
 //   locations     location labels, e.g. "Omaha, Nebraska"
 //   categories    category names
 //   franchises    franchise/brand names
-//   franchisees   franchisee indexes (matches the Franchisees filter)
+//   franchisees   franchisee indexes (matches the Franchisee filter)
 //   owners        legacy alias for franchisees
 //   units         { min, max } unit count range; omit a bound to keep the default
 //   contacts      { min, max } contact count range
@@ -162,7 +162,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
     snapshot: "assets/snapshots/texas-restaurant-groups.jpg",
     filters: {
       locations: ["Texas"],
-      categories: ["Food and Beverage"]
+      categories: ["Food & Beverage"]
     }
   },
   {

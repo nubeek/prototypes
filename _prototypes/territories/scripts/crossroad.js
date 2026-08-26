@@ -52,7 +52,7 @@ const CROSSROAD_PASTEL_LINE_OPACITY = 0.8;
 const CROSSROAD_WHITE_LINE_OPACITY = 0.88;
 const CROSSROAD_WHITE_BORDER_COLOR = "#ffffff";
 const CROSSROAD_DEFAULT_THEME = {
-  colorMode: "density",
+  colorMode: "pastel",
   borders: true,
   borderColor: "default"
 };
@@ -975,7 +975,7 @@ function bindCrossroadMapSkeleton(tile) {
   });
 }
 
-function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kind = "preset", colorMode = "density" } = {}) {
+function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kind = "preset", colorMode = "pastel" } = {}) {
   const tile = document.createElement("button");
   tile.type = "button";
   tile.className = "target-card territory-crossroad__tile territory-crossroad__tile--preset";
@@ -1149,7 +1149,7 @@ function syncCrossroadTileOverlayImage(map, className, url) {
   }
 }
 
-function syncCrossroadTileMapImages(tile, { fillUrl = "", bordersUrl = "", colorMode = "density" } = {}) {
+function syncCrossroadTileMapImages(tile, { fillUrl = "", bordersUrl = "", colorMode = "pastel" } = {}) {
   const map = tile.querySelector(".target-map");
   if (!map) return;
 
@@ -1207,29 +1207,85 @@ const CROSSROAD_SAVED_DELETE_BLUR_PX = 12;
 const CROSSROAD_SAVED_DELETE_SHIFT_DURATION_MS = 680;
 const CROSSROAD_SAVED_DELETE_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
 
-function syncTerritoryCrossroadToolbarDivider(active = null) {
-  const header = document.querySelector(".territory-toolbar.header, .header");
+function isTerritoryCrossroadOpen() {
   const crossroad = document.getElementById("territoryCrossroad");
-  if (!header) return;
-
-  const isOpen = Boolean(
+  return Boolean(
     crossroad
     && !crossroad.hidden
     && document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open")
   );
-
-  header.classList.toggle(
-    "is-scrolled",
-    Boolean((active ?? isOpen) && crossroad && !crossroad.hidden && crossroad.scrollTop > 0)
-  );
 }
 
-function bindTerritoryCrossroadToolbarDivider() {
+function isTerritoryCrossroadSearchOffscreen(isOpen = isTerritoryCrossroadOpen()) {
   const crossroad = document.getElementById("territoryCrossroad");
+  const search = document.getElementById("territoryCrossroadSearch");
+  if (!isOpen || !crossroad || !search) return false;
+
+  const rootRect = crossroad.getBoundingClientRect();
+  const searchRect = search.getBoundingClientRect();
+  return searchRect.bottom <= rootRect.top + 1;
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    || document.body.classList.contains("reduce-motion");
+}
+
+function syncTerritoryCrossroadToolbar(active = null) {
+  const shell = document.querySelector(".territory-shell");
+  const header = document.querySelector(".territory-toolbar.header, .header");
+  const crossroad = document.getElementById("territoryCrossroad");
+  const newSearchButton = document.getElementById("territoryCrossroadNewSearch");
+  const isOpen = Boolean(active ?? isTerritoryCrossroadOpen());
+  const isOffscreen = isTerritoryCrossroadSearchOffscreen(isOpen);
+
+  header?.classList.toggle(
+    "is-scrolled",
+    Boolean(isOpen && crossroad && !crossroad.hidden && crossroad.scrollTop > 0)
+  );
+  shell?.classList.toggle("is-crossroad-search-offscreen", isOffscreen);
+
+  if (newSearchButton) {
+    newSearchButton.tabIndex = isOffscreen ? 0 : -1;
+    newSearchButton.setAttribute("aria-hidden", isOffscreen ? "false" : "true");
+  }
+}
+
+function returnToTerritoryCrossroadSearch() {
+  const crossroad = document.getElementById("territoryCrossroad");
+  if (!crossroad || !isTerritoryCrossroadOpen()) return;
+
+  const focusInput = () => focusTerritoryCrossroadSearchInput();
+
+  if (crossroad.scrollTop <= 0 || prefersReducedMotion()) {
+    crossroad.scrollTop = 0;
+    focusInput();
+    return;
+  }
+
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    crossroad.removeEventListener("scrollend", finish);
+    window.clearTimeout(fallbackTimer);
+    focusInput();
+  };
+
+  const fallbackTimer = window.setTimeout(finish, 700);
+  crossroad.addEventListener("scrollend", finish, { once: true });
+  crossroad.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function bindTerritoryCrossroadToolbar() {
+  const crossroad = document.getElementById("territoryCrossroad");
+  const newSearchButton = document.getElementById("territoryCrossroadNewSearch");
   if (!crossroad) return;
 
-  crossroad.addEventListener("scroll", () => syncTerritoryCrossroadToolbarDivider(), { passive: true });
-  syncTerritoryCrossroadToolbarDivider();
+  crossroad.addEventListener("scroll", () => syncTerritoryCrossroadToolbar(), { passive: true });
+  window.addEventListener("resize", () => syncTerritoryCrossroadToolbar());
+  newSearchButton?.addEventListener("click", () => returnToTerritoryCrossroadSearch());
+  syncTerritoryCrossroadToolbar();
 }
 
 function canFocusTerritoryCrossroadSearchInput() {
@@ -1319,9 +1375,10 @@ function dismissTerritoryCrossroad() {
   const crossroad = document.getElementById("territoryCrossroad");
 
   window.territoryFilters?.syncFilterSectionExpansion?.();
-  window.territoryFilters?.setPanelOpen?.(true);
   shell?.classList.remove("is-crossroad-open", "is-crossroad-fullscreen", "is-crossroad-hiding-workspace");
-  syncTerritoryCrossroadToolbarDivider(false);
+  window.territoryFilters?.setPanelOpen?.(true);
+  window.territoryFilters?.syncToggleAvailability?.();
+  syncTerritoryCrossroadToolbar(false);
   setTerritoryCrossroadWorkspaceInert(false);
   window.territoryMapPanel?.setOpen?.(true, { persist: false });
   window.territoryMapPanel?.syncToggleAvailability?.();
@@ -1356,13 +1413,14 @@ function showTerritoryCrossroad({ animate = false } = {}) {
   window.territoryMapControls?.clearHover?.();
   shell?.classList.remove("is-crossroad-hiding-workspace");
   window.territoryFilters?.syncFilterSectionExpansion?.();
-  window.territoryFilters?.setPanelOpen?.(false);
   setTerritoryCrossroadWorkspaceInert(true);
   crossroad.hidden = false;
   crossroad.classList.remove("is-leaving", "is-entering", "is-entering-active", "is-preparing-enter");
   shell?.classList.remove("is-crossroad-fullscreen");
   shell?.classList.add("is-crossroad-open");
-  syncTerritoryCrossroadToolbarDivider(true);
+  window.territoryFilters?.setPanelOpen?.(false);
+  window.territoryFilters?.syncToggleAvailability?.();
+  syncTerritoryCrossroadToolbar(true);
   window.territoryCrossroadChoice = null;
   window.territoryMapPanel?.syncToggleAvailability?.();
   window.territoryMapControls?.updateResetVisibility?.();
@@ -2653,7 +2711,7 @@ function consumeTerritorySkipCrossroad() {
 async function initTerritoryCrossroad() {
   bindCrossroadLocationSearch();
   bindCrossroadPresetTabs();
-  bindTerritoryCrossroadToolbarDivider();
+  bindTerritoryCrossroadToolbar();
 
   const featuredGrid = getCrossroadScopeGrid("featured");
   const crossroad = document.getElementById("territoryCrossroad");
