@@ -2266,6 +2266,8 @@ function initCstSplash() {
 window.cstSplash = {
   deleteSavedView: deleteCstSavedView,
   dismiss: dismissCstSplash,
+  getMatchCounts: getCachedCstSplashMatchCounts,
+  getSavedSearches: getCstSplashSavedSearches,
   revealDeletedSearch: revealDeletedCstSplashSavedSearch,
   revealSavedSearch: revealNewCstSplashSavedSearch,
   saveCurrentView: saveCurrentCstView,

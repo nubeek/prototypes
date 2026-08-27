@@ -57,6 +57,7 @@ const ownerMapHeader = document.getElementById("ownerMapHeader");
 const ownerDetailsPanel = document.getElementById("ownerDetailsPanel");
 const profileModal = document.getElementById("profileModal");
 const profileModalContent = document.getElementById("profileModalContent");
+const profileModalActions = document.getElementById("profileModalActions");
 const createTargetOption = document.getElementById("createTargetOption");
 const readerViewSettingsBtn = document.getElementById("readerViewSettingsBtn");
 const createTargetModal = document.getElementById("createTargetModal");

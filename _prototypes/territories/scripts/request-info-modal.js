@@ -15,7 +15,7 @@ const requestInfoTerritory = document.getElementById("requestInfoTerritory");
 const requestInfoTerritoryField = document.getElementById("requestInfoTerritoryField");
 const requestInfoTerritoryLogo = document.getElementById("requestInfoTerritoryLogo");
 const requestInfoTerritoryBrand = document.getElementById("requestInfoTerritoryBrand");
-const requestInfoTerritoryName = document.getElementById("requestInfoTerritoryName");
+const requestInfoModalActions = document.getElementById("requestInfoModalActions");
 
 function parseTerritoryRecordKey(key) {
   const value = String(key || "");
@@ -171,6 +171,7 @@ function applyRequestInfoContext(context) {
 function showRequestInfoFormView() {
   requestInfoFormView?.removeAttribute("hidden");
   requestInfoSuccessView?.setAttribute("hidden", "");
+  requestInfoModalActions?.removeAttribute("hidden");
   requestInfoModal
     ?.querySelector(".request-info-modal")
     ?.setAttribute("aria-labelledby", "requestInfoModalTitle");
@@ -179,6 +180,7 @@ function showRequestInfoFormView() {
 function showRequestInfoSuccessView() {
   requestInfoFormView?.setAttribute("hidden", "");
   requestInfoSuccessView?.removeAttribute("hidden");
+  requestInfoModalActions?.setAttribute("hidden", "");
   requestInfoModal
     ?.querySelector(".request-info-modal")
     ?.setAttribute("aria-labelledby", "requestInfoSuccessTitle");

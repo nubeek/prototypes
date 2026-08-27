@@ -25,6 +25,8 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="../cst/styles.css">
   <link rel="stylesheet" href="../shared/ui/proto-modal.css">
+  <link rel="stylesheet" href="../shared/ui/modal-dropdown.css">
+  <link rel="stylesheet" href="../shared/ui/modal-alerts.css">
   <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
   <link rel="stylesheet" href="../shared/map/map-pills.css">
   <link rel="stylesheet" href="../shared/ui/scope-tabs.css">
@@ -724,6 +726,7 @@
           </div>
         </div>
 
+        <div class="target-modal-body save-search-modal-body">
         <label class="target-modal-field" for="saveSearchTitle">
           <span>Title</span>
           <input class="target-modal-control target-modal-input" id="saveSearchTitle" name="title" type="text" autocomplete="off" maxlength="100" placeholder=" " required>
@@ -731,18 +734,18 @@
 
         <div class="target-modal-divider" aria-hidden="true"></div>
 
-        <div class="save-search-alerts" id="saveSearchAlerts">
-          <div class="target-modal-alert-row" id="saveSearchAlertsRow">
-            <div class="target-modal-alert-content">
-              <img class="target-modal-alert-icon" src="assets/alert.svg" alt="" aria-hidden="true" width="16" height="16">
-              <button class="target-modal-alert-details" id="saveSearchAlertsDetails" type="button">
-                <span class="target-modal-alert-label">Alerts</span>
-                <span class="target-modal-alert-helper" id="saveSearchAlertsHelper">Notify me when results change</span>
+        <div class="modal-alerts" id="saveSearchAlerts">
+          <div class="modal-alerts-row" id="saveSearchAlertsRow">
+            <div class="modal-alerts-content">
+              <img class="modal-alerts-icon" src="assets/alert.svg" alt="" aria-hidden="true" width="16" height="16">
+              <button class="modal-alerts-details" id="saveSearchAlertsDetails" type="button">
+                <span class="modal-alerts-label">Alerts</span>
+                <span class="modal-alerts-helper" id="saveSearchAlertsHelper">Notify me when results change</span>
               </button>
             </div>
-            <div class="target-modal-alert-actions">
+            <div class="modal-alerts-actions">
               <button
-                class="target-modal-alert-switch"
+                class="modal-alerts-switch"
                 id="saveSearchAlertsToggle"
                 type="button"
                 role="switch"
@@ -757,9 +760,9 @@
             </div>
           </div>
 
-          <div class="save-search-alerts-panel" id="saveSearchAlertsPanel" aria-hidden="true" inert>
-            <div class="save-search-alerts-panel__clip">
-              <div class="filter-check-group save-search-alerts-options">
+          <div class="modal-alerts-panel" id="saveSearchAlertsPanel" aria-hidden="true" inert>
+            <div class="modal-alerts-panel__clip">
+              <div class="filter-check-group modal-alerts-options">
                 <label class="filter-check is-checked">
                   <input class="save-search-notify-checkbox" type="checkbox" name="notifyAvailable" value="available" checked>
                   <span class="filter-checkbox" aria-hidden="true"></span>
@@ -778,6 +781,7 @@
               </div>
             </div>
           </div>
+        </div>
         </div>
 
         <div class="target-modal-actions save-search-modal-actions">
@@ -799,6 +803,7 @@
             </button>
           </div>
         </div>
+        <div class="target-modal-body request-info-modal-body">
         <div class="save-search-view save-search-view--form" id="requestInfoFormView">
           <p class="save-search-description request-info-description" id="requestInfoDescription">Send your inquiry to the brand owner.</p>
 
@@ -842,11 +847,6 @@
             <span>Message</span>
             <textarea class="target-modal-control target-modal-textarea" id="requestInfoMessage" name="message" placeholder="What would you like to know about this territory?"></textarea>
           </label>
-
-          <div class="target-modal-actions save-search-modal-actions">
-            <button class="ui-control ui-button target-modal-cancel request-info-modal-cancel" type="button">Cancel</button>
-            <button class="ui-control ui-button ui-button-primary target-modal-save request-info-modal-save" type="submit">Send inquiry</button>
-          </div>
         </div>
 
         <div class="save-search-view save-search-view--success" id="requestInfoSuccessView" hidden>
@@ -858,6 +858,12 @@
             <p class="save-search-success__copy" id="requestInfoSuccessCopy">The brand owner will follow up with you shortly.</p>
             <button class="ui-control ui-button ui-button-primary save-search-success__done" type="button">Done</button>
           </div>
+        </div>
+        </div>
+
+        <div class="target-modal-actions save-search-modal-actions" id="requestInfoModalActions">
+          <button class="ui-control ui-button target-modal-cancel request-info-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary target-modal-save request-info-modal-save" type="submit">Send inquiry</button>
         </div>
       </form>
     </section>

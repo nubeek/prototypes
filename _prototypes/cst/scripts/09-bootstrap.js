@@ -1246,7 +1246,12 @@ if (profileModal) {
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
-  if (saveLeadModalApi?.isVisible() || createTargetModalApi?.isVisible() || profileModalApi?.isVisible()) {
+  if (
+    saveLeadModalApi?.isVisible()
+    || createTargetModalApi?.isVisible()
+    || profileModalApi?.isVisible()
+    || window.cstStartCampaignModal?.isVisible?.()
+  ) {
     return;
   }
   if (toolbarDropdowns.some((dropdown) => dropdown.open)) {

@@ -25,6 +25,8 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="../shared/ui/proto-modal.css">
+  <link rel="stylesheet" href="../shared/ui/modal-dropdown.css">
+  <link rel="stylesheet" href="../shared/ui/modal-alerts.css">
   <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
   <link rel="stylesheet" href="../shared/map/map-pills.css">
   <link rel="stylesheet" href="../shared/ui/scope-tabs.css">
@@ -73,7 +75,7 @@
               <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
             </summary>
             <div class="ui-menu toolbar-dropdown-menu outreach-dropdown-menu" role="menu" aria-label="Email menu">
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="startCampaignOption" type="button" role="menuitem">
                 <img class="toolbar-dropdown-icon" src="assets/mail-new.svg" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Start new campaign</span>
               </button>
@@ -764,7 +766,8 @@
       <button class="ui-control ui-close-button owner-detail-close profile-modal-close" type="button" aria-label="Close profile">
         <img src="assets/close.svg" alt="" aria-hidden="true">
       </button>
-      <div class="profile-modal-content" id="profileModalContent"></div>
+      <div class="profile-modal-body profile-modal-content" id="profileModalContent"></div>
+      <div class="profile-modal-actions" id="profileModalActions"></div>
     </section>
   </div>
 
@@ -780,6 +783,7 @@
           </div>
         </div>
 
+        <div class="target-modal-body save-lead-modal-body">
         <div class="save-lead-contact" id="saveLeadContact">
           <div class="save-lead-contact-summary" id="saveLeadContactSummary">
             <div class="save-lead-contact-details">
@@ -815,12 +819,12 @@
 
         <div class="save-lead-divider" aria-hidden="true"></div>
 
-        <div class="target-modal-field save-lead-list-field">
-          <label class="save-lead-list-label" for="saveLeadListInput">Add to list</label>
-          <div class="save-lead-list-selector" id="saveLeadListSelector" data-list-active="false">
-            <div class="dataset-selector-field save-lead-list-selector-field" id="saveLeadListSelectorField">
+        <div class="target-modal-field">
+          <label for="saveLeadListInput">Add to list</label>
+          <div class="dropdown" id="saveLeadListSelector" data-list-active="false">
+            <div class="dropdown-field" id="saveLeadListSelectorField">
               <input
-                class="dataset-selector-input save-lead-list-selector-input"
+                class="dropdown-input"
                 id="saveLeadListInput"
                 name="list"
                 type="text"
@@ -834,10 +838,10 @@
                 aria-controls="saveLeadListMenu"
                 aria-label="Add to list"
               >
-              <button class="filter-combobox-clear save-lead-list-selector-clear" id="saveLeadListClear" type="button" hidden aria-label="Clear list selection"></button>
-              <img class="toolbar-chevron dataset-selector-chevron save-lead-list-selector-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-              <div class="ui-menu dataset-selector-menu save-lead-list-selector-menu" id="saveLeadListMenu" role="listbox" aria-label="CRM lists">
-                <div class="dataset-selector-options save-lead-list-selector-options" id="saveLeadListOptions"></div>
+              <button class="dropdown-clear" id="saveLeadListClear" type="button" hidden aria-label="Clear list selection"></button>
+              <img class="dropdown-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+              <div class="ui-menu dropdown-menu" id="saveLeadListMenu" role="listbox" aria-label="CRM lists">
+                <div class="dropdown-options" id="saveLeadListOptions"></div>
               </div>
             </div>
           </div>
@@ -860,6 +864,7 @@
             hidden
           ></textarea>
         </div>
+        </div>
 
         <div class="target-modal-actions save-lead-modal-actions">
           <button class="ui-control ui-button target-modal-cancel save-lead-modal-cancel" type="button">Cancel</button>
@@ -872,7 +877,6 @@
   <div class="profile-modal-overlay target-modal-overlay" id="createTargetModal" hidden>
     <section class="profile-modal target-modal" role="dialog" aria-modal="true" aria-labelledby="createTargetModalTitle">
       <form class="target-modal-form create-target-modal-form" id="createTargetForm">
-        <div class="create-target-modal-content">
         <div class="target-modal-header">
           <h2 class="target-modal-title" id="createTargetModalTitle">Save search</h2>
           <div class="target-modal-header-actions">
@@ -886,6 +890,7 @@
           </div>
         </div>
 
+        <div class="target-modal-body create-target-modal-body">
         <label class="target-modal-field" for="createTargetTitle">
           <span>Title</span>
           <input class="target-modal-control target-modal-input" id="createTargetTitle" name="title" type="text" autocomplete="off" maxlength="100" placeholder=" " required>
@@ -910,18 +915,18 @@
 
         <div class="target-modal-divider" aria-hidden="true"></div>
 
-        <div class="save-view-alerts" id="createTargetAlerts">
-          <div class="target-modal-alert-row" id="createTargetAlertsRow">
-            <div class="target-modal-alert-content">
-              <img class="target-modal-alert-icon" src="assets/alert.svg" alt="" aria-hidden="true" width="16" height="16">
-              <button class="target-modal-alert-details" id="createTargetAlertsDetails" type="button">
-                <span class="target-modal-alert-label">Alerts</span>
-                <span class="target-modal-alert-helper" id="createTargetAlertsHelper">Get notified when this view's data changes</span>
+        <div class="modal-alerts" id="createTargetAlerts">
+          <div class="modal-alerts-row" id="createTargetAlertsRow">
+            <div class="modal-alerts-content">
+              <img class="modal-alerts-icon" src="assets/alert.svg" alt="" aria-hidden="true" width="16" height="16">
+              <button class="modal-alerts-details" id="createTargetAlertsDetails" type="button">
+                <span class="modal-alerts-label">Alerts</span>
+                <span class="modal-alerts-helper" id="createTargetAlertsHelper">Get notified when this view's data changes</span>
               </button>
             </div>
-            <div class="target-modal-alert-actions">
+            <div class="modal-alerts-actions">
               <button
-                class="target-modal-alert-switch"
+                class="modal-alerts-switch"
                 id="createTargetAlertsToggle"
                 type="button"
                 role="switch"
@@ -936,9 +941,9 @@
             </div>
           </div>
 
-          <div class="save-view-alerts-panel" id="createTargetAlertsPanel" aria-hidden="true" inert>
-            <div class="save-view-alerts-panel__clip">
-              <div class="filter-check-group save-view-alerts-options">
+          <div class="modal-alerts-panel" id="createTargetAlertsPanel" aria-hidden="true" inert>
+            <div class="modal-alerts-panel__clip">
+              <div class="filter-check-group modal-alerts-options">
                 <label class="filter-check is-checked">
                   <input class="save-view-notify-checkbox" type="checkbox" name="notifyAdded" checked>
                   <span class="filter-checkbox" aria-hidden="true"></span>
@@ -958,6 +963,93 @@
         <div class="target-modal-actions">
           <button class="ui-control ui-button target-modal-cancel" type="button">Cancel</button>
           <button class="ui-control ui-button ui-button-primary target-modal-save" type="submit">Save</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="proto-modal-overlay" id="startCampaignModal" hidden>
+    <section class="proto-modal proto-modal--form start-campaign-modal" role="dialog" aria-modal="true" aria-labelledby="startCampaignModalTitle">
+      <form class="proto-modal-form" id="startCampaignModalForm">
+        <div class="proto-modal-header">
+          <h2 class="proto-modal-title" id="startCampaignModalTitle">Start new campaign</h2>
+          <div class="proto-modal-header-actions">
+            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close start new campaign">
+              <img src="assets/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+
+        <div class="proto-modal-body start-campaign-modal-body">
+          <p class="proto-modal-subtitle">Choose which audience you want to use for this campaign.</p>
+
+          <div class="proto-modal-field">
+            <label for="startCampaignAudienceInput">Audience</label>
+            <div class="dropdown" id="startCampaignAudience">
+              <div class="dropdown-field" id="startCampaignAudienceField">
+                <input
+                  class="dropdown-input"
+                  id="startCampaignAudienceInput"
+                  name="audience"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Select..."
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-controls="startCampaignAudienceMenu"
+                  aria-label="Audience"
+                >
+                <img class="dropdown-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                <div class="ui-menu dropdown-menu" id="startCampaignAudienceMenu" role="listbox" aria-label="Audience">
+                  <div class="dropdown-options" id="startCampaignAudienceOptions"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="start-campaign-saved-search" id="startCampaignSavedSearch" hidden>
+            <div class="proto-modal-field">
+              <label for="startCampaignSavedSearchInput">Select saved search</label>
+              <div class="dropdown" id="startCampaignSavedSearchSelector">
+                <div class="dropdown-field" id="startCampaignSavedSearchField">
+                  <input
+                    class="dropdown-input"
+                    id="startCampaignSavedSearchInput"
+                    name="savedSearch"
+                    type="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Select..."
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="startCampaignSavedSearchMenu"
+                    aria-label="Select saved search"
+                  >
+                  <button class="dropdown-clear" id="startCampaignSavedSearchClear" type="button" hidden aria-label="Clear saved search"></button>
+                  <img class="dropdown-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                  <div class="ui-menu dropdown-menu" id="startCampaignSavedSearchMenu" role="listbox" aria-label="Saved searches">
+                    <div class="dropdown-options" id="startCampaignSavedSearchOptions"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="start-campaign-preview" id="startCampaignPreview" hidden>
+            <div class="proto-modal-divider start-campaign-preview-divider" aria-hidden="true"></div>
+            <p class="start-campaign-preview-title" id="startCampaignPreviewTitle"></p>
+            <p class="start-campaign-preview-count" id="startCampaignPreviewCount"></p>
+          </div>
+        </div>
+
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="startCampaignContinue" type="submit">Continue</button>
         </div>
       </form>
     </section>
@@ -995,5 +1087,6 @@
   <script src="scripts/12-contact-action-tooltips.js"></script>
   <script src="scripts/09-bootstrap.js"></script>
   <script src="scripts/13-splash.js"></script>
+  <script src="scripts/15-campaign-modal.js"></script>
 </body>
 </html>

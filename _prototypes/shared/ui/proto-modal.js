@@ -13,7 +13,9 @@
              </button>
            </div>
          </div>
-         <!-- unique body -->
+         <div class="proto-modal-body">
+           <!-- unique body -->
+         </div>
          <div class="proto-modal-actions">
            <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
            <button class="ui-control ui-button ui-button-primary proto-modal-save" type="submit">Save</button>

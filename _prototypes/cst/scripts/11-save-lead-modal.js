@@ -35,7 +35,7 @@ function initSaveLeadListSelector() {
   }
 
   function setActiveOption(index) {
-    const optionButtons = Array.from(saveLeadListOptions.querySelectorAll(".dataset-selector-option"));
+    const optionButtons = Array.from(saveLeadListOptions.querySelectorAll(".dropdown-option"));
     if (!optionButtons.length) {
       activeOptionIndex = -1;
       saveLeadListInput.removeAttribute("aria-activedescendant");
@@ -70,7 +70,7 @@ function initSaveLeadListSelector() {
       }
     }
 
-    saveLeadListOptions.querySelectorAll(".dataset-selector-option").forEach((option) => {
+    saveLeadListOptions.querySelectorAll(".dropdown-option").forEach((option) => {
       const isSelected = option.dataset.listValue === selectedListValue;
       option.classList.toggle("is-selected", isSelected);
       option.setAttribute("aria-selected", String(isSelected));
@@ -87,7 +87,7 @@ function initSaveLeadListSelector() {
 
     if (!renderedOptions.length) {
       const emptyState = document.createElement("div");
-      emptyState.className = "dataset-selector-empty";
+      emptyState.className = "dropdown-empty";
       emptyState.textContent = "No results found";
       saveLeadListOptions.append(emptyState);
       activeOptionIndex = -1;
@@ -102,7 +102,7 @@ function initSaveLeadListSelector() {
       const isSelected = option.value === selectedListValue;
 
       optionButton.type = "button";
-      optionButton.className = "ui-menu-item toolbar-dropdown-option dataset-selector-option";
+      optionButton.className = "ui-menu-item toolbar-dropdown-option dropdown-option";
       optionButton.id = `saveLeadListOption-${index}`;
       optionButton.dataset.listValue = option.value;
       optionButton.setAttribute("role", "option");
@@ -112,7 +112,7 @@ function initSaveLeadListSelector() {
       optionLabel.className = "toolbar-dropdown-label";
       optionLabel.textContent = option.label;
 
-      optionCheck.className = "dataset-selector-option-check";
+      optionCheck.className = "dropdown-option-check";
       optionCheck.src = "assets/check.svg";
       optionCheck.alt = "";
       optionCheck.setAttribute("aria-hidden", "true");

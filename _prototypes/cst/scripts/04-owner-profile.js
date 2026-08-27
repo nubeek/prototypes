@@ -507,7 +507,7 @@ function getPersonProfileFromOwnerContact(ownerIndex) {
 }
 
 function renderPersonProfile(profile) {
-  if (!profileModalContent) return;
+  if (!profileModalContent || !profileModalActions) return;
   const isLeadSaved = Number.isFinite(profile.ownerIndex) && isContactLeadSaved(profile.ownerIndex, profile.nodeId);
   const primaryActionLabel = isLeadSaved ? "Remove from leads" : "Save as lead";
 
@@ -536,11 +536,11 @@ function renderPersonProfile(profile) {
         <strong class="${profile.location ? "" : "dataset-empty-value"}">${profile.location || "Unknown"}</strong>
       </div>
     </div>
+  `;
 
-    <div class="profile-modal-actions">
-      <button class="ui-control ui-button ui-button-primary profile-modal-primary ${isLeadSaved ? "is-saved" : ""}" type="button">${primaryActionLabel}</button>
-      <button class="ui-control ui-button ui-button-secondary profile-modal-secondary" type="button">Close</button>
-    </div>
+  profileModalActions.innerHTML = `
+    <button class="ui-control ui-button ui-button-primary profile-modal-primary ${isLeadSaved ? "is-saved" : ""}" type="button">${primaryActionLabel}</button>
+    <button class="ui-control ui-button ui-button-secondary profile-modal-secondary" type="button">Close</button>
   `;
 }
 
@@ -552,6 +552,7 @@ const profileModalApi = window.createProtoModal({
     delete profileModal.dataset.ownerIndex;
     delete profileModal.dataset.nodeId;
     if (profileModalContent) profileModalContent.innerHTML = "";
+    if (profileModalActions) profileModalActions.innerHTML = "";
   }
 });
 
