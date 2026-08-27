@@ -28,7 +28,173 @@
    open/close, but keep an absolutely positioned .profile-modal-close. */
 (function () {
   const CLOSE_DURATION_MS = 320;
+  const HEIGHT_TRANSITION_MS = 300;
   const stack = [];
+
+  function shouldReduceModalMotion() {
+    return document.body.classList.contains("reduce-motion");
+  }
+
+  function getModalPanel(overlay) {
+    return overlay?.querySelector(".proto-modal, .profile-modal, .target-modal");
+  }
+
+  function measureModalNaturalHeight(panel) {
+    if (!panel) return 0;
+
+    const inlineHeight = panel.style.height;
+    const inlineOverflow = panel.style.overflow;
+    panel.style.height = "auto";
+    panel.style.overflow = "visible";
+    const height = Math.ceil(panel.getBoundingClientRect().height);
+    panel.style.height = inlineHeight;
+    panel.style.overflow = inlineOverflow;
+    return height;
+  }
+
+  function createProtoModalHeightAnimator(overlay) {
+    const panel = getModalPanel(overlay);
+    if (!panel) {
+      return {
+        start() {},
+        stop() {},
+        reset() {},
+        sync() {}
+      };
+    }
+
+    let active = false;
+    let lastKnownHeight = 0;
+    let rafId = null;
+    let finishTimeoutId = null;
+    let animating = false;
+
+    function clearScheduledSync() {
+      if (!rafId) return;
+      window.cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    function clearFinishTimeout() {
+      if (!finishTimeoutId) return;
+      window.clearTimeout(finishTimeoutId);
+      finishTimeoutId = null;
+    }
+
+    function resetPanelHeightStyles() {
+      panel.classList.remove("is-resizing");
+      panel.style.height = "";
+      panel.style.overflow = "";
+    }
+
+    function finishHeightAnimation(shouldResync = true) {
+      clearFinishTimeout();
+      panel.removeEventListener("transitionend", onHeightTransitionEnd);
+      animating = false;
+
+      if (active) {
+        resetPanelHeightStyles();
+        lastKnownHeight = measureModalNaturalHeight(panel);
+        if (shouldResync) scheduleHeightSync();
+        return;
+      }
+
+      resetPanelHeightStyles();
+    }
+
+    function onHeightTransitionEnd(event) {
+      if (event.target !== panel || event.propertyName !== "height") return;
+      finishHeightAnimation();
+    }
+
+    function animateHeightChange(nextHeight) {
+      if (!active) return;
+
+      const roundedNext = Math.round(nextHeight);
+      const roundedLast = Math.round(lastKnownHeight || panel.offsetHeight);
+      if (Math.abs(roundedLast - roundedNext) < 1) {
+        lastKnownHeight = roundedNext;
+        return;
+      }
+
+      if (shouldReduceModalMotion()) {
+        lastKnownHeight = roundedNext;
+        resetPanelHeightStyles();
+        return;
+      }
+
+      if (animating) {
+        finishHeightAnimation(false);
+      }
+
+      animating = true;
+      panel.classList.add("is-resizing");
+      panel.style.overflow = "hidden";
+      panel.style.height = `${roundedLast}px`;
+
+      window.requestAnimationFrame(() => {
+        if (!active || !animating) return;
+        panel.style.height = `${roundedNext}px`;
+      });
+
+      panel.addEventListener("transitionend", onHeightTransitionEnd);
+      finishTimeoutId = window.setTimeout(finishHeightAnimation, HEIGHT_TRANSITION_MS + 40);
+    }
+
+    function scheduleHeightSync() {
+      if (!active || animating) return;
+
+      clearScheduledSync();
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        if (!active || !overlay.classList.contains("is-open")) return;
+
+        const nextHeight = measureModalNaturalHeight(panel);
+        animateHeightChange(nextHeight);
+      });
+    }
+
+    if (typeof ResizeObserver === "function") {
+      const resizeObserver = new ResizeObserver(() => {
+        scheduleHeightSync();
+      });
+      resizeObserver.observe(panel);
+    }
+
+    const mutationObserver = new MutationObserver(() => {
+      scheduleHeightSync();
+    });
+    mutationObserver.observe(panel, {
+      attributes: true,
+      attributeFilter: ["hidden", "open"],
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    return {
+      start() {
+        active = true;
+        animating = false;
+        clearScheduledSync();
+        clearFinishTimeout();
+        resetPanelHeightStyles();
+        lastKnownHeight = measureModalNaturalHeight(panel);
+      },
+      stop() {
+        active = false;
+        clearScheduledSync();
+        finishHeightAnimation();
+        resetPanelHeightStyles();
+      },
+      reset() {
+        this.stop();
+      },
+      sync() {
+        scheduleHeightSync();
+      }
+    };
+  }
 
   function removeFromStack(modal) {
     const index = stack.indexOf(modal);
@@ -55,6 +221,7 @@
     const restoreFocus = options.restoreFocus;
     let closeTimeoutId = null;
     let lastTrigger = null;
+    const heightAnimator = overlay ? createProtoModalHeightAnimator(overlay) : null;
 
     const api = {
       open(trigger = null, openOptions = {}) {
@@ -76,6 +243,7 @@
         window.requestAnimationFrame(() => {
           if (!overlay || overlay.hidden) return;
           overlay.classList.add("is-open");
+          heightAnimator?.start();
           const focusElement = openOptions.focus
             ?? (typeof options.getFocusElement === "function" ? options.getFocusElement() : null);
           focusElement?.focus?.({ preventScroll: true });
@@ -86,6 +254,7 @@
         if (!overlay || overlay.hidden) return;
 
         options.onBeforeClose?.();
+        heightAnimator?.stop();
         if (closeTimeoutId) {
           window.clearTimeout(closeTimeoutId);
         }
@@ -141,5 +310,6 @@
   }
 
   window.PROTO_MODAL_CLOSE_DURATION_MS = CLOSE_DURATION_MS;
+  window.PROTO_MODAL_HEIGHT_TRANSITION_MS = HEIGHT_TRANSITION_MS;
   window.createProtoModal = createProtoModal;
 })();

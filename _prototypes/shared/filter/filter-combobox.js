@@ -18,10 +18,11 @@
 
   function getComboboxOptions(select) {
     return Array.from(select.options)
-      .filter((option) => option.value !== "")
+      .filter((option) => option.dataset.comboboxDivider === "true" || option.value !== "")
       .map((option) => ({
         label: option.textContent.trim(),
-        value: option.value
+        value: option.value,
+        divider: option.dataset.comboboxDivider === "true"
       }));
   }
 
@@ -178,12 +179,15 @@
       event.preventDefault();
       event.stopPropagation();
     });
-    chipRemove.addEventListener("click", (event) => {
-      event.stopPropagation();
-      onRemove?.();
-    });
-
-    chip.append(chipLabel, chipRemove);
+    if (onRemove) {
+      chipRemove.addEventListener("click", (event) => {
+        event.stopPropagation();
+        onRemove();
+      });
+      chip.append(chipLabel, chipRemove);
+    } else {
+      chip.append(chipLabel);
+    }
 
     if (datasetKey) {
       chip.dataset.key = datasetKey;
@@ -192,11 +196,66 @@
     return chip;
   }
 
-  function enhanceFilterCombobox(select, { allowExclude = false } = {}) {
+  function setComboboxOptions(select, options, { placeholder } = {}) {
+    if (!select) return;
+
+    const selectedValues = new Set(getFilterSelectValues(select));
+    const placeholderText = placeholder || getComboboxPlaceholder(select);
+
+    select.replaceChildren();
+
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = placeholderText.endsWith("...")
+      ? placeholderText
+      : `${placeholderText}...`;
+    select.append(placeholderOption);
+
+    options.forEach((item) => {
+      if (item.divider) {
+        const dividerOption = document.createElement("option");
+        dividerOption.disabled = true;
+        dividerOption.dataset.comboboxDivider = "true";
+        dividerOption.textContent = "";
+        select.append(dividerOption);
+        return;
+      }
+
+      const { label, value } = item;
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      option.selected = selectedValues.has(value);
+      select.append(option);
+    });
+  }
+
+  function getFilterSelectValue(select) {
+    return getFilterSelectValues(select)[0] || "";
+  }
+
+  function setFilterSelectValue(select, value, { dispatch = true } = {}) {
+    setFilterSelectValues(select, value ? [value] : []);
+    if (dispatch) {
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
+
+  function enhanceFilterCombobox(select, {
+    allowExclude = false,
+    singleSelect = false,
+    clearable = true,
+    searchable = true,
+    removableChips = null,
+    closeOnSelect = null,
+    onOpen = null
+  } = {}) {
     const field = select.closest(".filter-select-field");
     if (!field) return null;
     if (filterComboboxes.has(select)) return filterComboboxes.get(select);
 
+    const canRemoveChips = removableChips ?? clearable;
+    const shouldCloseOnSelect = closeOnSelect ?? singleSelect;
     const placeholder = getComboboxPlaceholder(select);
     const control = document.createElement("div");
     const chips = document.createElement("div");
@@ -211,6 +270,7 @@
     let activeOptionIndex = -1;
     let renderedOptions = [];
     let optionTooltip = null;
+    let suppressOpenOnFocus = false;
 
     select.classList.add("filter-native-select");
     select.multiple = true;
@@ -226,7 +286,11 @@
     input.type = "text";
     input.autocomplete = "off";
     input.spellcheck = false;
+    input.readOnly = !searchable;
     input.placeholder = placeholder;
+    if (select.dataset.inputId) {
+      input.id = select.dataset.inputId;
+    }
     input.setAttribute("aria-label", select.getAttribute("aria-label") || placeholder);
     input.setAttribute("role", "combobox");
     input.setAttribute("aria-autocomplete", "list");
@@ -245,6 +309,9 @@
     menu.setAttribute("role", "listbox");
     menu.setAttribute("aria-label", select.getAttribute("aria-label") || placeholder);
     menuList.className = "filter-combobox-options";
+
+    field.classList.toggle("is-not-clearable", !clearable);
+    field.classList.toggle("is-single-select", singleSelect);
 
     control.append(chips, input);
     field.insertBefore(control, chevron || null);
@@ -341,7 +408,9 @@
     function removeSelectedValue(value) {
       const nextValues = getFilterSelectValues(select).filter((selectedValue) => selectedValue !== value);
       setSelectedValues(nextValues);
+      suppressOpenOnFocus = true;
       input.focus({ preventScroll: true });
+      suppressOpenOnFocus = false;
     }
 
     function isValueExcluded(value) {
@@ -372,7 +441,27 @@
 
     function syncComboboxDisplay() {
       const selectedOptions = getSelectedOptions();
+      const hasSelection = selectedOptions.length > 0;
       chips.innerHTML = "";
+
+      if (singleSelect) {
+        const selectedOption = selectedOptions[0] || null;
+
+        if (isOpen && searchable) {
+          input.value = searchQuery;
+          input.placeholder = placeholder;
+        } else if (selectedOption) {
+          input.value = selectedOption.label;
+          input.placeholder = "";
+        } else {
+          input.value = "";
+          input.placeholder = placeholder;
+        }
+
+        field.classList.toggle("has-selection", hasSelection);
+        clearButton.hidden = !clearable || !hasSelection;
+        return;
+      }
 
       selectedOptions.forEach((option) => {
         const excluded = allowExclude && isValueExcluded(option.value);
@@ -382,13 +471,13 @@
           allowToggle: allowExclude,
           chipClickable: allowExclude,
           onToggleExclude: () => setValueExcluded(option.value, !excluded),
-          onRemove: () => removeSelectedValue(option.value)
+          onRemove: canRemoveChips ? () => removeSelectedValue(option.value) : null
         }));
       });
 
-      input.placeholder = selectedOptions.length ? "" : placeholder;
-      field.classList.toggle("has-selection", selectedOptions.length > 0);
-      clearButton.hidden = !selectedOptions.length;
+      input.placeholder = hasSelection ? "" : placeholder;
+      field.classList.toggle("has-selection", hasSelection);
+      clearButton.hidden = !clearable || !hasSelection;
     }
 
     function closeCombobox({ restoreDisplay = true } = {}) {
@@ -412,33 +501,68 @@
 
     function selectComboboxOption(value, { excluded = false } = {}) {
       const currentValues = getFilterSelectValues(select);
-      if (currentValues.includes(value)) return;
+      if (!singleSelect && currentValues.includes(value)) return;
 
       searchQuery = "";
       input.value = "";
-      setFilterSelectValues(select, [...currentValues, value]);
+      setFilterSelectValues(select, singleSelect ? [value] : [...currentValues, value]);
       setOptionExcluded(value, excluded);
       syncComboboxDisplay();
       if (isOpen) {
         renderComboboxOptions();
       }
       dispatchComboboxChange();
+
+      if (shouldCloseOnSelect) {
+        closeCombobox();
+        input.blur();
+        return;
+      }
+
       input.focus({ preventScroll: true });
+    }
+
+    function shouldRenderComboboxOption(option, selectedValues, normalizedQuery) {
+      if (option.divider) return false;
+
+      const matchesQuery = normalizeComboboxText(option.label).includes(normalizedQuery);
+      if (singleSelect) return matchesQuery;
+      return !selectedValues.has(option.value) && matchesQuery;
     }
 
     function renderComboboxOptions() {
       const normalizedQuery = normalizeComboboxText(searchQuery);
       const selectedValues = new Set(getFilterSelectValues(select));
+      const allOptions = getComboboxOptions(select);
 
       hideOptionTooltip();
-      renderedOptions = getComboboxOptions(select).filter((option) => (
-        !selectedValues.has(option.value) &&
-        normalizeComboboxText(option.label).includes(normalizedQuery)
+      renderedOptions = allOptions.filter((option) => (
+        shouldRenderComboboxOption(option, selectedValues, normalizedQuery)
       ));
+
+      const visibleOptions = [];
+      allOptions.forEach((option, index) => {
+        if (option.divider) {
+          const hasSelectableBefore = allOptions
+            .slice(0, index)
+            .some((candidate) => shouldRenderComboboxOption(candidate, selectedValues, normalizedQuery));
+          const hasSelectableAfter = allOptions
+            .slice(index + 1)
+            .some((candidate) => shouldRenderComboboxOption(candidate, selectedValues, normalizedQuery));
+          if (hasSelectableBefore && hasSelectableAfter) {
+            visibleOptions.push(option);
+          }
+          return;
+        }
+
+        if (shouldRenderComboboxOption(option, selectedValues, normalizedQuery)) {
+          visibleOptions.push(option);
+        }
+      });
 
       menuList.innerHTML = "";
 
-      if (!renderedOptions.length) {
+      if (!visibleOptions.length) {
         const emptyState = document.createElement("div");
         emptyState.className = "filter-combobox-empty";
         emptyState.textContent = "No results found";
@@ -447,7 +571,15 @@
         return;
       }
 
-      renderedOptions.forEach((option, index) => {
+      visibleOptions.forEach((option, index) => {
+        if (option.divider) {
+          const divider = document.createElement("div");
+          divider.className = "filter-combobox-divider";
+          divider.setAttribute("role", "separator");
+          menuList.append(divider);
+          return;
+        }
+
         const optionButton = document.createElement(allowExclude ? "div" : "button");
         const optionLabel = document.createElement("span");
         optionButton.className = "filter-combobox-option";
@@ -457,10 +589,20 @@
         optionButton.id = `${menuId}-${index}`;
         optionButton.dataset.value = option.value;
         optionButton.setAttribute("role", "option");
-        optionButton.setAttribute("aria-selected", "false");
+        const isSelected = selectedValues.has(option.value);
+        optionButton.classList.toggle("is-selected", isSelected);
+        optionButton.setAttribute("aria-selected", String(isSelected));
         optionLabel.className = "filter-combobox-option-label";
         optionLabel.textContent = option.label;
-        optionButton.append(optionLabel);
+
+        if (singleSelect) {
+          const optionCheck = document.createElement("span");
+          optionCheck.className = "filter-combobox-option-check";
+          optionCheck.setAttribute("aria-hidden", "true");
+          optionButton.append(optionCheck, optionLabel);
+        } else {
+          optionButton.append(optionLabel);
+        }
 
         if (allowExclude) {
           const optionActions = document.createElement("span");
@@ -530,9 +672,10 @@
       }
     }
 
-    function openCombobox({ selectInputText = false } = {}) {
+    function openCombobox({ selectInputText = searchable } = {}) {
       if (select.disabled) return;
 
+      onOpen?.();
       isOpen = true;
       searchQuery = "";
       field.classList.add("is-open");
@@ -555,11 +698,21 @@
       }
     }
 
+    input.addEventListener("mousedown", () => {
+      if (singleSelect || isOpen || select.disabled) return;
+
+      openCombobox({ selectInputText: searchable });
+    });
+
     input.addEventListener("focus", () => {
-      openCombobox({ selectInputText: true });
+      if (singleSelect || suppressOpenOnFocus || isOpen) return;
+
+      openCombobox({ selectInputText: searchable });
     });
 
     input.addEventListener("input", () => {
+      if (!searchable) return;
+
       searchQuery = input.value;
 
       if (!isOpen) {
@@ -573,6 +726,8 @@
 
     input.addEventListener("keydown", (event) => {
       if (event.key === "Backspace" && input.value === "") {
+        if (!canRemoveChips) return;
+
         const currentValues = getFilterSelectValues(select);
         if (currentValues.length) {
           event.preventDefault();
@@ -618,6 +773,8 @@
     });
 
     clearButton.addEventListener("click", () => {
+      if (!clearable) return;
+
       setSelectedValues([]);
       input.focus({ preventScroll: true });
     });
@@ -625,7 +782,26 @@
     menuList.addEventListener("scroll", hideOptionTooltip);
     window.addEventListener("resize", hideOptionTooltip);
 
+    if (singleSelect) {
+      control.addEventListener("mousedown", (event) => {
+        if (select.disabled || clearButton.contains(event.target)) return;
+
+        event.preventDefault();
+
+        if (isOpen) {
+          closeCombobox();
+          input.blur();
+          return;
+        }
+
+        openCombobox({ selectInputText: searchable });
+        input.focus({ preventScroll: true });
+      });
+    }
+
     field.addEventListener("mousedown", (event) => {
+      if (singleSelect) return;
+
       const section = field.closest(".filter-section");
       if (section?.classList.contains("filter-section-collapsed")) {
         event.preventDefault();
@@ -655,6 +831,26 @@
 
     const comboboxApi = {
       close: closeCombobox,
+      getValue: () => getFilterSelectValue(select),
+      setValue(value, options = {}) {
+        setFilterSelectValue(select, value, options);
+        syncComboboxDisplay();
+        if (isOpen) {
+          renderComboboxOptions();
+        }
+      },
+      reset(value = "") {
+        closeCombobox({ restoreDisplay: false });
+        setFilterSelectValues(select, value ? [value] : []);
+        syncComboboxDisplay();
+      },
+      setOptions(options, optionsConfig = {}) {
+        setComboboxOptions(select, options, optionsConfig);
+        syncComboboxDisplay();
+        if (isOpen) {
+          renderComboboxOptions();
+        }
+      },
       sync() {
         syncDisabledState();
         syncComboboxDisplay();
@@ -697,10 +893,13 @@
   window.WefranchFilterCombobox = {
     enhance: enhanceFilterCombobox,
     getOptions: getComboboxOptions,
+    getValue: getFilterSelectValue,
     getValues: getFilterSelectValues,
     getIncludedValues: getFilterSelectIncludedValues,
     getExcludedValues: getFilterSelectExcludedValues,
+    setValue: setFilterSelectValue,
     setValues: setFilterSelectValues,
+    setOptions: setComboboxOptions,
     setIncludedExcludedValues: setFilterSelectIncludedExcludedValues,
     syncAll: syncFilterComboboxes,
     getCombobox: (select) => filterComboboxes.get(select),

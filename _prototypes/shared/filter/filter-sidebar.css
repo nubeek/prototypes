@@ -426,6 +426,42 @@
   display: none;
 }
 
+.filter-select-field.is-not-clearable.has-selection > img {
+  display: block;
+}
+
+.filter-select-field.is-single-select .filter-combobox-input {
+  cursor: pointer;
+  padding-top: 2px;
+}
+
+.filter-select-field.is-single-select .filter-combobox-control {
+  border-width: 1px;
+}
+
+.filter-select-field.is-single-select.has-selection .filter-combobox-control,
+.filter-select-field.is-single-select.has-selection .filter-combobox-control:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.filter-select-field.is-single-select:focus-within .filter-combobox-control,
+.filter-select-field.is-single-select.is-open .filter-combobox-control,
+.filter-select-field.is-single-select.is-open .filter-combobox-control:hover {
+  background: var(--color-surface);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 1px var(--color-brand);
+}
+
+.filter-select-field.is-single-select.has-selection .filter-combobox-input {
+  font-weight: 500;
+}
+
+.filter-select-field.is-single-select .filter-combobox-clear {
+  right: 12px;
+}
+
 .filter-native-select {
   display: none;
 }
@@ -447,7 +483,7 @@
   flex-wrap: wrap;
   gap: 6px;
   cursor: pointer;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .filter-combobox-control:hover {
@@ -743,15 +779,21 @@
   right: 0;
   left: 0;
   z-index: 20;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   box-shadow: var(--shadow-menu);
   overflow: hidden;
   display: none;
 }
 
+.filter-combobox-divider {
+  height: 1px;
+  margin: 6px 12px;
+  background: var(--color-border);
+}
+
 .filter-combobox-options {
-  max-height: 210px;
+  max-height: calc(var(--control-height) * 5);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #d8d8d8 transparent;
@@ -805,6 +847,22 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.filter-combobox-option-check {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+}
+
+.filter-combobox-option.is-selected .filter-combobox-option-check {
+  opacity: 1;
+  background: url("../../cst/assets/check.svg") center / contain no-repeat;
+}
+
+.filter-combobox-option.is-selected .filter-combobox-option-label {
+  font-weight: 500;
 }
 
 .filter-combobox-option-actions {

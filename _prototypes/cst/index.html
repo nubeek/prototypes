@@ -25,7 +25,6 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="../shared/ui/proto-modal.css">
-  <link rel="stylesheet" href="../shared/ui/modal-dropdown.css">
   <link rel="stylesheet" href="../shared/ui/modal-alerts.css">
   <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
   <link rel="stylesheet" href="../shared/map/map-pills.css">
@@ -820,30 +819,12 @@
         <div class="save-lead-divider" aria-hidden="true"></div>
 
         <div class="target-modal-field">
-          <label for="saveLeadListInput">Add to list</label>
-          <div class="dropdown" id="saveLeadListSelector" data-list-active="false">
-            <div class="dropdown-field" id="saveLeadListSelectorField">
-              <input
-                class="dropdown-input"
-                id="saveLeadListInput"
-                name="list"
-                type="text"
-                autocomplete="off"
-                spellcheck="false"
-                placeholder="Select..."
-                role="combobox"
-                aria-autocomplete="list"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-                aria-controls="saveLeadListMenu"
-                aria-label="Add to list"
-              >
-              <button class="dropdown-clear" id="saveLeadListClear" type="button" hidden aria-label="Clear list selection"></button>
-              <img class="dropdown-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-              <div class="ui-menu dropdown-menu" id="saveLeadListMenu" role="listbox" aria-label="CRM lists">
-                <div class="dropdown-options" id="saveLeadListOptions"></div>
-              </div>
-            </div>
+          <label>Add to list</label>
+          <div class="filter-select-field" id="saveLeadListField">
+            <select class="ui-select filter-field-select" id="saveLeadListSelect" data-input-id="saveLeadListInput" aria-label="Add to list">
+              <option value="">Select...</option>
+            </select>
+            <img src="assets/chevron.svg" alt="" aria-hidden="true">
           </div>
         </div>
 
@@ -968,6 +949,47 @@
     </section>
   </div>
 
+  <div class="proto-modal-overlay" id="campaignSenderModal" hidden>
+    <section class="proto-modal proto-modal--form campaign-sender-modal" role="dialog" aria-modal="true" aria-labelledby="campaignSenderModalTitle">
+      <form class="proto-modal-form" id="campaignSenderModalForm">
+        <div class="proto-modal-header">
+          <h2 class="proto-modal-title" id="campaignSenderModalTitle">Sender</h2>
+          <div class="proto-modal-header-actions">
+            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close sender">
+              <img src="assets/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+
+        <div class="proto-modal-body campaign-sender-modal-body">
+          <p class="proto-modal-subtitle">Choose the identity recipients will see when they receive your campaign.</p>
+
+          <div class="proto-modal-field">
+            <label for="campaignSenderEmailInput">Email address</label>
+            <div class="filter-select-field" id="campaignSenderEmailField">
+              <select class="ui-select filter-field-select" id="campaignSenderEmailSelect" data-input-id="campaignSenderEmailInput" aria-label="Email address" required>
+                <option value="">Email shown to recipients inbox</option>
+                <option value="philip.litassy@wefanch.com">philip.litassy@wefanch.com</option>
+                <option value="gregory.ugwi@wefranch.com">gregory.ugwi@wefranch.com</option>
+              </select>
+              <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            </div>
+          </div>
+
+          <label class="proto-modal-field" for="campaignSenderName">
+            <span>Name</span>
+            <input class="proto-modal-control proto-modal-input" id="campaignSenderName" name="senderName" type="text" autocomplete="name" placeholder="Who is sending the campaign?" required>
+          </label>
+        </div>
+
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignSenderContinue" type="submit" disabled>Continue</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
   <div class="proto-modal-overlay" id="startCampaignModal" hidden>
     <section class="proto-modal proto-modal--form start-campaign-modal" role="dialog" aria-modal="true" aria-labelledby="startCampaignModalTitle">
       <form class="proto-modal-form" id="startCampaignModalForm">
@@ -985,65 +1007,24 @@
 
           <div class="proto-modal-field">
             <label for="startCampaignAudienceInput">Audience</label>
-            <div class="dropdown" id="startCampaignAudience">
-              <div class="dropdown-field" id="startCampaignAudienceField">
-                <input
-                  class="dropdown-input"
-                  id="startCampaignAudienceInput"
-                  name="audience"
-                  type="text"
-                  autocomplete="off"
-                  spellcheck="false"
-                  placeholder="Select..."
-                  role="combobox"
-                  aria-autocomplete="list"
-                  aria-haspopup="listbox"
-                  aria-expanded="false"
-                  aria-controls="startCampaignAudienceMenu"
-                  aria-label="Audience"
-                >
-                <img class="dropdown-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-                <div class="ui-menu dropdown-menu" id="startCampaignAudienceMenu" role="listbox" aria-label="Audience">
-                  <div class="dropdown-options" id="startCampaignAudienceOptions"></div>
-                </div>
-              </div>
+            <div class="filter-select-field" id="startCampaignAudienceField">
+              <select class="ui-select filter-field-select" id="startCampaignAudienceSelect" data-input-id="startCampaignAudienceInput" aria-label="Audience" multiple required>
+                <option value="">Select query, group or individual contacts</option>
+              </select>
+              <img src="assets/chevron.svg" alt="" aria-hidden="true">
             </div>
           </div>
 
-          <div class="start-campaign-saved-search" id="startCampaignSavedSearch" hidden>
-            <div class="proto-modal-field">
-              <label for="startCampaignSavedSearchInput">Select saved search</label>
-              <div class="dropdown" id="startCampaignSavedSearchSelector">
-                <div class="dropdown-field" id="startCampaignSavedSearchField">
-                  <input
-                    class="dropdown-input"
-                    id="startCampaignSavedSearchInput"
-                    name="savedSearch"
-                    type="text"
-                    autocomplete="off"
-                    spellcheck="false"
-                    placeholder="Select..."
-                    role="combobox"
-                    aria-autocomplete="list"
-                    aria-haspopup="listbox"
-                    aria-expanded="false"
-                    aria-controls="startCampaignSavedSearchMenu"
-                    aria-label="Select saved search"
-                  >
-                  <button class="dropdown-clear" id="startCampaignSavedSearchClear" type="button" hidden aria-label="Clear saved search"></button>
-                  <img class="dropdown-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
-                  <div class="ui-menu dropdown-menu" id="startCampaignSavedSearchMenu" role="listbox" aria-label="Saved searches">
-                    <div class="dropdown-options" id="startCampaignSavedSearchOptions"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="start-campaign-preview" id="startCampaignPreview" hidden>
+          <div class="start-campaign-preview" id="startCampaignPreview">
             <div class="proto-modal-divider start-campaign-preview-divider" aria-hidden="true"></div>
-            <p class="start-campaign-preview-title" id="startCampaignPreviewTitle"></p>
-            <p class="start-campaign-preview-count" id="startCampaignPreviewCount"></p>
+            <div class="start-campaign-capacity-labels">
+              <p class="start-campaign-recipient-count" id="startCampaignRecipientCount">0 recipients</p>
+              <p class="start-campaign-remaining-count" id="startCampaignRemainingCount">500 remaining emails</p>
+            </div>
+            <div class="start-campaign-progress" id="startCampaignProgress" role="progressbar" aria-label="Campaign recipient capacity" aria-valuemin="0" aria-valuemax="500" aria-valuenow="0">
+              <span class="start-campaign-progress-fill" id="startCampaignProgressFill"></span>
+              <span class="start-campaign-progress-over" id="startCampaignProgressOver"></span>
+            </div>
           </div>
         </div>
 

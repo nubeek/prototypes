@@ -17,45 +17,18 @@ function getContactActionFloatingTooltip() {
   return contactActionFloatingTooltip;
 }
 
-function setFloatingTooltipContent(tooltip, tooltipText, { showCopyIcon = false } = {}) {
-  if (showCopyIcon) {
-    tooltip.replaceChildren();
-    tooltip.classList.add("has-copy-icon");
-
-    const icon = document.createElement("img");
-    icon.src = "assets/copy.svg";
-    icon.alt = "";
-    icon.className = "contact-email-copy-tooltip-icon";
-    icon.width = 15;
-    icon.height = 15;
-
-    const label = document.createElement("span");
-    label.textContent = tooltipText;
-
-    tooltip.append(icon, label);
-    return;
-  }
-
-  tooltip.classList.remove("has-copy-icon");
-  tooltip.textContent = tooltipText;
-}
-
-function positionFloatingTooltip(target, tooltipText, options = {}) {
+function positionFloatingTooltip(target, tooltipText) {
   if (!tooltipText) return;
 
   const tooltip = getContactActionFloatingTooltip();
-  setFloatingTooltipContent(tooltip, tooltipText, options);
+  tooltip.textContent = tooltipText;
 
   if (!tooltip.isConnected) {
     document.body.append(tooltip);
   }
 
   tooltip.classList.add("is-visible");
-  if (options.showCopyIcon) {
-    tooltip.style.width = "";
-  } else {
-    window.fitTooltipToContent?.(tooltip);
-  }
+  window.fitTooltipToContent?.(tooltip);
 
   const targetRect = target.getBoundingClientRect();
   const tooltipRect = tooltip.getBoundingClientRect();
@@ -80,9 +53,7 @@ function getContactEmailTooltipText(emailElement) {
 }
 
 function positionContactEmailFloatingTooltip(emailElement) {
-  const tooltipText = getContactEmailTooltipText(emailElement);
-  const showCopyIcon = emailElement.dataset.tooltipState !== "copied";
-  positionFloatingTooltip(emailElement, tooltipText, { showCopyIcon });
+  positionFloatingTooltip(emailElement, getContactEmailTooltipText(emailElement));
 }
 
 function showContactActionFloatingTooltip(target) {

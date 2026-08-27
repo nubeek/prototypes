@@ -1,338 +1,106 @@
 const START_CAMPAIGN_AUDIENCE_CURRENT = "current";
-const START_CAMPAIGN_AUDIENCE_SAVED = "saved";
-const START_CAMPAIGN_AUDIENCE_OPTIONS = [
-  { label: "Current search", value: START_CAMPAIGN_AUDIENCE_CURRENT },
-  { label: "Saved searches", value: START_CAMPAIGN_AUDIENCE_SAVED }
-];
+const START_CAMPAIGN_RECIPIENT_LIMIT = 500;
+const CAMPAIGN_SENDERS = {
+  "philip.litassy@wefanch.com": "Philip Litassy",
+  "gregory.ugwi@wefranch.com": "Gregory Ugwi"
+};
 
+const campaignSenderModal = document.getElementById("campaignSenderModal");
+const campaignSenderModalForm = document.getElementById("campaignSenderModalForm");
+const campaignSenderEmailField = document.getElementById("campaignSenderEmailField");
+const campaignSenderEmailSelect = document.getElementById("campaignSenderEmailSelect");
+const campaignSenderName = document.getElementById("campaignSenderName");
+const campaignSenderContinue = document.getElementById("campaignSenderContinue");
 const startCampaignModal = document.getElementById("startCampaignModal");
 const startCampaignModalForm = document.getElementById("startCampaignModalForm");
 const startCampaignOption = document.getElementById("startCampaignOption");
-const startCampaignAudience = document.getElementById("startCampaignAudience");
 const startCampaignAudienceField = document.getElementById("startCampaignAudienceField");
-const startCampaignAudienceInput = document.getElementById("startCampaignAudienceInput");
-const startCampaignAudienceOptions = document.getElementById("startCampaignAudienceOptions");
-const startCampaignSavedSearch = document.getElementById("startCampaignSavedSearch");
-const startCampaignSavedSearchSelector = document.getElementById("startCampaignSavedSearchSelector");
-const startCampaignSavedSearchField = document.getElementById("startCampaignSavedSearchField");
-const startCampaignSavedSearchInput = document.getElementById("startCampaignSavedSearchInput");
-const startCampaignSavedSearchClear = document.getElementById("startCampaignSavedSearchClear");
-const startCampaignSavedSearchOptions = document.getElementById("startCampaignSavedSearchOptions");
+const startCampaignAudienceSelect = document.getElementById("startCampaignAudienceSelect");
 const startCampaignPreview = document.getElementById("startCampaignPreview");
-const startCampaignPreviewTitle = document.getElementById("startCampaignPreviewTitle");
-const startCampaignPreviewCount = document.getElementById("startCampaignPreviewCount");
+const startCampaignRecipientCount = document.getElementById("startCampaignRecipientCount");
+const startCampaignRemainingCount = document.getElementById("startCampaignRemainingCount");
+const startCampaignProgress = document.getElementById("startCampaignProgress");
+const startCampaignProgressFill = document.getElementById("startCampaignProgressFill");
+const startCampaignProgressOver = document.getElementById("startCampaignProgressOver");
 const startCampaignContinue = document.getElementById("startCampaignContinue");
 
+let campaignSenderEmailApi = null;
+let campaignSenderDraft = null;
+let shouldOpenStartCampaignAfterSender = false;
 let startCampaignAudienceApi = null;
-let startCampaignSavedSearchApi = null;
 let startCampaignDraft = null;
+
+function closeCampaignSenderDropdown() {
+  campaignSenderEmailApi?.close();
+}
+
+function isCampaignSenderDropdownOpen() {
+  return Boolean(campaignSenderEmailField?.classList.contains("is-open"));
+}
+
+function getCampaignSenderSelection() {
+  const emailAddress = campaignSenderEmailApi?.getValue()
+    || window.WefranchFilterCombobox.getValue(campaignSenderEmailSelect);
+  const name = String(campaignSenderName?.value || "").trim();
+
+  if (!CAMPAIGN_SENDERS[emailAddress] || !name) return null;
+  return { emailAddress, name };
+}
+
+function syncCampaignSenderContinue() {
+  if (!campaignSenderContinue) return;
+  campaignSenderContinue.disabled = !getCampaignSenderSelection();
+}
+
+function syncCampaignSenderName() {
+  if (!campaignSenderName) return;
+
+  const emailAddress = campaignSenderEmailApi?.getValue()
+    || window.WefranchFilterCombobox.getValue(campaignSenderEmailSelect);
+  campaignSenderName.value = CAMPAIGN_SENDERS[emailAddress] || "";
+  syncCampaignSenderContinue();
+}
+
+function resetCampaignSenderModal() {
+  closeCampaignSenderDropdown();
+  campaignSenderEmailApi?.reset("");
+  if (campaignSenderName) campaignSenderName.value = "";
+  syncCampaignSenderContinue();
+}
 
 function closeStartCampaignDropdowns() {
   startCampaignAudienceApi?.close();
-  startCampaignSavedSearchApi?.close();
 }
 
 function isStartCampaignDropdownOpen() {
-  return Boolean(
-    startCampaignAudienceField?.classList.contains("is-open")
-    || startCampaignSavedSearchField?.classList.contains("is-open")
+  return Boolean(startCampaignAudienceField?.classList.contains("is-open"));
+}
+
+function formatStartCampaignCount(count, singular, plural) {
+  const value = Number(count) || 0;
+  return `${value.toLocaleString("en-US")} ${value === 1 ? singular : plural}`;
+}
+
+function formatStartCampaignRemainingLabel(recipientCount) {
+  const overCount = Math.max(recipientCount - START_CAMPAIGN_RECIPIENT_LIMIT, 0);
+  if (overCount > 0) {
+    return `-${formatStartCampaignCount(overCount, "email", "emails")} over limit`;
+  }
+
+  return formatStartCampaignCount(
+    Math.max(START_CAMPAIGN_RECIPIENT_LIMIT - recipientCount, 0),
+    "remaining email",
+    "remaining emails"
   );
 }
 
-function initStartCampaignDropdown({
-  field,
-  input,
-  clearButton = null,
-  optionsContainer,
-  getOptions,
-  placeholder = "Select...",
-  searchable = true,
-  clearable = true,
-  optionIdPrefix,
-  emptyText = "No results found",
-  onOpen = null,
-  onChange = null
-}) {
-  if (!field || !input || !optionsContainer) return null;
-
-  const menu = field.querySelector(".dropdown-menu");
-  let isOpen = false;
-  let searchQuery = "";
-  let activeOptionIndex = -1;
-  let renderedOptions = [];
-  let selectedValue = "";
-
-  function normalizeQuery(value) {
-    return (window.normalizeComboboxText || ((text) => String(text || "").trim().toLocaleLowerCase()))(value);
+function setStartCampaignProgressWidths(withinRatio, overRatio) {
+  if (startCampaignProgressFill) {
+    startCampaignProgressFill.style.width = `${Math.max(withinRatio, 0) * 100}%`;
   }
-
-  function getSelectedOption() {
-    return getOptions().find((option) => option.value === selectedValue) || null;
+  if (startCampaignProgressOver) {
+    startCampaignProgressOver.style.width = `${Math.max(overRatio, 0) * 100}%`;
   }
-
-  function syncInputDisplay() {
-    const selectedOption = getSelectedOption();
-    const hasSelection = Boolean(selectedOption);
-
-    input.dataset.value = selectedValue;
-    field.classList.toggle("has-selection", hasSelection);
-    if (clearButton) {
-      clearButton.hidden = !clearable || !hasSelection;
-    }
-
-    if (selectedOption) {
-      input.value = selectedOption.label;
-      input.placeholder = "";
-    } else {
-      input.value = "";
-      input.placeholder = placeholder;
-    }
-  }
-
-  function setActiveOption(index) {
-    const optionButtons = Array.from(optionsContainer.querySelectorAll(".dropdown-option"));
-    if (!optionButtons.length) {
-      activeOptionIndex = -1;
-      input.removeAttribute("aria-activedescendant");
-      return;
-    }
-
-    activeOptionIndex = (index + optionButtons.length) % optionButtons.length;
-    optionButtons.forEach((optionButton, optionIndex) => {
-      const isActive = optionIndex === activeOptionIndex;
-      optionButton.classList.toggle("is-active", isActive);
-      if (isActive) {
-        input.setAttribute("aria-activedescendant", optionButton.id);
-        optionButton.scrollIntoView({ block: "nearest" });
-      }
-    });
-  }
-
-  function selectValue(value) {
-    selectedValue = value;
-    syncInputDisplay();
-    onChange?.(selectedValue);
-  }
-
-  function renderOptions() {
-    const allOptions = getOptions();
-    const normalizedQuery = searchable ? normalizeQuery(searchQuery) : "";
-    renderedOptions = allOptions.filter((option) => (
-      !normalizedQuery || normalizeQuery(option.label).includes(normalizedQuery)
-    ));
-
-    optionsContainer.replaceChildren();
-
-    if (!renderedOptions.length) {
-      const emptyState = document.createElement("div");
-      emptyState.className = "dropdown-empty";
-      emptyState.textContent = allOptions.length ? emptyText : "No saved searches";
-      optionsContainer.append(emptyState);
-      activeOptionIndex = -1;
-      input.removeAttribute("aria-activedescendant");
-      return;
-    }
-
-    renderedOptions.forEach((option, index) => {
-      const optionButton = document.createElement("button");
-      const optionLabel = document.createElement("span");
-      const optionCheck = document.createElement("img");
-      const isSelected = option.value === selectedValue;
-
-      optionButton.type = "button";
-      optionButton.className = "ui-menu-item toolbar-dropdown-option dropdown-option";
-      optionButton.id = `${optionIdPrefix}-${index}`;
-      optionButton.dataset.value = option.value;
-      optionButton.setAttribute("role", "option");
-      optionButton.classList.toggle("is-selected", isSelected);
-      optionButton.setAttribute("aria-selected", String(isSelected));
-
-      optionLabel.className = "toolbar-dropdown-label";
-      optionLabel.textContent = option.label;
-
-      optionCheck.className = "dropdown-option-check";
-      optionCheck.src = "assets/check.svg";
-      optionCheck.alt = "";
-      optionCheck.setAttribute("aria-hidden", "true");
-
-      optionButton.append(optionLabel, optionCheck);
-      optionButton.addEventListener("mousedown", (event) => {
-        event.preventDefault();
-      });
-      optionButton.addEventListener("click", () => {
-        selectValue(option.value);
-        close({ restoreDisplay: true });
-        input.blur();
-      });
-
-      optionsContainer.append(optionButton);
-    });
-
-    if (activeOptionIndex >= renderedOptions.length) {
-      activeOptionIndex = -1;
-    }
-
-    if (activeOptionIndex >= 0) {
-      setActiveOption(activeOptionIndex);
-    } else {
-      input.removeAttribute("aria-activedescendant");
-    }
-  }
-
-  function open() {
-    if (isOpen) return;
-
-    isOpen = true;
-    searchQuery = "";
-    onOpen?.();
-    field.classList.add("is-open");
-    input.setAttribute("aria-expanded", "true");
-
-    if (searchable) {
-      input.value = "";
-    }
-
-    renderOptions();
-    input.focus({ preventScroll: true });
-  }
-
-  function close({ restoreDisplay = true } = {}) {
-    if (!isOpen) return;
-
-    isOpen = false;
-    searchQuery = "";
-    activeOptionIndex = -1;
-    field.classList.remove("is-open");
-    input.setAttribute("aria-expanded", "false");
-    input.removeAttribute("aria-activedescendant");
-
-    if (restoreDisplay) {
-      syncInputDisplay();
-    }
-  }
-
-  function reset(value = "") {
-    close({ restoreDisplay: false });
-    selectedValue = value;
-    syncInputDisplay();
-  }
-
-  input.readOnly = !searchable;
-
-  input.addEventListener("focus", () => {
-    if (!searchable) return;
-    open();
-  });
-
-  input.addEventListener("mousedown", (event) => {
-    if (searchable) return;
-
-    event.preventDefault();
-    if (isOpen) {
-      close({ restoreDisplay: true });
-      input.blur();
-      return;
-    }
-
-    open();
-  });
-
-  if (searchable) {
-    input.addEventListener("input", () => {
-      searchQuery = input.value;
-      if (!isOpen) {
-        open();
-        return;
-      }
-      renderOptions();
-    });
-  }
-
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      event.preventDefault();
-      if (!isOpen) {
-        open();
-        if (renderedOptions.length) {
-          setActiveOption(event.key === "ArrowDown" ? 0 : renderedOptions.length - 1);
-        }
-        return;
-      }
-      setActiveOption(activeOptionIndex + (event.key === "ArrowDown" ? 1 : -1));
-      return;
-    }
-
-    if (event.key === "Enter") {
-      if (!isOpen || activeOptionIndex < 0) return;
-      event.preventDefault();
-      selectValue(renderedOptions[activeOptionIndex].value);
-      close({ restoreDisplay: true });
-      input.blur();
-      return;
-    }
-
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      close({ restoreDisplay: true });
-      input.blur();
-    }
-  });
-
-  input.addEventListener("blur", () => {
-    window.setTimeout(() => close({ restoreDisplay: true }), 100);
-  });
-
-  if (clearButton) {
-    clearButton.addEventListener("mousedown", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    });
-    clearButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      selectValue("");
-      close({ restoreDisplay: true });
-    });
-  }
-
-  field.addEventListener("mousedown", (event) => {
-    if (
-      event.target === input
-      || menu?.contains(event.target)
-      || clearButton?.contains(event.target)
-    ) {
-      return;
-    }
-
-    const wasOpen = isOpen;
-    event.preventDefault();
-
-    if (wasOpen) {
-      close({ restoreDisplay: true });
-      input.blur();
-    } else {
-      open();
-    }
-  });
-
-  syncInputDisplay();
-
-  return {
-    close,
-    reset,
-    getValue: () => selectedValue,
-    setValue(value) {
-      selectedValue = value;
-      syncInputDisplay();
-    },
-    refresh: syncInputDisplay
-  };
-}
-
-function formatStartCampaignContactCount(count) {
-  const value = Number(count) || 0;
-  return `${value.toLocaleString("en-US")} ${value === 1 ? "contact" : "contacts"}`;
 }
 
 function getCurrentSearchAudience() {
@@ -375,38 +143,170 @@ function getUserSavedSearches() {
   return [...userSearches, ...sharedSearches];
 }
 
-function getSavedSearchAudience(searchId) {
-  const savedSearch = getSavedSearchById?.(searchId)
-    || getUserSavedSearches().find((search) => search.id === searchId)
-    || null;
-  if (!savedSearch) return null;
-
-  const matches = window.cstSplash?.getMatchCounts?.(savedSearch) || {};
-
-  return {
-    audience: START_CAMPAIGN_AUDIENCE_SAVED,
-    savedSearchId: savedSearch.id,
-    title: savedSearch.title,
-    contactCount: Number.isFinite(matches.contactCount) ? matches.contactCount : 0
-  };
+function getCurrentSearchOptionLabel() {
+  const { contactCount } = getCurrentSearchAudience();
+  return `Current search (${contactCount.toLocaleString("en-US")})`;
 }
 
-function hideStartCampaignPreview() {
-  startCampaignPreview?.setAttribute("hidden", "");
-  if (startCampaignPreviewTitle) startCampaignPreviewTitle.textContent = "";
-  if (startCampaignPreviewCount) startCampaignPreviewCount.textContent = "";
+function getStartCampaignAudienceOptions() {
+  const savedSearchOptions = getUserSavedSearches().map((search) => {
+    const matches = window.cstSplash?.getMatchCounts?.(search) || {};
+    const contactCount = Number.isFinite(matches.contactCount) ? matches.contactCount : 0;
+
+    return {
+      label: `${search.title} (${contactCount.toLocaleString("en-US")})`,
+      value: search.id
+    };
+  });
+
+  return [
+    {
+      label: getCurrentSearchOptionLabel(),
+      value: START_CAMPAIGN_AUDIENCE_CURRENT
+    },
+    ...(savedSearchOptions.length ? [{ divider: true }, ...savedSearchOptions] : [])
+  ];
 }
 
-function renderStartCampaignPreview(preview) {
-  if (!preview?.title) {
-    hideStartCampaignPreview();
+function syncStartCampaignAudienceOptions() {
+  if (!startCampaignAudienceSelect) return;
+
+  const options = getStartCampaignAudienceOptions();
+
+  if (startCampaignAudienceApi) {
+    startCampaignAudienceApi.setOptions(options, {
+      placeholder: "Select query, group or individual contacts"
+    });
     return;
   }
 
-  if (startCampaignPreviewTitle) startCampaignPreviewTitle.textContent = preview.title;
-  if (startCampaignPreviewCount) {
-    startCampaignPreviewCount.textContent = formatStartCampaignContactCount(preview.contactCount);
+  window.WefranchFilterCombobox.setOptions(startCampaignAudienceSelect, options, {
+    placeholder: "Select query, group or individual contacts"
+  });
+}
+
+function getSelectedAudienceValues() {
+  return window.WefranchFilterCombobox.getValues(startCampaignAudienceSelect);
+}
+
+function getSavedSearchAudience(searchIds) {
+  const ids = [...new Set(
+    (Array.isArray(searchIds) ? searchIds : [searchIds]).filter(Boolean)
+  )];
+  const savedSearches = ids.map((searchId) => (
+    getSavedSearchById?.(searchId)
+    || getUserSavedSearches().find((search) => search.id === searchId)
+    || null
+  )).filter(Boolean);
+  if (!savedSearches.length) return null;
+
+  const selections = savedSearches.map((savedSearch) => {
+    const matches = window.cstSplash?.getMatchCounts?.(savedSearch) || {};
+    return {
+      id: savedSearch.id,
+      title: savedSearch.title,
+      contactCount: Number.isFinite(matches.contactCount) ? matches.contactCount : 0
+    };
+  });
+
+  return {
+    savedSearchId: selections[0].id,
+    savedSearchIds: selections.map((selection) => selection.id),
+    title: selections.map((selection) => selection.title).join(", "),
+    titles: selections.map((selection) => selection.title),
+    contactCount: selections.reduce((total, selection) => total + selection.contactCount, 0)
+  };
+}
+
+function buildCampaignAudiencePreview(selectedValues) {
+  if (!selectedValues.length) return null;
+
+  let contactCount = 0;
+  const titles = [];
+  const savedSearchIds = [];
+  let includesCurrent = false;
+
+  selectedValues.forEach((value) => {
+    if (value === START_CAMPAIGN_AUDIENCE_CURRENT) {
+      const currentSearch = getCurrentSearchAudience();
+      includesCurrent = true;
+      contactCount += currentSearch.contactCount;
+      titles.push("Current search");
+      return;
+    }
+
+    const savedSearch = getSavedSearchAudience([value]);
+    if (!savedSearch) return;
+
+    contactCount += savedSearch.contactCount;
+    titles.push(savedSearch.titles[0]);
+    savedSearchIds.push(value);
+  });
+
+  if (!titles.length) return null;
+
+  return {
+    audience: includesCurrent
+      ? (savedSearchIds.length ? "mixed" : START_CAMPAIGN_AUDIENCE_CURRENT)
+      : "saved",
+    savedSearchId: savedSearchIds[0] || null,
+    savedSearchIds,
+    includesCurrent,
+    title: titles.join(", "),
+    titles,
+    contactCount
+  };
+}
+
+function resetStartCampaignPreview() {
+  startCampaignPreview?.removeAttribute("hidden");
+  if (startCampaignRecipientCount) startCampaignRecipientCount.textContent = "0 recipients";
+  if (startCampaignRemainingCount) {
+    startCampaignRemainingCount.textContent = formatStartCampaignRemainingLabel(0);
+    startCampaignRemainingCount.classList.remove("is-over-limit");
   }
+  if (startCampaignProgress) {
+    startCampaignProgress.classList.remove("is-over-limit");
+    startCampaignProgress.setAttribute("aria-valuenow", "0");
+    startCampaignProgress.setAttribute(
+      "aria-valuetext",
+      `0 recipients, ${formatStartCampaignRemainingLabel(0)}`
+    );
+  }
+  setStartCampaignProgressWidths(0, 0);
+}
+
+function renderStartCampaignPreview(preview) {
+  if (!preview) {
+    resetStartCampaignPreview();
+    return;
+  }
+
+  const recipientCount = Math.max(0, Math.round(Number(preview.contactCount) || 0));
+  const overCount = Math.max(recipientCount - START_CAMPAIGN_RECIPIENT_LIMIT, 0);
+  const isOverLimit = overCount > 0;
+  const remainingLabel = formatStartCampaignRemainingLabel(recipientCount);
+  const scale = isOverLimit ? recipientCount : START_CAMPAIGN_RECIPIENT_LIMIT;
+  const withinRatio = scale ? Math.min(recipientCount, START_CAMPAIGN_RECIPIENT_LIMIT) / scale : 0;
+  const overRatio = scale ? overCount / scale : 0;
+
+  if (startCampaignRecipientCount) {
+    startCampaignRecipientCount.textContent = formatStartCampaignCount(
+      recipientCount,
+      "recipient",
+      "recipients"
+    );
+  }
+  if (startCampaignRemainingCount) {
+    startCampaignRemainingCount.textContent = remainingLabel;
+    startCampaignRemainingCount.classList.toggle("is-over-limit", isOverLimit);
+  }
+  if (startCampaignProgress) {
+    startCampaignProgress.classList.toggle("is-over-limit", isOverLimit);
+    startCampaignProgress.setAttribute("aria-valuenow", String(recipientCount));
+    startCampaignProgress.setAttribute("aria-valuetext", `${recipientCount} recipients, ${remainingLabel}`);
+  }
+  setStartCampaignProgressWidths(withinRatio, overRatio);
   startCampaignPreview?.removeAttribute("hidden");
 }
 
@@ -416,30 +316,20 @@ function syncStartCampaignContinue(canContinue) {
 }
 
 function syncStartCampaignAudienceState() {
-  const audience = startCampaignAudienceApi?.getValue() || START_CAMPAIGN_AUDIENCE_CURRENT;
-  const isSaved = audience === START_CAMPAIGN_AUDIENCE_SAVED;
+  syncStartCampaignAudienceOptions();
 
-  if (isSaved) {
-    startCampaignSavedSearch?.removeAttribute("hidden");
-    const savedSearchId = startCampaignSavedSearchApi?.getValue() || "";
-    const preview = savedSearchId ? getSavedSearchAudience(savedSearchId) : null;
-    startCampaignDraft = preview;
-    renderStartCampaignPreview(preview);
-    syncStartCampaignContinue(Boolean(preview));
-    return;
-  }
+  const selectedValues = getSelectedAudienceValues();
+  const preview = buildCampaignAudiencePreview(selectedValues);
 
-  startCampaignSavedSearch?.setAttribute("hidden", "");
-  startCampaignSavedSearchApi?.reset("");
-  startCampaignDraft = getCurrentSearchAudience();
-  renderStartCampaignPreview(startCampaignDraft);
-  syncStartCampaignContinue(true);
+  startCampaignDraft = preview;
+  renderStartCampaignPreview(preview);
+  syncStartCampaignContinue(Boolean(preview));
 }
 
 function resetStartCampaignModal() {
   closeStartCampaignDropdowns();
-  startCampaignAudienceApi?.reset(START_CAMPAIGN_AUDIENCE_CURRENT);
-  startCampaignSavedSearchApi?.reset("");
+  syncStartCampaignAudienceOptions();
+  startCampaignAudienceApi?.reset("");
   startCampaignDraft = null;
   syncStartCampaignAudienceState();
 }
@@ -477,68 +367,103 @@ function openStartCampaignModal(trigger = null) {
   startCampaignModalApi.open(trigger);
 }
 
-startCampaignAudienceApi = initStartCampaignDropdown({
-  field: startCampaignAudienceField,
-  input: startCampaignAudienceInput,
-  optionsContainer: startCampaignAudienceOptions,
-  getOptions: () => START_CAMPAIGN_AUDIENCE_OPTIONS,
-  placeholder: "Select...",
-  searchable: false,
-  clearable: false,
-  optionIdPrefix: "startCampaignAudienceOption",
-  onOpen() {
-    startCampaignSavedSearchApi?.close();
+const campaignSenderModalApi = window.createProtoModal({
+  overlay: campaignSenderModal,
+  closeSelectors: ".proto-modal-close, .proto-modal-cancel",
+  onBeforeClose() {
+    closeCampaignSenderDropdown();
   },
-  onChange() {
-    syncStartCampaignAudienceState();
+  onClose() {
+    const shouldContinue = shouldOpenStartCampaignAfterSender;
+    shouldOpenStartCampaignAfterSender = false;
+    resetCampaignSenderModal();
+
+    if (shouldContinue) {
+      openStartCampaignModal(startCampaignOption);
+    }
+  },
+  shouldCloseOnEscape() {
+    if (isCampaignSenderDropdownOpen()) {
+      closeCampaignSenderDropdown();
+      return false;
+    }
+    return true;
+  },
+  getFocusElement() {
+    return document.getElementById("campaignSenderEmailInput")
+      || campaignSenderModal?.querySelector(".proto-modal-close");
   }
 });
 
-startCampaignSavedSearchApi = initStartCampaignDropdown({
-  field: startCampaignSavedSearchField,
-  input: startCampaignSavedSearchInput,
-  clearButton: startCampaignSavedSearchClear,
-  optionsContainer: startCampaignSavedSearchOptions,
-  getOptions: () => getUserSavedSearches().map((search) => ({
-    label: search.title,
-    value: search.id
-  })),
-  placeholder: "Select...",
-  searchable: true,
+function closeCampaignSenderModal() {
+  campaignSenderModalApi.close();
+}
+
+function openCampaignSenderModal(trigger = null) {
+  if (!campaignSenderModal) return;
+
+  document.getElementById("outreachBtn")?.removeAttribute("open");
+  campaignSenderDraft = null;
+  window.cstCampaignSender = null;
+  shouldOpenStartCampaignAfterSender = false;
+  resetCampaignSenderModal();
+  campaignSenderModalApi.open(trigger);
+}
+
+campaignSenderEmailApi = window.WefranchFilterCombobox.enhance(campaignSenderEmailSelect, {
+  singleSelect: true,
   clearable: true,
-  optionIdPrefix: "startCampaignSavedSearchOption",
-  emptyText: "No saved searches",
-  onOpen() {
-    startCampaignAudienceApi?.close();
-  },
-  onChange() {
-    syncStartCampaignAudienceState();
-  }
+  searchable: false
 });
+
+syncStartCampaignAudienceOptions();
+
+startCampaignAudienceApi = window.WefranchFilterCombobox.enhance(startCampaignAudienceSelect, {
+  singleSelect: false,
+  clearable: true,
+  searchable: true
+});
+
+startCampaignAudienceSelect?.addEventListener("change", () => {
+  syncStartCampaignAudienceState();
+});
+
+campaignSenderEmailSelect?.addEventListener("change", syncCampaignSenderName);
+campaignSenderName?.addEventListener("input", syncCampaignSenderContinue);
 
 startCampaignOption?.addEventListener("click", (event) => {
   event.preventDefault();
-  openStartCampaignModal(startCampaignOption);
+  openCampaignSenderModal(startCampaignOption);
+});
+
+campaignSenderModalForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const sender = getCampaignSenderSelection();
+  if (!sender) return;
+
+  campaignSenderDraft = sender;
+  window.cstCampaignSender = { ...sender };
+  shouldOpenStartCampaignAfterSender = true;
+  closeCampaignSenderModal();
 });
 
 startCampaignModalForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   if (startCampaignContinue?.disabled) return;
 
-  const audience = startCampaignAudienceApi?.getValue() || START_CAMPAIGN_AUDIENCE_CURRENT;
-  const draft = audience === START_CAMPAIGN_AUDIENCE_SAVED
-    ? getSavedSearchAudience(startCampaignSavedSearchApi?.getValue())
-    : getCurrentSearchAudience();
-
+  const draft = buildCampaignAudiencePreview(getSelectedAudienceValues());
   if (!draft) return;
 
-  window.cstCampaignDraft = draft;
+  window.cstCampaignDraft = {
+    ...draft,
+    sender: campaignSenderDraft ? { ...campaignSenderDraft } : null
+  };
   closeStartCampaignModal();
 });
 
 window.addEventListener("cst:saved-searches-changed", () => {
   if (!startCampaignModalApi.isVisible()) return;
-  startCampaignSavedSearchApi?.refresh();
   syncStartCampaignAudienceState();
 });
 
@@ -546,4 +471,10 @@ window.cstStartCampaignModal = {
   close: closeStartCampaignModal,
   isVisible: () => startCampaignModalApi.isVisible(),
   open: openStartCampaignModal
+};
+
+window.cstCampaignSenderModal = {
+  close: closeCampaignSenderModal,
+  isVisible: () => campaignSenderModalApi.isVisible(),
+  open: openCampaignSenderModal
 };
