@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script>
-    // This page's links are relative (e.g. "docs/", "territories/"). If it's ever
+    // This page's links are relative (e.g. "territories/", "cst/"). If it's ever
     // opened without a trailing slash, the browser resolves those relative links
     // against the wrong base and every prototype 404s. Normalize the URL first.
     if (!window.location.pathname.endsWith("/")) {
@@ -49,15 +49,6 @@
       </header>
 
       <ul class="prototype-list" aria-label="Available prototypes">
-        <li>
-          <a class="prototype-link" href="docs/">
-            <span>
-              <span class="prototype-name">Docs</span>
-              <span class="prototype-description">Marketing &amp; documentation articles walking through prototype use cases.</span>
-            </span>
-            <span class="prototype-path">/_prototypes/docs/</span>
-          </a>
-        </li>
         <li>
           <a class="prototype-link" href="cst/">
             <span>

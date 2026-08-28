@@ -22,7 +22,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../../styles/site-header.css" />
   <script src="../../scripts/gate.js"></script>
+  <script src="../../scripts/site-header.js"></script>
   <script src="../../scripts/proto-nav.js"></script>
   <link rel="stylesheet" href="../../styles/gate.css" />
 </head>
@@ -39,25 +41,21 @@
   <div class="page-layout">
     <header class="site-header" aria-label="Application header">
       <div class="site-header-start">
-        <button class="ui-control ui-icon-button ui-button-ghost" type="button" aria-label="Open menu">
-          <img src="assets/menu.svg" alt="" width="14" height="12" />
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../assets/menu.svg" alt="" width="14" height="12" />
         </button>
         <a class="brand-lockup" href="../" aria-label="Wefranch home">
-          <img class="brand-mark" src="assets/logo-wefranch.svg" alt="" width="11" height="16" />
+          <img class="brand-mark" src="../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
         </a>
-        <nav class="breadcrumb" aria-label="Breadcrumb">
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../">Wefranch</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
           <span>Financial Modeling</span>
-          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
           <span>Franchise</span>
-          <span class="breadcrumb-separator">/</span>
-          <span class="breadcrumb-current">Decimal</span>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Decimal</span>
         </nav>
-      </div>
-      <div class="site-header-end">
-        <button class="ui-control user-menu" type="button" aria-label="User menu">
-          <span class="user-avatar" aria-hidden="true"></span>
-          <img src="assets/chevron.svg" alt="" width="11" height="6" />
-        </button>
       </div>
     </header>
 

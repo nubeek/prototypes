@@ -1376,6 +1376,7 @@ function dismissTerritoryCrossroad() {
 
   window.territoryFilters?.syncFilterSectionExpansion?.();
   shell?.classList.remove("is-crossroad-open", "is-crossroad-fullscreen", "is-crossroad-hiding-workspace");
+  window.syncTerritorySavedSearchHeading?.();
   window.territoryFilters?.setPanelOpen?.(true);
   window.territoryFilters?.syncToggleAvailability?.();
   syncTerritoryCrossroadToolbar(false);
@@ -1422,6 +1423,7 @@ function showTerritoryCrossroad({ animate = false } = {}) {
   window.territoryFilters?.syncToggleAvailability?.();
   syncTerritoryCrossroadToolbar(true);
   window.territoryCrossroadChoice = null;
+  window.syncTerritorySavedSearchHeading?.();
   window.territoryMapPanel?.syncToggleAvailability?.();
   window.territoryMapControls?.updateResetVisibility?.();
 

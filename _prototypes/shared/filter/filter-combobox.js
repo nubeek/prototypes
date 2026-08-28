@@ -248,7 +248,8 @@
     searchable = true,
     removableChips = null,
     closeOnSelect = null,
-    onOpen = null
+    onOpen = null,
+    menuActions = null
   } = {}) {
     const field = select.closest(".filter-select-field");
     if (!field) return null;
@@ -318,6 +319,49 @@
     field.insertBefore(clearButton, chevron || null);
     menu.append(menuList);
     field.append(menu);
+
+    const resolvedMenuActions = Array.isArray(menuActions) ? menuActions : [];
+
+    if (resolvedMenuActions.length) {
+      const menuFooter = document.createElement("div");
+      menuFooter.className = "filter-combobox-menu-footer";
+
+      const divider = document.createElement("div");
+      divider.className = "filter-combobox-divider";
+      divider.setAttribute("role", "separator");
+      menuFooter.append(divider);
+
+      resolvedMenuActions.forEach((action) => {
+        const actionButton = document.createElement("button");
+        actionButton.type = "button";
+        actionButton.className = "filter-combobox-menu-action";
+
+        if (action.icon) {
+          const actionIcon = document.createElement("span");
+          actionIcon.className = "filter-combobox-menu-action-icon";
+          actionIcon.setAttribute("aria-hidden", "true");
+          actionIcon.style.backgroundImage = `url("${action.icon}")`;
+
+          const actionLabel = document.createElement("span");
+          actionLabel.className = "filter-combobox-menu-action-label";
+          actionLabel.textContent = action.label;
+          actionButton.append(actionIcon, actionLabel);
+        } else {
+          actionButton.textContent = action.label;
+        }
+
+        actionButton.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+        });
+        actionButton.addEventListener("click", () => {
+          action.onClick?.();
+          closeCombobox();
+        });
+        menuFooter.append(actionButton);
+      });
+
+      menu.append(menuFooter);
+    }
 
     function getOptionTooltip() {
       if (!optionTooltip) {

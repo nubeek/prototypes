@@ -2268,7 +2268,7 @@ body.targets-index {
   justify-content: space-between;
   gap: 16px;
   position: sticky;
-  top: 0;
+  top: var(--site-header-height);
   z-index: 10;
   background: #fff;
   padding-top: 10px;

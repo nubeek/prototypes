@@ -1679,12 +1679,30 @@ function syncTerritorySavedSearchHeading() {
   const saveButton = document.getElementById("territorySaveSearch");
   const settingsButton = document.getElementById("territorySavedSearchSettings");
   const showSettings = Boolean(activeTerritorySavedSearch) && !isActiveTerritorySavedSearchDirty;
+  const isCrossroadOpen = document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open");
+  const crossroadChoice = window.territoryCrossroadChoice;
+  const breadcrumbSavedSearch = !isCrossroadOpen && (
+    activeTerritorySavedSearch
+    || (crossroadChoice?.savedSearchId ? crossroadChoice : null)
+  );
 
   if (titleElement) {
     titleElement.textContent = activeTerritorySavedSearch?.title || "Territories";
   }
   if (saveButton) saveButton.hidden = showSettings;
   if (settingsButton) settingsButton.hidden = !showSettings;
+
+  const breadcrumbItems = [
+    { label: "Wefranch", href: "../" },
+    { label: "Territories" }
+  ];
+
+  if (breadcrumbSavedSearch?.title) {
+    breadcrumbItems[1].onClick = () => window.showTerritoryCrossroad?.({ animate: true });
+    breadcrumbItems.push({ label: breadcrumbSavedSearch.title });
+  }
+
+  window.wefranchSiteHeader?.setBreadcrumb(breadcrumbItems);
 }
 
 function setActiveTerritorySavedSearch(savedSearch) {

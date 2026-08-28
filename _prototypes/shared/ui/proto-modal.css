@@ -37,7 +37,7 @@
 
 .proto-modal,
 .profile-modal {
-  width: min(520px, calc(100vw - 48px));
+  width: min(540px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
   border-radius: 20px;
   background: var(--color-surface);
@@ -154,7 +154,7 @@ body.reduce-motion .target-modal.is-resizing {
 
 .proto-modal--form,
 .target-modal {
-  width: min(520px, calc(100vw - 48px));
+  width: min(540px, calc(100vw - 48px));
   border-radius: 16px;
   padding: 32px;
 }
@@ -374,6 +374,13 @@ body.reduce-motion .target-modal.is-resizing {
 .target-modal-textarea {
   background: var(--color-surface-muted);
   border-color: transparent;
+}
+
+.proto-modal-control.proto-modal-input:not(:disabled):hover:not(:focus):placeholder-shown,
+.proto-modal-control.proto-modal-textarea:not(:disabled):hover:not(:focus):placeholder-shown,
+.target-modal-control.target-modal-input:not(:disabled):hover:not(:focus):placeholder-shown,
+.target-modal-control.target-modal-textarea:not(:disabled):hover:not(:focus):placeholder-shown {
+  background: #e3e3e3;
 }
 
 .proto-modal-control.proto-modal-input:not(:placeholder-shown),

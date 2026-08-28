@@ -29,8 +29,10 @@
   <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
   <link rel="stylesheet" href="../shared/map/map-pills.css">
   <link rel="stylesheet" href="../shared/ui/scope-tabs.css">
+  <link rel="stylesheet" href="../../styles/site-header.css">
   <script src="../shared/ui/thumbnail-edge-border.js"></script>
   <script src="../../scripts/gate.js"></script>
+  <script src="../../scripts/site-header.js"></script>
   <script src="../../scripts/proto-nav.js"></script>
   <link rel="stylesheet" href="../../styles/gate.css">
 </head>
@@ -43,6 +45,22 @@
       <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
     </form>
   </div>
+
+  <header class="site-header" aria-label="Application header">
+    <div class="site-header-start">
+      <button class="site-header-menu" type="button" aria-label="Open menu">
+        <img src="../../assets/menu.svg" alt="" width="14" height="12">
+      </button>
+      <a class="brand-lockup" href="../" aria-label="Wefranch home">
+        <img class="brand-mark" src="../../assets/logo-wefranch.svg" alt="" width="11" height="16">
+      </a>
+      <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+        <a class="breadcrumb-link" href="../">Wefranch</a>
+        <span class="breadcrumb-separator" aria-hidden="true">/</span>
+        <span class="breadcrumb-current" aria-current="page">Prospects</span>
+      </nav>
+    </div>
+  </header>
 
   <main class="card is-splash-open">
     <div class="content-shell">
@@ -949,18 +967,29 @@
     </section>
   </div>
 
-  <div class="proto-modal-overlay" id="campaignSenderModal" hidden>
-    <section class="proto-modal proto-modal--form campaign-sender-modal" role="dialog" aria-modal="true" aria-labelledby="campaignSenderModalTitle">
-      <form class="proto-modal-form" id="campaignSenderModalForm">
-        <div class="proto-modal-header">
-          <h2 class="proto-modal-title" id="campaignSenderModalTitle">Sender</h2>
-          <div class="proto-modal-header-actions">
-            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close sender">
-              <img src="assets/close.svg" alt="" aria-hidden="true">
-            </button>
-          </div>
+  <div class="proto-modal-overlay" id="startCampaignModal" hidden>
+    <section class="proto-modal proto-modal--form campaign-wizard-modal" role="dialog" aria-modal="true" aria-labelledby="startCampaignModalTitle">
+      <div class="proto-modal-header">
+        <h2 class="proto-modal-title" id="startCampaignModalTitle">Sender</h2>
+        <div class="proto-modal-header-actions">
+          <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close start new campaign">
+            <img src="assets/close.svg" alt="" aria-hidden="true">
+          </button>
         </div>
+      </div>
 
+      <div class="campaign-step-tabs" id="campaignStepTabs" role="tablist" aria-label="Campaign steps">
+        <button class="ui-control ui-button-ghost campaign-step-tab is-active" id="campaignStepTabSender" type="button" role="tab" aria-selected="true" aria-controls="campaignSenderModalForm" data-campaign-step="sender">Sender</button>
+        <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
+        <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabRecipients" type="button" role="tab" aria-selected="false" aria-controls="startCampaignModalForm" data-campaign-step="recipients">Recipients</button>
+        <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
+        <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabSubject" type="button" role="tab" aria-selected="false" aria-controls="campaignSubjectModalForm" data-campaign-step="subject">Subject</button>
+        <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
+        <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabDesign" type="button" role="tab" aria-selected="false" aria-controls="campaignDesignModalForm" data-campaign-step="design">Design</button>
+      </div>
+
+      <div class="campaign-step-viewport" id="campaignStepViewport">
+        <form class="proto-modal-form campaign-step-panel is-active" id="campaignSenderModalForm" role="tabpanel" aria-labelledby="campaignStepTabSender" data-campaign-step="sender" novalidate>
         <div class="proto-modal-body campaign-sender-modal-body">
           <p class="proto-modal-subtitle">Choose the identity recipients will see when they receive your campaign.</p>
 
@@ -971,6 +1000,7 @@
                 <option value="">Email shown to recipients inbox</option>
                 <option value="philip.litassy@wefanch.com">philip.litassy@wefanch.com</option>
                 <option value="gregory.ugwi@wefranch.com">gregory.ugwi@wefranch.com</option>
+                <option value="philiplitassy@gmail.com">philiplitassy@gmail.com</option>
               </select>
               <img src="assets/chevron.svg" alt="" aria-hidden="true">
             </div>
@@ -980,35 +1010,32 @@
             <span>Name</span>
             <input class="proto-modal-control proto-modal-input" id="campaignSenderName" name="senderName" type="text" autocomplete="name" placeholder="Who is sending the campaign?" required>
           </label>
-        </div>
 
-        <div class="proto-modal-actions">
-          <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
-          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignSenderContinue" type="submit" disabled>Continue</button>
-        </div>
-      </form>
-    </section>
-  </div>
+          <div class="proto-modal-divider campaign-sender-auth-divider" id="campaignSenderAuthDivider" hidden aria-hidden="true"></div>
 
-  <div class="proto-modal-overlay" id="startCampaignModal" hidden>
-    <section class="proto-modal proto-modal--form start-campaign-modal" role="dialog" aria-modal="true" aria-labelledby="startCampaignModalTitle">
-      <form class="proto-modal-form" id="startCampaignModalForm">
-        <div class="proto-modal-header">
-          <h2 class="proto-modal-title" id="startCampaignModalTitle">Start new campaign</h2>
-          <div class="proto-modal-header-actions">
-            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close start new campaign">
-              <img src="assets/close.svg" alt="" aria-hidden="true">
-            </button>
+          <div class="campaign-sender-auth-notice" id="campaignSenderAuthNotice" role="status" hidden>
+            <span class="campaign-sender-auth-notice__icon" aria-hidden="true"></span>
+            <div class="campaign-sender-auth-notice__content">
+              <p class="campaign-sender-auth-notice__text">Your domain isn't authenticated for sending.</p>
+              <button class="campaign-sender-auth-notice__action ui-text-button" type="button">Set up your domain</button>
+            </div>
           </div>
         </div>
 
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button" hidden>Back</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignSenderContinue" type="submit">Next</button>
+        </div>
+        </form>
+
+        <form class="proto-modal-form campaign-step-panel" id="startCampaignModalForm" role="tabpanel" aria-labelledby="campaignStepTabRecipients" data-campaign-step="recipients" aria-hidden="true" inert novalidate>
         <div class="proto-modal-body start-campaign-modal-body">
           <p class="proto-modal-subtitle">Choose which audience you want to use for this campaign.</p>
 
           <div class="proto-modal-field">
-            <label for="startCampaignAudienceInput">Audience</label>
+            <label for="startCampaignAudienceInput">Send to</label>
             <div class="filter-select-field" id="startCampaignAudienceField">
-              <select class="ui-select filter-field-select" id="startCampaignAudienceSelect" data-input-id="startCampaignAudienceInput" aria-label="Audience" multiple required>
+              <select class="ui-select filter-field-select" id="startCampaignAudienceSelect" data-input-id="startCampaignAudienceInput" aria-label="Send to" multiple required>
                 <option value="">Select query, group or individual contacts</option>
               </select>
               <img src="assets/chevron.svg" alt="" aria-hidden="true">
@@ -1029,10 +1056,78 @@
         </div>
 
         <div class="proto-modal-actions">
-          <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
-          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="startCampaignContinue" type="submit">Continue</button>
+          <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="startCampaignContinue" type="submit">Next</button>
         </div>
-      </form>
+        </form>
+
+        <form class="proto-modal-form campaign-step-panel" id="campaignSubjectModalForm" role="tabpanel" aria-labelledby="campaignStepTabSubject" data-campaign-step="subject" aria-hidden="true" inert novalidate>
+        <div class="proto-modal-body campaign-subject-modal-body">
+          <p class="proto-modal-subtitle">Write the subject line and preview text recipients will see in their inbox.</p>
+
+          <label class="proto-modal-field" for="campaignSubjectLine">
+            <span>Subject line</span>
+            <input class="proto-modal-control proto-modal-input" id="campaignSubjectLine" name="subjectLine" type="text" autocomplete="off" maxlength="150" placeholder="What recipients see first" required>
+          </label>
+
+          <label class="proto-modal-field" for="campaignPreviewText">
+            <span>Preview text</span>
+            <textarea class="proto-modal-control proto-modal-textarea" id="campaignPreviewText" name="previewText" maxlength="500" placeholder="Optional"></textarea>
+          </label>
+        </div>
+
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignSubjectContinue" type="submit">Next</button>
+        </div>
+        </form>
+
+        <form class="proto-modal-form campaign-step-panel" id="campaignDesignModalForm" role="tabpanel" aria-labelledby="campaignStepTabDesign" data-campaign-step="design" aria-hidden="true" inert>
+        <div class="proto-modal-body campaign-design-modal-body">
+          <p class="proto-modal-subtitle">Choose the email design recipients will receive.</p>
+
+          <div class="proto-modal-field">
+            <label for="campaignDesignTemplateInput">Template</label>
+            <div class="filter-select-field" id="campaignDesignTemplateField">
+              <select class="ui-select filter-field-select" id="campaignDesignTemplateSelect" data-input-id="campaignDesignTemplateInput" aria-label="Template" required>
+                <option value="">Select a design template</option>
+                <option value="introduction">Introduction</option>
+                <option value="territory-opportunity">Territory opportunity</option>
+                <option value="market-update">Market update</option>
+                <option value="follow-up">Follow-up</option>
+                <option value="event-invitation">Event invitation</option>
+              </select>
+              <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            </div>
+          </div>
+
+          <div class="proto-modal-field">
+            <span>Preview</span>
+            <div class="campaign-design-preview is-empty" id="campaignDesignPreview">
+              <svg class="campaign-design-preview__border" aria-hidden="true" focusable="false">
+                <rect class="campaign-design-preview__border-path"></rect>
+              </svg>
+              <div class="campaign-design-preview__empty" id="campaignDesignPreviewEmpty">
+                <span class="campaign-design-preview__empty-templates" aria-hidden="true">
+                  <img class="campaign-design-preview__empty-template campaign-design-preview__empty-template--back" src="assets/images/email-template-2.jpg" alt="">
+                  <img class="campaign-design-preview__empty-template campaign-design-preview__empty-template--front" src="assets/images/email-template-1.jpg" alt="">
+                </span>
+                <span class="campaign-design-preview__empty-label">Start from scratch</span>
+              </div>
+              <div class="campaign-design-preview__content" id="campaignDesignPreviewContent" hidden>
+                <img class="campaign-design-preview__image" id="campaignDesignPreviewImage" src="assets/images/campaign-template.jpg" alt="Welcome to Wefranch email template">
+                <p class="campaign-design-preview__unavailable" id="campaignDesignPreviewUnavailable" hidden>Couldn't load the preview</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignDesignContinue" type="submit" disabled>Next</button>
+        </div>
+        </form>
+      </div>
     </section>
   </div>
 
@@ -1069,5 +1164,6 @@
   <script src="scripts/09-bootstrap.js"></script>
   <script src="scripts/13-splash.js"></script>
   <script src="scripts/15-campaign-modal.js"></script>
+  <script src="scripts/16-site-header.js"></script>
 </body>
 </html>

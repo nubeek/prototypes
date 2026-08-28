@@ -59,7 +59,6 @@
     { id: "prospects", label: "Prospects", href: "/_prototypes/cst/" },
     { id: "territories", label: "Territories", href: "/_prototypes/territories/" },
     { id: "financial-modeling", label: "Financial Modeling", href: "/_prototypes/financial-modeling/" },
-    { id: "docs", label: "Docs", href: "/_prototypes/docs/" },
     { id: "targets", label: "Targets", href: "/_prototypes/targets/" },
     { id: "one-pager", label: "One Pager", href: "/_prototypes/one-pager/" },
   ];
@@ -458,7 +457,6 @@ iframe[data-proto-nav-shell].is-fading {
     if (/\/one-pager(?:\/|$)/.test(pathname)) return "one-pager";
     if (/\/financial-modeling(?:\/|$)/.test(pathname)) return "financial-modeling";
     if (/\/territories(?:\/|$)/.test(pathname)) return "territories";
-    if (/\/docs(?:\/|$)/.test(pathname)) return "docs";
     if (/\/targets(?:\/|$)/.test(pathname)) return "targets";
     if (/\/cst(?:\/|$)/.test(pathname)) return "prospects";
     if (

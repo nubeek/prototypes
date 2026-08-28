@@ -266,7 +266,9 @@
     const restoreFocus = options.restoreFocus;
     let closeTimeoutId = null;
     let lastTrigger = null;
-    const heightAnimator = overlay ? createProtoModalHeightAnimator(overlay) : null;
+    const heightAnimator = overlay && !options.disableHeightAnimation
+      ? createProtoModalHeightAnimator(overlay)
+      : null;
 
     const api = {
       open(trigger = null, openOptions = {}) {

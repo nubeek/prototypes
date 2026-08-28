@@ -1507,6 +1507,7 @@ function showCstSplash({ animate = false } = {}) {
   setFilterPanelOpen(false);
   setCstSplashWorkspaceInert(true);
   card?.classList.add("is-splash-open");
+  window.syncSiteHeaderBreadcrumb?.();
   splash.hidden = false;
   splash.classList.remove("is-leaving", "is-entering", "is-entering-active", "is-preparing-enter");
   syncCstSplashToolbarViewState();
@@ -1531,6 +1532,7 @@ function dismissCstSplash({ refresh = true } = {}) {
 
   resetCstFilterSectionsToDefault();
   card?.classList.remove("is-splash-open");
+  window.syncSiteHeaderBreadcrumb?.();
   card?.classList.add("is-splash-hiding-workspace");
   syncCstSplashToolbarDivider(false);
   setCstSplashWorkspaceInert(false);
@@ -1573,6 +1575,7 @@ function dismissCstSplash({ refresh = true } = {}) {
 function hideCstSplashImmediately() {
   const splash = getCstSplashElement();
   card?.classList.remove("is-splash-open", "is-splash-hiding-workspace");
+  window.syncSiteHeaderBreadcrumb?.();
   syncCstSplashToolbarDivider(false);
   cancelCstTableEnterAnimation?.();
   setCstSplashWorkspaceInert(false);

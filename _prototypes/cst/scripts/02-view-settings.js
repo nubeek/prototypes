@@ -391,6 +391,7 @@ function setReaderMode(isActive, { title = null, savedSearchId = undefined, pers
   }
 
   updateTableHeading();
+  window.syncSiteHeaderBreadcrumb?.();
 
   if (persist) {
     persistSavedSearchSession();
