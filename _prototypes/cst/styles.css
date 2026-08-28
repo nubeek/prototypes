@@ -6352,6 +6352,36 @@ a.franchise-name:focus-visible {
   pointer-events: none;
 }
 
+.cst-splash__dataset-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: #000;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.cst-splash.is-snapshot-export .cst-splash__dataset-tag {
+  display: none;
+}
+
 .cst-splash.is-snapshot-export .cst-splash__grid {
   grid-template-columns: repeat(2, 640px);
   justify-content: start;

@@ -622,6 +622,11 @@ function getCstSplashTileMetric(savedSearch, matches) {
   };
 }
 
+function getCstSplashDatasetLabel(savedSearch) {
+  const view = normalizeTableView(savedSearch?.view);
+  return getSavedViewEntityTitle(view);
+}
+
 function isCstSplashSnapshotGenerateMode() {
   try {
     return new URLSearchParams(window.location.search).has("generateSnapshots");
@@ -765,9 +770,10 @@ function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, poi
   tile.dataset.title = savedSearch.title;
 
   const valueLabel = formatCstSplashCount(metric.value);
+  const datasetLabel = getCstSplashDatasetLabel(savedSearch);
   tile.setAttribute(
     "aria-label",
-    `Open saved search ${savedSearch.title}: ${valueLabel} ${metric.label.toLowerCase()}`
+    `Open saved search ${savedSearch.title}: ${valueLabel} ${metric.label.toLowerCase()} in ${datasetLabel}`
   );
 
   const snapshotImage = snapshotUrl
@@ -801,7 +807,10 @@ function createCstSplashTile(savedSearch, { snapshotUrl, baseMapUrl, metric, poi
   const mapLoadingClass = hasMapImage && !isCstSplashSnapshotGenerateMode() ? " is-loading" : "";
 
   tile.innerHTML = `
-    <div class="target-map${mapLoadingClass}">${snapshotImage}${baseImage}${pointsImage}</div>
+    <div class="target-map${mapLoadingClass}">
+      ${snapshotImage}${baseImage}${pointsImage}
+      <span class="cst-splash__dataset-tag">${escapeCstSplashHtml(datasetLabel)}</span>
+    </div>
     <div class="target-card-title">${escapeCstSplashHtml(savedSearch.title)}</div>
     <div class="target-field target-prospects">
       <span class="target-label">${escapeCstSplashHtml(metric.label)}</span>

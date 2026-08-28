@@ -30,6 +30,51 @@
   const CLOSE_DURATION_MS = 320;
   const HEIGHT_TRANSITION_MS = 300;
   const stack = [];
+  const MODAL_PANEL_SELECTOR = ".proto-modal, .profile-modal, .target-modal";
+  const MODAL_FIELD_SELECTOR = ".proto-modal-field, .target-modal-field";
+  const MODAL_FIELD_CONTROL_SELECTOR = [
+    "input",
+    "textarea",
+    "select",
+    "button",
+    "a",
+    ".filter-select-field",
+    ".filter-combobox-control",
+    ".filter-combobox-menu",
+    ".filter-combobox-clear",
+    ".proto-modal-control",
+    ".target-modal-control",
+    ".proto-modal-select-field",
+    ".target-modal-select-field",
+    ".request-info-territory-field"
+  ].join(", ");
+
+  function isModalFieldControl(node) {
+    return Boolean(node.closest?.(MODAL_FIELD_CONTROL_SELECTOR));
+  }
+
+  function shouldIgnoreModalFieldLabelMouseDown(event) {
+    const target = event.target;
+    if (!(target instanceof Element)) return false;
+    if (!target.closest(MODAL_PANEL_SELECTOR)) return false;
+    if (target.closest(".filter-check")) return false;
+    if (isModalFieldControl(target)) return false;
+
+    const field = target.closest(MODAL_FIELD_SELECTOR);
+    if (!field) return false;
+
+    return target === field
+      || field.matches("label")
+      || Boolean(target.closest(`${MODAL_FIELD_SELECTOR} > label`));
+  }
+
+  function ignoreModalFieldLabelPointer(event) {
+    if (!shouldIgnoreModalFieldLabelMouseDown(event)) return;
+    event.preventDefault();
+  }
+
+  document.addEventListener("mousedown", ignoreModalFieldLabelPointer, true);
+  document.addEventListener("click", ignoreModalFieldLabelPointer, true);
 
   function shouldReduceModalMotion() {
     return document.body.classList.contains("reduce-motion");

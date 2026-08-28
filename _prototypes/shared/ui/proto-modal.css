@@ -270,6 +270,16 @@ body.reduce-motion .target-modal.is-resizing {
   display: block;
 }
 
+/* Captions are not mouse focus targets. Only the input or dropdown itself
+   can focus or blur. proto-modal.js ignores caption mousedown so a click
+   that passes through these labels does not steal focus either. */
+.proto-modal-field > label,
+.target-modal-field > label,
+.proto-modal-field > span:first-child,
+.target-modal-field > span:first-child {
+  pointer-events: none;
+}
+
 .proto-modal-field .filter-select-field,
 .target-modal-field .filter-select-field {
   margin-top: 0;
