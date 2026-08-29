@@ -167,22 +167,16 @@ function syncReduceMotionToggleOption() {
 }
 
 function syncReduceMotionStateClass() {
-  document.body.classList.toggle("reduce-motion", reduceMotionEnabled);
+  const enabled = Boolean(window.wefranchReduceMotion?.isEnabled?.() || reduceMotionEnabled);
+  document.body.classList.toggle("reduce-motion", enabled);
+  document.documentElement.classList.toggle("is-reduce-motion", enabled);
 }
 
-function getProjectNamePrefix() {
-  const pathSegments = window.location.pathname.split("/").filter(Boolean);
-  const projectSegment = pathSegments[pathSegments.length - 2] || "project";
-  return projectSegment.replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
-}
-
-function getScreenshotFileName() {
-  const now = new Date();
-  const pad = (value) => String(value).padStart(2, "0");
-  const date = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
-  const time = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-  return `${getProjectNamePrefix()}-viewport-screenshot-${date}-${time}.jpg`;
-}
+window.addEventListener("wefranch:reduce-motion-change", (event) => {
+  reduceMotionEnabled = Boolean(event.detail?.enabled ?? window.wefranchReduceMotion?.isEnabled?.());
+  syncReduceMotionToggleOption();
+  syncReduceMotionStateClass();
+});
 
 function ensureScreenshotToast() {
   let toast = document.getElementById("screenshotToast");
@@ -210,133 +204,6 @@ function showScreenshotToast(message, isError = false) {
   screenshotToastTimeout = setTimeout(() => {
     toast.classList.remove("is-visible");
   }, 1800);
-}
-
-function downloadCanvasAsJpeg(canvas, fileName) {
-  return new Promise((resolve, reject) => {
-    try {
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            reject(new Error("Canvas export failed."));
-            return;
-          }
-
-          const objectUrl = URL.createObjectURL(blob);
-          const downloadLink = document.createElement("a");
-          downloadLink.href = objectUrl;
-          downloadLink.download = fileName;
-          document.body.append(downloadLink);
-          downloadLink.click();
-          downloadLink.remove();
-          URL.revokeObjectURL(objectUrl);
-          resolve();
-        },
-        "image/jpeg",
-        0.92
-      );
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-function shouldIgnoreInSafeScreenshot(element) {
-  if (element instanceof HTMLCanvasElement) return true;
-  if (!element.classList) return false;
-  if (element.classList.contains("mapboxgl-canvas")) return true;
-  if (element.classList.contains("mapboxgl-canvas-container")) return true;
-  return Boolean(element.closest?.(".mapboxgl-map"));
-}
-
-const CST_HTML2CANVAS_SRC = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
-let cstHtml2CanvasLoader = null;
-
-function ensureHtml2Canvas() {
-  if (typeof window.html2canvas === "function") return Promise.resolve(window.html2canvas);
-  if (cstHtml2CanvasLoader) return cstHtml2CanvasLoader;
-
-  cstHtml2CanvasLoader = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = CST_HTML2CANVAS_SRC;
-    script.async = true;
-    script.onload = () => resolve(window.html2canvas);
-    script.onerror = () => reject(new Error("Failed to load html2canvas."));
-    document.head.append(script);
-  });
-  return cstHtml2CanvasLoader;
-}
-
-async function takeViewportScreenshot() {
-  if (screenshotInProgress) return;
-
-  try {
-    await ensureHtml2Canvas();
-  } catch (error) {
-    console.error("Take screenshot failed: html2canvas is unavailable.", error);
-    showScreenshotToast("Screenshot failed", true);
-    return;
-  }
-
-  if (typeof window.html2canvas !== "function") {
-    console.error("Take screenshot failed: html2canvas is unavailable.");
-    showScreenshotToast("Screenshot failed", true);
-    return;
-  }
-
-  screenshotInProgress = true;
-  if (takeScreenshotOption) {
-    takeScreenshotOption.disabled = true;
-  }
-
-  if (toolbarDropdown?.open) {
-    toolbarDropdown.removeAttribute("open");
-  }
-
-  await new Promise((resolve) => requestAnimationFrame(resolve));
-  const fileName = getScreenshotFileName();
-
-  try {
-    if (window.location.protocol === "file:") {
-      showScreenshotToast("Open via localhost for full screenshot", true);
-      console.warn("Full screenshots require opening the prototype through a local server, not file://.");
-      return;
-    }
-
-    const baseOptions = {
-      backgroundColor: "#ffffff",
-      useCORS: true,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
-      scrollX: window.scrollX,
-      scrollY: window.scrollY
-    };
-
-    let canvas = await window.html2canvas(document.body, baseOptions);
-    let usedSafeFallback = false;
-    try {
-      await downloadCanvasAsJpeg(canvas, fileName);
-    } catch (exportError) {
-      // Map tiles/cross-origin canvases can taint captures. Retry excluding all canvases/map layers.
-      canvas = await window.html2canvas(document.body, {
-        ...baseOptions,
-        ignoreElements: shouldIgnoreInSafeScreenshot
-      });
-      usedSafeFallback = true;
-      await downloadCanvasAsJpeg(canvas, fileName);
-    }
-    showScreenshotToast(usedSafeFallback ? "Screenshot saved (map excluded)" : "Screenshot saved");
-  } catch (error) {
-    console.error("Take screenshot failed:", error);
-    showScreenshotToast("Screenshot failed", true);
-  } finally {
-    screenshotInProgress = false;
-    if (takeScreenshotOption) {
-      takeScreenshotOption.disabled = false;
-    }
-  }
 }
 
 function syncColumnWidths() {
@@ -958,7 +825,7 @@ function scrollToLocationRow(rowIndex) {
   const scrollTop = Math.max(row.offsetTop - headerHeight, 0);
   tableWrap.scrollTo({
     top: scrollTop,
-    behavior: reduceMotionEnabled ? "auto" : "smooth"
+    behavior: usesReducedMotion() ? "auto" : "smooth"
   });
 }
 

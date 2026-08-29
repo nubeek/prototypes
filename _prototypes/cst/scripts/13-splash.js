@@ -990,6 +990,40 @@ function animateCstSplashSavedSearchShift(
   return Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
 }
 
+function captureCstSplashOtherSectionPositions(currentSection) {
+  if (cstSplashSavedActiveScope !== "all" || !currentSection) return new Map();
+
+  return new Map(
+    Array.from(document.querySelectorAll("#cstSplashScopeStack .cst-splash__scope-section"))
+      .filter((section) => section !== currentSection && !section.hidden)
+      .map((section) => [section, section.getBoundingClientRect()])
+  );
+}
+
+function animateCstSplashSectionShift(
+  previousPositions,
+  duration = CST_SPLASH_SAVED_DELETE_SHIFT_DURATION_MS,
+  easing = CST_SPLASH_SAVED_DELETE_SHIFT_EASING
+) {
+  const animations = [];
+
+  previousPositions.forEach((previousPosition, section) => {
+    if (section.hidden) return;
+
+    const nextPosition = section.getBoundingClientRect();
+    const deltaX = previousPosition.left - nextPosition.left;
+    const deltaY = previousPosition.top - nextPosition.top;
+    if (!deltaX && !deltaY) return;
+
+    animations.push(section.animate([
+      { transform: `translate3d(${deltaX}px, ${deltaY}px, 0)` },
+      { transform: "translate3d(0, 0, 0)" }
+    ], { duration, easing }));
+  });
+
+  return Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
+}
+
 function animateCstSplashSavedSearchDeletion(savedSearchId) {
   const removedTile = document.querySelector(
     `#cstSplashScopeStack [data-saved-search-id="${CSS.escape(savedSearchId)}"]`
@@ -1040,6 +1074,9 @@ function animateCstSplashSavedSearchDeletion(savedSearchId) {
           tile.getBoundingClientRect()
         ])
       );
+      const previousSectionPositions = captureCstSplashOtherSectionPositions(
+        grid.closest(".cst-splash__scope-section")
+      );
 
       removedTile.remove();
       applyCstSplashSavedVisibility();
@@ -1047,6 +1084,11 @@ function animateCstSplashSavedSearchDeletion(savedSearchId) {
       animateCstSplashSavedSearchShift(
         remainingTiles,
         previousPositions,
+        CST_SPLASH_SAVED_DELETE_SHIFT_DURATION_MS,
+        CST_SPLASH_SAVED_DELETE_SHIFT_EASING
+      );
+      animateCstSplashSectionShift(
+        previousSectionPositions,
         CST_SPLASH_SAVED_DELETE_SHIFT_DURATION_MS,
         CST_SPLASH_SAVED_DELETE_SHIFT_EASING
       );
@@ -1140,19 +1182,32 @@ function revealNewCstSplashSavedSearch(savedSearch) {
   });
 }
 
+function cstSplashScopeContainsSavedSearch(scope, savedSearch) {
+  return scope === "all" || scope === savedSearch?.scope;
+}
+
 function revealDeletedCstSplashSavedSearch({ savedSearch, scopeIndex = 0 } = {}) {
   if (!savedSearch) return;
 
   resetCstSplashSavedSearchFilter();
-  setCstSplashSavedScope(savedSearch.scope, { render: false });
-  renderCstSplashTiles();
-
-  const grid = getCstSplashScopeGrid(savedSearch.scope);
-  if (grid) {
-    const removedTile = createRenderedCstSplashTile(savedSearch);
-    grid.insertBefore(removedTile, grid.children[Math.max(0, scopeIndex)] || null);
-    applyCstSplashSavedVisibility();
+  if (!cstSplashScopeContainsSavedSearch(cstSplashSavedActiveScope, savedSearch)) {
+    setCstSplashSavedScope(savedSearch.scope, { render: false });
   }
+
+  const existingTile = document.querySelector(
+    `#cstSplashScopeStack [data-saved-search-id="${CSS.escape(savedSearch.id)}"]`
+  );
+
+  if (!existingTile) {
+    renderCstSplashTiles();
+    const grid = getCstSplashScopeGrid(savedSearch.scope);
+    if (grid) {
+      const removedTile = createRenderedCstSplashTile(savedSearch);
+      grid.insertBefore(removedTile, grid.children[Math.max(0, scopeIndex)] || null);
+    }
+  }
+
+  applyCstSplashSavedVisibility();
   showCstSplash({ animate: false });
 
   whenCstSplashVisible(() => {
@@ -1162,19 +1217,21 @@ function revealDeletedCstSplashSavedSearch({ savedSearch, scopeIndex = 0 } = {})
 
 /* Applying a query ------------------------------------------------------ */
 
+function isCstLocationFilterSection(section) {
+  return section.dataset.filterSection === "location"
+    || Boolean(section.querySelector("#locationFilterSearchField"));
+}
+
 function setCstFilterSectionExpanded(section, shouldExpand) {
-  section.classList.toggle("filter-section-collapsed", !shouldExpand);
-  section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(shouldExpand));
-  section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(shouldExpand));
+  window.WefranchFilterSections.setSectionExpanded(section, shouldExpand);
 }
 
 function resetCstFilterSectionsToDefault() {
   if (!filterPanel) return;
 
-  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
-    const isLocationSection = section.dataset.filterSection === "location"
-      || Boolean(section.querySelector("#locationFilterSearchField"));
-    setCstFilterSectionExpanded(section, isLocationSection);
+  window.WefranchFilterSections.applyExpansion(filterPanel, {
+    mode: "reset",
+    shouldExpand: isCstLocationFilterSection
   });
 
   if (viewSettingsReadyToPersist && !isRestoringViewSettings) {
@@ -1201,18 +1258,18 @@ function expandCstSplashFilterSections() {
   markActive(netWorthMinRange, netWorthFilterIsActive());
   markActive(document.getElementById("franchiseeRatingFilterSection"), franchiseeRatingFilterIsActive());
 
-  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
-    const isLocationSection = section.dataset.filterSection === "location"
-      || Boolean(section.querySelector("#locationFilterSearchField"));
-    setCstFilterSectionExpanded(section, isLocationSection || activeSections.has(section));
+  window.WefranchFilterSections.applyExpansion(filterPanel, {
+    mode: "preserve",
+    shouldExpand: (section) => isCstLocationFilterSection(section) || activeSections.has(section)
   });
 }
 
 function expandCstFilterSectionOnly(sectionKey) {
   if (!filterPanel || !sectionKey) return;
 
-  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
-    setCstFilterSectionExpanded(section, section.dataset.filterSection === sectionKey);
+  window.WefranchFilterSections.applyExpansion(filterPanel, {
+    mode: "reset",
+    shouldExpand: (section) => section.dataset.filterSection === sectionKey
   });
 
   if (viewSettingsReadyToPersist && !isRestoringViewSettings) {
@@ -1530,7 +1587,9 @@ function revealCstSplashWorkspace() {
 function dismissCstSplash({ refresh = true } = {}) {
   const splash = getCstSplashElement();
 
-  resetCstFilterSectionsToDefault();
+  if (isCstSplashOpen()) {
+    resetCstFilterSectionsToDefault();
+  }
   card?.classList.remove("is-splash-open");
   window.syncSiteHeaderBreadcrumb?.();
   card?.classList.add("is-splash-hiding-workspace");

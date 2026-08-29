@@ -723,20 +723,6 @@ function getPrototypeSettingsIconUrl(fileName) {
 function getPrototypeSettingsItems() {
   return [
     {
-      id: "reduce-motion",
-      type: "toggle",
-      label: "Reduce motion",
-      checked: Boolean(reduceMotionEnabled)
-    },
-    { type: "divider" },
-    {
-      id: "take-screenshot",
-      type: "action",
-      label: "Take screenshot",
-      icon: getPrototypeSettingsIconUrl("screenshot.svg"),
-      disabled: Boolean(screenshotInProgress)
-    },
-    {
       id: "reset-view",
       type: "action",
       label: "Reset view",
@@ -746,19 +732,6 @@ function getPrototypeSettingsItems() {
 }
 
 function performPrototypeSetting(id) {
-  if (id === "reduce-motion") {
-    reduceMotionEnabled = !reduceMotionEnabled;
-    syncReduceMotionToggleOption();
-    syncReduceMotionStateClass();
-    persistViewSettings();
-    return { checked: reduceMotionEnabled };
-  }
-
-  if (id === "take-screenshot") {
-    takeViewportScreenshot();
-    return { close: true };
-  }
-
   if (id === "reset-view") {
     resetViewSettings();
     return { close: true };

@@ -54,7 +54,6 @@ function getCurrentViewSettings() {
     panelOpen: Boolean(lockedToolbarMode),
     panelMode: lockedToolbarMode,
     panelLayout: currentPanelLayout,
-    reduceMotionEnabled,
     filters: {
       open: Boolean(card?.classList.contains("is-filter-open")),
       sections: getFilterSectionSettings(),
@@ -135,11 +134,12 @@ function restoreFilterSectionState(sectionSettings = {}) {
     const isCollapsed = typeof savedCollapsed === "boolean" ? savedCollapsed : fallbackCollapsed;
     section.classList.toggle("filter-section-collapsed", isCollapsed);
     section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(!isCollapsed));
+    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(!isCollapsed));
   });
 }
 
 function restoreSavedOptionSettings(settings) {
-  reduceMotionEnabled = Boolean(settings?.reduceMotionEnabled);
+  reduceMotionEnabled = Boolean(window.wefranchReduceMotion?.isEnabled?.() || document.body.classList.contains("reduce-motion"));
   syncReduceMotionToggleOption();
   syncReduceMotionStateClass();
 }
@@ -242,7 +242,7 @@ function resetViewSettings() {
 
   try {
     removeSavedViewSettings();
-    reduceMotionEnabled = false;
+    reduceMotionEnabled = Boolean(window.wefranchReduceMotion?.isEnabled?.() || document.body.classList.contains("reduce-motion"));
     sortState = {
       columns: [{ key: "locations", direction: "descending" }]
     };

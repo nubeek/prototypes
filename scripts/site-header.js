@@ -3,6 +3,8 @@
     return;
   }
 
+  const VISIBILITY_STORAGE_KEY = "wefranch:site-header-visible";
+
   const getBreadcrumb = () => document.querySelector("[data-site-breadcrumb]");
 
   const createBreadcrumbItem = (item, isCurrent) => {
@@ -57,7 +59,51 @@
     return true;
   };
 
+  const readVisible = () => {
+    try {
+      return window.localStorage?.getItem(VISIBILITY_STORAGE_KEY) !== "0";
+    } catch (error) {
+      return true;
+    }
+  };
+
+  const writeVisible = (visible) => {
+    try {
+      window.localStorage?.setItem(VISIBILITY_STORAGE_KEY, visible ? "1" : "0");
+    } catch (error) {
+      // Ignore storage failures in restrictive browsing contexts.
+    }
+  };
+
+  const applyVisible = (visible) => {
+    document.documentElement.classList.toggle("is-site-header-hidden", !visible);
+    const header = document.querySelector(".site-header");
+    if (!header) {
+      return;
+    }
+
+    header.toggleAttribute("inert", !visible);
+    header.setAttribute("aria-hidden", String(!visible));
+  };
+
+  const setVisible = (visible) => {
+    const next = Boolean(visible);
+    writeVisible(next);
+    applyVisible(next);
+    return next;
+  };
+
+  applyVisible(readVisible());
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      applyVisible(readVisible());
+    }, { once: true });
+  }
+
   window.wefranchSiteHeader = {
     setBreadcrumb,
+    isVisible: readVisible,
+    setVisible,
   };
 })();

@@ -330,7 +330,12 @@ function withTerritoryLayerOpacity(baseOpacity) {
 }
 
 function prefersTerritoryReducedMotion() {
-  return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+  return Boolean(
+    window.wefranchReduceMotion?.isEnabled?.()
+    || document.documentElement.classList.contains("is-reduce-motion")
+    || document.body.classList.contains("reduce-motion")
+    || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+  );
 }
 const TERRITORY_STATUS_ESTABLISHED_FILTER = ["==", ["get", "status"], "established"];
 const TERRITORY_STATUS_NON_ESTABLISHED_FILTER = ["!=", ["get", "status"], "established"];
@@ -596,7 +601,7 @@ function setTerritoryMapPanelOpen(isOpen, { persist = true, animate = true } = {
   const changed = shell.classList.contains("is-map-panel-open") !== nextOpen;
   const shouldAnimate = changed
     && animate
-    && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    && !prefersTerritoryReducedMotion();
 
   if (shouldAnimate) {
     territoryMapPanelAnimateRevision += 1;

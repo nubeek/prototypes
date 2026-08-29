@@ -57,7 +57,6 @@ const tableDatasetsSubmenuTrigger = document.getElementById("tableDatasetsSubmen
 const toolbarSettingsSubmenu = document.querySelector("[data-toolbar-submenu]");
 const toolbarSettingsSubmenuTrigger = document.getElementById("toolbarSettingsSubmenuTrigger");
 const reduceMotionToggleOption = document.getElementById("reduceMotionToggleOption");
-const takeScreenshotOption = document.getElementById("takeScreenshotOption");
 const resetViewOption = document.getElementById("resetViewOption");
 const sortHeaders = Array.from(document.querySelectorAll(".sortable-header"));
 const ownerColumnHeader = document.getElementById("ownerColumnHeader");
@@ -224,7 +223,6 @@ const savedLeadContactKeys = new Set();
 const hiddenContactKeys = new Set();
 let ownersMapResizeObserver = null;
 let ownersMapResizeFrame = null;
-let screenshotInProgress = false;
 let screenshotToastTimeout;
 let viewSettingsReadyToPersist = false;
 let isRestoringViewSettings = false;

@@ -72,7 +72,6 @@ function getCurrentViewSettings() {
     panelOpen: Boolean(lockedToolbarMode),
     panelMode: lockedToolbarMode,
     panelLayout: currentPanelLayout,
-    reduceMotionEnabled,
     savedSearchId: activeSavedSearchId,
     readerMode: readerModeActive,
     startScreen: Boolean(card?.classList.contains("is-splash-open")),
@@ -177,14 +176,12 @@ function restoreFilterSectionState(sectionSettings = {}) {
     if (section.id === "franchiseeRatingFilterSection") {
       isCollapsed = !franchiseeRatingFilterIsActive();
     }
-    section.classList.toggle("filter-section-collapsed", isCollapsed);
-    section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(!isCollapsed));
-    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(!isCollapsed));
+    window.WefranchFilterSections.setSectionExpanded(section, !isCollapsed);
   });
 }
 
 function restoreSavedOptionSettings(settings) {
-  reduceMotionEnabled = Boolean(settings?.reduceMotionEnabled);
+  reduceMotionEnabled = Boolean(window.wefranchReduceMotion?.isEnabled?.() || document.body.classList.contains("reduce-motion"));
   syncReduceMotionToggleOption();
   syncReduceMotionStateClass();
   refreshOwnersMapPointData();
@@ -456,7 +453,7 @@ function resetViewSettings() {
 
   try {
     removeSavedViewSettings();
-    reduceMotionEnabled = false;
+    reduceMotionEnabled = Boolean(window.wefranchReduceMotion?.isEnabled?.() || document.body.classList.contains("reduce-motion"));
     sortState = {
       columns: [{ key: "locations", direction: "descending" }]
     };

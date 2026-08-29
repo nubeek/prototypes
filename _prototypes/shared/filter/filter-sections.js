@@ -179,13 +179,45 @@
     });
   }
 
+  function isSectionExpanded(section) {
+    return Boolean(section && !section.classList.contains("filter-section-collapsed"));
+  }
+
+  function setSectionExpanded(section, isExpanded) {
+    if (!section) return;
+
+    const nextExpanded = Boolean(isExpanded);
+    section.classList.toggle("filter-section-collapsed", !nextExpanded);
+    section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(nextExpanded));
+    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(nextExpanded));
+
+    if (!nextExpanded) {
+      window.WefranchFilterCombobox?.closeComboboxesInSection?.(section);
+    }
+  }
+
   function syncExpandedState(panel) {
     if (!panel) return;
 
     panel.querySelectorAll(".filter-section").forEach((section) => {
-      const isExpanded = !section.classList.contains("filter-section-collapsed");
-      section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(isExpanded));
-      section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(isExpanded));
+      setSectionExpanded(section, isSectionExpanded(section));
+    });
+  }
+
+  // Shared rule: changing filter values must never collapse a section.
+  // `preserve` only opens matching sections. `reset` is for explicit defaults
+  // such as Clear all or returning to the splash/crossroad.
+  function applyExpansion(panel, { shouldExpand, mode = "preserve" } = {}) {
+    if (!panel || typeof shouldExpand !== "function") return;
+
+    panel.querySelectorAll(".filter-section").forEach((section) => {
+      const wantExpand = Boolean(shouldExpand(section));
+      if (mode === "preserve") {
+        if (wantExpand) setSectionExpanded(section, true);
+        return;
+      }
+
+      setSectionExpanded(section, wantExpand);
     });
   }
 
@@ -195,7 +227,12 @@
     const scrollContainer = panel.querySelector(".filter-scroll");
     if (!scrollContainer) return;
 
-    const scrollBehavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const scrollBehavior = (
+      window.wefranchReduceMotion?.isEnabled?.()
+      || document.documentElement.classList.contains("is-reduce-motion")
+      || document.body.classList.contains("reduce-motion")
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
       ? "auto"
       : "smooth";
 
@@ -248,21 +285,14 @@
       const section = (title || toggle)?.closest(".filter-section");
       if (!section) return;
 
-      const titleButton = section.querySelector(".filter-section-title");
-      const toggleButton = section.querySelector(".filter-section-toggle");
-      const isCollapsed = section.classList.toggle("filter-section-collapsed");
-      const isExpanded = !isCollapsed;
+      const isExpanded = !isSectionExpanded(section);
+      setSectionExpanded(section, isExpanded);
 
-      titleButton?.setAttribute("aria-expanded", String(isExpanded));
-      toggleButton?.setAttribute("aria-expanded", String(isExpanded));
-
-      if (isCollapsed) {
-        window.WefranchFilterCombobox?.closeComboboxesInSection?.(section);
-      } else {
+      if (isExpanded) {
         scrollExpandedFilterSectionIntoView(panel, section);
       }
 
-      onToggle?.(section, { isCollapsed, isExpanded });
+      onToggle?.(section, { isCollapsed: !isExpanded, isExpanded });
     });
   }
 
@@ -295,6 +325,9 @@
 
   window.WefranchFilterSections = {
     enhanceHeaders,
+    isSectionExpanded,
+    setSectionExpanded,
+    applyExpansion,
     syncExpandedState,
     bindCollapseToggle,
     scrollExpandedSectionIntoView: scrollExpandedFilterSectionIntoView,

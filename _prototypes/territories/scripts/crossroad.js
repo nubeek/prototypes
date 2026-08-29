@@ -1227,8 +1227,12 @@ function isTerritoryCrossroadSearchOffscreen(isOpen = isTerritoryCrossroadOpen()
 }
 
 function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    || document.body.classList.contains("reduce-motion");
+  return Boolean(
+    window.wefranchReduceMotion?.isEnabled?.()
+    || document.documentElement.classList.contains("is-reduce-motion")
+    || document.body.classList.contains("reduce-motion")
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 function syncTerritoryCrossroadToolbar(active = null) {
@@ -1324,7 +1328,7 @@ function finishTerritoryCrossroadEnterAnimation(crossroad, items, { focusSearchO
 function playTerritoryCrossroadEnterAnimation(crossroad, { focusSearchOnComplete = false } = {}) {
   if (!crossroad) return;
 
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const motionQuery = { matches: prefersReducedMotion() };
   const items = [
     crossroad.querySelector(".territory-crossroad__heading"),
     crossroad.querySelector(".territory-crossroad__search"),
@@ -1374,7 +1378,6 @@ function dismissTerritoryCrossroad() {
   const shell = document.querySelector(".territory-shell");
   const crossroad = document.getElementById("territoryCrossroad");
 
-  window.territoryFilters?.syncFilterSectionExpansion?.();
   shell?.classList.remove("is-crossroad-open", "is-crossroad-fullscreen", "is-crossroad-hiding-workspace");
   window.syncTerritorySavedSearchHeading?.();
   window.territoryFilters?.setPanelOpen?.(true);
@@ -2341,7 +2344,31 @@ function revealTerritoryCrossroadEnter(crossroad) {
 
 let crossroadPresetRenderVersion = 0;
 let crossroadPresetActiveScope = "all";
+let suppressCrossroadSavedSearchRerender = 0;
+let suppressCrossroadSavedSearchRerenderTimer = 0;
 let crossroadPresetSearchTerm = "";
+
+const SUPPRESS_CROSSROAD_SAVED_RERENDER_MS = 1000;
+
+function beginSuppressCrossroadSavedSearchRerender() {
+  suppressCrossroadSavedSearchRerender += 1;
+  window.clearTimeout(suppressCrossroadSavedSearchRerenderTimer);
+  suppressCrossroadSavedSearchRerenderTimer = window.setTimeout(() => {
+    suppressCrossroadSavedSearchRerender = 0;
+    suppressCrossroadSavedSearchRerenderTimer = 0;
+  }, SUPPRESS_CROSSROAD_SAVED_RERENDER_MS);
+}
+
+function endSuppressCrossroadSavedSearchRerender() {
+  suppressCrossroadSavedSearchRerender = Math.max(0, suppressCrossroadSavedSearchRerender - 1);
+  if (suppressCrossroadSavedSearchRerender > 0) return;
+  window.clearTimeout(suppressCrossroadSavedSearchRerenderTimer);
+  suppressCrossroadSavedSearchRerenderTimer = 0;
+}
+
+function isSuppressingCrossroadSavedSearchRerender() {
+  return suppressCrossroadSavedSearchRerender > 0;
+}
 
 const CROSSROAD_PRESET_EMPTY_MESSAGES = {
   all: "No popular searches match your search.",
@@ -2494,6 +2521,40 @@ function animateCrossroadSavedSearchShift(
   return Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
 }
 
+function captureCrossroadOtherSectionPositions(currentSection) {
+  if (crossroadPresetActiveScope !== "all" || !currentSection) return new Map();
+
+  return new Map(
+    Array.from(document.querySelectorAll("#territoryCrossroadScopeStack .territory-crossroad__scope-section"))
+      .filter((section) => section !== currentSection && !section.hidden)
+      .map((section) => [section, section.getBoundingClientRect()])
+  );
+}
+
+function animateCrossroadSectionShift(
+  previousPositions,
+  duration = CROSSROAD_SAVED_DELETE_SHIFT_DURATION_MS,
+  easing = CROSSROAD_SAVED_DELETE_SHIFT_EASING
+) {
+  const animations = [];
+
+  previousPositions.forEach((previousPosition, section) => {
+    if (section.hidden) return;
+
+    const nextPosition = section.getBoundingClientRect();
+    const deltaX = previousPosition.left - nextPosition.left;
+    const deltaY = previousPosition.top - nextPosition.top;
+    if (!deltaX && !deltaY) return;
+
+    animations.push(section.animate([
+      { transform: `translate3d(${deltaX}px, ${deltaY}px, 0)` },
+      { transform: "translate3d(0, 0, 0)" }
+    ], { duration, easing }));
+  });
+
+  return Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
+}
+
 function animateCrossroadSavedSearchInsertion(savedSearch) {
   const grid = getCrossroadScopeGrid("saved");
   if (!grid || !savedSearch) return;
@@ -2515,7 +2576,7 @@ function animateCrossroadSavedSearchInsertion(savedSearch) {
   grid.prepend(newTile);
   applyCrossroadPresetVisibility();
 
-  const shouldReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const shouldReduceMotion = prefersReducedMotion();
   if (shouldReduceMotion) {
     newTile.style.removeProperty("pointer-events");
     return;
@@ -2565,7 +2626,7 @@ function animateCrossroadSavedSearchDeletion(savedSearchId) {
   const savedScroll = document.getElementById("territoryCrossroad");
   savedScroll?.scrollTo({ top: 0, behavior: "auto" });
 
-  const shouldReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const shouldReduceMotion = prefersReducedMotion();
   if (shouldReduceMotion) {
     removedTile.remove();
     applyCrossroadPresetVisibility();
@@ -2603,6 +2664,9 @@ function animateCrossroadSavedSearchDeletion(savedSearchId) {
           tile.getBoundingClientRect()
         ])
       );
+      const previousSectionPositions = captureCrossroadOtherSectionPositions(
+        grid.closest(".territory-crossroad__scope-section")
+      );
 
       removedTile.remove();
       applyCrossroadPresetVisibility();
@@ -2610,6 +2674,11 @@ function animateCrossroadSavedSearchDeletion(savedSearchId) {
       animateCrossroadSavedSearchShift(
         remainingTiles,
         previousPositions,
+        CROSSROAD_SAVED_DELETE_SHIFT_DURATION_MS,
+        CROSSROAD_SAVED_DELETE_SHIFT_EASING
+      );
+      animateCrossroadSectionShift(
+        previousSectionPositions,
         CROSSROAD_SAVED_DELETE_SHIFT_DURATION_MS,
         CROSSROAD_SAVED_DELETE_SHIFT_EASING
       );
@@ -2622,27 +2691,53 @@ function deleteTerritorySavedSearch(searchId) {
   if (!savedSearch) return null;
 
   const scopeIndex = searches.findIndex((entry) => entry.id === searchId);
-  const removedSearch = window.territorySavedSearchStore?.remove?.(searchId);
-  if (!removedSearch) return null;
+  beginSuppressCrossroadSavedSearchRerender();
+  try {
+    const removedSearch = window.territorySavedSearchStore?.remove?.(searchId);
+    if (!removedSearch) return null;
 
-  return {
-    savedSearch: removedSearch,
-    scopeIndex: Math.max(0, scopeIndex)
-  };
+    return {
+      savedSearch: removedSearch,
+      scopeIndex: Math.max(0, scopeIndex)
+    };
+  } finally {
+    endSuppressCrossroadSavedSearchRerender();
+  }
+}
+
+function getCrossroadSavedSearchScope(savedSearch) {
+  return savedSearch?.scope || "saved";
+}
+
+function crossroadScopeContainsSavedSearch(scope, savedSearch) {
+  return scope === "all" || scope === getCrossroadSavedSearchScope(savedSearch);
 }
 
 async function prepareTerritorySavedSearchDeletionReveal({ savedSearch, scopeIndex = 0 } = {}) {
-  resetCrossroadPresetSearchFilter();
-  setCrossroadPresetActiveScope("saved");
-  await renderCrossroadPresetTiles();
+  if (!savedSearch) return;
 
-  const grid = getCrossroadScopeGrid("saved");
-  if (grid && savedSearch) {
-    const removedTile = buildCrossroadTileFromCache(savedSearch, "saved");
-    bindCrossroadTile(removedTile, savedSearch, "saved");
-    grid.insertBefore(removedTile, grid.children[Math.max(0, scopeIndex)] || null);
-    applyCrossroadPresetVisibility();
+  resetCrossroadPresetSearchFilter();
+  if (!crossroadScopeContainsSavedSearch(crossroadPresetActiveScope, savedSearch)) {
+    setCrossroadPresetActiveScope(getCrossroadSavedSearchScope(savedSearch));
   }
+
+  const existingTile = savedSearch
+    ? getCrossroadScopeGrid("saved")?.querySelector(
+      `[data-saved-search-id="${CSS.escape(savedSearch.id)}"]`
+    )
+    : null;
+
+  if (!existingTile) {
+    await renderCrossroadPresetTiles();
+    const grid = getCrossroadScopeGrid("saved");
+    if (grid && savedSearch) {
+      const removedTile = buildCrossroadTileFromCache(savedSearch, "saved");
+      bindCrossroadTile(removedTile, savedSearch, "saved");
+      grid.insertBefore(removedTile, grid.children[Math.max(0, scopeIndex)] || null);
+    }
+  }
+
+  applyCrossroadPresetVisibility();
   showTerritoryCrossroad({ animate: false });
 
   requestAnimationFrame(() => {
@@ -2768,6 +2863,8 @@ window.addEventListener("territorydatasetchange", () => {
 });
 
 window.addEventListener("territory:saved-searches-changed", () => {
+  if (isSuppressingCrossroadSavedSearchRerender()) return;
+
   if (!window.__territoryMapStarted) {
     renderCrossroadPresetTiles();
   }

@@ -666,17 +666,11 @@ if (ownerDetailsPanel) {
 
 if (reduceMotionToggleOption) {
   reduceMotionToggleOption.addEventListener("click", () => {
-    reduceMotionEnabled = !reduceMotionEnabled;
+    const next = !Boolean(window.wefranchReduceMotion?.isEnabled?.() || reduceMotionEnabled);
+    window.wefranchReduceMotion?.setEnabled?.(next);
+    reduceMotionEnabled = next;
     syncReduceMotionToggleOption();
     syncReduceMotionStateClass();
-    persistViewSettings();
-  });
-}
-
-if (takeScreenshotOption) {
-  takeScreenshotOption.addEventListener("click", () => {
-    closeToolbarSettingsSubmenu();
-    takeViewportScreenshot();
   });
 }
 

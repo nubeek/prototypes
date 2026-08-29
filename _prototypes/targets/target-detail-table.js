@@ -567,9 +567,12 @@ function getOrgTreeSection(parentNode, nodes, ownerIndex, depth = 0) {
 }
 
 function prefersReducedOrgMotion() {
-  return typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return Boolean(
+    window.wefranchReduceMotion?.isEnabled?.()
+    || document.documentElement.classList.contains("is-reduce-motion")
+    || document.body.classList.contains("reduce-motion")
+    || (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+  );
 }
 
 function getDirectOrgSectionCards(section) {

@@ -523,7 +523,7 @@ function startTerritoryBrandListEnterWithMap() {
 function playTerritoryBrandListEnterAnimation(list, token = brandListEnterAnimationToken) {
   if (!list || token !== brandListEnterAnimationToken) return;
 
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const motionQuery = { matches: prefersReducedTerritoryMotion() };
   const targets = collectTerritoryBrandListEnterTargets(list);
   brandListEnterArmed = true;
   if (!targets.length) {
@@ -798,7 +798,12 @@ let brandItemToggleToken = 0;
 let brandItemExpandOrigin = null;
 
 function prefersReducedTerritoryMotion() {
-  return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+  return Boolean(
+    window.wefranchReduceMotion?.isEnabled?.()
+    || document.documentElement.classList.contains("is-reduce-motion")
+    || document.body.classList.contains("reduce-motion")
+    || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+  );
 }
 
 function getTerritoryBrandPanelScroll() {

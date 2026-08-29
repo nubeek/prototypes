@@ -125,7 +125,12 @@ function ensureOwnersMapResizeObserver() {
 }
 
 function usesReducedMotion() {
-  return reduceMotionEnabled;
+  return Boolean(
+    window.wefranchReduceMotion?.isEnabled?.()
+    || document.documentElement.classList.contains("is-reduce-motion")
+    || document.body.classList.contains("reduce-motion")
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 function getMotionDelay(delay) {

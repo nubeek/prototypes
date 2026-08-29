@@ -1028,18 +1028,13 @@ function restoreFilterSectionState(sectionSettings = {}) {
     const isRatingSection = section.id === "franchiseeRatingFilterSection"
       || Boolean(section.querySelector(".territory-rating-radio"));
     if (isRatingSection) {
-      const isCollapsed = !franchiseeRatingFilterIsActive();
-      section.classList.toggle("filter-section-collapsed", isCollapsed);
-      section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(!isCollapsed));
-      section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(!isCollapsed));
+      window.WefranchFilterSections.setSectionExpanded(section, franchiseeRatingFilterIsActive());
       return;
     }
 
     const savedCollapsed = sectionSettings[getFilterSectionStorageKey(section, index)];
     if (typeof savedCollapsed !== "boolean") return;
-    section.classList.toggle("filter-section-collapsed", savedCollapsed);
-    section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(!savedCollapsed));
-    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(!savedCollapsed));
+    window.WefranchFilterSections.setSectionExpanded(section, !savedCollapsed);
   });
 }
 
@@ -2484,28 +2479,31 @@ function isTerritoryCrossroadOpen() {
   return Boolean(document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open"));
 }
 
+function isTerritoryLocationFilterSection(section) {
+  return Boolean(section.querySelector("#locationFilterSearchField"));
+}
+
+function shouldTerritoryFilterSectionExpand(section, { expandAppliedFilters = false } = {}) {
+  if (isTerritoryLocationFilterSection(section)) return true;
+
+  const isStatusSection = Boolean(section.querySelector(".territory-filter-checkbox"));
+  return expandAppliedFilters
+    && !isStatusSection
+    && filterSectionHasAppliedFilters(section);
+}
+
 function ensureLocationFilterSectionExpanded() {
   const section = document.getElementById("locationFilterSearchField")?.closest(".filter-section");
-  if (!section) return;
-
-  section.classList.remove("filter-section-collapsed");
-  section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", "true");
-  section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", "true");
+  window.WefranchFilterSections.setSectionExpanded(section, true);
 }
 
 function syncFilterSectionExpansion({ expandAppliedFilters = false } = {}) {
   const filterPanel = document.querySelector(".territory-filter-panel");
   if (!filterPanel) return;
 
-  filterPanel.querySelectorAll(".filter-section").forEach((section) => {
-    const isLocationSection = Boolean(section.querySelector("#locationFilterSearchField"));
-    const isStatusSection = Boolean(section.querySelector(".territory-filter-checkbox"));
-    const shouldExpand = isLocationSection
-      || (expandAppliedFilters && !isStatusSection && filterSectionHasAppliedFilters(section));
-
-    section.classList.toggle("filter-section-collapsed", !shouldExpand);
-    section.querySelector(".filter-section-title")?.setAttribute("aria-expanded", String(shouldExpand));
-    section.querySelector(".filter-section-toggle")?.setAttribute("aria-expanded", String(shouldExpand));
+  window.WefranchFilterSections.applyExpansion(filterPanel, {
+    mode: expandAppliedFilters ? "preserve" : "reset",
+    shouldExpand: (section) => shouldTerritoryFilterSectionExpand(section, { expandAppliedFilters })
   });
 
   updateFilterSectionClearButtons();
