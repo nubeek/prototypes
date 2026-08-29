@@ -2297,41 +2297,48 @@ function dismissOpenCstSplash() {
 
 function initCstSplash() {
   const splash = getCstSplashElement();
-  if (!splash) return;
+  if (!splash) {
+    window.wefranchPageLoading?.done();
+    return;
+  }
 
-  bindCstSplashSearch();
-  bindCstSplashSavedTabs();
-  bindCstSplashSavedEmptyActions();
-  bindCstSplashEntryPoints();
-  bindCstSplashToolbarDivider();
+  try {
+    bindCstSplashSearch();
+    bindCstSplashSavedTabs();
+    bindCstSplashSavedEmptyActions();
+    bindCstSplashEntryPoints();
+    bindCstSplashToolbarDivider();
 
-  if (isCstSplashSnapshotGenerateMode()) {
-    splash.classList.add("is-snapshot-export");
+    if (isCstSplashSnapshotGenerateMode()) {
+      splash.classList.add("is-snapshot-export");
+      renderCstSplashTiles();
+      showCstSplash({ animate: false });
+      return;
+    }
+
     renderCstSplashTiles();
-    showCstSplash({ animate: false });
-    return;
-  }
+    if (shouldResetCstToSplashOnLoad()) {
+      clearCstUrlQueryParams();
+      clearCstSavedSearchSession({ persist: false });
+      showCstSplash({ animate: true });
+      return;
+    }
 
-  renderCstSplashTiles();
-  if (shouldResetCstToSplashOnLoad()) {
-    clearCstUrlQueryParams();
-    clearCstSavedSearchSession({ persist: false });
+    // A saved search addressed in the URL is an explicit request for that query,
+    // so it outranks whatever the stored session was looking at. Read it before
+    // restoring, which writes the active search back into the URL.
+    const hasUrlSavedSearch = Boolean(getCstSavedSearchUrlState());
+    restoreCstSavedSearchSession();
+
+    if (hasUrlSavedSearch || !shouldOpenCstSplashOnLoad()) {
+      hideCstSplashImmediately();
+      return;
+    }
+
     showCstSplash({ animate: true });
-    return;
+  } finally {
+    window.wefranchPageLoading?.done();
   }
-
-  // A saved search addressed in the URL is an explicit request for that query,
-  // so it outranks whatever the stored session was looking at. Read it before
-  // restoring, which writes the active search back into the URL.
-  const hasUrlSavedSearch = Boolean(getCstSavedSearchUrlState());
-  restoreCstSavedSearchSession();
-
-  if (hasUrlSavedSearch || !shouldOpenCstSplashOnLoad()) {
-    hideCstSplashImmediately();
-    return;
-  }
-
-  showCstSplash({ animate: true });
 }
 
 window.cstSplash = {

@@ -2806,53 +2806,59 @@ function consumeTerritorySkipCrossroad() {
 }
 
 async function initTerritoryCrossroad() {
-  bindCrossroadLocationSearch();
-  bindCrossroadPresetTabs();
-  bindTerritoryCrossroadToolbar();
+  window.wefranchPageLoading?.hold();
 
-  const featuredGrid = getCrossroadScopeGrid("featured");
-  const crossroad = document.getElementById("territoryCrossroad");
-  if (!featuredGrid) return;
+  try {
+    bindCrossroadLocationSearch();
+    bindCrossroadPresetTabs();
+    bindTerritoryCrossroadToolbar();
 
-  const shouldSkipCrossroad = consumeTerritorySkipCrossroad();
-  const shouldRevealOnLoad = Boolean(
-    !shouldSkipCrossroad
-    &&
-    crossroad
-    && !crossroad.hidden
-    && document.querySelector(".territory-shell.is-crossroad-open")
-    && !window.__territoryMapStarted
-  );
+    const featuredGrid = getCrossroadScopeGrid("featured");
+    const crossroad = document.getElementById("territoryCrossroad");
+    if (!featuredGrid) return;
 
-  if (shouldRevealOnLoad) {
-    crossroad.classList.add("is-preparing-enter");
-  }
+    const shouldSkipCrossroad = consumeTerritorySkipCrossroad();
+    const shouldRevealOnLoad = Boolean(
+      !shouldSkipCrossroad
+      &&
+      crossroad
+      && !crossroad.hidden
+      && document.querySelector(".territory-shell.is-crossroad-open")
+      && !window.__territoryMapStarted
+    );
 
-  await renderCrossroadPresetTiles();
+    if (shouldRevealOnLoad) {
+      crossroad.classList.add("is-preparing-enter");
+    }
 
-  if (shouldSkipCrossroad && !window.__territoryMapStarted) {
-    chooseCrossroadOption({ type: "new", filters: {} });
-    return;
-  }
+    await renderCrossroadPresetTiles();
 
-  if (window.WefranchReload?.isHardReload) {
-    resetTerritoryCrossroadSearch?.();
+    if (shouldSkipCrossroad && !window.__territoryMapStarted) {
+      chooseCrossroadOption({ type: "new", filters: {} });
+      return;
+    }
+
+    if (window.WefranchReload?.isHardReload) {
+      resetTerritoryCrossroadSearch?.();
+      if (shouldRevealOnLoad) {
+        revealTerritoryCrossroadEnter(crossroad);
+      } else if (crossroad) {
+        crossroad.classList.remove("is-preparing-enter");
+      }
+      return;
+    }
+
     if (shouldRevealOnLoad) {
       revealTerritoryCrossroadEnter(crossroad);
     } else if (crossroad) {
       crossroad.classList.remove("is-preparing-enter");
     }
-    return;
-  }
 
-  if (shouldRevealOnLoad) {
-    revealTerritoryCrossroadEnter(crossroad);
-  } else if (crossroad) {
-    crossroad.classList.remove("is-preparing-enter");
-  }
-
-  if (!window.__territoryMapStarted && window.territoryFilters?.hasNarrowingFilters?.()) {
-    startTerritoryMapFromFilters();
+    if (!window.__territoryMapStarted && window.territoryFilters?.hasNarrowingFilters?.()) {
+      startTerritoryMapFromFilters();
+    }
+  } finally {
+    window.wefranchPageLoading?.done();
   }
 }
 

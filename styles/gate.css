@@ -79,8 +79,67 @@ html.access-resolving .access-gate::after {
   }
 }
 
+.wefranch-page-loading {
+  position: fixed;
+  top: var(--site-header-height, 0px);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2147482900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 0;
+  padding: 48px 12px;
+  background: #fff;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  transition: opacity 240ms ease, visibility 240ms ease;
+}
+
+.wefranch-page-loading.is-hiding {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.wefranch-page-loading[hidden] {
+  display: none;
+}
+
+.wefranch-page-loading__spinner {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e4e4e4;
+  border-top-color: var(--access-color-text);
+  border-radius: 50%;
+  animation: access-gate-spin 720ms linear infinite;
+}
+
+.wefranch-page-loading__label {
+  margin: 0;
+  color: #ababab;
+  font-family: var(--access-font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html.access-resolving .access-gate::before {
+    animation: none;
+    border-color: var(--access-color-text);
+  }
+
+  .wefranch-page-loading {
+    transition: none;
+  }
+
+  .wefranch-page-loading__spinner {
     animation: none;
     border-color: var(--access-color-text);
   }

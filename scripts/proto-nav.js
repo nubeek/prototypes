@@ -784,6 +784,45 @@ iframe[data-proto-nav-shell] {
 iframe[data-proto-nav-shell].is-fading {
   opacity: 0;
 }
+.proto-nav-page-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482985;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 0;
+  padding: 48px 12px;
+  background: #fff;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 240ms ease, visibility 240ms ease;
+}
+.proto-nav-page-loading.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+.proto-nav-page-loading__spinner {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e4e4e4;
+  border-top-color: #111;
+  border-radius: 50%;
+  animation: proto-nav-spin 720ms linear infinite;
+}
+.proto-nav-page-loading__label {
+  margin: 0;
+  color: #ababab;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: center;
+}
 @keyframes proto-nav-enter {
   0% {
     bottom: calc(-1 * (var(--proto-nav-height) + 8px));
@@ -812,7 +851,9 @@ iframe[data-proto-nav-shell].is-fading {
   .proto-nav__settings-menu,
   .proto-nav.is-settings-open .proto-nav__settings-menu { transition: none; }
   iframe[data-proto-nav-shell],
+  .proto-nav-page-loading,
   .proto-screenshot-preview { transition: none; }
+  .proto-nav-page-loading__spinner { animation: none; border-color: #111; }
   .proto-screenshot-preview.is-visible,
   .proto-screenshot-preview.is-leaving { animation: none; }
   .proto-screenshot-preview.is-visible { opacity: 1; }
@@ -2258,6 +2299,40 @@ iframe[data-proto-nav-shell].is-fading {
     return frame;
   };
 
+  const createShellLoader = () => {
+    const loader = document.createElement("div");
+    loader.className = "proto-nav-page-loading";
+    loader.setAttribute("role", "status");
+    loader.setAttribute("aria-live", "polite");
+    loader.setAttribute("aria-label", "Loading page");
+    loader.setAttribute("aria-busy", "false");
+
+    const spinner = document.createElement("div");
+    spinner.className = "proto-nav-page-loading__spinner";
+    spinner.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("p");
+    label.className = "proto-nav-page-loading__label";
+    label.textContent = "Loading...";
+
+    loader.append(spinner, label);
+    return loader;
+  };
+
+  const setShellLoaderVisible = (visible) => {
+    if (!shellLoader) {
+      if (!visible) {
+        return;
+      }
+
+      shellLoader = createShellLoader();
+      document.documentElement.appendChild(shellLoader);
+    }
+
+    shellLoader.classList.toggle("is-visible", visible);
+    shellLoader.setAttribute("aria-busy", visible ? "true" : "false");
+  };
+
   const syncDocumentTitle = () => {
     try {
       const frameTitle = shellFrame?.contentDocument?.title?.trim();
@@ -2272,15 +2347,46 @@ iframe[data-proto-nav-shell].is-fading {
     }
   };
 
-  const loadShellFrame = (frame, url) => new Promise((resolve) => {
-    const onLoad = () => {
-      frame.removeEventListener("load", onLoad);
+  const whenShellFrameDocumentReady = (frame) => new Promise((resolve) => {
+    let settled = false;
+
+    const finish = () => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      window.clearInterval(pollTimer);
+      frame.removeEventListener("load", finish);
       resolve();
     };
 
-    frame.addEventListener("load", onLoad);
-    frame.src = url;
+    const isDocumentReady = () => {
+      try {
+        const doc = frame.contentDocument;
+        if (!doc || doc.URL === "about:blank" || doc.URL === "about:srcdoc") {
+          return false;
+        }
+
+        return doc.readyState === "interactive" || doc.readyState === "complete";
+      } catch (error) {
+        return false;
+      }
+    };
+
+    frame.addEventListener("load", finish);
+    const pollTimer = window.setInterval(() => {
+      if (isDocumentReady()) {
+        finish();
+      }
+    }, 32);
   });
+
+  const loadShellFrame = async (frame, url) => {
+    const ready = whenShellFrameDocumentReady(frame);
+    frame.src = url;
+    await ready;
+  };
 
   const showInShell = async (url, { push = true } = {}) => {
     const nextUrl = new URL(url, window.location.href).href;
@@ -2293,6 +2399,8 @@ iframe[data-proto-nav-shell].is-fading {
     isNavigating = true;
 
     try {
+      setShellLoaderVisible(true);
+
       if (!shellFrame) {
         await fadeOutHostPage();
         hideHostPage();
@@ -2318,6 +2426,10 @@ iframe[data-proto-nav-shell].is-fading {
 
       await fadeTo(shellFrame, false);
     } finally {
+      if (!pendingUrl) {
+        setShellLoaderVisible(false);
+      }
+
       isNavigating = false;
 
       if (pendingUrl) {
@@ -2651,6 +2763,7 @@ iframe[data-proto-nav-shell].is-fading {
   let recorderHideTimeout = 0;
   let recordingSurfaceLock = null;
   let shellFrame = null;
+  let shellLoader = null;
   let shellDismissBound = false;
   let isNavigating = false;
   let pendingUrl = null;

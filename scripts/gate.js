@@ -357,4 +357,163 @@
   };
 
   bootProtoNav();
+
+  const PAGE_LOADING_ID = "wefranch-page-loading";
+  const PAGE_LOADING_STYLE_ID = "wefranch-page-loading-style";
+  const PAGE_LOADING_FADE_MS = 240;
+  const PAGE_LOADING_SAFETY_MS = 20000;
+
+  const isPresentationEmbed = () => {
+    try {
+      return new URLSearchParams(window.location.search).has("presentation");
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const prefersReducedMotion = () => {
+    return Boolean(
+      window.wefranchReduceMotion?.isEnabled?.()
+      || document.documentElement.classList.contains("is-reduce-motion")
+      || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+    );
+  };
+
+  const installPageLoadingStyles = () => {
+    if (document.getElementById(PAGE_LOADING_STYLE_ID)) {
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = PAGE_LOADING_STYLE_ID;
+    style.textContent = [
+      ".wefranch-page-loading{position:fixed;top:var(--site-header-height,0px);right:0;bottom:0;left:0;z-index:2147482900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;margin:0;padding:48px 12px;background:#fff;opacity:1;visibility:visible;pointer-events:none;transition:opacity 240ms ease,visibility 240ms ease}",
+      ".wefranch-page-loading.is-hiding{opacity:0;visibility:hidden}",
+      ".wefranch-page-loading[hidden]{display:none}",
+      ".wefranch-page-loading__spinner{flex:0 0 auto;width:32px;height:32px;border:3px solid #e4e4e4;border-top-color:#111;border-radius:50%;animation:wefranch-page-loading-spin 720ms linear infinite}",
+      ".wefranch-page-loading__label{margin:0;color:#ababab;font-family:Poppins,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;font-size:16px;font-weight:400;line-height:1.35;text-align:center}",
+      "@keyframes wefranch-page-loading-spin{to{transform:rotate(360deg)}}",
+      "@media (prefers-reduced-motion:reduce){.wefranch-page-loading{transition:none}.wefranch-page-loading__spinner{animation:none;border-color:#111}}",
+    ].join("");
+    (document.head || document.documentElement).appendChild(style);
+  };
+
+  const bootPageLoading = () => {
+    if (isPresentationEmbed() || window.wefranchPageLoading) {
+      return;
+    }
+
+    installPageLoadingStyles();
+
+    let overlay = null;
+    let holdCount = 0;
+    let waitingForDocument = true;
+    let hideTimer = 0;
+
+    const shouldRemainVisible = () => holdCount > 0 || waitingForDocument;
+
+    const hideOverlay = () => {
+      if (!overlay || overlay.hidden) {
+        return;
+      }
+
+      overlay.setAttribute("aria-busy", "false");
+
+      if (prefersReducedMotion()) {
+        overlay.hidden = true;
+        overlay.classList.remove("is-hiding");
+        return;
+      }
+
+      overlay.classList.add("is-hiding");
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => {
+        overlay.hidden = true;
+        overlay.classList.remove("is-hiding");
+      }, PAGE_LOADING_FADE_MS);
+    };
+
+    const syncOverlay = () => {
+      if (shouldRemainVisible()) {
+        return;
+      }
+
+      hideOverlay();
+    };
+
+    const injectOverlay = () => {
+      if (overlay || !document.body || document.getElementById(PAGE_LOADING_ID)) {
+        overlay = overlay || document.getElementById(PAGE_LOADING_ID);
+        syncOverlay();
+        return;
+      }
+
+      overlay = document.createElement("div");
+      overlay.id = PAGE_LOADING_ID;
+      overlay.className = "wefranch-page-loading";
+      overlay.setAttribute("role", "status");
+      overlay.setAttribute("aria-live", "polite");
+      overlay.setAttribute("aria-busy", "true");
+      overlay.setAttribute("aria-label", "Loading");
+
+      const spinner = document.createElement("div");
+      spinner.className = "wefranch-page-loading__spinner";
+      spinner.setAttribute("aria-hidden", "true");
+
+      const label = document.createElement("p");
+      label.className = "wefranch-page-loading__label";
+      label.textContent = "Loading...";
+
+      overlay.append(spinner, label);
+      document.body.appendChild(overlay);
+      syncOverlay();
+    };
+
+    const hold = () => {
+      holdCount += 1;
+    };
+
+    const done = () => {
+      if (holdCount > 0) {
+        holdCount -= 1;
+      }
+
+      waitingForDocument = false;
+      syncOverlay();
+    };
+
+    const releaseDocumentWait = () => {
+      waitingForDocument = false;
+      syncOverlay();
+    };
+
+    window.wefranchPageLoading = {
+      hold,
+      done,
+    };
+
+    if (document.body) {
+      injectOverlay();
+    } else {
+      const observer = new MutationObserver(() => {
+        if (!document.body) {
+          return;
+        }
+
+        observer.disconnect();
+        injectOverlay();
+      });
+      observer.observe(document.documentElement, { childList: true });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", releaseDocumentWait, { once: true });
+    } else {
+      releaseDocumentWait();
+    }
+
+    window.setTimeout(releaseDocumentWait, PAGE_LOADING_SAFETY_MS);
+  };
+
+  bootPageLoading();
 })();

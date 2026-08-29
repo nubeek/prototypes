@@ -147,6 +147,7 @@
     presentationLoading.classList.remove("is-hiding");
     presentationLoading.setAttribute("aria-busy", "true");
     document.body.classList.add("is-presentation-loading");
+    window.wefranchPageLoading?.done();
   }
 
   function hidePresentationLoading(onHidden) {
