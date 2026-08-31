@@ -1,5 +1,5 @@
 const START_CAMPAIGN_AUDIENCE_CURRENT = "current";
-const START_CAMPAIGN_RECIPIENT_LIMIT = 500;
+const START_CAMPAIGN_RECIPIENT_LIMIT = 1000;
 const CAMPAIGN_SENDERS = {
   "philip.litassy@wefanch.com": "Philip Litassy",
   "gregory.ugwi@wefranch.com": "Gregory Ugwi",
