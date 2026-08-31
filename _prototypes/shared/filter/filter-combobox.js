@@ -303,7 +303,37 @@
     clearButton.type = "button";
     clearButton.setAttribute("aria-label", `Clear ${placeholder}`);
     clearButton.hidden = true;
-    clearButton.textContent = "×";
+
+    const isModalField = Boolean(field.closest(".proto-modal-field, .target-modal-field"));
+    let trailing = null;
+
+    if (isModalField && chevron) {
+      const chevronSrc = chevron.getAttribute("src") || "";
+      const clearIconSrc = chevronSrc.replace(/chevron\.svg(?:\?.*)?$/, "remove.svg");
+
+      if (clearIconSrc !== chevronSrc) {
+        clearButton.classList.add("filter-combobox-clear--header-match");
+        const clearIcon = document.createElement("img");
+        clearIcon.src = clearIconSrc;
+        clearIcon.alt = "";
+        clearIcon.setAttribute("aria-hidden", "true");
+        clearButton.append(clearIcon);
+
+        const chevronSlot = document.createElement("span");
+        chevronSlot.className = "filter-combobox-chevron";
+        chevronSlot.setAttribute("aria-hidden", "true");
+        chevronSlot.append(chevron);
+
+        trailing = document.createElement("div");
+        trailing.className = "filter-combobox-trailing";
+        trailing.append(clearButton, chevronSlot);
+        field.classList.add("has-modal-trailing");
+      } else {
+        clearButton.textContent = "×";
+      }
+    } else {
+      clearButton.textContent = "×";
+    }
 
     menu.className = "filter-combobox-menu";
     menu.id = menuId;
@@ -315,8 +345,12 @@
     field.classList.toggle("is-single-select", singleSelect);
 
     control.append(chips, input);
-    field.insertBefore(control, chevron || null);
-    field.insertBefore(clearButton, chevron || null);
+    if (trailing) {
+      field.append(control, trailing);
+    } else {
+      field.insertBefore(control, chevron || null);
+      field.insertBefore(clearButton, chevron || null);
+    }
     menu.append(menuList);
     field.append(menu);
 

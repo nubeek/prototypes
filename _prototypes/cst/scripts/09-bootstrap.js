@@ -481,6 +481,7 @@ function bindTableHeadingFloatingTooltip(trigger, { tooltipClass = "", onlyBelow
   trigger.addEventListener("mouseleave", hideTooltip);
   trigger.addEventListener("focus", showTooltip);
   trigger.addEventListener("blur", hideTooltip);
+  trigger.addEventListener("click", hideTooltip);
   window.addEventListener("resize", hideTooltip);
   tableWrap?.addEventListener("scroll", hideTooltip, { passive: true });
 }
@@ -488,6 +489,9 @@ function bindTableHeadingFloatingTooltip(trigger, { tooltipClass = "", onlyBelow
 bindTableHeadingFloatingTooltip(tableHeadingInfo, { tooltipClass: "table-heading-info-floating-tooltip" });
 bindTableHeadingFloatingTooltip(readerEditQueryBtn);
 bindTableHeadingFloatingTooltip(readerViewSettingsBtn, { onlyBelowWidth: 1480 });
+bindTableHeadingFloatingTooltip(document.getElementById("campaignRenameBtn"), {
+  tooltipClass: "is-over-modal"
+});
 
 if (tableHeadingSummary) {
   const openSummaryFilter = (filterTrigger) => {

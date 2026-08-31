@@ -1782,15 +1782,6 @@ a.territory-info-card__action.is-disabled {
   min-width: 196px;
 }
 
-.territory-toolbar .toolbar-submenu:focus-within > .toolbar-submenu-menu {
-  display: none;
-}
-
-.territory-toolbar .toolbar-submenu:hover > .toolbar-submenu-menu,
-.territory-toolbar .toolbar-submenu.is-open > .toolbar-submenu-menu {
-  display: block;
-}
-
 .territory-toolbar .toolbar-dropdown-divider {
   height: 1px;
   margin: 0;

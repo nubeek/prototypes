@@ -305,7 +305,6 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   position: absolute;
   top: auto;
   right: 0;
-  bottom: calc(100% + 6px);
   left: 0;
   width: max-content;
   min-width: 0;
@@ -320,17 +319,6 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   overflow: hidden;
   z-index: 2;
   font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 160ms ease, bottom 160ms ease, visibility 0s linear 160ms;
-}
-.proto-nav.is-home-open .proto-nav__menu {
-  bottom: calc(100% + 16px);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition: opacity 160ms ease, bottom 160ms ease, visibility 0s;
 }
 .proto-nav__menu-item {
   width: 100%;
@@ -450,7 +438,6 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   position: absolute;
   top: auto;
   right: 6px;
-  bottom: calc(100% + 6px);
   left: auto;
   width: max-content;
   min-width: 200px;
@@ -463,17 +450,6 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   overflow: visible;
   z-index: 2;
   font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 160ms ease, bottom 160ms ease, visibility 0s linear 160ms;
-}
-.proto-nav.is-settings-open .proto-nav__settings-menu {
-  bottom: calc(100% + 16px);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition: opacity 160ms ease, bottom 160ms ease, visibility 0s;
 }
 .proto-nav__settings-divider {
   height: 0;
@@ -984,8 +960,21 @@ iframe[data-proto-nav-shell].is-fading {
     head.appendChild(font);
   };
 
+  const installDropdownMenuStyles = () => {
+    if (document.getElementById("wefranch-dropdown-menu-style")) {
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.id = "wefranch-dropdown-menu-style";
+    link.rel = "stylesheet";
+    link.href = resolveUrl("/_prototypes/shared/ui/dropdown-menu.css");
+    (document.head || document.documentElement).appendChild(link);
+  };
+
   const installStyles = () => {
     installMonoFont();
+    installDropdownMenuStyles();
     if (document.getElementById("proto-nav-style")) {
       return;
     }

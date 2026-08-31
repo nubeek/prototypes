@@ -1,3 +1,5 @@
+@import url("../shared/ui/dropdown-menu.css");
+
 /* ==========================================================================
    Foundation
    ========================================================================== */
@@ -1066,6 +1068,127 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   margin-bottom: 28px;
 }
 
+.campaign-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  min-height: 28px;
+}
+
+.campaign-wizard-modal .proto-modal-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.campaign-modal-title-input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #050505;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  outline: none;
+  box-shadow: none;
+  caret-color: #050505;
+}
+
+.campaign-modal-title-input::placeholder {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.campaign-modal-icon-btn {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  cursor: pointer;
+  background: transparent;
+  transition: background-color var(--transition-fast);
+}
+
+.campaign-modal-icon-btn:hover,
+.campaign-modal-icon-btn:focus-visible {
+  background: var(--color-surface-control);
+}
+
+.campaign-modal-icon-btn img {
+  display: block;
+  opacity: 0.32;
+}
+
+.campaign-modal-icon-btn:hover img,
+.campaign-modal-icon-btn:focus-visible img {
+  opacity: 1;
+  filter: brightness(0) saturate(100%);
+}
+
+.campaign-modal-icon-btn[hidden] {
+  display: none;
+}
+
+#campaignRenameBtn img,
+#campaignReviewRenameBtn img {
+  width: 14px;
+  height: 14px;
+}
+
+#campaignRenameConfirm img,
+#campaignReviewRenameConfirm img {
+  width: 10px;
+  height: 10px;
+}
+
+.campaign-name-count {
+  flex: 0 0 auto;
+  margin-right: 8px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.campaign-name-count[hidden],
+.campaign-name-count-divider-wrap[hidden] {
+  display: none;
+}
+
+.campaign-name-count-divider-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1px;
+  height: 28px;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.campaign-name-count-divider {
+  width: 1px;
+  height: 24px;
+  flex: 0 0 auto;
+  background: var(--color-border);
+}
+
 .campaign-sender-modal-body,
 .start-campaign-modal-body,
 .campaign-subject-modal-body,
@@ -1110,6 +1233,12 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
 
 .campaign-step-tab.is-active {
   font-weight: 600;
+}
+
+.campaign-step-tab.is-error,
+.campaign-step-tab.is-error:hover,
+.campaign-step-tab.is-error.is-active {
+  color: #fc353d;
 }
 
 .campaign-step-tab:focus-visible {
@@ -1497,6 +1626,191 @@ body.reduce-motion .start-campaign-progress-over {
 
 .campaign-wizard-modal .proto-modal-save:disabled:hover {
   background: var(--color-brand-primary);
+}
+
+#campaignDesignContinue {
+  position: relative;
+  gap: 0;
+  overflow: hidden;
+  padding-left: 15px;
+  padding-right: 15px;
+  transition: padding 280ms ease, gap 280ms ease;
+}
+
+.campaign-continue-spinner {
+  display: block;
+  width: 0;
+  height: 18px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  opacity: 0;
+  overflow: hidden;
+  animation: campaign-btn-spin 720ms linear infinite;
+  transition: width 280ms ease, opacity 200ms ease, border-color 200ms ease;
+}
+
+#campaignDesignContinue.is-loading,
+#campaignDesignContinue.is-loading:disabled,
+#campaignDesignContinue.is-loading:disabled:hover {
+  gap: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  opacity: 1;
+  cursor: default;
+}
+
+#campaignDesignContinue.is-loading .campaign-continue-spinner {
+  width: 18px;
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.32);
+  border-top-color: #fff;
+}
+
+body.reduce-motion #campaignDesignContinue,
+body.reduce-motion .campaign-continue-spinner {
+  transition: none;
+  animation: none;
+}
+
+@keyframes campaign-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.campaign-review-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 28px;
+}
+
+.campaign-review-value {
+  margin: 0;
+  color: #050505;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.campaign-review-name .campaign-review-value {
+  min-width: 0;
+  cursor: pointer;
+}
+
+.campaign-review-name .campaign-review-value.is-untitled {
+  color: var(--color-text-muted);
+}
+
+.campaign-review-name .campaign-review-value,
+.campaign-review-name-input,
+#campaignReviewRecipients {
+  font-size: 20px;
+}
+
+.campaign-review-name.is-renaming .campaign-review-value {
+  display: none;
+}
+
+.campaign-review-name-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  max-width: 100%;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #050505;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.35;
+  outline: none;
+  box-shadow: none;
+  caret-color: #050505;
+}
+
+.campaign-review-name-input::placeholder {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.campaign-review-test-field {
+  position: relative;
+}
+
+.campaign-review-test-field .proto-modal-input {
+  padding-right: 96px;
+}
+
+.campaign-review-send {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-brand-primary);
+  font: inherit;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.campaign-review-send:hover,
+.campaign-review-send:focus-visible {
+  background: var(--color-brand-soft);
+}
+
+.campaign-review-send:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.campaign-review-send-icon {
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: url("../../assets/icons/mail-send.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/mail-send.svg") center / contain no-repeat;
+}
+
+.campaign-review-modal:has(.campaign-review-schedule.is-open),
+.campaign-review-modal .proto-modal-form:has(.campaign-review-schedule.is-open) {
+  overflow: visible;
+}
+
+.campaign-review-schedule {
+  position: relative;
+  display: inline-flex;
+}
+
+.campaign-review-schedule-menu {
+  position: absolute;
+  right: 0;
+  z-index: 30;
+  width: max-content;
+  padding: 6px 0;
+}
+
+.campaign-review-schedule-option {
+  white-space: nowrap;
 }
 
 .save-lead-modal-title {
@@ -3192,17 +3506,11 @@ h1 {
 
 .toolbar-dropdown-menu {
   position: absolute;
-  top: calc(100% + 8px);
   right: 0;
   width: 200px;
   padding: 10px 0;
   border: 0;
-  display: none;
   z-index: 20;
-}
-
-.toolbar-dropdown[open] .toolbar-dropdown-menu {
-  display: block;
 }
 
 .toolbar-dropdown > .toolbar-dropdown-menu {
@@ -3263,18 +3571,15 @@ h1 {
 .toolbar-submenu-menu {
   position: absolute;
   top: -10px;
-  left: calc(100% - 4px);
   right: auto;
   width: 200px;
   padding: 10px 0;
   border: 0;
-  display: none;
   z-index: 21;
 }
 
 .toolbar-submenu.is-submenu-left > .toolbar-submenu-menu {
   left: auto;
-  right: calc(100% - 4px);
 }
 
 #datasetSelectorMenu.toolbar-submenu-menu {
@@ -3283,12 +3588,6 @@ h1 {
 
 #datasetSelectorMenu .dataset-selector-options {
   max-height: none;
-}
-
-.toolbar-submenu:hover > .toolbar-submenu-menu,
-.toolbar-submenu:focus-within > .toolbar-submenu-menu,
-.toolbar-submenu.is-open > .toolbar-submenu-menu {
-  display: block;
 }
 
 .toolbar-switch {

@@ -25,10 +25,13 @@
    </div>
 
    Profile-style cards (centered hero, no header row) still use this helper for
-   open/close, but keep an absolutely positioned .profile-modal-close. */
+   open/close, but keep an absolutely positioned .profile-modal-close.
+
+   Overlay clicks do not close dialogs. Pass shouldCloseOnOverlay: true to opt in. */
 (function () {
   const CLOSE_DURATION_MS = 320;
   const HEIGHT_TRANSITION_MS = 300;
+  const CLOSE_ON_OVERLAY = false;
   const stack = [];
   const MODAL_PANEL_SELECTOR = ".proto-modal, .profile-modal, .target-modal";
   const MODAL_FIELD_SELECTOR = ".proto-modal-field, .target-modal-field";
@@ -262,7 +265,7 @@
     const overlay = options.overlay;
     const closeSelectors = options.closeSelectors || ".proto-modal-close, .proto-modal-cancel";
     const closeDurationMs = options.closeDurationMs ?? CLOSE_DURATION_MS;
-    const shouldCloseOnOverlay = options.shouldCloseOnOverlay !== false;
+    const shouldCloseOnOverlay = options.shouldCloseOnOverlay ?? CLOSE_ON_OVERLAY;
     const restoreFocus = options.restoreFocus;
     let closeTimeoutId = null;
     let lastTrigger = null;

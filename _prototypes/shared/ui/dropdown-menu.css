@@ -1,0 +1,139 @@
+/**
+ * Shared dropdown menu reveal animation.
+ * Matches proto-nav settings/home menu: fade + 10px travel on open.
+ *
+ * Insets stay constant. Only opacity + transform animate, so a
+ * collapsing <details> containing block cannot restart the transition.
+ *
+ * Participating menu classes:
+ * - .toolbar-dropdown-menu
+ * - .toolbar-submenu-menu
+ * - .filter-combobox-menu
+ * - .campaign-review-schedule-menu
+ * - .proto-nav__settings-menu
+ * - .proto-nav__menu
+ *
+ * New menus: add .ui-dropdown-menu with a placement modifier.
+ */
+
+:root {
+  --dropdown-reveal-duration: 160ms;
+  --dropdown-hide-duration: 80ms;
+  --dropdown-hide-fade-duration: 50ms;
+  --dropdown-reveal-ease: ease;
+  --dropdown-offset-closed: 2px;
+  --dropdown-reveal-travel: 10px;
+}
+
+.toolbar-dropdown::details-content,
+.table-heading__sort::details-content {
+  display: contents;
+  content-visibility: visible;
+}
+
+.ui-dropdown-menu,
+.toolbar-dropdown-menu,
+.toolbar-submenu-menu,
+.filter-combobox-menu,
+.campaign-review-schedule-menu,
+.proto-nav__settings-menu,
+.proto-nav__menu {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0);
+  transition:
+    opacity var(--dropdown-hide-fade-duration) var(--dropdown-reveal-ease),
+    transform var(--dropdown-hide-duration) var(--dropdown-reveal-ease),
+    visibility 0s linear var(--dropdown-hide-fade-duration);
+}
+
+.ui-dropdown-menu--down,
+.toolbar-dropdown-menu,
+.filter-combobox-menu {
+  top: calc(100% + var(--dropdown-offset-closed));
+}
+
+.ui-dropdown-menu--up,
+.campaign-review-schedule-menu,
+.proto-nav__settings-menu,
+.proto-nav__menu {
+  top: auto;
+  bottom: calc(100% + var(--dropdown-offset-closed));
+}
+
+.ui-dropdown-menu--end,
+.toolbar-submenu-menu {
+  left: calc(100% - 4px);
+  transform: translateX(calc(-1 * var(--dropdown-reveal-travel)));
+}
+
+.ui-dropdown-menu--start,
+.toolbar-submenu.is-submenu-left > .toolbar-submenu-menu,
+.toolbar-submenu.is-submenu-left > .ui-dropdown-menu--end {
+  left: auto;
+  right: calc(100% - 4px);
+  transform: translateX(var(--dropdown-reveal-travel));
+}
+
+.toolbar-dropdown[open] > :is(.toolbar-dropdown-menu, .ui-dropdown-menu),
+.table-heading__sort[open] > :is(.toolbar-dropdown-menu, .ui-dropdown-menu),
+.filter-select-field.is-open :is(.filter-combobox-menu, .ui-dropdown-menu),
+.filter-location-search-field.is-open :is(.filter-combobox-menu, .ui-dropdown-menu),
+.campaign-review-schedule.is-open :is(.campaign-review-schedule-menu, .ui-dropdown-menu),
+.proto-nav.is-settings-open :is(.proto-nav__settings-menu, .ui-dropdown-menu),
+.proto-nav.is-home-open :is(.proto-nav__menu, .ui-dropdown-menu),
+.toolbar-submenu:is(:hover, .is-open) > :is(.toolbar-submenu-menu, .ui-dropdown-menu) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity var(--dropdown-reveal-duration) var(--dropdown-reveal-ease),
+    transform var(--dropdown-reveal-duration) var(--dropdown-reveal-ease),
+    visibility 0s;
+}
+
+.toolbar-dropdown[open] > :is(.toolbar-dropdown-menu, .ui-dropdown-menu),
+.table-heading__sort[open] > :is(.toolbar-dropdown-menu, .ui-dropdown-menu),
+.filter-select-field.is-open :is(.filter-combobox-menu, .ui-dropdown-menu),
+.filter-location-search-field.is-open :is(.filter-combobox-menu, .ui-dropdown-menu) {
+  transform: translateY(var(--dropdown-reveal-travel));
+}
+
+.campaign-review-schedule.is-open :is(.campaign-review-schedule-menu, .ui-dropdown-menu),
+.proto-nav.is-settings-open :is(.proto-nav__settings-menu, .ui-dropdown-menu),
+.proto-nav.is-home-open :is(.proto-nav__menu, .ui-dropdown-menu) {
+  transform: translateY(calc(-1 * var(--dropdown-reveal-travel)));
+}
+
+.toolbar-submenu:is(:hover, .is-open) > :is(.toolbar-submenu-menu, .ui-dropdown-menu--end) {
+  transform: translateX(0);
+}
+
+.toolbar-submenu.is-submenu-left:is(:hover, .is-open) > :is(.toolbar-submenu-menu, .ui-dropdown-menu--end) {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-dropdown-menu,
+  .toolbar-dropdown-menu,
+  .toolbar-submenu-menu,
+  .filter-combobox-menu,
+  .campaign-review-schedule-menu,
+  .proto-nav__settings-menu,
+  .proto-nav__menu {
+    transition: none;
+  }
+}
+
+body.reduce-motion :is(
+  .ui-dropdown-menu,
+  .toolbar-dropdown-menu,
+  .toolbar-submenu-menu,
+  .filter-combobox-menu,
+  .campaign-review-schedule-menu,
+  .proto-nav__settings-menu,
+  .proto-nav__menu
+) {
+  transition: none;
+}

@@ -17,12 +17,180 @@ const CAMPAIGN_DESIGN_TEMPLATES = {
 };
 const CAMPAIGN_DESIGN_PREVIEW_TEMPLATE_ID = "introduction";
 const CAMPAIGN_STEP_TRANSITION_MS = 340;
+const CAMPAIGN_REVIEW_DELAY_MS = 2000;
+const CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT = "philip@litassy.com";
+const DEFAULT_CAMPAIGN_NAME = "Untitled campaign";
+const CAMPAIGN_NAME_MAX_LENGTH = 64;
+const CAMPAIGN_FIELD_ERRORS = {
+  senderEmail: "Select an email address",
+  senderDomain: "Your domain isn't authenticated for sending.",
+  senderName: "Enter a sender name",
+  recipients: "Select at least one audience",
+  subject: "Enter a subject line",
+  designTemplate: "Select a design template"
+};
 const CAMPAIGN_STEPS = [
   { id: "sender", title: "Sender" },
   { id: "recipients", title: "Recipients" },
   { id: "subject", title: "Subject" },
   { id: "design", title: "Design" }
 ];
+
+function getCampaignFieldWrapper(element) {
+  return element?.closest?.(".proto-modal-field") || null;
+}
+
+function setCampaignFieldError(fieldElement, message) {
+  const field = getCampaignFieldWrapper(fieldElement);
+  if (!field) return;
+
+  field.classList.add("is-error");
+
+  let messageEl = field.querySelector(".proto-modal-field-message");
+  if (!messageEl) {
+    messageEl = document.createElement("p");
+    messageEl.className = "proto-modal-field-message is-error";
+    messageEl.setAttribute("role", "alert");
+    field.appendChild(messageEl);
+  }
+
+  messageEl.textContent = message;
+}
+
+function clearCampaignFieldError(fieldElement) {
+  const field = getCampaignFieldWrapper(fieldElement);
+  if (!field) return;
+
+  field.classList.remove("is-error");
+  field.querySelector(".proto-modal-field-message")?.remove();
+  syncCampaignStepErrorChrome();
+}
+
+function clearAllCampaignFieldErrors() {
+  campaignWizardModal?.querySelectorAll(".proto-modal-field.is-error").forEach((field) => {
+    field.classList.remove("is-error");
+    field.querySelector(".proto-modal-field-message")?.remove();
+  });
+}
+
+function getCampaignStepErrors(stepIndex) {
+  const errors = [];
+
+  switch (stepIndex) {
+    case 0: {
+      const emailAddress = getCampaignSenderEmailAddress();
+      const hasValidEmail = Boolean(emailAddress && CAMPAIGN_SENDERS[emailAddress]);
+      if (!hasValidEmail) {
+        errors.push({
+          stepIndex: 0,
+          field: campaignSenderEmailField,
+          message: CAMPAIGN_FIELD_ERRORS.senderEmail
+        });
+      } else if (!isCampaignSenderEmailAuthorized(emailAddress)) {
+        errors.push({
+          stepIndex: 0,
+          field: campaignSenderEmailField,
+          message: CAMPAIGN_FIELD_ERRORS.senderDomain
+        });
+      }
+
+      const hasName = Boolean(String(campaignSenderName?.value || "").trim());
+      if (!hasName) {
+        errors.push({
+          stepIndex: 0,
+          field: campaignSenderName,
+          message: CAMPAIGN_FIELD_ERRORS.senderName
+        });
+      }
+      break;
+    }
+    case 1: {
+      if (!getSelectedAudienceValues().length) {
+        errors.push({
+          stepIndex: 1,
+          field: startCampaignAudienceField,
+          message: CAMPAIGN_FIELD_ERRORS.recipients
+        });
+      }
+      break;
+    }
+    case 2: {
+      if (!String(campaignSubjectLine?.value || "").trim()) {
+        errors.push({
+          stepIndex: 2,
+          field: campaignSubjectLine,
+          message: CAMPAIGN_FIELD_ERRORS.subject
+        });
+      }
+      break;
+    }
+    case 3: {
+      if (!getCampaignDesignSelection()) {
+        errors.push({
+          stepIndex: 3,
+          field: campaignDesignTemplateField,
+          message: CAMPAIGN_FIELD_ERRORS.designTemplate
+        });
+      }
+      break;
+    }
+    default:
+      break;
+  }
+
+  return errors;
+}
+
+function getCampaignWizardErrors() {
+  const errors = [];
+  for (let stepIndex = 0; stepIndex < CAMPAIGN_STEPS.length; stepIndex += 1) {
+    errors.push(...getCampaignStepErrors(stepIndex));
+  }
+  return errors;
+}
+
+function showCampaignValidationErrors(errors) {
+  campaignReviewValidated = true;
+  clearAllCampaignFieldErrors();
+  errors.forEach((error) => setCampaignFieldError(error.field, error.message));
+  syncCampaignStepErrorChrome();
+  syncCampaignStepHeight();
+}
+
+function focusCampaignFieldControl(fieldElement) {
+  if (!fieldElement) return;
+
+  if (typeof fieldElement.focus === "function" && fieldElement.matches?.("input, textarea")) {
+    fieldElement.focus({ preventScroll: true });
+    return;
+  }
+
+  const control = fieldElement.querySelector?.("input:not(.filter-combobox-input), textarea");
+  control?.focus?.({ preventScroll: true });
+}
+
+function syncCampaignStepErrorChrome() {
+  CAMPAIGN_STEPS.forEach((step, index) => {
+    const tab = campaignStepTabs?.querySelector(`[data-campaign-step="${step.id}"]`);
+    if (!tab) return;
+    tab.classList.toggle(
+      "is-error",
+      Boolean(campaignReviewValidated && getCampaignStepErrors(index).length)
+    );
+  });
+}
+
+function syncCampaignStepPostNavigation({ focusTab = false } = {}) {
+  if (campaignReviewValidated) {
+    const error = getCampaignStepErrors(activeCampaignStepIndex)[0];
+    if (error) {
+      focusCampaignFieldControl(error.field);
+      return;
+    }
+  }
+
+  syncCampaignSubjectStepFocus({ focusTab });
+}
 
 const campaignSenderModalForm = document.getElementById("campaignSenderModalForm");
 const campaignSenderEmailField = document.getElementById("campaignSenderEmailField");
@@ -33,6 +201,11 @@ const campaignSenderAuthDivider = document.getElementById("campaignSenderAuthDiv
 const campaignSenderAuthNotice = document.getElementById("campaignSenderAuthNotice");
 const startCampaignModal = document.getElementById("startCampaignModal");
 const startCampaignModalTitle = document.getElementById("startCampaignModalTitle");
+const campaignWizardModal = startCampaignModal?.querySelector(".campaign-wizard-modal");
+const campaignNameInput = document.getElementById("campaignNameInput");
+const campaignRenameBtn = document.getElementById("campaignRenameBtn");
+const campaignRenameConfirm = document.getElementById("campaignRenameConfirm");
+const campaignNameCount = document.getElementById("campaignNameCount");
 const startCampaignModalForm = document.getElementById("startCampaignModalForm");
 const startCampaignOption = document.getElementById("startCampaignOption");
 const campaignStepTabs = document.getElementById("campaignStepTabs");
@@ -60,9 +233,28 @@ const campaignDesignPreviewEmpty = document.getElementById("campaignDesignPrevie
 const campaignDesignPreviewContent = document.getElementById("campaignDesignPreviewContent");
 const campaignDesignPreviewImage = document.getElementById("campaignDesignPreviewImage");
 const campaignDesignPreviewUnavailable = document.getElementById("campaignDesignPreviewUnavailable");
+const reviewCampaignModal = document.getElementById("reviewCampaignModal");
+const reviewCampaignModalForm = document.getElementById("reviewCampaignModalForm");
+const campaignReviewName = document.getElementById("campaignReviewName");
+const campaignReviewNameRow = campaignReviewName?.closest(".campaign-review-name");
+const campaignReviewNameInput = document.getElementById("campaignReviewNameInput");
+const campaignReviewRenameBtn = document.getElementById("campaignReviewRenameBtn");
+const campaignReviewRenameConfirm = document.getElementById("campaignReviewRenameConfirm");
+const campaignReviewNameCount = document.getElementById("campaignReviewNameCount");
+const campaignReviewSubject = document.getElementById("campaignReviewSubject");
+const campaignReviewDesign = document.getElementById("campaignReviewDesign");
+const campaignReviewRecipients = document.getElementById("campaignReviewRecipients");
+const campaignReviewTestEmail = document.getElementById("campaignReviewTestEmail");
+const campaignReviewSendTest = document.getElementById("campaignReviewSendTest");
+const campaignReviewSendLabel = campaignReviewSendTest?.querySelector(".campaign-review-send-label");
+const campaignReviewSchedule = document.getElementById("campaignReviewSchedule");
+const campaignReviewScheduleBtn = document.getElementById("campaignReviewScheduleBtn");
+const campaignReviewScheduleMenu = document.getElementById("campaignReviewScheduleMenu");
 
 let campaignSenderEmailApi = null;
 let campaignSenderDraft = null;
+let campaignName = DEFAULT_CAMPAIGN_NAME;
+let campaignNameBeforeRename = DEFAULT_CAMPAIGN_NAME;
 let startCampaignAudienceApi = null;
 let startCampaignDraft = null;
 let campaignDesignTemplateApi = null;
@@ -71,6 +263,13 @@ let campaignStepTransitionTimeoutId = null;
 let campaignStepAnimating = false;
 let pendingCampaignStepIndex = null;
 let measuringCampaignStepHeight = false;
+let campaignReviewPending = false;
+let campaignReviewValidated = false;
+let campaignReviewTimeoutId = null;
+let campaignReviewDraft = null;
+let pendingCampaignReviewOpen = false;
+let campaignReviewTestTimeoutId = null;
+let campaignReviewNameBeforeRename = DEFAULT_CAMPAIGN_NAME;
 
 function closeCampaignSenderDropdown() {
   campaignSenderEmailApi?.close();
@@ -83,6 +282,23 @@ function isCampaignSenderDropdownOpen() {
 function getCampaignSenderEmailAddress() {
   return campaignSenderEmailApi?.getValue()
     || window.WefranchFilterCombobox.getValue(campaignSenderEmailSelect);
+}
+
+function getAuthorizedCampaignSenderEmails() {
+  return Object.keys(CAMPAIGN_SENDERS).filter(
+    (emailAddress) => !CAMPAIGN_UNAUTHENTICATED_SENDERS.has(emailAddress)
+  );
+}
+
+function getDefaultCampaignSenderEmail() {
+  return getAuthorizedCampaignSenderEmails()[0] || "";
+}
+
+function isCampaignSenderEmailAuthorized(emailAddress) {
+  const address = String(emailAddress || "").trim();
+  return Boolean(address)
+    && CAMPAIGN_SENDERS[address]
+    && !CAMPAIGN_UNAUTHENTICATED_SENDERS.has(address);
 }
 
 function syncCampaignSenderAuthNotice() {
@@ -114,7 +330,7 @@ function getCampaignSenderSelection() {
   const emailAddress = getCampaignSenderEmailAddress();
   const name = String(campaignSenderName?.value || "").trim();
 
-  if (!CAMPAIGN_SENDERS[emailAddress] || !name) return null;
+  if (!isCampaignSenderEmailAuthorized(emailAddress) || !name) return null;
   return { emailAddress, name };
 }
 
@@ -125,8 +341,11 @@ function syncCampaignSenderContinue() {
 
 function resetCampaignSenderModal() {
   closeCampaignSenderDropdown();
-  campaignSenderEmailApi?.reset("");
-  if (campaignSenderName) campaignSenderName.value = "";
+  const defaultEmail = getDefaultCampaignSenderEmail();
+  campaignSenderEmailApi?.reset(defaultEmail);
+  if (campaignSenderName) {
+    campaignSenderName.value = CAMPAIGN_SENDERS[defaultEmail] || "";
+  }
   syncCampaignSenderAuthNotice();
   syncCampaignSenderContinue();
 }
@@ -392,7 +611,7 @@ function syncStartCampaignAudienceState() {
 function resetStartCampaignModal() {
   closeStartCampaignDropdowns();
   syncStartCampaignAudienceOptions();
-  startCampaignAudienceApi?.reset("");
+  startCampaignAudienceApi?.reset(START_CAMPAIGN_AUDIENCE_CURRENT);
   startCampaignDraft = null;
   syncStartCampaignAudienceState();
 }
@@ -408,6 +627,30 @@ function getCampaignSubjectSelection() {
 function syncCampaignSubjectContinue() {
   if (!campaignSubjectContinue) return;
   campaignSubjectContinue.disabled = false;
+}
+
+const CAMPAIGN_SUBJECT_STEP_INDEX = CAMPAIGN_STEPS.findIndex((step) => step.id === "subject");
+
+function focusCampaignSubjectLineIfEmpty() {
+  if (!campaignSubjectLine || String(campaignSubjectLine.value || "").trim()) return;
+
+  window.requestAnimationFrame(() => {
+    campaignSubjectLine.focus({ preventScroll: true });
+  });
+}
+
+function syncCampaignSubjectStepFocus({ focusTab = false } = {}) {
+  if (!startCampaignModalApi.isOpen()) return;
+
+  if (
+    activeCampaignStepIndex === CAMPAIGN_SUBJECT_STEP_INDEX
+    && !String(campaignSubjectLine?.value || "").trim()
+  ) {
+    focusCampaignSubjectLineIfEmpty();
+    return;
+  }
+
+  if (focusTab) focusCampaignStepTab();
 }
 
 function resetCampaignSubjectModal() {
@@ -439,7 +682,7 @@ function getCampaignDesignSelection() {
 
 function syncCampaignDesignContinue() {
   if (!campaignDesignContinue) return;
-  campaignDesignContinue.disabled = !getCampaignDesignSelection();
+  campaignDesignContinue.disabled = false;
   syncCampaignDesignPreview();
 }
 
@@ -483,6 +726,90 @@ function closeCampaignDropdowns() {
   closeCampaignSenderDropdown();
   closeStartCampaignDropdowns();
   closeCampaignDesignDropdown();
+}
+
+function clampCampaignName(value) {
+  return String(value || "").slice(0, CAMPAIGN_NAME_MAX_LENGTH);
+}
+
+function normalizeCampaignName(value) {
+  const name = clampCampaignName(value).trim();
+  return name || DEFAULT_CAMPAIGN_NAME;
+}
+
+function isUntitledCampaignName(value) {
+  const trimmed = clampCampaignName(value).trim();
+  return !trimmed || trimmed === DEFAULT_CAMPAIGN_NAME;
+}
+
+function formatCampaignNameCount(length) {
+  return `(${length} / ${CAMPAIGN_NAME_MAX_LENGTH})`;
+}
+
+function syncCampaignNameCount() {
+  if (!campaignNameCount) return;
+
+  const length = clampCampaignName(campaignNameInput?.value).length;
+  campaignNameCount.textContent = formatCampaignNameCount(length);
+}
+
+function isCampaignRenaming() {
+  return Boolean(campaignWizardModal?.classList.contains("is-renaming"));
+}
+
+function setCampaignRenaming(isRenaming) {
+  campaignWizardModal?.classList.toggle("is-renaming", isRenaming);
+  if (startCampaignModalTitle) startCampaignModalTitle.hidden = isRenaming;
+  if (campaignNameInput) campaignNameInput.hidden = !isRenaming;
+  if (campaignRenameBtn) campaignRenameBtn.hidden = isRenaming;
+  if (campaignRenameConfirm) campaignRenameConfirm.hidden = !isRenaming;
+  if (campaignNameCount) campaignNameCount.hidden = !isRenaming;
+  if (isRenaming) syncCampaignNameCount();
+}
+
+function syncCampaignNameChrome() {
+  if (startCampaignModalTitle) startCampaignModalTitle.textContent = campaignName;
+  if (campaignNameInput) campaignNameInput.value = clampCampaignName(campaignName);
+}
+
+function startCampaignRename() {
+  campaignNameBeforeRename = campaignName;
+  if (campaignNameInput) campaignNameInput.value = clampCampaignName(campaignName);
+  setCampaignRenaming(true);
+  window.requestAnimationFrame(() => {
+    campaignNameInput?.focus({ preventScroll: true });
+    campaignNameInput?.select();
+  });
+}
+
+function commitCampaignRename() {
+  if (!isCampaignRenaming()) return;
+
+  campaignName = normalizeCampaignName(campaignNameInput?.value);
+  syncCampaignNameChrome();
+  setCampaignRenaming(false);
+
+  if (window.cstCampaignDraft) {
+    window.cstCampaignDraft.campaignName = campaignName;
+  }
+
+  campaignRenameBtn?.focus({ preventScroll: true });
+}
+
+function cancelCampaignRename() {
+  if (!isCampaignRenaming()) return;
+
+  campaignName = campaignNameBeforeRename;
+  syncCampaignNameChrome();
+  setCampaignRenaming(false);
+  campaignRenameBtn?.focus({ preventScroll: true });
+}
+
+function resetCampaignName() {
+  campaignName = DEFAULT_CAMPAIGN_NAME;
+  campaignNameBeforeRename = DEFAULT_CAMPAIGN_NAME;
+  syncCampaignNameChrome();
+  setCampaignRenaming(false);
 }
 
 function closeOpenCampaignDropdown() {
@@ -540,8 +867,6 @@ function updateCampaignStepChrome(index) {
   const activeStep = CAMPAIGN_STEPS[index];
   if (!activeStep) return;
 
-  if (startCampaignModalTitle) startCampaignModalTitle.textContent = activeStep.title;
-
   campaignStepTabs?.querySelectorAll(".campaign-step-tab").forEach((tab) => {
     const isActive = tab.dataset.campaignStep === activeStep.id;
     tab.classList.toggle("is-active", isActive);
@@ -585,7 +910,7 @@ function setCampaignStepPanelState(panel, isActive) {
   }
 }
 
-function setCampaignStepImmediate(index, { syncHeight = false } = {}) {
+function setCampaignStepImmediate(index, { syncHeight = false, focusTab = false } = {}) {
   const nextIndex = Math.max(0, Math.min(index, CAMPAIGN_STEPS.length - 1));
 
   if (campaignStepTransitionTimeoutId) {
@@ -603,6 +928,7 @@ function setCampaignStepImmediate(index, { syncHeight = false } = {}) {
 
   if (campaignStepViewport && !syncHeight) campaignStepViewport.style.height = "";
   if (syncHeight) syncCampaignStepHeight({ immediate: true });
+  syncCampaignStepPostNavigation({ focusTab });
 }
 
 function focusCampaignStepTab() {
@@ -620,9 +946,7 @@ function finishCampaignStepTransition(incomingPanel, outgoingPanel, focusTab) {
   campaignStepTransitionTimeoutId = null;
   syncCampaignStepHeight();
 
-  if (focusTab && startCampaignModalApi.isOpen()) {
-    focusCampaignStepTab();
-  }
+  syncCampaignStepPostNavigation({ focusTab });
 
   const queuedIndex = pendingCampaignStepIndex;
   pendingCampaignStepIndex = null;
@@ -632,6 +956,7 @@ function finishCampaignStepTransition(incomingPanel, outgoingPanel, focusTab) {
 }
 
 function goToCampaignStep(index, { focusTab = false } = {}) {
+  if (campaignReviewPending) return;
   if (!Number.isInteger(index) || index < 0 || index >= CAMPAIGN_STEPS.length) return;
   if (index === activeCampaignStepIndex) return;
 
@@ -640,6 +965,7 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
     return;
   }
 
+  if (isCampaignRenaming()) commitCampaignRename();
   closeCampaignDropdowns();
 
   const outgoingIndex = activeCampaignStepIndex;
@@ -648,8 +974,7 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
   if (!outgoingPanel || !incomingPanel) return;
 
   if (document.body.classList.contains("reduce-motion")) {
-    setCampaignStepImmediate(index, { syncHeight: true });
-    if (focusTab) focusCampaignStepTab();
+    setCampaignStepImmediate(index, { syncHeight: true, focusTab });
     return;
   }
 
@@ -692,7 +1017,12 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
 }
 
 function resetCampaignWizard() {
+  cancelCampaignReviewPending();
+  campaignReviewValidated = false;
   closeCampaignDropdowns();
+  clearAllCampaignFieldErrors();
+  syncCampaignStepErrorChrome();
+  resetCampaignName();
   setCampaignStepImmediate(0);
   resetCampaignSenderModal();
   resetStartCampaignModal();
@@ -700,6 +1030,271 @@ function resetCampaignWizard() {
   resetCampaignDesignModal();
   campaignSenderDraft = null;
   startCampaignDraft = null;
+}
+
+function setCampaignReviewLoading(isLoading) {
+  campaignReviewPending = isLoading;
+  campaignDesignContinue?.classList.toggle("is-loading", isLoading);
+  if (campaignDesignContinue) {
+    campaignDesignContinue.disabled = isLoading;
+    campaignDesignContinue.setAttribute("aria-busy", String(isLoading));
+    const label = campaignDesignContinue.querySelector(".campaign-continue-label");
+    if (label) label.textContent = isLoading ? "Reviewing" : "Review";
+  }
+}
+
+function cancelCampaignReviewPending() {
+  if (campaignReviewTimeoutId) {
+    window.clearTimeout(campaignReviewTimeoutId);
+    campaignReviewTimeoutId = null;
+  }
+  setCampaignReviewLoading(false);
+}
+
+function formatCampaignReviewRecipients(count) {
+  const value = Math.max(0, Math.round(Number(count) || 0));
+  return value.toLocaleString("en-US");
+}
+
+function collectCampaignReviewDraft() {
+  const audience = buildCampaignAudiencePreview(getSelectedAudienceValues());
+  const subject = getCampaignSubjectSelection();
+  const design = getCampaignDesignSelection();
+
+  return {
+    campaignName,
+    contactCount: audience?.contactCount || 0,
+    subjectLine: subject?.subjectLine || "",
+    designTitle: design?.title || ""
+  };
+}
+
+function syncCampaignReviewNameCount() {
+  if (!campaignReviewNameCount) return;
+
+  const length = clampCampaignName(campaignReviewNameInput?.value).length;
+  campaignReviewNameCount.textContent = formatCampaignNameCount(length);
+}
+
+function syncCampaignReviewNameChrome(name = campaignReviewDraft?.campaignName || campaignName) {
+  const displayName = normalizeCampaignName(name);
+  const untitled = isUntitledCampaignName(name);
+
+  if (campaignReviewName) {
+    campaignReviewName.textContent = displayName;
+    campaignReviewName.classList.toggle("is-untitled", untitled);
+  }
+}
+
+function renderCampaignReviewModal() {
+  const draft = campaignReviewDraft || collectCampaignReviewDraft();
+  const name = draft.campaignName || DEFAULT_CAMPAIGN_NAME;
+
+  syncCampaignReviewNameChrome(name);
+  if (campaignReviewNameInput) {
+    campaignReviewNameInput.value = isUntitledCampaignName(name) ? "" : clampCampaignName(name);
+  }
+  if (campaignReviewSubject) campaignReviewSubject.textContent = draft.subjectLine || "";
+  if (campaignReviewDesign) campaignReviewDesign.textContent = draft.designTitle || "";
+  if (campaignReviewRecipients) {
+    campaignReviewRecipients.textContent = formatCampaignReviewRecipients(draft.contactCount);
+  }
+  if (campaignReviewTestEmail) campaignReviewTestEmail.value = CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT;
+  setCampaignReviewRenaming(false);
+  resetCampaignReviewTestSend();
+}
+
+function isCampaignReviewRenaming() {
+  return Boolean(campaignReviewNameRow?.classList.contains("is-renaming"));
+}
+
+function setCampaignReviewRenaming(isRenaming) {
+  campaignReviewNameRow?.classList.toggle("is-renaming", isRenaming);
+  if (campaignReviewName) campaignReviewName.hidden = isRenaming;
+  if (campaignReviewNameInput) campaignReviewNameInput.hidden = !isRenaming;
+  if (campaignReviewRenameBtn) campaignReviewRenameBtn.hidden = isRenaming;
+  if (campaignReviewRenameConfirm) campaignReviewRenameConfirm.hidden = !isRenaming;
+  if (campaignReviewNameCount) campaignReviewNameCount.hidden = !isRenaming;
+  if (isRenaming) syncCampaignReviewNameCount();
+}
+
+function startCampaignReviewRename() {
+  const currentName = campaignReviewDraft?.campaignName || campaignName;
+  campaignReviewNameBeforeRename = currentName;
+  if (campaignReviewNameInput) {
+    campaignReviewNameInput.value = isUntitledCampaignName(currentName)
+      ? ""
+      : clampCampaignName(currentName);
+  }
+  setCampaignReviewRenaming(true);
+  window.requestAnimationFrame(() => {
+    campaignReviewNameInput?.focus({ preventScroll: true });
+    campaignReviewNameInput?.select();
+  });
+}
+
+function commitCampaignReviewRename() {
+  if (!isCampaignReviewRenaming()) return;
+
+  const nextName = normalizeCampaignName(campaignReviewNameInput?.value);
+  campaignName = nextName;
+  if (campaignReviewDraft) campaignReviewDraft.campaignName = nextName;
+  if (window.cstCampaignDraft) window.cstCampaignDraft.campaignName = nextName;
+  syncCampaignReviewNameChrome(nextName);
+  if (campaignReviewNameInput) {
+    campaignReviewNameInput.value = isUntitledCampaignName(nextName) ? "" : clampCampaignName(nextName);
+  }
+  syncCampaignNameChrome();
+  setCampaignReviewRenaming(false);
+  campaignReviewRenameBtn?.focus({ preventScroll: true });
+}
+
+function cancelCampaignReviewRename() {
+  if (!isCampaignReviewRenaming()) return;
+
+  if (campaignReviewNameInput) {
+    campaignReviewNameInput.value = clampCampaignName(campaignReviewNameBeforeRename);
+  }
+  setCampaignReviewRenaming(false);
+  campaignReviewRenameBtn?.focus({ preventScroll: true });
+}
+
+function resetCampaignReviewTestSend() {
+  if (campaignReviewTestTimeoutId) {
+    window.clearTimeout(campaignReviewTestTimeoutId);
+    campaignReviewTestTimeoutId = null;
+  }
+  if (campaignReviewSendLabel) campaignReviewSendLabel.textContent = "Send";
+  if (campaignReviewSendTest) campaignReviewSendTest.disabled = false;
+  if (campaignReviewTestEmail) clearCampaignReviewTestError();
+}
+
+function resetReviewCampaignModal() {
+  cancelCampaignReviewRename();
+  closeCampaignReviewScheduleMenu();
+  resetCampaignReviewTestSend();
+  if (campaignReviewTestEmail) campaignReviewTestEmail.value = CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT;
+}
+
+function isCampaignReviewScheduleMenuOpen() {
+  return Boolean(campaignReviewSchedule?.classList.contains("is-open"));
+}
+
+function setCampaignReviewScheduleMenuOpen(isOpen) {
+  campaignReviewSchedule?.classList.toggle("is-open", isOpen);
+  if (campaignReviewScheduleBtn) {
+    campaignReviewScheduleBtn.setAttribute("aria-expanded", String(isOpen));
+  }
+  if (campaignReviewScheduleMenu) {
+    campaignReviewScheduleMenu.setAttribute("aria-hidden", String(!isOpen));
+  }
+}
+
+function closeCampaignReviewScheduleMenu() {
+  if (!isCampaignReviewScheduleMenuOpen()) return;
+  setCampaignReviewScheduleMenuOpen(false);
+}
+
+function toggleCampaignReviewScheduleMenu() {
+  setCampaignReviewScheduleMenuOpen(!isCampaignReviewScheduleMenuOpen());
+}
+
+function handleCampaignReviewScheduleAction(_action) {
+  closeCampaignReviewScheduleMenu();
+  closeReviewCampaignModal();
+}
+
+function getCampaignReviewTestField() {
+  return campaignReviewTestEmail?.closest(".proto-modal-field") || null;
+}
+
+function clearCampaignReviewTestError() {
+  const field = getCampaignReviewTestField();
+  if (!field) return;
+  field.classList.remove("is-error");
+  field.querySelector(".proto-modal-field-message")?.remove();
+}
+
+function setCampaignReviewTestError(message) {
+  const field = getCampaignReviewTestField();
+  if (!field) return;
+
+  field.classList.add("is-error");
+  let messageEl = field.querySelector(".proto-modal-field-message");
+  if (!messageEl) {
+    messageEl = document.createElement("p");
+    messageEl.className = "proto-modal-field-message is-error";
+    messageEl.setAttribute("role", "alert");
+    field.appendChild(messageEl);
+  }
+  messageEl.textContent = message;
+}
+
+function isValidCampaignTestEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function sendCampaignReviewTestEmail() {
+  if (!campaignReviewSendTest || campaignReviewSendTest.disabled) return;
+
+  const emailAddress = String(campaignReviewTestEmail?.value || "").trim();
+  if (!isValidCampaignTestEmail(emailAddress)) {
+    setCampaignReviewTestError("Enter a valid email address");
+    campaignReviewTestEmail?.focus({ preventScroll: true });
+    return;
+  }
+
+  clearCampaignReviewTestError();
+  campaignReviewSendTest.disabled = true;
+  if (campaignReviewSendLabel) campaignReviewSendLabel.textContent = "Sending";
+
+  campaignReviewTestTimeoutId = window.setTimeout(() => {
+    if (campaignReviewSendLabel) campaignReviewSendLabel.textContent = "Sent";
+    campaignReviewTestTimeoutId = window.setTimeout(() => {
+      campaignReviewTestTimeoutId = null;
+      if (campaignReviewSendLabel) campaignReviewSendLabel.textContent = "Send";
+      if (campaignReviewSendTest) campaignReviewSendTest.disabled = false;
+    }, 1400);
+  }, 800);
+}
+
+function openCampaignReviewFromWizard() {
+  const sender = getCampaignSenderSelection();
+  const audience = buildCampaignAudiencePreview(getSelectedAudienceValues());
+  const subject = getCampaignSubjectSelection();
+  const design = getCampaignDesignSelection();
+  if (!sender || !audience || !subject || !design) return;
+
+  campaignSenderDraft = sender;
+  window.cstCampaignSender = { ...sender };
+  window.cstCampaignDraft = {
+    ...audience,
+    campaignName,
+    sender,
+    ...subject,
+    design
+  };
+  campaignReviewDraft = collectCampaignReviewDraft();
+  pendingCampaignReviewOpen = true;
+  closeStartCampaignModal();
+}
+
+function revealCampaignWizardErrors(errors) {
+  showCampaignValidationErrors(errors);
+
+  const firstStepIndex = errors.reduce(
+    (lowest, error) => Math.min(lowest, error.stepIndex),
+    CAMPAIGN_STEPS.length
+  );
+
+  if (!Number.isInteger(firstStepIndex) || firstStepIndex >= CAMPAIGN_STEPS.length) return;
+
+  if (firstStepIndex === activeCampaignStepIndex) {
+    syncCampaignStepPostNavigation();
+    return;
+  }
+
+  goToCampaignStep(firstStepIndex);
 }
 
 const startCampaignModalApi = window.createProtoModal({
@@ -710,9 +1305,16 @@ const startCampaignModalApi = window.createProtoModal({
     closeCampaignDropdowns();
   },
   onClose() {
+    const shouldOpenReview = pendingCampaignReviewOpen;
+    pendingCampaignReviewOpen = false;
     resetCampaignWizard();
+    if (shouldOpenReview) reviewCampaignModalApi.open();
   },
   shouldCloseOnEscape() {
+    if (isCampaignRenaming()) {
+      cancelCampaignRename();
+      return false;
+    }
     return !closeOpenCampaignDropdown();
   },
   getFocusElement() {
@@ -723,8 +1325,38 @@ const startCampaignModalApi = window.createProtoModal({
   }
 });
 
+const reviewCampaignModalApi = window.createProtoModal({
+  overlay: reviewCampaignModal,
+  closeSelectors: ".proto-modal-close",
+  onOpen() {
+    renderCampaignReviewModal();
+  },
+  onClose() {
+    resetReviewCampaignModal();
+    campaignReviewDraft = null;
+  },
+  shouldCloseOnEscape() {
+    if (isCampaignReviewRenaming()) {
+      cancelCampaignReviewRename();
+      return false;
+    }
+    if (isCampaignReviewScheduleMenuOpen()) {
+      closeCampaignReviewScheduleMenu();
+      return false;
+    }
+    return true;
+  },
+  getFocusElement() {
+    return reviewCampaignModal?.querySelector(".proto-modal-close");
+  }
+});
+
 function closeStartCampaignModal() {
   startCampaignModalApi.close();
+}
+
+function closeReviewCampaignModal() {
+  reviewCampaignModalApi.close();
 }
 
 function openStartCampaignModal(trigger = null) {
@@ -775,12 +1407,22 @@ startCampaignAudienceApi = window.WefranchFilterCombobox.enhance(startCampaignAu
 });
 
 startCampaignAudienceSelect?.addEventListener("change", () => {
+  clearCampaignFieldError(startCampaignAudienceField);
   syncStartCampaignAudienceState();
 });
 
-campaignSenderEmailSelect?.addEventListener("change", syncCampaignSenderName);
-campaignSenderName?.addEventListener("input", syncCampaignSenderContinue);
-campaignSubjectLine?.addEventListener("input", syncCampaignSubjectContinue);
+campaignSenderEmailSelect?.addEventListener("change", () => {
+  clearCampaignFieldError(campaignSenderEmailField);
+  syncCampaignSenderName();
+});
+campaignSenderName?.addEventListener("input", () => {
+  clearCampaignFieldError(campaignSenderName);
+  syncCampaignSenderContinue();
+});
+campaignSubjectLine?.addEventListener("input", () => {
+  clearCampaignFieldError(campaignSubjectLine);
+  syncCampaignSubjectContinue();
+});
 campaignPreviewText?.addEventListener("input", syncCampaignSubjectContinue);
 
 campaignDesignTemplateApi = window.WefranchFilterCombobox.enhance(campaignDesignTemplateSelect, {
@@ -796,16 +1438,54 @@ campaignDesignTemplateApi = window.WefranchFilterCombobox.enhance(campaignDesign
   ]
 });
 
-campaignDesignTemplateSelect?.addEventListener("change", syncCampaignDesignContinue);
+campaignDesignTemplateSelect?.addEventListener("change", () => {
+  clearCampaignFieldError(campaignDesignTemplateField);
+  syncCampaignDesignContinue();
+});
 
 startCampaignOption?.addEventListener("click", (event) => {
   event.preventDefault();
   openStartCampaignModal(startCampaignOption);
 });
 
+startCampaignModalTitle?.addEventListener("click", () => {
+  startCampaignRename();
+});
+
+startCampaignModalTitle?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  startCampaignRename();
+});
+
+campaignRenameBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  startCampaignRename();
+});
+
+campaignRenameConfirm?.addEventListener("click", (event) => {
+  event.preventDefault();
+  commitCampaignRename();
+});
+
+campaignNameInput?.addEventListener("input", syncCampaignNameCount);
+
+campaignNameInput?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    commitCampaignRename();
+    return;
+  }
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    cancelCampaignRename();
+  }
+});
+
 campaignStepTabs?.addEventListener("click", (event) => {
   const tab = event.target.closest(".campaign-step-tab");
-  if (!tab) return;
+  if (!tab || campaignReviewPending) return;
 
   const stepIndex = CAMPAIGN_STEPS.findIndex((step) => step.id === tab.dataset.campaignStep);
   goToCampaignStep(stepIndex);
@@ -816,6 +1496,7 @@ startCampaignModal?.addEventListener("click", (event) => {
   if (!backButton) return;
 
   event.preventDefault();
+  if (campaignReviewPending) return;
   goToCampaignStep(activeCampaignStepIndex - 1);
 });
 
@@ -837,6 +1518,7 @@ startCampaignModalForm?.addEventListener("submit", (event) => {
   if (draft) {
     window.cstCampaignDraft = {
       ...draft,
+      campaignName,
       sender: campaignSenderDraft ? { ...campaignSenderDraft } : null
     };
   }
@@ -850,6 +1532,7 @@ campaignSubjectModalForm?.addEventListener("submit", (event) => {
   if (subject) {
     window.cstCampaignDraft = {
       ...(window.cstCampaignDraft || {}),
+      campaignName,
       sender: campaignSenderDraft ? { ...campaignSenderDraft } : window.cstCampaignDraft?.sender || null,
       ...subject
     };
@@ -859,17 +1542,88 @@ campaignSubjectModalForm?.addEventListener("submit", (event) => {
 
 campaignDesignModalForm?.addEventListener("submit", (event) => {
   event.preventDefault();
-  if (campaignDesignContinue?.disabled) return;
+  if (campaignReviewPending) return;
 
-  const design = getCampaignDesignSelection();
-  if (!design) return;
+  setCampaignReviewLoading(true);
+  campaignReviewTimeoutId = window.setTimeout(() => {
+    campaignReviewTimeoutId = null;
+    setCampaignReviewLoading(false);
 
-  window.cstCampaignDraft = {
-    ...(window.cstCampaignDraft || {}),
-    sender: campaignSenderDraft ? { ...campaignSenderDraft } : window.cstCampaignDraft?.sender || null,
-    design
-  };
-  closeStartCampaignModal();
+    const validationErrors = getCampaignWizardErrors();
+    if (validationErrors.length) {
+      revealCampaignWizardErrors(validationErrors);
+      return;
+    }
+
+    openCampaignReviewFromWizard();
+  }, CAMPAIGN_REVIEW_DELAY_MS);
+});
+
+campaignReviewName?.addEventListener("click", () => {
+  startCampaignReviewRename();
+});
+
+campaignReviewName?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  startCampaignReviewRename();
+});
+
+campaignReviewRenameBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  startCampaignReviewRename();
+});
+
+campaignReviewRenameConfirm?.addEventListener("click", (event) => {
+  event.preventDefault();
+  commitCampaignReviewRename();
+});
+
+campaignReviewNameInput?.addEventListener("input", syncCampaignReviewNameCount);
+
+campaignReviewNameInput?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    commitCampaignReviewRename();
+    return;
+  }
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    cancelCampaignReviewRename();
+  }
+});
+
+campaignReviewTestEmail?.addEventListener("input", clearCampaignReviewTestError);
+
+campaignReviewTestEmail?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  sendCampaignReviewTestEmail();
+});
+
+campaignReviewSendTest?.addEventListener("click", (event) => {
+  event.preventDefault();
+  sendCampaignReviewTestEmail();
+});
+
+campaignReviewScheduleBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  toggleCampaignReviewScheduleMenu();
+});
+
+campaignReviewScheduleMenu?.addEventListener("click", (event) => {
+  const option = event.target.closest(".campaign-review-schedule-option");
+  if (!option) return;
+
+  event.preventDefault();
+  handleCampaignReviewScheduleAction(option.dataset.scheduleAction);
+});
+
+document.addEventListener("mousedown", (event) => {
+  if (!isCampaignReviewScheduleMenuOpen()) return;
+  if (campaignReviewSchedule?.contains(event.target)) return;
+  closeCampaignReviewScheduleMenu();
 });
 
 window.addEventListener("cst:saved-searches-changed", () => {
@@ -881,4 +1635,10 @@ window.cstStartCampaignModal = {
   close: closeStartCampaignModal,
   isVisible: () => startCampaignModalApi.isVisible(),
   open: openStartCampaignModal
+};
+
+window.cstReviewCampaignModal = {
+  close: closeReviewCampaignModal,
+  isVisible: () => reviewCampaignModalApi.isVisible(),
+  open: () => reviewCampaignModalApi.open()
 };

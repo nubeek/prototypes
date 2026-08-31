@@ -1,3 +1,5 @@
+@import url("../ui/dropdown-menu.css");
+
 /* ==========================================================================
    Filter Panel
    ========================================================================== */
@@ -775,7 +777,6 @@
 
 .filter-combobox-menu {
   position: absolute;
-  top: calc(100% + 8px);
   right: 0;
   left: 0;
   z-index: 20;
@@ -783,7 +784,6 @@
   background: var(--color-surface);
   box-shadow: var(--shadow-menu);
   overflow: hidden;
-  display: none;
 }
 
 .filter-combobox-divider {
@@ -792,8 +792,12 @@
   background: var(--color-border);
 }
 
+.filter-combobox-menu-footer {
+  padding-top: 10px;
+}
+
 .filter-combobox-menu-footer .filter-combobox-divider {
-  margin-top: 0;
+  margin: 0 12px 10px;
 }
 
 .filter-combobox-menu-action {
@@ -840,9 +844,6 @@
   scrollbar-color: #d8d8d8 transparent;
 }
 
-.filter-select-field.is-open .filter-combobox-menu {
-  display: block;
-}
 
 .filter-combobox-options::-webkit-scrollbar {
   width: 8px;

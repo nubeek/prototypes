@@ -21,7 +21,7 @@
     <link rel="manifest" href="../../assets/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="../shared/ui/proto-modal.css">
@@ -95,7 +95,7 @@
                 <span class="toolbar-dropdown-label">Start new campaign</span>
               </button>
               <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
-                <img class="toolbar-dropdown-icon" src="../../assets/icons/mail-send.svg" alt="" aria-hidden="true">
+                <img class="toolbar-dropdown-icon" src="../../assets/icons/mail-send.svg?v=2" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Send a message...</span>
               </button>
               <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true"></div>
@@ -968,8 +968,33 @@
   <div class="proto-modal-overlay" id="startCampaignModal" hidden>
     <section class="proto-modal proto-modal--form campaign-wizard-modal" role="dialog" aria-modal="true" aria-labelledby="startCampaignModalTitle">
       <div class="proto-modal-header">
-        <h2 class="proto-modal-title" id="startCampaignModalTitle">Sender</h2>
+        <div class="campaign-modal-title-group">
+          <h2 class="proto-modal-title" id="startCampaignModalTitle" tabindex="0">Untitled campaign</h2>
+          <input
+            class="campaign-modal-title-input"
+            id="campaignNameInput"
+            type="text"
+            value="Untitled campaign"
+            maxlength="64"
+            placeholder="Enter campaign name"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Campaign name"
+            aria-describedby="campaignNameCount"
+            hidden
+          >
+        </div>
         <div class="proto-modal-header-actions">
+          <button class="ui-control campaign-modal-icon-btn" id="campaignRenameBtn" type="button" aria-label="Rename campaign" data-tooltip="Rename campaign">
+            <img src="../../assets/icons/notes.svg" alt="" aria-hidden="true">
+          </button>
+          <button class="ui-control campaign-modal-icon-btn" id="campaignRenameConfirm" type="button" aria-label="Save campaign name" title="Save campaign name" hidden>
+            <img src="../../assets/icons/check.svg" alt="" aria-hidden="true">
+          </button>
+          <span class="campaign-name-count" id="campaignNameCount" hidden>(0 / 64)</span>
+          <span class="campaign-name-count-divider-wrap" id="campaignNameCountDivider" aria-hidden="true">
+            <span class="campaign-name-count-divider"></span>
+          </span>
           <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close start new campaign">
             <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
           </button>
@@ -1070,7 +1095,7 @@
 
           <label class="proto-modal-field" for="campaignPreviewText">
             <span>Preview text</span>
-            <textarea class="proto-modal-control proto-modal-textarea" id="campaignPreviewText" name="previewText" maxlength="500" placeholder="Optional"></textarea>
+            <textarea class="proto-modal-control proto-modal-textarea" id="campaignPreviewText" name="previewText" maxlength="500" placeholder="Preview text gives recipients more context about your email."></textarea>
           </label>
         </div>
 
@@ -1080,7 +1105,7 @@
         </div>
         </form>
 
-        <form class="proto-modal-form campaign-step-panel" id="campaignDesignModalForm" role="tabpanel" aria-labelledby="campaignStepTabDesign" data-campaign-step="design" aria-hidden="true" inert>
+        <form class="proto-modal-form campaign-step-panel" id="campaignDesignModalForm" role="tabpanel" aria-labelledby="campaignStepTabDesign" data-campaign-step="design" aria-hidden="true" inert novalidate>
         <div class="proto-modal-body campaign-design-modal-body">
           <p class="proto-modal-subtitle">Choose the email design recipients will receive.</p>
 
@@ -1122,10 +1147,102 @@
 
         <div class="proto-modal-actions">
           <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
-          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignDesignContinue" type="submit" disabled>Next</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignDesignContinue" type="submit">
+            <span class="campaign-continue-spinner" aria-hidden="true"></span>
+            <span class="campaign-continue-label">Review</span>
+          </button>
         </div>
         </form>
       </div>
+    </section>
+  </div>
+
+  <div class="proto-modal-overlay" id="reviewCampaignModal" hidden>
+    <section class="proto-modal proto-modal--form campaign-review-modal" role="dialog" aria-modal="true" aria-labelledby="reviewCampaignModalTitle">
+      <form class="proto-modal-form" id="reviewCampaignModalForm">
+        <div class="proto-modal-header">
+          <h2 class="proto-modal-title" id="reviewCampaignModalTitle">Review</h2>
+          <div class="proto-modal-header-actions">
+            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close review campaign">
+              <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div class="proto-modal-body">
+          <div class="proto-modal-field">
+            <span>Campaign</span>
+            <div class="campaign-review-name">
+              <p class="campaign-review-value is-untitled" id="campaignReviewName" tabindex="0">Untitled campaign</p>
+              <input
+                class="campaign-review-name-input"
+                id="campaignReviewNameInput"
+                type="text"
+                maxlength="64"
+                placeholder="Enter campaign name"
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="Campaign"
+                aria-describedby="campaignReviewNameCount"
+                hidden
+              >
+              <button class="ui-control campaign-modal-icon-btn" id="campaignReviewRenameBtn" type="button" aria-label="Rename campaign">
+                <img src="../../assets/icons/notes.svg" alt="" aria-hidden="true">
+              </button>
+              <button class="ui-control campaign-modal-icon-btn" id="campaignReviewRenameConfirm" type="button" aria-label="Save campaign name" hidden>
+                <img src="../../assets/icons/check.svg" alt="" aria-hidden="true">
+              </button>
+              <span class="campaign-name-count" id="campaignReviewNameCount" hidden>(0 / 64)</span>
+            </div>
+          </div>
+          <div class="proto-modal-divider" aria-hidden="true"></div>
+          <div class="proto-modal-field">
+            <span>Subject</span>
+            <p class="campaign-review-value" id="campaignReviewSubject"></p>
+          </div>
+          <div class="proto-modal-field">
+            <span>Design</span>
+            <p class="campaign-review-value" id="campaignReviewDesign"></p>
+          </div>
+          <div class="proto-modal-field">
+            <span>Recipients</span>
+            <p class="campaign-review-value" id="campaignReviewRecipients"></p>
+          </div>
+          <div class="proto-modal-divider" aria-hidden="true"></div>
+          <label class="proto-modal-field" for="campaignReviewTestEmail">
+            <span>Send test email</span>
+            <div class="campaign-review-test-field">
+              <input class="proto-modal-control proto-modal-input" id="campaignReviewTestEmail" name="testEmail" type="email" autocomplete="email" spellcheck="false" placeholder="name@email.com">
+              <button class="ui-control campaign-review-send" id="campaignReviewSendTest" type="button">
+                <span class="campaign-review-send-icon" aria-hidden="true"></span>
+                <span class="campaign-review-send-label">Send</span>
+              </button>
+            </div>
+          </label>
+        </div>
+        <div class="proto-modal-actions">
+          <div class="campaign-review-schedule" id="campaignReviewSchedule">
+            <div
+              class="ui-menu campaign-review-schedule-menu"
+              id="campaignReviewScheduleMenu"
+              role="menu"
+              aria-label="Schedule campaign"
+              aria-hidden="true"
+            >
+              <button class="ui-menu-item campaign-review-schedule-option" type="button" role="menuitem" data-schedule-action="send-now">Send now</button>
+              <button class="ui-menu-item campaign-review-schedule-option" type="button" role="menuitem" data-schedule-action="schedule-later">Schedule for later</button>
+              <button class="ui-menu-item campaign-review-schedule-option" type="button" role="menuitem" data-schedule-action="send-batches">Send in batches</button>
+            </div>
+            <button
+              class="ui-control ui-button ui-button-primary proto-modal-save"
+              id="campaignReviewScheduleBtn"
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="campaignReviewScheduleMenu"
+            >Schedule</button>
+          </div>
+        </div>
+      </form>
     </section>
   </div>
 

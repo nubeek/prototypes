@@ -1,3 +1,5 @@
+@import url("../shared/ui/dropdown-menu.css");
+
 * { box-sizing: border-box; }
 
 :root {
@@ -1231,17 +1233,11 @@ body.target-detail {
 
 .toolbar-dropdown-menu {
   position: absolute;
-  top: calc(100% + 8px);
   right: 0;
   width: 200px;
   padding: 10px 0;
   border: 0;
-  display: none;
   z-index: 20;
-}
-
-.toolbar-dropdown[open] .toolbar-dropdown-menu {
-  display: block;
 }
 
 .toolbar-dropdown > .toolbar-dropdown-menu {
