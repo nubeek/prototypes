@@ -1976,7 +1976,7 @@ function createTerritoryAreaBrandRow(record) {
   status.textContent = formatTerritoryStatus(record.status);
 
   chevron.className = "territory-area-card__chevron";
-  chevron.src = "assets/chevron.svg";
+  chevron.src = "../../assets/icons/chevron.svg";
   chevron.alt = "";
   chevron.setAttribute("aria-hidden", "true");
 

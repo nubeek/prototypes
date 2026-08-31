@@ -3,7 +3,7 @@
   "brand": "Five Star Painting",
   "category": "Home & Services",
   "color": "#0B2E56",
-  "logo": "assets/logos/five-star-painting.jpg",
+  "logo": "../../assets/logos/franchises/five-star-painting.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 130990,

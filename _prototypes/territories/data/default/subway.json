@@ -3,7 +3,7 @@
   "brand": "Subway",
   "category": "Food & Beverage",
   "color": "#e1b523",
-  "logo": "assets/logos/subway.jpg",
+  "logo": "../../assets/logos/franchises/subway.jpg",
   "country": "US",
   "level": "state",
   "initialInvestment": 390000,

@@ -3,7 +3,7 @@
   "brand": "Glass Doctor",
   "category": "Cleaning and Maintenance",
   "color": "#000B8B",
-  "logo": "assets/logos/glass-doctor.png",
+  "logo": "../../assets/logos/franchises/glass-doctor.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 59900,

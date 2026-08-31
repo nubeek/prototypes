@@ -3,7 +3,7 @@
   "brand": "i9 Sports",
   "category": "Youth Enrichment",
   "color": "#083B78",
-  "logo": "assets/logos/i9-sports.png",
+  "logo": "../../assets/logos/franchises/i9-sports.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 64900,

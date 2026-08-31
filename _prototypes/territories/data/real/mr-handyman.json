@@ -3,7 +3,7 @@
   "brand": "Mr. Handyman",
   "category": "Cleaning and Maintenance",
   "color": "#B72027",
-  "logo": "assets/logos/mr-handyman.png",
+  "logo": "../../assets/logos/franchises/mr-handyman.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 65000,

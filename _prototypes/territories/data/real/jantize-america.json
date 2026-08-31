@@ -3,7 +3,7 @@
   "brand": "Jantize America",
   "category": "Professional Business Services",
   "color": "#263775",
-  "logo": "assets/logos/jantize-america.png",
+  "logo": "../../assets/logos/franchises/jantize-america.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 150000,

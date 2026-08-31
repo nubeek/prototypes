@@ -71,7 +71,7 @@ function syncChangesVisibilityToggle() {
     changesToggleOption.setAttribute("aria-checked", String(changesVisible));
   }
   if (changesToggleIcon) {
-    changesToggleIcon.src = changesVisible ? "assets/hide.svg" : "assets/unhide.svg";
+    changesToggleIcon.src = changesVisible ? "../../../assets/icons/hide.svg" : "../../../assets/icons/unhide.svg";
   }
   if (changesToggleLabel) {
     changesToggleLabel.textContent = changesVisible ? "Hide changes" : "Show changes";
@@ -216,7 +216,7 @@ function renderOwners(rows) {
             <div class="locations">
               <span>${owner.locations}</span>
               ${showsContactUpdates() ? getAddedBadge(owner.addedLocations) : ""}
-              <img class="location-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+              <img class="location-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true">
             </div>
           </td>
         </tr>

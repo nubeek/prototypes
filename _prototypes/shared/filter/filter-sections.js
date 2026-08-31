@@ -120,7 +120,7 @@
   }
 
   function enhanceHeaders(panel, {
-    iconSrc = "../shared/filter/assets/remove.svg",
+    iconSrc = "../../assets/icons/remove.svg",
     onClear,
     selectionSectionKeys = []
   } = {}) {

@@ -3,7 +3,7 @@
   "brand": "SYNERGY HomeCare",
   "category": "Senior Services",
   "color": "#912037",
-  "logo": "assets/logos/synergy-homecare.png",
+  "logo": "../../assets/logos/franchises/synergy-homecare.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 118580,

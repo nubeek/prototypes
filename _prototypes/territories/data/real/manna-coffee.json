@@ -3,7 +3,7 @@
   "brand": "Manna Coffee",
   "category": "Food and Beverage",
   "color": "#A1DE87",
-  "logo": "assets/logos/manna-coffee.jpg",
+  "logo": "../../assets/logos/franchises/manna-coffee.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 22950,

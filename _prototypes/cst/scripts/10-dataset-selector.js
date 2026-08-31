@@ -53,7 +53,7 @@ function initDatasetSelector() {
       optionLabel.textContent = option.label;
 
       optionCheck.className = "dataset-selector-option-check";
-      optionCheck.src = "assets/check.svg";
+      optionCheck.src = "../../assets/icons/check.svg";
       optionCheck.alt = "";
       optionCheck.setAttribute("aria-hidden", "true");
 

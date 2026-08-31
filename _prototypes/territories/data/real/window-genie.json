@@ -3,7 +3,7 @@
   "brand": "Window Genie",
   "category": "Home & Services",
   "color": "#522A73",
-  "logo": "assets/logos/window-genie.png",
+  "logo": "../../assets/logos/franchises/window-genie.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

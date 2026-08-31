@@ -760,7 +760,7 @@ campaignSenderEmailApi = window.WefranchFilterCombobox.enhance(campaignSenderEma
   menuActions: [
     {
       label: "Add new sender",
-      icon: "assets/add.svg",
+      icon: "../../assets/icons/add.svg",
       onClick() {}
     }
   ]
@@ -790,7 +790,7 @@ campaignDesignTemplateApi = window.WefranchFilterCombobox.enhance(campaignDesign
   menuActions: [
     {
       label: "Create from scratch",
-      icon: "assets/add.svg",
+      icon: "../../assets/icons/add.svg",
       onClick() {}
     }
   ]

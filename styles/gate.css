@@ -241,14 +241,14 @@ html.access-resolving .access-gate::after {
   width: 16px;
   height: 16px;
   background-color: #ababab;
-  mask: url("../assets/show.svg") center / contain no-repeat;
-  -webkit-mask: url("../assets/show.svg") center / contain no-repeat;
+  mask: url("../assets/icons/password-show.svg") center / contain no-repeat;
+  -webkit-mask: url("../assets/icons/password-show.svg") center / contain no-repeat;
   transition: background-color var(--access-transition-fast);
 }
 
 .access-gate__visibility.is-revealed .access-gate__visibility-icon {
-  mask-image: url("../assets/hide.svg");
-  -webkit-mask-image: url("../assets/hide.svg");
+  mask-image: url("../assets/icons/password-hide.svg");
+  -webkit-mask-image: url("../assets/icons/password-hide.svg");
 }
 
 .access-gate__visibility:hover .access-gate__visibility-icon,
@@ -290,7 +290,7 @@ html.access-resolving .access-gate::after {
   content: "";
   width: 10px;
   height: 10px;
-  background: url("../_prototypes/cst/assets/check.svg") center / contain no-repeat;
+  background: url("../assets/icons/check.svg") center / contain no-repeat;
   opacity: 0;
   transition: opacity .12s ease;
 }

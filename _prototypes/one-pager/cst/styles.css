@@ -1012,14 +1012,14 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
   height: 20px;
   flex: 0 0 auto;
   background-color: currentColor;
-  -webkit-mask: url("assets/leads-add.svg") center / contain no-repeat;
-  mask: url("assets/leads-add.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-add.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-add.svg") center / contain no-repeat;
 }
 
 .profile-modal-primary.is-saved::before,
 .owner-detail-contact-lead-action.is-saved::before {
-  -webkit-mask: url("assets/leads-remove.svg") center / contain no-repeat;
-  mask: url("assets/leads-remove.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-remove.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-remove.svg") center / contain no-repeat;
 }
 
 .target-modal {
@@ -2684,7 +2684,7 @@ html.is-one-pager-presentation .card.is-layout-switching .map-panel .panel-map-c
   content: "";
   width: 10px;
   height: 10px;
-  background: url("assets/check.svg") center / contain no-repeat;
+  background: url("../../../assets/icons/check.svg") center / contain no-repeat;
   opacity: 0;
   transition: opacity .12s ease;
 }
@@ -4527,7 +4527,7 @@ tbody tr.is-selected:hover td:first-child {
   content: "";
   width: 10px;
   height: 10px;
-  background: url("assets/check.svg") center / contain no-repeat;
+  background: url("../../../assets/icons/check.svg") center / contain no-repeat;
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -4763,8 +4763,8 @@ tbody tr.is-selected:hover td:first-child {
   width: 16px;
   height: 15px;
   background-color: currentColor;
-  -webkit-mask: url("assets/hide.svg") center / contain no-repeat;
-  mask: url("assets/hide.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/hide.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/hide.svg") center / contain no-repeat;
 }
 
 .contact-hide-results-action {
@@ -4782,16 +4782,16 @@ tbody tr.is-selected:hover td:first-child {
   height: 20px;
   transform: translateX(1px);
   background-color: currentColor;
-  -webkit-mask: url("assets/leads-add.svg") center / contain no-repeat;
-  mask: url("assets/leads-add.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-add.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-add.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action.is-saved::before {
   width: 16px;
   height: 20px;
   transform: translateY(1px) translateX(1px);
-  -webkit-mask: url("assets/leads-default.svg") center / contain no-repeat;
-  mask: url("assets/leads-default.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-default.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-default.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action.is-saved:hover::before,
@@ -4799,8 +4799,8 @@ tbody tr.is-selected:hover td:first-child {
   width: 16px;
   height: 20px;
   transform: translateX(1px);
-  -webkit-mask: url("assets/leads-remove.svg") center / contain no-repeat;
-  mask: url("assets/leads-remove.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-remove.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-remove.svg") center / contain no-repeat;
 }
 
 .contact-hide-results-action::after,
@@ -4867,8 +4867,8 @@ tbody tr.is-selected:hover td:first-child {
 .contact-hide-results-action.is-hidden:hover::before,
 .contact-hide-results-action.is-hidden:focus-visible::before {
   height: 11px;
-  -webkit-mask: url("assets/unhide.svg") center / contain no-repeat;
-  mask: url("assets/unhide.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/unhide.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/unhide.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action.is-saved {

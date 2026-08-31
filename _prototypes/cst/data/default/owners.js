@@ -479,7 +479,7 @@ window.ownersData = getDedupedOwnerSeeds(ownerSeedRows).map((owner, index) => {
     email: primaryContact.email,
     franchise: franchises.join(", "),
     franchises,
-    logoSrc: `assets/logos/${owner.logoAsset || `${owner.logoFilename}.jpg`}`,
+    logoSrc: `../../assets/logos/franchisees/${owner.logoAsset || `${owner.logoFilename}.jpg`}`,
     logoAlt: `${owner.ownerName} logo`,
     hasWebsite: owner.webEnabled,
     hasLinkedin: owner.linkedinEnabled

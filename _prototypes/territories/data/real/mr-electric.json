@@ -3,7 +3,7 @@
   "brand": "Mr. Electric",
   "category": "Cleaning and Maintenance",
   "color": "#0074BD",
-  "logo": "assets/logos/mr-electric.png",
+  "logo": "../../assets/logos/franchises/mr-electric.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 233250,

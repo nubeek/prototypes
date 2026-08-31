@@ -3,49 +3,49 @@ function getFranchiseSlug(franchiseName) {
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/'/g, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 const franchiseLogoFileOverrides = {
-  "Anytime Fitness": "anytime_fitness.svg",
-  "F45 Training": "f45_training.svg",
+  "Anytime Fitness": "anytime-fitness.png",
+  "F45 Training": "f45-training.svg",
   "OrangeTheory Fitness": "orangetheory.jpg",
-  "Crumbl Cookies": "crumbl_cookies.png",
-  "The Learning Experience": "the_learning_experience.png",
+  "Crumbl Cookies": "crumbl-cookies.png",
+  "The Learning Experience": "the-learning-experience.png",
   "Drybar": "drybar.png",
-  "Ace Handyman Services": "ace_handyman_services.png",
+  "Ace Handyman Services": "ace-handyman-services.png",
   "StretchLab": "stretchlab.png",
   "Mathnasium": "mathnasium.png",
   "MaidPro": "maidpro.png",
-  "Wendy's": "wendys.png",
+  "Wendy's": "wendys.jpg",
   "Chili's": "chilis.png",
-  "Papa John's": "papa_johns.png",
-  "Five Guys": "five_guys.png",
-  "Krispy Kreme": "krispy_kreme.png",
-  "Jimmy John's": "jimmy_johns.png",
-  "Dunkin'": "dunkin.png",
-  "Blaze Pizza": "blaze_pizza.png",
-  "Outback Steakhouse": "outback_steakhouse.png",
-  "Smoothie King": "smoothie_king.png",
+  "Papa John's": "papa-johns.png",
+  "Five Guys": "five-guys.png",
+  "Krispy Kreme": "krispy-kreme.png",
+  "Jimmy John's": "jimmy-johns.png",
+  "Dunkin'": "dunkin.jpg",
+  "Blaze Pizza": "blaze-pizza.png",
+  "Outback Steakhouse": "outback-steakhouse.png",
+  "Smoothie King": "smoothie-king.png",
   "Starbucks": "starbucks.png",
   "Qdoba": "qdoba.png",
-  "Title Boxing Club": "title_boxing_club.png",
-  "Popeyes Louisiana Kitchen": "popeyes_louisiana_kitchen.png",
-  "Tropical Smoothie Cafe": "tropical_smoothie_cafe.png",
-  "Aussie Pet Mobile": "aussie_pet_mobile.png",
-  "Planet Fitness": "planet_fitness.jpg",
-  "Snap Fitness": "snap_fitness.jpg",
-  "Gold's Gym": "golds_gym.jpg",
-  "Crunch Fitness": "crunch_fitness.jpg",
-  "Club Pilates": "club_pilates.jpg",
-  "Pure Barre": "pure_barre.jpg",
-  "Workout Anytime": "workout_anytime.jpg"
+  "Title Boxing Club": "title-boxing-club.png",
+  "Popeyes Louisiana Kitchen": "popeyes-louisiana-kitchen.jpg",
+  "Tropical Smoothie Cafe": "tropical-smoothie-cafe.png",
+  "Aussie Pet Mobile": "aussie-pet-mobile.png",
+  "Planet Fitness": "planet-fitness.jpg",
+  "Snap Fitness": "snap-fitness.jpg",
+  "Gold's Gym": "golds-gym.jpg",
+  "Crunch Fitness": "crunch-fitness.jpg",
+  "Club Pilates": "club-pilates.jpg",
+  "Pure Barre": "pure-barre.jpg",
+  "Workout Anytime": "workout-anytime.jpg"
 };
 
 function getFranchiseLogoSrc(franchiseName) {
   const logoFileName = franchiseLogoFileOverrides[franchiseName] || `${getFranchiseSlug(franchiseName)}.jpg`;
-  return `assets/franchises/${logoFileName}`;
+  return `../../assets/logos/franchises/${logoFileName}`;
 }
 
 function getFranchiseInitials(name) {

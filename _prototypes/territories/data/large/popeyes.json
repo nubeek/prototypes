@@ -3,7 +3,7 @@
   "brand": "Popeyes",
   "category": "Food & Beverage",
   "color": "#FF7900",
-  "logo": "assets/logos/popeyes.jpg",
+  "logo": "../../assets/logos/franchises/popeyes-louisiana-kitchen.jpg",
   "country": "US",
   "level": "county",
   "initialInvestment": 1250000,

@@ -1009,16 +1009,16 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kin
     ? `
         <span class="target-card-actions">
           <span class="target-settings" role="button" tabindex="0" aria-label="Edit search settings">
-            <img src="assets/settings.svg" alt="">
+            <img src="../../assets/icons/settings.svg" alt="">
           </span>
           <span class="target-chevron" aria-hidden="true">
-            <img src="assets/chevron.svg" alt="">
+            <img src="../../assets/icons/chevron.svg" alt="">
           </span>
         </span>
       `
     : `
         <span class="target-chevron" aria-hidden="true">
-          <img src="assets/chevron.svg" alt="">
+          <img src="../../assets/icons/chevron.svg" alt="">
         </span>
       `;
 
@@ -1891,7 +1891,7 @@ function bindCrossroadLocationSearch() {
     action.setAttribute("aria-hidden", "true");
     actionLabel.textContent = "Select";
     actionKey.className = "territory-crossroad__search-suggestion-key";
-    actionKey.src = "assets/enter.svg";
+    actionKey.src = "../../assets/icons/enter.svg";
     actionKey.alt = "";
     action.append(actionLabel, actionKey);
 

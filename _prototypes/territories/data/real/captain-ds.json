@@ -3,7 +3,7 @@
   "brand": "Captain D's",
   "category": "Food and Beverage",
   "color": "#02A6E4",
-  "logo": "assets/logos/captain-ds.png",
+  "logo": "../../assets/logos/franchises/captain-ds.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 1126400,

@@ -3,7 +3,7 @@
   "brand": "Primrose Schools",
   "category": "Youth Enrichment",
   "color": "#55642A",
-  "logo": "assets/logos/primrose-schools.png",
+  "logo": "../../assets/logos/franchises/primrose-schools.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 80000,

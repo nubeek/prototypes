@@ -3,7 +3,7 @@
   "brand": "Chick-fil-A",
   "category": "Food & Beverage",
   "color": "#E51636",
-  "logo": "assets/logos/chick-fil-a.jpg",
+  "logo": "../../assets/logos/franchises/chick-fil-a.jpg",
   "country": "US",
   "level": "county",
   "initialInvestment": 1380000,

@@ -9,6 +9,7 @@ const SOURCE_DIR = path.join(REPO_ROOT, "_prototypes");
 const DEFAULT_OUTPUT_DIR = path.join(REPO_ROOT, "_out");
 const PUBLIC_PATH_REWRITES = new Map([
   ["../../../scripts/", "../../scripts/"],
+  ["../../../assets/", "../../assets/"],
   ["../../scripts/", "../scripts/"],
   ["../../styles/", "../styles/"],
   ["../../assets/", "../assets/"],
@@ -111,6 +112,10 @@ const copySiteShell = async () => {
   await copyDirectory(path.join(REPO_ROOT, "assets"), path.join(outputDir, "assets"));
   await copyDirectory(path.join(REPO_ROOT, "styles"), path.join(outputDir, "styles"));
   await copyDirectory(path.join(REPO_ROOT, "scripts"), path.join(outputDir, "scripts"));
+  await copyDirectory(path.join(REPO_ROOT, "logos"), path.join(outputDir, "logos"));
+  const logosIndex = path.join(outputDir, "logos", "index.html");
+  const logosHtml = await readFile(logosIndex, "utf8");
+  await writeFile(logosIndex, logosHtml.split("../_prototypes/shared/").join("../shared/"));
   await writeFile(path.join(outputDir, ".nojekyll"), "");
 };
 

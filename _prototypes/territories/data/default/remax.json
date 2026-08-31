@@ -3,7 +3,7 @@
   "brand": "RE/MAX",
   "category": "Real Estate",
   "color": "#DC1C2E",
-  "logo": "assets/logos/remax.jpg",
+  "logo": "../../assets/logos/franchises/remax.jpg",
   "country": "US",
   "level": "state",
   "initialInvestment": 650000,

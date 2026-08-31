@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>Logo Collection</title>
+  <link rel="icon" href="../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../assets/x192.png" />
+  <link rel="manifest" href="../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../_prototypes/shared/filter/filter-sidebar.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="../scripts/gate.js"></script>
+  <script src="../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="logo-page">
+    <header class="logo-toolbar">
+      <h1 class="logo-toolbar-title">Logo Collection</h1>
+      <div class="logo-toolbar-select">
+        <div class="filter-select-field">
+          <select class="ui-select filter-field-select" id="logoCollectionSelect" data-logo-collection aria-label="Logo collection">
+            <option value="franchisees">Franchisees</option>
+            <option value="franchises">Franchises</option>
+          </select>
+          <img src="../assets/icons/chevron.svg" alt="" aria-hidden="true">
+        </div>
+      </div>
+    </header>
+    <main class="logo-grid" data-logo-grid aria-live="polite"></main>
+  </div>
+
+  <script src="../_prototypes/shared/filter/filter-combobox.js"></script>
+  <script src="collection.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
   "brand": "The Grounds Guys",
   "category": "Cleaning and Maintenance",
   "color": "#36712C",
-  "logo": "assets/logos/the-grounds-guys.jpg",
+  "logo": "../../assets/logos/franchises/the-grounds-guys.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 35000,

@@ -3,7 +3,7 @@
   "brand": "Molly Maid",
   "category": "Home & Services",
   "color": "#EEB2CB",
-  "logo": "assets/logos/molly-maid.png",
+  "logo": "../../assets/logos/franchises/molly-maid.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

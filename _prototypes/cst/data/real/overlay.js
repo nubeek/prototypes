@@ -67,7 +67,7 @@
       .replace(/^-+|-+$/g, "");
   }
 
-  // Filenames in assets/logos/. New owner marks are PNGs; a few seed marks
+  // Filenames in assets/logos/franchisees/. New owner marks are PNGs; a few seed marks
   // are still JPG. The lookup below picks the real extension so the table
   // does not request a .jpg that was saved as .png.
   const OWNER_LOGO_FILES = [
@@ -175,7 +175,7 @@
   function getOwnerLogoSrc(name, seedLogo) {
     if (seedLogo) return seedLogo;
     const file = resolveOwnerLogoFile(getOwnerLogoSlug(name));
-    return file ? `assets/logos/${file}` : "";
+    return file ? `../../assets/logos/franchisees/${file}` : "";
   }
 
   function getDisplayWebsite(url) {

@@ -50,14 +50,12 @@
   <header class="site-header" aria-label="Application header">
     <div class="site-header-start">
       <button class="site-header-menu" type="button" aria-label="Open menu">
-        <img src="../../assets/menu.svg" alt="" width="14" height="12">
+        <img src="../../assets/icons/menu.svg" alt="" width="14" height="12">
       </button>
       <a class="brand-lockup" href="../" aria-label="Wefranch home">
         <img class="brand-mark" src="../../assets/logo-wefranch.svg" alt="" width="11" height="16">
       </a>
       <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
-        <a class="breadcrumb-link" href="../">Wefranch</a>
-        <span class="breadcrumb-separator" aria-hidden="true">/</span>
         <span class="breadcrumb-current" aria-current="page">Territories</span>
       </nav>
     </div>
@@ -75,17 +73,17 @@
               tabindex="-1"
               aria-hidden="true"
             >
-              <img class="toolbar-asset-icon" src="../cst/assets/search.svg" alt="" aria-hidden="true">
+              <img class="toolbar-asset-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
               <span>Start new search</span>
             </button>
           </div>
         </div>
         <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="territoryFilterToggle" type="button" data-crossroad-workspace-control aria-label="Toggle filters" aria-controls="territoryFilterPanel" aria-expanded="false" disabled>
-          <img class="toolbar-asset-icon filter-toggle-icon" src="../cst/assets/filters.svg" alt="" aria-hidden="true">
+          <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
           <span>Filters</span>
         </button>
         <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="territoryMapToggle" type="button" data-crossroad-workspace-control aria-label="Toggle map" aria-controls="territoryMapPanel" aria-expanded="false" disabled>
-          <img class="toolbar-asset-icon" src="assets/map.svg" alt="" aria-hidden="true">
+          <img class="toolbar-asset-icon" src="../../assets/icons/map.svg" alt="" aria-hidden="true">
           <span>Map</span>
         </button>
       </div>
@@ -93,14 +91,14 @@
       <div class="toolbar-group toolbar-actions">
         <details class="toolbar-dropdown" id="territoryMenuDropdown">
           <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
-            <img class="toolbar-asset-icon" src="../cst/assets/menu.svg" alt="" aria-hidden="true">
-            <img class="toolbar-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
+            <img class="toolbar-asset-icon" src="../../assets/icons/menu.svg" alt="" aria-hidden="true">
+            <img class="toolbar-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </summary>
           <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
             <div class="toolbar-submenu" data-toolbar-submenu>
               <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="territoryColorsSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="territoryColorsSubmenu">
                 <span class="toolbar-dropdown-label">Colors</span>
-                <img class="toolbar-submenu-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
+                <img class="toolbar-submenu-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
               </button>
               <div class="ui-menu toolbar-submenu-menu" id="territoryColorsSubmenu" role="menu" aria-label="Colors">
                 <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-radio-option" id="territoryColorDefaultOption" type="button" role="menuitemradio" aria-checked="true" data-color-mode="pastel">
@@ -116,7 +114,7 @@
             <div class="toolbar-submenu" data-toolbar-submenu>
               <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="territoryBordersSubmenuTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="territoryBordersSubmenu">
                 <span class="toolbar-dropdown-label">Borders</span>
-                <img class="toolbar-submenu-chevron" src="../cst/assets/chevron.svg" alt="" aria-hidden="true">
+                <img class="toolbar-submenu-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
               </button>
               <div class="ui-menu toolbar-submenu-menu" id="territoryBordersSubmenu" role="menu" aria-label="Borders">
                 <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territoryBordersToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
@@ -138,7 +136,7 @@
         </details>
         <span class="toolbar-divider" data-crossroad-workspace-control aria-hidden="true"></span>
         <label class="toolbar-search-btn toolbar-btn" data-crossroad-workspace-control for="territorySearchInput" role="search">
-          <img class="toolbar-asset-icon toolbar-search-icon" src="../cst/assets/search.svg" alt="" aria-hidden="true">
+          <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
           <input
             class="toolbar-search-input"
             id="territorySearchInput"
@@ -159,7 +157,7 @@
             <div class="territory-crossroad__search-intro">
               <p class="territory-crossroad__heading">Start a new search<br>or browse most popular territory searches</p>
               <form class="territory-crossroad__search" id="territoryCrossroadSearch" role="search" autocomplete="off" novalidate>
-                <img class="territory-crossroad__search-icon" src="../cst/assets/search.svg" alt="" aria-hidden="true">
+                <img class="territory-crossroad__search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
                 <input
                   class="territory-crossroad__search-input"
                   id="territoryCrossroadSearchInput"
@@ -185,7 +183,7 @@
                 ></div>
                 <button class="territory-crossroad__search-clear" id="territoryCrossroadSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
                 <button class="territory-crossroad__locate" id="territoryCrossroadLocate" type="button" aria-label="Find territories near my location" data-tooltip="Find my location">
-                  <img src="assets/target-me.svg" alt="" aria-hidden="true">
+                  <img src="../../assets/icons/target-me.svg" alt="" aria-hidden="true">
                 </button>
               </form>
               <p class="territory-crossroad__search-feedback" id="territoryCrossroadSearchFeedback" role="status" aria-live="polite" hidden></p>
@@ -195,14 +193,14 @@
               <div class="scope-toolbar">
                 <nav class="scope-tabs" aria-label="Popular search type">
                   <button class="scope-tab scope-tab--icon is-active" type="button" data-scope="all" aria-label="All">
-                    <img class="scope-tab-icon" src="assets/home.svg" alt="" aria-hidden="true">
+                    <img class="scope-tab-icon" src="../../assets/icons/home.svg" alt="" aria-hidden="true">
                   </button>
                   <span class="territory-crossroad__scope-tabs-divider" aria-hidden="true"></span>
                   <button class="scope-tab" type="button" data-scope="featured">Featured</button>
                   <button class="scope-tab" type="button" data-scope="saved">Saved</button>
                 </nav>
                 <label class="scope-search" for="territoryCrossroadPresetSearch" role="search">
-                  <img class="scope-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+                  <img class="scope-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
                   <input
                     class="scope-search-input"
                     id="territoryCrossroadPresetSearch"
@@ -241,12 +239,12 @@
         <section class="filter-section">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="true">
             <span>Location</span>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-check-group filter-location-actions">
             <button class="ui-control filter-location-link" id="searchWithinLocation" type="button">
               <span class="filter-location-link__icon" aria-hidden="true">
-                <img src="assets/target-me.svg" alt="">
+                <img src="../../assets/icons/target-me.svg" alt="">
               </span>
               <span>Find my location</span>
             </button>
@@ -286,7 +284,7 @@
                 aria-label="Location suggestions"
               ></div>
             </div>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </div>
           <p class="filter-location-search__feedback" id="locationFilterSearchFeedback" role="status" aria-live="polite" hidden></p>
           <div class="filter-radius-section" id="radiusFilterSection" aria-hidden="true">
@@ -319,33 +317,33 @@
         <section class="filter-section filter-section-collapsed">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Category</span>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-select-field">
             <select class="ui-select filter-field-select" id="categoryFilterSelect" aria-label="Select category" required>
               <option value="">Select category</option>
             </select>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </div>
         </section>
 
         <section class="filter-section filter-section-collapsed">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Franchise</span>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-select-field">
             <select class="ui-select filter-field-select" id="franchiseFilterSelect" aria-label="Select franchise" required>
               <option value="">Select franchise</option>
             </select>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </div>
         </section>
 
         <section class="filter-section filter-section-collapsed" id="geoLevelFilterSection" hidden>
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Geographic Level</span>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-check-group" role="group" aria-label="Geographic level">
             <label class="filter-check">
@@ -374,7 +372,7 @@
         <section class="filter-section filter-section-collapsed">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Territory status</span>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-check-group">
           <label class="filter-check is-checked">
@@ -398,7 +396,7 @@
         <section class="filter-section filter-section-collapsed filter-section--investment">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Initial investment</span>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-investment-range">
             <div class="filter-range-histogram" aria-hidden="true">
@@ -431,7 +429,7 @@
         <section class="filter-section filter-section-collapsed" id="franchiseeRatingFilterSection">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
             <span>Franchisee rating</span>
-            <img src="assets/chevron.svg" alt="" aria-hidden="true">
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-check-group filter-rating-group" role="radiogroup" aria-label="Franchisee rating">
             <label class="filter-check is-checked">
@@ -524,7 +522,7 @@
                 aria-label="Edit saved search"
                 hidden
               >
-                <img class="territory-saved-search-settings-btn__icon" src="assets/settings.svg" alt="" aria-hidden="true">
+                <img class="territory-saved-search-settings-btn__icon" src="../../assets/icons/settings.svg" alt="" aria-hidden="true">
                 Settings
               </button>
               <span class="territory-brand-panel__heading-divider" aria-hidden="true"></span>
@@ -534,19 +532,19 @@
                   aria-label="Sort by Nearest first"
                 >
                   <span class="territory-brand-panel__sort-label">Sort by</span>
-                  <img class="territory-brand-panel__sort-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+                  <img class="territory-brand-panel__sort-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
                 </summary>
                 <div class="ui-menu toolbar-dropdown-menu territory-brand-panel__sort-menu" role="menu" aria-label="Sort territories">
                   <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="true" data-sort="proximity">
-                    <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <img class="territory-brand-panel__sort-check" src="../../assets/icons/check.svg" alt="" aria-hidden="true">
                     <span class="toolbar-dropdown-label">Nearest first</span>
                   </button>
                   <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="alphabetical">
-                    <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <img class="territory-brand-panel__sort-check" src="../../assets/icons/check.svg" alt="" aria-hidden="true">
                     <span class="toolbar-dropdown-label">Name A–Z</span>
                   </button>
                   <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-sort="count">
-                    <img class="territory-brand-panel__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+                    <img class="territory-brand-panel__sort-check" src="../../assets/icons/check.svg" alt="" aria-hidden="true">
                     <span class="toolbar-dropdown-label">Most territories</span>
                   </button>
                 </div>
@@ -560,7 +558,7 @@
                 data-tooltip="Collapse all rows"
                 hidden
               >
-                <img src="assets/collapse.svg" alt="" aria-hidden="true">
+                <img src="../../assets/icons/collapse.svg" alt="" aria-hidden="true">
               </button>
             </div>
           </div>
@@ -588,7 +586,7 @@
         <article class="territory-info-card" id="territoryInfoCard" aria-labelledby="territoryAreaTitle" hidden>
           <div class="territory-info-card__controls">
             <button class="ui-control territory-info-card__back" id="territoryInfoBack" type="button" aria-label="Back to territory" hidden>
-              <img src="assets/chevron.svg" alt="" aria-hidden="true">
+              <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
             </button>
             <button class="ui-control territory-info-card__close" id="territoryInfoClose" type="button" aria-label="Close territory details"></button>
           </div>
@@ -722,8 +720,8 @@
   </main>
 
   <button class="map-pill map-pill-reset" id="territoryMapReset" type="button" hidden>
-    <img class="map-pill-reset__icon map-pill-reset__icon--search" src="../cst/assets/search.svg" alt="" aria-hidden="true">
-    <img class="map-pill-reset__icon map-pill-reset__icon--zoom" src="assets/zoom-in.svg" alt="" aria-hidden="true" width="18" height="18">
+    <img class="map-pill-reset__icon map-pill-reset__icon--search" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+    <img class="map-pill-reset__icon map-pill-reset__icon--zoom" src="../../assets/icons/zoom-in.svg" alt="" aria-hidden="true" width="18" height="18">
     <span class="map-pill-reset__label">Search this area</span>
   </button>
 
@@ -734,11 +732,11 @@
           <h2 class="target-modal-title save-search-modal-title" id="saveSearchModalTitle">Save search</h2>
           <div class="target-modal-header-actions">
             <button class="ui-control ui-button-ghost target-modal-delete" id="deleteSavedSearch" type="button" hidden>
-              <img class="target-modal-delete__icon" src="../cst/assets/delete.svg" alt="" aria-hidden="true" width="12" height="14">
+              <img class="target-modal-delete__icon" src="../../assets/icons/delete.svg" alt="" aria-hidden="true" width="12" height="14">
               Delete
             </button>
             <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close save-search-modal-close" type="button" aria-label="Close save search">
-              <img src="assets/close.svg" alt="" aria-hidden="true">
+              <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
             </button>
           </div>
         </div>
@@ -754,7 +752,7 @@
         <div class="modal-alerts" id="saveSearchAlerts">
           <div class="modal-alerts-row" id="saveSearchAlertsRow">
             <div class="modal-alerts-content">
-              <img class="modal-alerts-icon" src="assets/alert.svg" alt="" aria-hidden="true" width="16" height="16">
+              <img class="modal-alerts-icon" src="../../assets/icons/alert.svg" alt="" aria-hidden="true" width="16" height="16">
               <button class="modal-alerts-details" id="saveSearchAlertsDetails" type="button">
                 <span class="modal-alerts-label">Alerts</span>
                 <span class="modal-alerts-helper" id="saveSearchAlertsHelper">Notify me when results change</span>
@@ -816,7 +814,7 @@
           <h2 class="target-modal-title request-info-modal-title" id="requestInfoModalTitle">Request information</h2>
           <div class="target-modal-header-actions">
             <button class="ui-control ui-close-button owner-detail-close profile-modal-close target-modal-close request-info-modal-close" type="button" aria-label="Close request information">
-              <img src="assets/close.svg" alt="" aria-hidden="true">
+              <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
             </button>
           </div>
         </div>
@@ -854,7 +852,7 @@
                   <span class="request-info-territory-brand" id="requestInfoTerritoryBrand"></span>
                   <span class="request-info-territory-name" id="requestInfoTerritoryName"></span>
                 </span>
-                <img class="request-info-territory-chevron" src="assets/chevron.svg" alt="">
+                <img class="request-info-territory-chevron" src="../../assets/icons/chevron.svg" alt="">
               </span>
               <select class="request-info-territory-select" id="requestInfoTerritory" name="territory" required></select>
             </span>
@@ -869,7 +867,7 @@
         <div class="save-search-view save-search-view--success" id="requestInfoSuccessView" hidden>
           <div class="save-search-success">
             <span class="save-search-success__icon" aria-hidden="true">
-              <img src="assets/check.svg" alt="">
+              <img src="../../assets/icons/check.svg" alt="">
             </span>
             <h2 class="target-modal-title save-search-success__title" id="requestInfoSuccessTitle">Inquiry sent</h2>
             <p class="save-search-success__copy" id="requestInfoSuccessCopy">The brand owner will follow up with you shortly.</p>

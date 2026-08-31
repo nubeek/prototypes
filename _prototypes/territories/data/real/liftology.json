@@ -3,7 +3,7 @@
   "brand": "Liftology",
   "category": "Healthcare Services",
   "color": "#FE5501",
-  "logo": "assets/logos/liftology.jpg",
+  "logo": "../../assets/logos/franchises/liftology.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

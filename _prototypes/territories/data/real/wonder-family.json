@@ -3,7 +3,7 @@
   "brand": "Wonder Family",
   "category": "Ecommerce",
   "color": "#4338CA",
-  "logo": "assets/logos/wonder-family.jpg",
+  "logo": "../../assets/logos/franchises/wonder-family.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

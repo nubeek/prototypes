@@ -3,7 +3,7 @@
   "brand": "See and Be Kitchen",
   "category": "Food and Beverage",
   "color": "#377A5C",
-  "logo": "assets/logos/see-and-be-kitchen.jpg",
+  "logo": "../../assets/logos/franchises/see-and-be-kitchen.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 622450,

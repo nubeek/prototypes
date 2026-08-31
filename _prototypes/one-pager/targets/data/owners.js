@@ -222,44 +222,44 @@ window.ownersData = [
 ];
 
 const ownerLogoFilenames = [
-  "united_fp",
-  "argonne_capital",
-  "trilantic_capital_management",
-  "olympus_partners",
+  "united-fp",
+  "argonne-capital",
+  "trilantic-capital-management",
+  "olympus-partners",
   "towerbrook",
-  "planet_fitness_corporate",
-  "baseline_mayfair",
-  "black_duck_partners",
-  "easy_mile_fitness",
-  "epic_fitness",
-  "flynn_fitness",
-  "ohana_growth_partners",
+  "planet-fitness-corporate",
+  "baseline-mayfair",
+  "black-duck-partners",
+  "easy-mile-fitness",
+  "epic-fitness",
+  "flynn-fitness",
+  "ohana-growth-partners",
   "pinnacle",
   "sbj",
-  "york_capital_management",
-  "united_fp",
+  "york-capital-management",
+  "united-fp",
   "towerbrook",
-  "argonne_capital",
-  "olympus_partners",
-  "trilantic_capital_management"
+  "argonne-capital",
+  "olympus-partners",
+  "trilantic-capital-management"
 ];
 
 const ownerNameByLogoFilename = {
-  united_fp: "United FP",
-  argonne_capital: "Argonne Capital",
-  trilantic_capital_management: "Trilantic Capital Management",
-  olympus_partners: "Olympus Partners",
+  "united-fp": "United FP",
+  "argonne-capital": "Argonne Capital",
+  "trilantic-capital-management": "Trilantic Capital Management",
+  "olympus-partners": "Olympus Partners",
   towerbrook: "TowerBrook",
-  planet_fitness_corporate: "Planet Fitness Corporate",
-  baseline_mayfair: "Baseline Mayfair",
-  black_duck_partners: "Black Duck Partners",
-  easy_mile_fitness: "Easy Mile Fitness",
-  epic_fitness: "Epic Fitness",
-  flynn_fitness: "Flynn Fitness",
-  ohana_growth_partners: "Ohana Growth Partners",
+  "planet-fitness-corporate": "Planet Fitness Corporate",
+  "baseline-mayfair": "Baseline Mayfair",
+  "black-duck-partners": "Black Duck Partners",
+  "easy-mile-fitness": "Easy Mile Fitness",
+  "epic-fitness": "Epic Fitness",
+  "flynn-fitness": "Flynn Fitness",
+  "ohana-growth-partners": "Ohana Growth Partners",
   pinnacle: "Pinnacle",
   sbj: "SBJ",
-  york_capital_management: "York Capital Management"
+  "york-capital-management": "York Capital Management"
 };
 
 const ownerContactEnrichment = [
@@ -302,7 +302,7 @@ window.ownersData = window.ownersData.map((owner, index) => {
     ...owner,
     ...enrichment,
     ownerName,
-    logoSrc: `assets/logos/${logoFilename}.jpg`,
+    logoSrc: `../../../assets/logos/franchisees/${logoFilename}.jpg`,
     logoAlt: `${ownerName} logo`,
     hasWebsite: owner.webEnabled,
     hasLinkedin: owner.linkedinEnabled

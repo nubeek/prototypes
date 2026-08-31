@@ -3,7 +3,7 @@
   "brand": "Area 2 Farms",
   "category": "Other Businesses",
   "color": "#025A5B",
-  "logo": "assets/logos/area-2-farms.jpg",
+  "logo": "../../assets/logos/franchises/area-2-farms.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 389500,

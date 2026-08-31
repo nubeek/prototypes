@@ -56,28 +56,28 @@
 
         <div class="target-detail-actions" aria-label="Target actions">
           <button class="target-detail-action-btn" type="button">
-            <img class="target-detail-action-icon target-detail-export-icon" src="assets/export-csv.svg" alt="" aria-hidden="true">
+            <img class="target-detail-action-icon target-detail-export-icon" src="../../../assets/icons/export-csv.svg" alt="" aria-hidden="true">
             <span>Export</span>
           </button>
           <button class="target-detail-action-btn" type="button">
-            <img class="target-detail-action-icon target-detail-filters-icon" src="assets/filters.svg" alt="" aria-hidden="true">
+            <img class="target-detail-action-icon target-detail-filters-icon" src="../../../assets/icons/filters.svg" alt="" aria-hidden="true">
             <span>Filters</span>
           </button>
           <span class="target-detail-action-divider" aria-hidden="true"></span>
           <details class="toolbar-dropdown" id="targetToolbarMenuDropdown">
             <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
-              <img class="toolbar-asset-icon" src="assets/menu.svg" alt="" aria-hidden="true">
-              <img class="toolbar-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+              <img class="toolbar-asset-icon" src="../../../assets/icons/menu.svg" alt="" aria-hidden="true">
+              <img class="toolbar-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true">
             </summary>
             <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
               <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="changesToggleOption" type="button" role="menuitemcheckbox" aria-checked="true">
-                <img class="toolbar-dropdown-icon" id="changesToggleIcon" src="assets/hide.svg" alt="" aria-hidden="true">
+                <img class="toolbar-dropdown-icon" id="changesToggleIcon" src="../../../assets/icons/hide.svg" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label" id="changesToggleLabel">Hide changes</span>
               </button>
             </div>
           </details>
           <button class="target-detail-search-btn" type="button" aria-label="Search">
-            <img class="target-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+            <img class="target-search-icon" src="../../../assets/icons/search.svg" alt="" aria-hidden="true">
           </button>
         </div>
       </div>
@@ -98,12 +98,12 @@
               <button class="mark-read" id="markRead">Mark all read</button>
               <div class="pager">
                 <button class="circle-btn" id="prevChange" aria-label="Previous update" title="Previous update">
-                  <img class="nav-chevron nav-chevron-left" src="assets/chevron.svg" alt="" aria-hidden="true">
+                  <img class="nav-chevron nav-chevron-left" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true">
                 </button>
                 <span class="pager-divider" aria-hidden="true"></span>
                 <!-- <span class="change-position" id="changePosition">1 / 4</span> -->
                 <button class="circle-btn" id="nextChange" aria-label="Next update" title="Next update">
-                  <img class="nav-chevron nav-chevron-right" src="assets/chevron.svg" alt="" aria-hidden="true">
+                  <img class="nav-chevron nav-chevron-right" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true">
                 </button>
               </div>
             </div>
@@ -114,11 +114,11 @@
           <table>
             <thead>
               <tr>
-                <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 31%"><span class="th-content">Name <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-                <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 31%"><span class="th-content">Contact <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-                <th class="sortable-header" id="modeColumnHeader" data-sort-key="contactCount" aria-sort="none" style="width: 12%"><span class="th-content">Contacts <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-                <th class="sortable-header" id="locationsColumnHeader" data-sort-key="unitCount" aria-sort="descending" style="width: 12%"><span class="th-content">Units <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
-                <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 14%"><span class="th-content">Franchises <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="ownerColumnHeader" data-sort-key="ownerName" aria-sort="none" style="width: 31%"><span class="th-content">Name <img class="th-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="contactColumnHeader" data-sort-key="contactName" aria-sort="none" style="width: 31%"><span class="th-content">Contact <img class="th-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="modeColumnHeader" data-sort-key="contactCount" aria-sort="none" style="width: 12%"><span class="th-content">Contacts <img class="th-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="locationsColumnHeader" data-sort-key="unitCount" aria-sort="descending" style="width: 12%"><span class="th-content">Units <img class="th-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span></th>
+                <th class="sortable-header" id="franchiseColumnHeader" data-sort-key="franchise" aria-sort="none" style="width: 14%"><span class="th-content">Franchises <img class="th-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span></th>
               </tr>
             </thead>
             <tbody id="ownersTableBody"></tbody>

@@ -3,7 +3,7 @@
   "brand": "Tony Roma's Bones & Burgers®",
   "category": "Food and Beverage",
   "color": "#BA7C81",
-  "logo": "assets/logos/tony-romas-bones-burgers.jpg",
+  "logo": "../../assets/logos/franchises/tony-romas-bones-burgers.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 30000,

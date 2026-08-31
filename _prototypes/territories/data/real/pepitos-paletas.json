@@ -3,7 +3,7 @@
   "brand": "Pepitos Paletas",
   "category": "Food and Beverage",
   "color": "#E45E7F",
-  "logo": "assets/logos/pepitos-paletas.jpg",
+  "logo": "../../assets/logos/franchises/pepitos-paletas.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

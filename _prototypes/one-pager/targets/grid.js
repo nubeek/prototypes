@@ -145,7 +145,7 @@ function targetCard(target) {
         <div class="target-prospects-row">
           <span class="target-number">${target.prospects.toLocaleString("en")}</span>
           ${getAddedBadge(target.added)}
-          <img class="target-chevron" src="assets/chevron.svg" alt="" aria-hidden="true">
+          <img class="target-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true">
         </div>
       </div>
     </a>

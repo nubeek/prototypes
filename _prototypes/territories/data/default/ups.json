@@ -3,7 +3,7 @@
   "brand": "UPS",
   "category": "Logistics",
   "color": "#351C15",
-  "logo": "assets/logos/ups.jpg",
+  "logo": "../../assets/logos/franchises/ups.jpg",
   "country": "US",
   "level": "state",
   "initialInvestment": 275000,

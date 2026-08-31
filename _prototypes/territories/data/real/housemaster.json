@@ -3,7 +3,7 @@
   "brand": "Housemaster",
   "category": "Home & Services",
   "color": "#009578",
-  "logo": "assets/logos/housemaster.png",
+  "logo": "../../assets/logos/franchises/housemaster.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 42500,

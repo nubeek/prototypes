@@ -29,32 +29,32 @@ const ORG_OPENING_SCROLL_OFFSET_PX = 20;
 const ORG_OPENING_SCROLL_DURATION_MS = 620;
 
 const franchiseLogoFileOverrides = {
-  "Anytime Fitness": "anytime_fitness.svg",
-  "F45 Training": "f45_training.svg",
+  "Anytime Fitness": "anytime-fitness.png",
+  "F45 Training": "f45-training.svg",
   "OrangeTheory Fitness": "orangetheory.jpg",
-  "Crumbl Cookies": "crumbl_cookies.png",
-  "The Learning Experience": "the_learning_experience.png",
+  "Crumbl Cookies": "crumbl-cookies.png",
+  "The Learning Experience": "the-learning-experience.png",
   "Drybar": "drybar.png",
-  "Ace Handyman Services": "ace_handyman_services.png",
+  "Ace Handyman Services": "ace-handyman-services.png",
   "StretchLab": "stretchlab.png",
   "Mathnasium": "mathnasium.png",
   "MaidPro": "maidpro.png",
-  "Wendy's": "wendys.png",
+  "Wendy's": "wendys.jpg",
   "Chili's": "chilis.png",
-  "Papa John's": "papa_johns.png",
-  "Five Guys": "five_guys.png",
-  "Krispy Kreme": "krispy_kreme.png",
-  "Jimmy John's": "jimmy_johns.png",
-  "Dunkin'": "dunkin.png",
-  "Blaze Pizza": "blaze_pizza.png",
-  "Outback Steakhouse": "outback_steakhouse.png",
-  "Smoothie King": "smoothie_king.png",
+  "Papa John's": "papa-johns.png",
+  "Five Guys": "five-guys.png",
+  "Krispy Kreme": "krispy-kreme.png",
+  "Jimmy John's": "jimmy-johns.png",
+  "Dunkin'": "dunkin.jpg",
+  "Blaze Pizza": "blaze-pizza.png",
+  "Outback Steakhouse": "outback-steakhouse.png",
+  "Smoothie King": "smoothie-king.png",
   "Starbucks": "starbucks.png",
   "Qdoba": "qdoba.png",
-  "Title Boxing Club": "title_boxing_club.png",
-  "Popeyes Louisiana Kitchen": "popeyes_louisiana_kitchen.png",
-  "Tropical Smoothie Cafe": "tropical_smoothie_cafe.png",
-  "Aussie Pet Mobile": "aussie_pet_mobile.png"
+  "Title Boxing Club": "title-boxing-club.png",
+  "Popeyes Louisiana Kitchen": "popeyes-louisiana-kitchen.jpg",
+  "Tropical Smoothie Cafe": "tropical-smoothie-cafe.png",
+  "Aussie Pet Mobile": "aussie-pet-mobile.png"
 };
 
 let sortState = {
@@ -80,24 +80,18 @@ function getInitials(name, maxLetters = 2) {
     .toUpperCase();
 }
 
-function normalizeCstAssetPath(path) {
-  if (!path) return "";
-  if (path.startsWith("assets/")) return `../cst/${path}`;
-  return path;
-}
-
 function getFranchiseSlug(franchiseName) {
   return String(franchiseName || "")
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/'/g, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function getFranchiseLogoSrc(franchiseName) {
   const logoFileName = franchiseLogoFileOverrides[franchiseName] || `${getFranchiseSlug(franchiseName)}.jpg`;
-  return `../cst/assets/franchises/${logoFileName}`;
+  return `../../assets/logos/franchises/${logoFileName}`;
 }
 
 function getOwnerFranchises(owner) {
@@ -137,8 +131,8 @@ function normalizeOwner(owner, sourceIndex) {
   const contactCount = getOwnerContactCount(owner);
   const unitCount = getOwnerUnitCount(owner);
   const logoAsset = owner.logoAsset || (owner.logoFilename ? `${owner.logoFilename}.jpg` : "");
-  const logoPath = owner.logoSrc ?? (logoAsset ? `assets/logos/${logoAsset}` : "");
-  const logoSrc = useOwnerImageLogos ? normalizeCstAssetPath(logoPath) : "";
+  const logoPath = owner.logoSrc ?? (logoAsset ? `../../assets/logos/franchisees/${String(logoAsset).replaceAll("_", "-")}` : "");
+  const logoSrc = useOwnerImageLogos ? logoPath : "";
 
   return {
     ...owner,
@@ -468,7 +462,7 @@ function syncOrgCollapsedUi(ownerIndex, nodeId) {
       if (toggleButton.classList.contains("org-collapse-button")) {
         toggleButton.innerHTML = `
           ${isCollapsed ? "Expand" : "Collapse"}
-          <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
         `;
       }
     });
@@ -513,7 +507,7 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null, rowIn
           aria-label="${isCollapsed ? "Expand" : "Collapse"} reports for ${node.name}"
         >
           ${directReportCount}
-          <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
         </button>
       ` : ""}
     </article>
@@ -538,7 +532,7 @@ function getOrgBranchHeader(node, ownerIndex) {
         aria-label="${isCollapsed ? "Expand" : "Collapse"} reports for ${node.name}"
       >
         ${isCollapsed ? "Expand" : "Collapse"}
-        <img src="assets/chevron.svg" alt="" aria-hidden="true">
+        <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
       </button>
     </div>
   `;
@@ -1034,7 +1028,7 @@ function renderOwnerDetail(owner) {
 
       <div class="profile-modal-actions">
         <button class="ui-control ui-button ui-button-primary owner-org-chart-toggle ${isOrgChartOpen ? "is-active" : ""}" type="button">
-          <img src="assets/orgchart.svg" alt="" aria-hidden="true">
+          <img src="../../assets/icons/orgchart.svg" alt="" aria-hidden="true">
           ${orgChartActionLabel}
         </button>
         <button class="ui-control ui-button ui-button-secondary profile-modal-secondary" type="button">Close</button>
@@ -1335,7 +1329,7 @@ function closeToolbarDropdowns(exceptDropdown = null) {
 
 if (changeNav) changeNav.hidden = true;
 if (changesToggleOption) changesToggleOption.hidden = true;
-if (changesToggleIcon) changesToggleIcon.src = "assets/unhide.svg";
+if (changesToggleIcon) changesToggleIcon.src = "../../assets/icons/unhide.svg";
 if (changesToggleLabel) changesToggleLabel.textContent = "No changes";
 
 sortHeaders.forEach((header) => {

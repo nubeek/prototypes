@@ -3,7 +3,7 @@
   "brand": "McDonald's",
   "category": "Food & Beverage",
   "color": "#FFC72C",
-  "logo": "assets/logos/mcdonalds.jpg",
+  "logo": "../../assets/logos/franchises/mcdonalds.jpg",
   "country": "US",
   "level": "state",
   "initialInvestment": 2250000,

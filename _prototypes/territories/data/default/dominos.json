@@ -3,7 +3,7 @@
   "brand": "Domino's",
   "category": "Food & Beverage",
   "color": "#006491",
-  "logo": "assets/logos/dominos.jpg",
+  "logo": "../../assets/logos/franchises/dominos.jpg",
   "country": "US",
   "level": "state",
   "initialInvestment": 375000,

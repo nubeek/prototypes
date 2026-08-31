@@ -3,7 +3,7 @@
   "brand": "Pizza Factory",
   "category": "Food and Beverage",
   "color": "#3B7C37",
-  "logo": "assets/logos/pizza-factory.jpg",
+  "logo": "../../assets/logos/franchises/pizza-factory.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 529000,

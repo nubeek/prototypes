@@ -3,7 +3,7 @@
   "brand": "Play Street Museum",
   "category": "Youth Enrichment",
   "color": "#1B2B4B",
-  "logo": "assets/logos/play-street-museum.png",
+  "logo": "../../assets/logos/franchises/play-street-museum.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 621331,

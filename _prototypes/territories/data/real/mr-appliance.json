@@ -3,7 +3,7 @@
   "brand": "Mr. Appliance",
   "category": "Home & Services",
   "color": "#005FAD",
-  "logo": "assets/logos/mr-appliance.png",
+  "logo": "../../assets/logos/franchises/mr-appliance.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 159050,

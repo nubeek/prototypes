@@ -1043,14 +1043,14 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   height: 20px;
   flex: 0 0 auto;
   background-color: currentColor;
-  -webkit-mask: url("assets/leads-add.svg") center / contain no-repeat;
-  mask: url("assets/leads-add.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/leads-add.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/leads-add.svg") center / contain no-repeat;
 }
 
 .profile-modal-primary.is-saved::before,
 .owner-detail-contact-lead-action.is-saved::before {
-  -webkit-mask: url("assets/leads-remove.svg") center / contain no-repeat;
-  mask: url("assets/leads-remove.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/leads-remove.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/leads-remove.svg") center / contain no-repeat;
 }
 
 .save-lead-modal-overlay {
@@ -1391,8 +1391,8 @@ body.reduce-motion .campaign-design-preview__empty-label {
   width: 16px;
   height: 16px;
   background: var(--color-brand);
-  -webkit-mask: url("assets/info.svg") center / contain no-repeat;
-  mask: url("assets/info.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/info.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/info.svg") center / contain no-repeat;
 }
 
 .campaign-sender-auth-notice__content {
@@ -1643,8 +1643,8 @@ body.reduce-motion .save-lead-note {
   height: 15px;
   flex: 0 0 auto;
   background: currentColor;
-  -webkit-mask: url("assets/notes.svg") center / contain no-repeat;
-  mask: url("assets/notes.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/notes.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/notes.svg") center / contain no-repeat;
 }
 
 .save-lead-note-field {
@@ -4657,7 +4657,7 @@ tbody tr.is-checked:hover td:first-child {
   content: "";
   width: 10px;
   height: 10px;
-  background: url("assets/check.svg") center / contain no-repeat;
+  background: url("../../assets/icons/check.svg") center / contain no-repeat;
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -4898,8 +4898,8 @@ tbody tr.is-checked:hover td:first-child {
   width: 16px;
   height: 15px;
   background-color: currentColor;
-  -webkit-mask: url("assets/hide.svg") center / contain no-repeat;
-  mask: url("assets/hide.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/hide.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/hide.svg") center / contain no-repeat;
 }
 
 .contact-hide-results-action {
@@ -4917,16 +4917,16 @@ tbody tr.is-checked:hover td:first-child {
   height: 20px;
   transform: translateX(1px);
   background-color: currentColor;
-  -webkit-mask: url("assets/leads-add.svg") center / contain no-repeat;
-  mask: url("assets/leads-add.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/leads-add.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/leads-add.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action.is-saved::before {
   width: 16px;
   height: 20px;
   transform: translateY(1px) translateX(1px);
-  -webkit-mask: url("assets/leads-default.svg") center / contain no-repeat;
-  mask: url("assets/leads-default.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/leads-default.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/leads-default.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action.is-saved:hover::before,
@@ -4934,8 +4934,8 @@ tbody tr.is-checked:hover td:first-child {
   width: 16px;
   height: 20px;
   transform: translateX(1px);
-  -webkit-mask: url("assets/leads-remove.svg") center / contain no-repeat;
-  mask: url("assets/leads-remove.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/leads-remove.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/leads-remove.svg") center / contain no-repeat;
 }
 
 .contact-hide-results-action::after,
@@ -5002,8 +5002,8 @@ tbody tr.is-checked:hover td:first-child {
 .contact-hide-results-action.is-hidden:hover::before,
 .contact-hide-results-action.is-hidden:focus-visible::before {
   height: 11px;
-  -webkit-mask: url("assets/unhide.svg") center / contain no-repeat;
-  mask: url("assets/unhide.svg") center / contain no-repeat;
+  -webkit-mask: url("../../assets/icons/unhide.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/unhide.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action.is-saved {

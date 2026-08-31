@@ -3,7 +3,7 @@
   "brand": "Bay Area Kids Rentals",
   "category": "Youth Enrichment",
   "color": "#D6A129",
-  "logo": "assets/logos/bay-area-kids-rentals.jpg",
+  "logo": "../../assets/logos/franchises/bay-area-kids-rentals.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 144000,

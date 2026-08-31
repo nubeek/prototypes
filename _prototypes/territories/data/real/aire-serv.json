@@ -3,7 +3,7 @@
   "brand": "Aire Serv",
   "category": "Home & Services",
   "color": "#E32324",
-  "logo": "assets/logos/aire-serv.png",
+  "logo": "../../assets/logos/franchises/aire-serv.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 180195,

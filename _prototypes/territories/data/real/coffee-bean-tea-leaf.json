@@ -3,7 +3,7 @@
   "brand": "Coffee Bean & Tea Leaf",
   "category": "Food and Beverage",
   "color": "#4A2C6A",
-  "logo": "assets/logos/coffee-bean-tea-leaf.png",
+  "logo": "../../assets/logos/franchises/coffee-bean-tea-leaf.png",
   "country": "US",
   "level": "geo",
   "franchiseeRating": 0,

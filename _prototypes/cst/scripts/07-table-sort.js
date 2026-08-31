@@ -56,7 +56,7 @@ function getContactsColumn(owner) {
       aria-label="Show ${owner.ownerName} contacts"
     >
       <span>${getOwnerContactCount(owner)}</span>
-      <img class="contact-chevron" src="assets/arrows.svg" alt="" aria-hidden="true">
+      <img class="contact-chevron" src="../../assets/icons/arrows.svg" alt="" aria-hidden="true">
     </button>
   `;
 }
@@ -222,7 +222,7 @@ const prospectDatasetTableOptions = Object.entries(window.prospectDatasetsData |
     ...options,
     [view]: {
       label: dataset.label || view,
-      icon: "assets/dataset.svg?v=2"
+      icon: "../../assets/icons/dataset.svg?v=2"
     }
   }),
   {}
@@ -230,11 +230,11 @@ const prospectDatasetTableOptions = Object.entries(window.prospectDatasetsData |
 const TABLE_VIEW_OPTIONS = {
   franchisees: {
     label: "Franchisees",
-    icon: "assets/owners.svg"
+    icon: "../../assets/icons/owners.svg"
   },
   locations: {
     label: "Locations",
-    icon: "assets/dataset.svg?v=2"
+    icon: "../../assets/icons/dataset.svg?v=2"
   },
   ...prospectDatasetTableOptions
 };
@@ -377,7 +377,7 @@ function syncFranchiseeHeaderCheckboxState(rows = displayedFranchisees) {
 }
 
 function getSortableHeaderMarkup(label) {
-  return `<span class="th-content">${label} <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span>`;
+  return `<span class="th-content">${label} <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>`;
 }
 
 function setMainTableHeader(header, { label, sortKey, width }) {
@@ -543,7 +543,7 @@ function renderFranchisees(rows) {
               aria-label="Show ${owner.ownerName} locations on the map"
             >
               <span>${getOwnerUnitCount(owner)}</span>
-              <img class="location-chevron" src="assets/arrows.svg" alt="" aria-hidden="true">
+              <img class="location-chevron" src="../../assets/icons/arrows.svg" alt="" aria-hidden="true">
             </button>
           </td>
           <td>${getFranchiseLogosColumn(owner)}</td>
@@ -1076,7 +1076,7 @@ function renderTableHeadingSortOptions(tableView = currentTableView) {
   const activeKey = getActiveTableHeadingSortKey();
   menu.innerHTML = getTableHeadingSortOptions(tableView).map((option) => `
     <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="${option.key === activeKey}" data-sort="${option.key}">
-      <img class="table-heading__sort-check" src="assets/check.svg" alt="" aria-hidden="true">
+      <img class="table-heading__sort-check" src="../../assets/icons/check.svg" alt="" aria-hidden="true">
       <span class="toolbar-dropdown-label">${option.label}</span>
     </button>
   `).join("");

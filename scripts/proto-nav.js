@@ -189,7 +189,7 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   const PROTOTYPES_PREFIX = "/_prototypes";
   const ITEMS = [
     { id: "home", label: "Home", icon: "home.svg", href: "/_prototypes/" },
-    { id: "prospects", label: "Prospects", icon: "prospects.svg", href: "/_prototypes/cst/" },
+    { id: "prospects", label: "Prospects", icon: "nav-prospects.svg", href: "/_prototypes/cst/" },
     { id: "territories", label: "Territories", icon: "territories.svg", href: "/_prototypes/territories/" },
     { id: "financial-modeling", label: "Financial Modeling", icon: "financial-modeling.svg", href: "/_prototypes/financial-modeling/" },
   ];
@@ -199,6 +199,7 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
     { id: "financial-modeling", label: "Financial Modeling", href: "/_prototypes/financial-modeling/" },
     { id: "targets", label: "Targets", href: "/_prototypes/targets/" },
     { id: "one-pager", label: "One Pager", href: "/_prototypes/one-pager/" },
+    { id: "logos", label: "Logo Collection", href: "/logos/" },
   ];
   const STYLES = `
 .proto-nav,
@@ -914,6 +915,7 @@ iframe[data-proto-nav-shell].is-fading {
   const normalizePath = (value) => value.replace(/\/index\.html$/, "").replace(/\/$/, "") || "/";
 
   const matchActiveId = (pathname) => {
+    if (/\/logos(?:\/|$)/.test(pathname)) return "logos";
     if (/\/one-pager(?:\/|$)/.test(pathname)) return "one-pager";
     if (/\/financial-modeling(?:\/|$)/.test(pathname)) return "financial-modeling";
     if (/\/territories(?:\/|$)/.test(pathname)) return "territories";
@@ -1859,7 +1861,7 @@ iframe[data-proto-nav-shell].is-fading {
           id: SCREENSHOT_TAKE_SETTING_ID,
           type: "action",
           label: "Take screenshot",
-          icon: resolveUrl("/assets/screenshot.svg"),
+          icon: resolveUrl("/assets/icons/screenshot.svg"),
           disabled: screenshotInProgress,
         },
         { type: "divider" },
@@ -1999,7 +2001,7 @@ iframe[data-proto-nav-shell].is-fading {
 
       const chevron = document.createElement("img");
       chevron.className = "proto-nav__settings-chevron";
-      chevron.src = resolveUrl("/assets/chevron.svg");
+      chevron.src = resolveUrl("/assets/icons/chevron.svg");
       chevron.alt = "";
       chevron.setAttribute("aria-hidden", "true");
       trigger.append(createSettingsLabel(item.label), chevron);
@@ -2443,7 +2445,7 @@ iframe[data-proto-nav-shell].is-fading {
   const createNavIcon = (item) => {
     const icon = document.createElement("img");
     icon.className = "proto-nav__icon";
-    icon.src = resolveUrl(`/assets/${item.icon}`);
+    icon.src = resolveUrl(`/assets/icons/${item.icon}`);
     icon.alt = "";
     icon.decoding = "sync";
     icon.setAttribute("aria-hidden", "true");
@@ -2456,7 +2458,7 @@ iframe[data-proto-nav-shell].is-fading {
     menu.setAttribute("role", "menu");
     menu.setAttribute("aria-label", "Prototype pages");
 
-    const checkSrc = resolveUrl("/assets/check.svg");
+    const checkSrc = resolveUrl("/assets/icons/check.svg");
 
     HOME_PAGES.forEach((page) => {
       const option = document.createElement("a");

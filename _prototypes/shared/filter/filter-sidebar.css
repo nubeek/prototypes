@@ -899,7 +899,7 @@
 
 .filter-combobox-option.is-selected .filter-combobox-option-check {
   opacity: 1;
-  background: url("../../cst/assets/check.svg") center / contain no-repeat;
+  background: url("../../../assets/icons/check.svg") center / contain no-repeat;
 }
 
 .filter-combobox-option.is-selected .filter-combobox-option-label {
@@ -1041,7 +1041,7 @@
   content: "";
   width: 10px;
   height: 10px;
-  background: url("../../cst/assets/check.svg") center / contain no-repeat;
+  background: url("../../../assets/icons/check.svg") center / contain no-repeat;
   opacity: 0;
   transition: opacity .12s ease;
 }
@@ -1054,7 +1054,7 @@
   content: "";
   width: 10px;
   height: 10px;
-  background: url("../../cst/assets/check.svg") center / contain no-repeat;
+  background: url("../../../assets/icons/check.svg") center / contain no-repeat;
   opacity: 0;
   transition: opacity .12s ease;
 }
@@ -1112,8 +1112,8 @@
   height: 18px;
   flex: 0 0 auto;
   background-color: #d2d2d2;
-  -webkit-mask: url("assets/star.svg") center / contain no-repeat;
-  mask: url("assets/star.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/star.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/star.svg") center / contain no-repeat;
 }
 
 @media (max-width: 1480px) {

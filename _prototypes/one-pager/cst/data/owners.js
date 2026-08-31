@@ -5,7 +5,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: null,
     unitCount: 281,
-    logoFilename: "planet_fitness_corporate",
+    logoFilename: "planet-fitness-corporate",
     webEnabled: true,
     linkedinEnabled: false
   },
@@ -15,7 +15,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 14,
     unitCount: 209,
-    logoFilename: "argonne_capital",
+    logoFilename: "argonne-capital",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -25,7 +25,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 107,
     unitCount: 196,
-    logoFilename: "united_fp",
+    logoFilename: "united-fp",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -35,7 +35,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 41,
     unitCount: 189,
-    logoFilename: "trilantic_capital_management",
+    logoFilename: "trilantic-capital-management",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -45,7 +45,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 26,
     unitCount: 179,
-    logoFilename: "olympus_partners",
+    logoFilename: "olympus-partners",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -65,7 +65,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 18,
     unitCount: 134,
-    logoFilename: "black_duck_partners",
+    logoFilename: "black-duck-partners",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -75,7 +75,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 4,
     unitCount: 130,
-    logoFilename: "baseline_mayfair",
+    logoFilename: "baseline-mayfair",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -104,7 +104,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: null,
     unitCount: 98,
-    logoAsset: "grand_fitness_partners.png",
+    logoAsset: "grand-fitness-partners.png",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -114,7 +114,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 13,
     unitCount: 97,
-    logoFilename: "york_capital_management",
+    logoFilename: "york-capital-management",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -134,7 +134,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 9,
     unitCount: 74,
-    logoFilename: "easy_mile_fitness",
+    logoFilename: "easy-mile-fitness",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -144,7 +144,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: null,
     unitCount: 69,
-    logoFilename: "epic_fitness",
+    logoFilename: "epic-fitness",
     webEnabled: true,
     linkedinEnabled: true
   },
@@ -199,7 +199,7 @@ const ownerSeedRows = [
     franchiseNames: ["Planet Fitness"],
     contactCount: 8,
     unitCount: 43,
-    logoFilename: "flynn_fitness",
+    logoFilename: "flynn-fitness",
     webEnabled: true,
     linkedinEnabled: true
   }
@@ -391,7 +391,7 @@ window.ownersData = getDedupedOwnerSeeds(ownerSeedRows).map((owner, index) => {
     hasPrimaryContact,
     franchise: franchises.join(", "),
     franchises,
-    logoSrc: logoAsset ? `assets/logos/${logoAsset}` : "",
+    logoSrc: logoAsset ? `../../../assets/logos/franchisees/${logoAsset}` : "",
     logoAlt: `${owner.ownerName} logo`,
     hasWebsite: owner.webEnabled,
     hasLinkedin: owner.linkedinEnabled

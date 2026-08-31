@@ -3,7 +3,7 @@
   "brand": "Black Sheep Coffee",
   "category": "Food and Beverage",
   "color": "#E8DFB8",
-  "logo": "assets/logos/black-sheep-coffee.jpg",
+  "logo": "../../assets/logos/franchises/black-sheep-coffee.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 1015000,

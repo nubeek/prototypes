@@ -205,7 +205,7 @@ function syncOrgCollapsedUi(ownerIndex, nodeId) {
       if (toggleButton.classList.contains("org-collapse-button")) {
         toggleButton.innerHTML = `
           ${isCollapsed ? "Expand" : "Collapse"}
-          <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
         `;
       }
     });
@@ -249,7 +249,7 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
           aria-label="${isCollapsed ? "Expand" : "Collapse"} reports for ${node.name}"
         >
           ${directReportCount}
-          <img src="assets/chevron.svg" alt="" aria-hidden="true">
+          <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
         </button>
       ` : ""}
     </article>
@@ -274,7 +274,7 @@ function getOrgBranchHeader(node, ownerIndex) {
         aria-label="${isCollapsed ? "Expand" : "Collapse"} reports for ${node.name}"
       >
         ${isCollapsed ? "Expand" : "Collapse"}
-        <img src="assets/chevron.svg" alt="" aria-hidden="true">
+        <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
       </button>
     </div>
   `;
@@ -347,7 +347,7 @@ function getOwnerSearchFieldMarkup() {
   return `
     <div class="owner-search" data-owner-search>
       <div class="owner-search-field">
-        <img class="owner-search-icon" src="assets/search.svg" alt="" aria-hidden="true">
+        <img class="owner-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
         <input
           type="text"
           class="owner-search-input"

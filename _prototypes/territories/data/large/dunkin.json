@@ -3,7 +3,7 @@
   "brand": "Dunkin'",
   "category": "Food & Beverage",
   "color": "#FF671F",
-  "logo": "assets/logos/dunkin.jpg",
+  "logo": "../../assets/logos/franchises/dunkin.jpg",
   "country": "US",
   "level": "county",
   "initialInvestment": 1150000,

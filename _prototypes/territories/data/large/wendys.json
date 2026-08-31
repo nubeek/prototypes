@@ -3,7 +3,7 @@
   "brand": "Wendy's",
   "category": "Food & Beverage",
   "color": "#49bbef",
-  "logo": "assets/logos/wendys.jpg",
+  "logo": "../../assets/logos/franchises/wendys.jpg",
   "country": "US",
   "level": "county",
   "initialInvestment": 2850000,

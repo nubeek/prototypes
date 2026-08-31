@@ -3,7 +3,7 @@
   "brand": "Modo Yoga International",
   "category": "Fitness",
   "color": "#941B23",
-  "logo": "assets/logos/modo-yoga-international.png",
+  "logo": "../../assets/logos/franchises/modo-yoga-international.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 625000,

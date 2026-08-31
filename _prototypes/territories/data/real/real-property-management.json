@@ -3,7 +3,7 @@
   "brand": "Real Property Management",
   "category": "Real Estate",
   "color": "#002961",
-  "logo": "assets/logos/real-property-management.png",
+  "logo": "../../assets/logos/franchises/real-property-management.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 59900,

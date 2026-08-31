@@ -62,7 +62,7 @@ function getContactsColumn(owner) {
       aria-label="Show ${owner.ownerName} contacts"
     >
       <span>${contactCount}</span>
-      <img class="contact-chevron" src="assets/arrows.svg" alt="" aria-hidden="true">
+      <img class="contact-chevron" src="../../../assets/icons/arrows.svg" alt="" aria-hidden="true">
     </button>
   `;
 }
@@ -191,7 +191,7 @@ const prospectDatasetTableOptions = Object.entries(window.prospectDatasetsData |
     ...options,
     [view]: {
       label: dataset.label || view,
-      icon: "assets/dataset.svg?v=2"
+      icon: "../../../assets/icons/dataset.svg?v=2"
     }
   }),
   {}
@@ -199,11 +199,11 @@ const prospectDatasetTableOptions = Object.entries(window.prospectDatasetsData |
 const TABLE_VIEW_OPTIONS = {
   owners: {
     label: "Owners",
-    icon: "assets/owners.svg"
+    icon: "../../../assets/icons/owners.svg"
   },
   locations: {
     label: "Locations",
-    icon: "assets/dataset.svg?v=2"
+    icon: "../../../assets/icons/dataset.svg?v=2"
   },
   ...prospectDatasetTableOptions
 };
@@ -267,7 +267,7 @@ function syncLocationHeaderCheckboxState(rows = displayedLocations) {
 }
 
 function getSortableHeaderMarkup(label) {
-  return `<span class="th-content">${label} <img class="th-chevron" src="assets/chevron.svg" alt="" aria-hidden="true"></span>`;
+  return `<span class="th-content">${label} <img class="th-chevron" src="../../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>`;
 }
 
 function setMainTableHeader(header, { label, sortKey, width }) {
@@ -427,7 +427,7 @@ function renderOwners(rows) {
               aria-label="Show ${owner.ownerName} locations on the map"
             >
               <span>${getOwnerUnitCount(owner)}</span>
-              <img class="location-chevron" src="assets/arrows.svg" alt="" aria-hidden="true">
+              <img class="location-chevron" src="../../../assets/icons/arrows.svg" alt="" aria-hidden="true">
             </button>
           </td>
           <td>${getFranchiseLogosColumn(owner)}</td>

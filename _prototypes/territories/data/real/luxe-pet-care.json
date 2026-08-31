@@ -3,7 +3,7 @@
   "brand": "Luxe Pet Care®",
   "category": "Pets",
   "color": "#82ACC5",
-  "logo": "assets/logos/luxe-pet-care.png",
+  "logo": "../../assets/logos/franchises/luxe-pet-care.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 175000,

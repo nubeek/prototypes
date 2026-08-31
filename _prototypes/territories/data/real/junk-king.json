@@ -3,7 +3,7 @@
   "brand": "Junk King",
   "category": "Cleaning and Maintenance",
   "color": "#EE3739",
-  "logo": "assets/logos/junk-king.png",
+  "logo": "../../assets/logos/franchises/junk-king.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

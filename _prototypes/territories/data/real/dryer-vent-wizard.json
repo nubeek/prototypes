@@ -3,7 +3,7 @@
   "brand": "Dryer Vent Wizard",
   "category": "Cleaning and Maintenance",
   "color": "#8584C0",
-  "logo": "assets/logos/dryer-vent-wizard.png",
+  "logo": "../../assets/logos/franchises/dryer-vent-wizard.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 120050,

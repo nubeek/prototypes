@@ -3,7 +3,7 @@
   "brand": "Speed Queen Laundry",
   "category": "Retail Products and Services",
   "color": "#E63B11",
-  "logo": "assets/logos/speed-queen-laundry.png",
+  "logo": "../../assets/logos/franchises/speed-queen-laundry.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 1375000,

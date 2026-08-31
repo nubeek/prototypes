@@ -3,7 +3,7 @@
   "brand": "Lawn Pride",
   "category": "Home & Services",
   "color": "#FC5000",
-  "logo": "assets/logos/lawn-pride.jpg",
+  "logo": "../../assets/logos/franchises/lawn-pride.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

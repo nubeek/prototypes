@@ -9,7 +9,7 @@
            <h2 class="proto-modal-title" id="exampleModalTitle">Title</h2>
            <div class="proto-modal-header-actions">
              <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close">
-               <img src="assets/close.svg" alt="" aria-hidden="true">
+               <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
              </button>
            </div>
          </div>

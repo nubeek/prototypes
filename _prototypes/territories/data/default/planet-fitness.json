@@ -3,7 +3,7 @@
   "brand": "Planet Fitness",
   "category": "Health & Fitness",
   "color": "#8c02fb",
-  "logo": "assets/logos/planet_fitness.jpg",
+  "logo": "../../assets/logos/franchises/planet-fitness.jpg",
   "country": "US",
   "level": "state",
   "initialInvestment": 3370000,

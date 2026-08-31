@@ -3,7 +3,7 @@
   "brand": "Mosquito Joe",
   "category": "Home & Services",
   "color": "#F8DD19",
-  "logo": "assets/logos/mosquito-joe.png",
+  "logo": "../../assets/logos/franchises/mosquito-joe.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 42500,

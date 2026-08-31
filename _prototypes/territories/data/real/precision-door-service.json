@@ -3,7 +3,7 @@
   "brand": "Precision Door Service",
   "category": "Cleaning and Maintenance",
   "color": "#00513E",
-  "logo": "assets/logos/precision-door-service.png",
+  "logo": "../../assets/logos/franchises/precision-door-service.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

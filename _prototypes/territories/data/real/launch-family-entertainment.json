@@ -3,7 +3,7 @@
   "brand": "Launch Family Entertainment",
   "category": "Youth Enrichment",
   "color": "#5CBA47",
-  "logo": "assets/logos/launch-family-entertainment.png",
+  "logo": "../../assets/logos/franchises/launch-family-entertainment.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 5479138,

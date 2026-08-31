@@ -47,7 +47,7 @@ function getFranchiseSlug(franchiseName) {
 const franchiseLogoFileOverrides = {
   "Club Pilates Franchise": "club-pilates.jpg",
   "Crunch": "crunch-fitness.jpg",
-  "Anytime Fitness": "anytime-fitness.svg",
+  "Anytime Fitness": "anytime-fitness.png",
   "F45 Training": "f45-training.svg",
   "OrangeTheory Fitness": "orangetheory.jpg",
   "Crumbl Cookies": "crumbl-cookies.png",
@@ -94,7 +94,7 @@ const franchiseLogoFileOverrides = {
 
 function getFranchiseLogoSrc(franchiseName) {
   const logoFileName = franchiseLogoFileOverrides[franchiseName] || `${getFranchiseSlug(franchiseName)}.jpg`;
-  return `assets/franchises/${logoFileName}`;
+  return `../../assets/logos/franchises/${logoFileName}`;
 }
 
 function getInitials(name) {
@@ -137,7 +137,7 @@ function getOwnerHeaderViewControls(owner) {
       view: "details",
       label: "Show franchisee details",
       title: "Details",
-      icon: "assets/about.svg",
+      icon: "../../assets/icons/about.svg",
       iconClass: "",
       imageClass: "about-toggle-icon"
     },
@@ -145,21 +145,21 @@ function getOwnerHeaderViewControls(owner) {
       view: "map",
       label: "Show franchisee map",
       title: "Map",
-      icon: "assets/map.svg",
+      icon: "../../assets/icons/map.svg",
       iconClass: "segmented-control-btn-divider-left"
     },
     {
       view: "org",
       label: "Show franchisee organization chart",
       title: "Org chart",
-      icon: "assets/orgchart.svg",
+      icon: "../../assets/icons/orgchart.svg",
       iconClass: "segmented-control-btn-divider-left"
     },
     {
       view: "raw",
       label: "Show franchisee contacts",
       title: "Contacts",
-      icon: "assets/contacts.svg",
+      icon: "../../assets/icons/contacts.svg",
       iconClass: "segmented-control-btn-divider-left",
       disabled: rawDataDisabled
     }
@@ -260,7 +260,7 @@ function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee 
       ${identityMarkup}
       ${getOwnerHeaderViewControls(owner)}
       <button class="ui-control ui-close-button owner-detail-close" type="button" aria-label="${closeLabel}">
-        <img src="assets/close.svg" alt="" aria-hidden="true">
+        <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
       </button>
     </header>
   `;

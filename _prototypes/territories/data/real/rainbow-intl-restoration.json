@@ -3,7 +3,7 @@
   "brand": "Rainbow Int'l Restoration",
   "category": "Home & Services",
   "color": "#9E1F1D",
-  "logo": "assets/logos/rainbow-intl-restoration.png",
+  "logo": "../../assets/logos/franchises/rainbow-intl-restoration.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 40000,

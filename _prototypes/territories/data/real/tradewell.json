@@ -3,7 +3,7 @@
   "brand": "Tradewell",
   "category": "Home & Services",
   "color": "#C9743D",
-  "logo": "assets/logos/tradewell.jpg",
+  "logo": "../../assets/logos/franchises/tradewell.jpg",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

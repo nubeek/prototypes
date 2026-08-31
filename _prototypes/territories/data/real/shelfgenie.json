@@ -3,7 +3,7 @@
   "brand": "ShelfGenie",
   "category": "Home & Services",
   "color": "#3E78A1",
-  "logo": "assets/logos/shelfgenie.png",
+  "logo": "../../assets/logos/franchises/shelfgenie.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 0,

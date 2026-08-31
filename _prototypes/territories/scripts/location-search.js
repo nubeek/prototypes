@@ -683,7 +683,7 @@ function bindTerritoryLocationSearch({
         action.setAttribute("aria-hidden", "true");
         actionLabel.textContent = "Select";
         actionKey.className = ui.optionActionKey;
-        actionKey.src = "assets/enter.svg";
+        actionKey.src = "../../assets/icons/enter.svg";
         actionKey.alt = "";
         action.append(actionLabel, actionKey);
         optionElement.append(icon, label, action);

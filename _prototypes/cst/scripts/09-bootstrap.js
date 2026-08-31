@@ -241,7 +241,7 @@ if (franchiseesTable) {
 
 if (filterPanel) {
   window.WefranchFilterSections.enhanceHeaders(filterPanel, {
-    iconSrc: "../shared/filter/assets/remove.svg",
+    iconSrc: "../../assets/icons/remove.svg",
     onClear: clearFilterSection
   });
   window.WefranchFilterSections.bindCollapseToggle(filterPanel, {
@@ -717,7 +717,7 @@ if (ownerDetailsPanel) {
 }
 
 function getPrototypeSettingsIconUrl(fileName) {
-  return new URL(`assets/${fileName}`, window.location.href).href;
+  return new URL(`../../assets/icons/${fileName}`, window.location.href).href;
 }
 
 function getPrototypeSettingsItems() {

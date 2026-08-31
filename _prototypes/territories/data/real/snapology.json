@@ -3,7 +3,7 @@
   "brand": "Snapology",
   "category": "Youth Enrichment",
   "color": "#F5C518",
-  "logo": "assets/logos/snapology.png",
+  "logo": "../../assets/logos/franchises/snapology.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 308375,

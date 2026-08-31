@@ -2,7 +2,7 @@
 /**
  * Converts the production territory export into the lightweight "Real" demo
  * dataset. Raw exports stay in data/real/_source/ and are intentionally ignored
- * by git; generated JSON, GeoJSON, and normalized logo assets are committed.
+ * by git; generated JSON, GeoJSON, and franchise logos in assets/logos/franchises are committed.
  */
 
 const fs = require("fs");
@@ -12,11 +12,13 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const TERRITORIES_DIR = path.resolve(__dirname, "..");
+const REPO_ROOT = path.resolve(TERRITORIES_DIR, "../..");
 const DATA_DIR = path.join(TERRITORIES_DIR, "data");
 const REAL_DIR = path.join(DATA_DIR, "real");
 const SOURCE_DIR = path.join(REAL_DIR, "_source");
 const SOURCE_LOGO_DIR = path.join(SOURCE_DIR, "logo");
-const TARGET_LOGO_DIR = path.join(TERRITORIES_DIR, "assets", "logos");
+const TARGET_LOGO_DIR = path.join(REPO_ROOT, "assets", "logos", "franchises");
+const PUBLIC_LOGO_PREFIX = "../../assets/logos/franchises/";
 const LOGO_CDN = "https://storage.googleapis.com/wefranch-files/media/images";
 const EXCLUDED_GEO_TYPES = new Set(["custom"]);
 const EXCLUDED_BRAND_SLUGS = new Set([
@@ -574,7 +576,7 @@ async function resolveLogo(concept, brandId) {
     const existingPath = path.join(TARGET_LOGO_DIR, existingLogoFile);
     return {
       file: existingPath,
-      publicPath: `assets/logos/${existingLogoFile}`
+      publicPath: `${PUBLIC_LOGO_PREFIX}${existingLogoFile}`
     };
   }
 
@@ -604,7 +606,7 @@ async function resolveLogo(concept, brandId) {
   await fsp.writeFile(targetFile, bytes);
   return {
     file: targetFile,
-    publicPath: `assets/logos/${path.basename(targetFile)}`
+    publicPath: `${PUBLIC_LOGO_PREFIX}${path.basename(targetFile)}`
   };
 }
 

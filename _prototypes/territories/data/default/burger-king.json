@@ -3,7 +3,7 @@
   "brand": "Burger King",
   "category": "Food & Beverage",
   "color": "#d3c2a7",
-  "logo": "assets/logos/burgerking.jpg",
+  "logo": "../../assets/logos/franchises/burger-king.jpg",
   "country": "US",
   "level": "state",
   "initialInvestment": 1750000,

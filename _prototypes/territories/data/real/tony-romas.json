@@ -3,7 +3,7 @@
   "brand": "Tony Roma's",
   "category": "Food and Beverage",
   "color": "#A51B25",
-  "logo": "assets/logos/tony-romas.png",
+  "logo": "../../assets/logos/franchises/tony-romas.png",
   "country": "US",
   "level": "geo",
   "initialInvestment": 2609750,

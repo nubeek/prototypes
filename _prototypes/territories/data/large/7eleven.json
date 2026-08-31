@@ -3,7 +3,7 @@
   "brand": "7-Eleven",
   "category": "Retail",
   "color": "#008062",
-  "logo": "assets/logos/7eleven.jpg",
+  "logo": "../../assets/logos/franchises/7eleven.jpg",
   "country": "US",
   "level": "county",
   "initialInvestment": 375000,

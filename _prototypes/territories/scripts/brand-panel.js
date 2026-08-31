@@ -677,7 +677,7 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
   filterButton.dataset.tooltip = "Add to\nFranchise filter";
 
   filterIcon.className = "territory-brand-item__filter-icon";
-  filterIcon.src = "assets/filter-single.svg";
+  filterIcon.src = "../../assets/icons/filter-single.svg";
   filterIcon.alt = "";
   filterIcon.setAttribute("aria-hidden", "true");
 
@@ -703,7 +703,7 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
   count.textContent = formatTerritoryCount(territories.length);
 
   chevron.className = "territory-brand-item__chevron";
-  chevron.src = "assets/chevron.svg";
+  chevron.src = "../../assets/icons/chevron.svg";
   chevron.alt = "";
   chevron.setAttribute("aria-hidden", "true");
 
@@ -754,7 +754,7 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
     territoryInfoButton.type = "button";
     territoryInfoButton.setAttribute("aria-label", "Request information");
     territoryInfoIcon.className = "territory-brand-territory__info-icon";
-    territoryInfoIcon.src = "assets/info.svg";
+    territoryInfoIcon.src = "../../assets/icons/info-filled.svg";
     territoryInfoIcon.alt = "";
     territoryInfoIcon.loading = "lazy";
     territoryInfoIcon.decoding = "async";
@@ -1062,7 +1062,7 @@ function syncTerritoryBrandPanelExpandToggle() {
   button.dataset.tooltip = label;
 
   if (icon) {
-    icon.src = allCollapsed ? "assets/expand.svg" : "assets/collapse.svg";
+    icon.src = allCollapsed ? "../../assets/icons/expand.svg" : "../../assets/icons/collapse.svg";
   }
 }
 
@@ -1698,12 +1698,11 @@ function syncTerritorySavedSearchHeading() {
   if (settingsButton) settingsButton.hidden = !showSettings;
 
   const breadcrumbItems = [
-    { label: "Wefranch", href: "../" },
     { label: "Territories" }
   ];
 
   if (breadcrumbSavedSearch?.title) {
-    breadcrumbItems[1].onClick = () => window.showTerritoryCrossroad?.({ animate: true });
+    breadcrumbItems[0].onClick = () => window.showTerritoryCrossroad?.({ animate: true });
     breadcrumbItems.push({ label: breadcrumbSavedSearch.title });
   }
 

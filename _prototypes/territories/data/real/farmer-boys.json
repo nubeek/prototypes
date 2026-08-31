@@ -3,7 +3,7 @@
   "brand": "Farmer Boys",
   "category": "Food and Beverage",
   "color": "#1F4D2E",
-  "logo": "assets/logos/farmer-boys.png",
+  "logo": "../../assets/logos/franchises/farmer-boys.png",
   "country": "US",
   "level": "geo",
   "franchiseeRating": 0,

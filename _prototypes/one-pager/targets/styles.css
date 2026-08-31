@@ -236,7 +236,7 @@ h1 {
   -webkit-appearance: none;
   -moz-appearance: none;
   background-color: #fff;
-  background-image: url("assets/chevron.svg");
+  background-image: url("../../../assets/icons/chevron.svg");
   background-repeat: no-repeat;
   background-position: right 16px center;
   background-size: 11px 6px;
@@ -757,8 +757,8 @@ body.target-detail.changes-hidden .added-count {
   height: 20px;
   transform: translateX(1px);
   background-color: currentColor;
-  -webkit-mask: url("../cst/assets/leads-add.svg") center / contain no-repeat;
-  mask: url("../cst/assets/leads-add.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-add.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-add.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action.is-saved {
@@ -768,8 +768,8 @@ body.target-detail.changes-hidden .added-count {
 
 .contact-add-lead-action.is-saved::before {
   transform: translateY(1px) translateX(1px);
-  -webkit-mask: url("../cst/assets/leads-default.svg") center / contain no-repeat;
-  mask: url("../cst/assets/leads-default.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-default.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-default.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action:hover,
@@ -783,8 +783,8 @@ body.target-detail.changes-hidden .added-count {
 .contact-add-lead-action.is-saved:hover::before,
 .contact-add-lead-action.is-saved:focus-visible::before {
   transform: translateX(1px);
-  -webkit-mask: url("../cst/assets/leads-remove.svg") center / contain no-repeat;
-  mask: url("../cst/assets/leads-remove.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-remove.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-remove.svg") center / contain no-repeat;
 }
 
 .contact-add-lead-action::after {
@@ -1505,13 +1505,13 @@ body.target-detail {
   height: 20px;
   flex: 0 0 auto;
   background-color: currentColor;
-  -webkit-mask: url("../cst/assets/leads-add.svg") center / contain no-repeat;
-  mask: url("../cst/assets/leads-add.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-add.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-add.svg") center / contain no-repeat;
 }
 
 .profile-modal-primary.is-saved::before {
-  -webkit-mask: url("../cst/assets/leads-remove.svg") center / contain no-repeat;
-  mask: url("../cst/assets/leads-remove.svg") center / contain no-repeat;
+  -webkit-mask: url("../../../assets/icons/leads-remove.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/leads-remove.svg") center / contain no-repeat;
 }
 
 .owner-org-chart-toggle {
