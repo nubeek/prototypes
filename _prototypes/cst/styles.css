@@ -1260,7 +1260,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  transition: height 340ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: height 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .campaign-step-viewport:has(.filter-select-field.is-open) {
@@ -1277,9 +1277,12 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   overflow: hidden;
   visibility: hidden;
   pointer-events: none;
+  opacity: 1;
   transform: translateX(0);
-  transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
+  transition:
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 50ms ease;
+  will-change: transform, opacity;
 }
 
 .campaign-step-panel.is-active,
@@ -1301,13 +1304,14 @@ body.reduce-motion .campaign-step-viewport {
 .campaign-design-preview {
   position: relative;
   width: 100%;
+  height: 200px;
+  min-height: 200px;
   max-height: 260px;
   border-radius: var(--radius-md);
   scrollbar-width: thin;
 }
 
 .campaign-design-preview.is-empty {
-  min-height: 260px;
   padding: 0;
   overflow: hidden;
   border: none;
@@ -1360,13 +1364,13 @@ body.reduce-motion .campaign-step-viewport {
   overscroll-behavior: contain;
   padding: 42px;
   background: var(--color-surface-muted);
+  flex-shrink: 0;
 }
 
 .campaign-design-preview.has-preview-unavailable {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 260px;
 }
 
 .campaign-design-preview.has-preview-unavailable .campaign-design-preview__content {
@@ -1563,6 +1567,50 @@ body.reduce-motion .campaign-design-preview__empty-label {
 .start-campaign-remaining-count {
   margin: 0;
   line-height: 1.35;
+}
+
+.start-campaign-remaining {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.start-campaign-remaining-info {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.start-campaign-remaining-info:hover,
+.start-campaign-remaining-info:focus-visible {
+  background: var(--color-surface-control);
+}
+
+.start-campaign-remaining-info:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.start-campaign-remaining-info-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast);
+}
+
+.start-campaign-remaining-info:hover .start-campaign-remaining-info-icon,
+.start-campaign-remaining-info:focus-visible .start-campaign-remaining-info-icon {
+  filter: brightness(0) saturate(100%);
 }
 
 .start-campaign-recipient-count {
@@ -1791,26 +1839,21 @@ body.reduce-motion .campaign-continue-spinner {
   mask: url("../../assets/icons/mail-send.svg") center / contain no-repeat;
 }
 
-.campaign-review-modal:has(.campaign-review-schedule.is-open),
-.campaign-review-modal .proto-modal-form:has(.campaign-review-schedule.is-open) {
-  overflow: visible;
+.proto-modal.campaign-review-modal {
+  overflow: hidden;
 }
 
-.campaign-review-schedule {
-  position: relative;
-  display: inline-flex;
+.campaign-review-chrome {
+  flex: 0 0 auto;
+  padding-inline: 1px;
 }
 
-.campaign-review-schedule-menu {
-  position: absolute;
-  right: 0;
-  z-index: 30;
-  width: max-content;
-  padding: 6px 0;
+.campaign-schedule-options {
+  margin-top: 0;
 }
 
-.campaign-review-schedule-option {
-  white-space: nowrap;
+.campaign-schedule-options .filter-check {
+  font-weight: 600;
 }
 
 .save-lead-modal-title {
@@ -3914,6 +3957,21 @@ h1 {
   font-size: 13px;
   font-weight: 400;
   white-space: normal;
+}
+
+.filter-combobox-floating-tooltip.start-campaign-remaining-info-tooltip {
+  max-width: 280px;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: normal;
+}
+
+.start-campaign-remaining-info-tooltip-action {
+  color: var(--color-brand);
+}
+
+.start-campaign-remaining-info-tooltip .action-tooltip-content {
+  gap: 8px;
 }
 
 .cst-table-loading {

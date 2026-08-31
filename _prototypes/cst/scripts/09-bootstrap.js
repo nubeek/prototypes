@@ -492,6 +492,9 @@ bindTableHeadingFloatingTooltip(readerViewSettingsBtn, { onlyBelowWidth: 1480 })
 bindTableHeadingFloatingTooltip(document.getElementById("campaignRenameBtn"), {
   tooltipClass: "is-over-modal"
 });
+window.bindActionTooltip?.(document.getElementById("startCampaignRemainingInfo"), {
+  tooltipClass: "start-campaign-remaining-info-tooltip is-over-modal"
+});
 
 if (tableHeadingSummary) {
   const openSummaryFilter = (filterTrigger) => {

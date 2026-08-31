@@ -1,0 +1,24 @@
+.filter-combobox-floating-tooltip.is-action-tooltip {
+  pointer-events: auto;
+}
+
+.action-tooltip-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.action-tooltip-body {
+  margin: 0;
+}
+
+.action-tooltip-action {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

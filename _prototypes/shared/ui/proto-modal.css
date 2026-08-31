@@ -269,6 +269,11 @@ body.reduce-motion .target-modal.is-resizing {
   line-height: 1.2;
 }
 
+.proto-modal-field[hidden],
+.target-modal-field[hidden] {
+  display: none;
+}
+
 .proto-modal-field > span:first-child,
 .target-modal-field > span:first-child {
   display: block;
