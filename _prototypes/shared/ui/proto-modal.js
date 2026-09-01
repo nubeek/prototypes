@@ -14,7 +14,7 @@
            </div>
          </div>
          <div class="proto-modal-body">
-           <!-- unique body -->
+           <!-- unique body; radio/checkbox stacks use .proto-modal-check-group -->
          </div>
          <div class="proto-modal-actions">
            <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
@@ -49,6 +49,8 @@
     ".target-modal-control",
     ".proto-modal-select-field",
     ".target-modal-select-field",
+    ".proto-modal-check-group",
+    ".proto-modal-check",
     ".request-info-territory-field"
   ].join(", ");
 
@@ -60,7 +62,7 @@
     const target = event.target;
     if (!(target instanceof Element)) return false;
     if (!target.closest(MODAL_PANEL_SELECTOR)) return false;
-    if (target.closest(".filter-check")) return false;
+    if (target.closest(".proto-modal-check, .filter-check")) return false;
     if (isModalFieldControl(target)) return false;
 
     const field = target.closest(MODAL_FIELD_SELECTOR);

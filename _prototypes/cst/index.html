@@ -967,36 +967,32 @@
   </div>
 
   <div class="proto-modal-overlay" id="startCampaignModal" hidden>
-    <section class="proto-modal proto-modal--form campaign-wizard-modal" role="dialog" aria-modal="true" aria-labelledby="startCampaignModalTitle">
+    <section class="proto-modal proto-modal--form campaign-wizard-modal is-settings-level" role="dialog" aria-modal="true" aria-labelledby="settingsCampaignModalTitle">
       <div class="proto-modal-header">
         <div class="campaign-modal-title-row">
-          <div class="campaign-modal-title-group" id="campaignTitleGroup">
-            <h2 class="proto-modal-title" id="startCampaignModalTitle" tabindex="0">Untitled campaign</h2>
-            <input
-              class="campaign-modal-title-input"
-              id="campaignNameInput"
-              type="text"
-              value="Untitled campaign"
-              maxlength="64"
-              placeholder="Enter campaign name"
-              autocomplete="off"
-              spellcheck="false"
-              aria-label="Campaign name"
-              aria-describedby="campaignNameCount"
-              hidden
-            >
-          </div>
-          <div class="campaign-modal-title-group is-static" id="reviewTitleGroup" hidden>
-            <h2 class="proto-modal-title" id="reviewCampaignModalTitle">Review & Send</h2>
-          </div>
           <details class="toolbar-dropdown campaign-step-level" id="campaignStepLevel">
-            <summary class="ui-control campaign-modal-icon-btn campaign-step-level-toggle" aria-label="Campaign stage">
-              <img class="campaign-step-level-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+            <summary class="ui-control campaign-step-level-toggle">
+              <div class="campaign-modal-title-group" id="campaignTitleGroup" hidden>
+                <h2 class="proto-modal-title" id="startCampaignModalTitle">Email</h2>
+              </div>
+              <div class="campaign-modal-title-group" id="settingsTitleGroup">
+                <h2 class="proto-modal-title" id="settingsCampaignModalTitle">Settings</h2>
+              </div>
+              <div class="campaign-modal-title-group" id="reviewTitleGroup" hidden>
+                <h2 class="proto-modal-title" id="reviewCampaignModalTitle">Review & Send</h2>
+              </div>
+              <span class="campaign-modal-icon-btn campaign-step-level-chevron-wrap" aria-hidden="true">
+                <img class="campaign-step-level-chevron" src="../../assets/icons/chevron.svg" alt="">
+              </span>
             </summary>
             <div class="ui-menu toolbar-dropdown-menu campaign-step-level-menu" role="menu" aria-label="Campaign stage">
-              <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="true" data-campaign-level="campaign">
+              <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="true" data-campaign-level="settings">
                 <img class="campaign-step-level-check" src="../../assets/icons/check.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Email campaign</span>
+                <span class="toolbar-dropdown-label">Settings</span>
+              </button>
+              <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-campaign-level="campaign">
+                <img class="campaign-step-level-check" src="../../assets/icons/check.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Email</span>
               </button>
               <button class="ui-menu-item toolbar-dropdown-option" type="button" role="menuitemradio" aria-checked="false" data-campaign-level="review">
                 <img class="campaign-step-level-check" src="../../assets/icons/check.svg" alt="" aria-hidden="true">
@@ -1006,30 +1002,30 @@
           </details>
         </div>
         <div class="proto-modal-header-actions">
-          <button class="ui-control campaign-modal-icon-btn" id="campaignRenameBtn" type="button" aria-label="Rename campaign" data-tooltip="Rename campaign">
-            <img src="../../assets/icons/notes.svg" alt="" aria-hidden="true">
-          </button>
-          <button class="ui-control campaign-modal-icon-btn" id="campaignRenameConfirm" type="button" aria-label="Save campaign name" title="Save campaign name" hidden>
-            <img src="../../assets/icons/check.svg" alt="" aria-hidden="true">
-          </button>
-          <span class="campaign-name-count" id="campaignNameCount" hidden>(0 / 64)</span>
-          <span class="campaign-name-count-divider-wrap" id="campaignNameCountDivider" aria-hidden="true">
-            <span class="campaign-name-count-divider"></span>
-          </span>
           <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close start new campaign">
             <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
           </button>
         </div>
       </div>
 
-      <div class="campaign-step-tabs" id="campaignStepTabs" role="tablist" aria-label="Campaign steps">
-        <button class="ui-control ui-button-ghost campaign-step-tab is-active" id="campaignStepTabSender" type="button" role="tab" aria-selected="true" aria-controls="campaignSenderModalForm" data-campaign-step="sender">Sender</button>
+      <div class="campaign-step-tabs" id="campaignSettingsStepTabs" role="tablist" aria-label="Settings steps">
+        <button class="ui-control ui-button-ghost campaign-step-tab is-active" id="campaignStepTabCampaign" type="button" role="tab" aria-selected="true" aria-controls="campaignSettingsModalForm" data-campaign-step="campaign">Campaign</button>
+        <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
+        <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabSender" type="button" role="tab" aria-selected="false" aria-controls="campaignSenderModalForm" data-campaign-step="sender">Sender</button>
         <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabRecipients" type="button" role="tab" aria-selected="false" aria-controls="startCampaignModalForm" data-campaign-step="recipients">Recipients</button>
-        <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
+      </div>
+
+      <div class="campaign-step-tabs" id="campaignStepTabs" role="tablist" aria-label="Campaign steps" hidden>
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabSubject" type="button" role="tab" aria-selected="false" aria-controls="campaignSubjectModalForm" data-campaign-step="subject">Subject</button>
         <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabDesign" type="button" role="tab" aria-selected="false" aria-controls="campaignDesignModalForm" data-campaign-step="design">Design</button>
+      </div>
+
+      <div class="campaign-step-tabs" id="campaignReviewStepTabs" role="tablist" aria-label="Review steps" hidden>
+        <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabReview" type="button" role="tab" aria-selected="false" aria-controls="reviewCampaignModalForm" data-campaign-step="review">Review</button>
+        <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
+        <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabSchedule" type="button" role="tab" aria-selected="false" aria-controls="scheduleCampaignModalForm" data-campaign-step="schedule">Schedule</button>
       </div>
 
       <div class="campaign-review-chrome" id="campaignReviewChrome" hidden>
@@ -1061,8 +1057,43 @@
         <div class="proto-modal-divider" aria-hidden="true"></div>
       </div>
 
-      <div class="campaign-step-viewport" id="campaignStepViewport">
-        <form class="proto-modal-form campaign-step-panel is-active" id="campaignSenderModalForm" role="tabpanel" aria-labelledby="campaignStepTabSender" data-campaign-step="sender" novalidate>
+      <div class="campaign-step-body" id="campaignStepBody">
+        <aside class="campaign-sequence-panel" id="campaignSequencePanel" hidden>
+          <p class="campaign-sequence-title">Sequence</p>
+          <div class="campaign-sequence-list" id="campaignSequenceList"></div>
+          <button class="campaign-sequence-add" id="campaignSequenceAddBtn" type="button" aria-label="Add email">
+            <img src="../../assets/icons/add.svg" alt="" aria-hidden="true">
+          </button>
+        </aside>
+        <div class="campaign-step-viewport" id="campaignStepViewport">
+        <form class="proto-modal-form campaign-step-panel is-active" id="campaignSettingsModalForm" role="tabpanel" aria-labelledby="campaignStepTabCampaign" data-campaign-step="campaign" novalidate>
+        <div class="proto-modal-body campaign-settings-modal-body">
+          <p class="proto-modal-subtitle">Share updates, promote products, and announce events. Start an email campaign.</p>
+
+          <div class="proto-modal-field">
+            <span id="campaignTypeDescription">Campaign type</span>
+            <div class="proto-modal-check-group" id="campaignTypeOptions" role="radiogroup" aria-labelledby="campaignTypeDescription">
+              <label class="proto-modal-check is-checked">
+                <input type="radio" name="campaignType" id="campaignTypeRegular" value="regular" checked>
+                <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
+                <span>Regular</span>
+              </label>
+              <label class="proto-modal-check">
+                <input type="radio" name="campaignType" id="campaignTypeDrip" value="drip">
+                <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
+                <span>Drip</span>
+              </label>
+            </div>
+          </div>
+
+          <label class="proto-modal-field" for="campaignSettingsName">
+            <span>Campaign name</span>
+            <input class="proto-modal-control proto-modal-input" id="campaignSettingsName" name="campaignName" type="text" maxlength="64" autocomplete="off" spellcheck="false" placeholder="Internal name for your campaign">
+          </label>
+        </div>
+        </form>
+
+        <form class="proto-modal-form campaign-step-panel" id="campaignSenderModalForm" role="tabpanel" aria-labelledby="campaignStepTabSender" data-campaign-step="sender" aria-hidden="true" inert novalidate>
         <div class="proto-modal-body campaign-sender-modal-body">
           <p class="proto-modal-subtitle">Choose the identity recipients will see when they receive your campaign.</p>
 
@@ -1093,11 +1124,6 @@
               <button class="campaign-sender-auth-notice__action ui-text-button" type="button">Set up your domain</button>
             </div>
           </div>
-        </div>
-
-        <div class="proto-modal-actions">
-          <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button" hidden>Back</button>
-          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignSenderContinue" type="submit">Next</button>
         </div>
         </form>
 
@@ -1144,11 +1170,6 @@
             </div>
           </div>
         </div>
-
-        <div class="proto-modal-actions">
-          <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
-          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="startCampaignContinue" type="submit">Next</button>
-        </div>
         </form>
 
         <form class="proto-modal-form campaign-step-panel" id="campaignSubjectModalForm" role="tabpanel" aria-labelledby="campaignStepTabSubject" data-campaign-step="subject" aria-hidden="true" inert novalidate>
@@ -1164,11 +1185,6 @@
             <span>Preview text</span>
             <textarea class="proto-modal-control proto-modal-textarea" id="campaignPreviewText" name="previewText" maxlength="500" placeholder="Preview text gives recipients more context about your email."></textarea>
           </label>
-        </div>
-
-        <div class="proto-modal-actions">
-          <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
-          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignSubjectContinue" type="submit">Next</button>
         </div>
         </form>
 
@@ -1211,18 +1227,14 @@
             </div>
           </div>
         </div>
-
-        <div class="proto-modal-actions">
-          <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
-          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignDesignContinue" type="submit">
-            <span class="campaign-continue-spinner" aria-hidden="true"></span>
-            <span class="campaign-continue-label">Review</span>
-          </button>
-        </div>
         </form>
 
-        <form class="proto-modal-form campaign-step-panel" id="reviewCampaignModalForm" data-campaign-step="review" aria-hidden="true" inert novalidate>
+        <form class="proto-modal-form campaign-step-panel" id="reviewCampaignModalForm" role="tabpanel" aria-labelledby="campaignStepTabReview" data-campaign-step="review" aria-hidden="true" inert novalidate>
           <div class="proto-modal-body">
+            <div class="proto-modal-field" id="campaignReviewSequenceField" hidden>
+              <span>Sequence</span>
+              <p class="campaign-review-value" id="campaignReviewSequence"></p>
+            </div>
             <div class="proto-modal-field">
               <span>Subject</span>
               <p class="campaign-review-value" id="campaignReviewSubject"></p>
@@ -1251,38 +1263,40 @@
               </div>
             </label>
           </div>
-          <div class="proto-modal-actions">
-            <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
-            <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignReviewNextBtn" type="submit">Schedule</button>
-          </div>
         </form>
 
-        <form class="proto-modal-form campaign-step-panel" id="scheduleCampaignModalForm" data-campaign-step="schedule" aria-hidden="true" inert novalidate>
+        <form class="proto-modal-form campaign-step-panel" id="scheduleCampaignModalForm" role="tabpanel" aria-labelledby="campaignStepTabSchedule" data-campaign-step="schedule" aria-hidden="true" inert novalidate>
           <div class="proto-modal-body">
-            <p class="proto-modal-subtitle" id="campaignScheduleDescription">When would you like to send the campaign?</p>
-            <div class="campaign-schedule-options filter-check-group" id="campaignScheduleOptions" role="radiogroup" aria-labelledby="campaignScheduleDescription">
-              <label class="filter-check is-checked">
-                <input type="radio" name="campaignSchedule" id="campaignScheduleSendNow" value="send-now" checked>
-                <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-                <span>Send now</span>
-              </label>
-              <label class="filter-check">
-                <input type="radio" name="campaignSchedule" id="campaignScheduleLater" value="schedule-later">
-                <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-                <span>Schedule for later</span>
-              </label>
-              <label class="filter-check">
-                <input type="radio" name="campaignSchedule" id="campaignScheduleBatches" value="send-batches">
-                <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
-                <span>Send in batches</span>
-              </label>
+            <div class="proto-modal-field">
+              <span id="campaignScheduleDescription">When would you like to send the campaign?</span>
+              <div class="proto-modal-check-group" id="campaignScheduleOptions" role="radiogroup" aria-labelledby="campaignScheduleDescription">
+                <label class="proto-modal-check is-checked">
+                  <input type="radio" name="campaignSchedule" id="campaignScheduleSendNow" value="send-now" checked>
+                  <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
+                  <span>Send now</span>
+                </label>
+                <label class="proto-modal-check">
+                  <input type="radio" name="campaignSchedule" id="campaignScheduleLater" value="schedule-later">
+                  <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
+                  <span>Schedule for later</span>
+                </label>
+                <label class="proto-modal-check">
+                  <input type="radio" name="campaignSchedule" id="campaignScheduleBatches" value="send-batches">
+                  <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
+                  <span>Send in batches</span>
+                </label>
+              </div>
             </div>
           </div>
-          <div class="proto-modal-actions">
-            <button class="ui-control ui-button proto-modal-cancel campaign-step-back" type="button">Back</button>
-            <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignReviewConfirmBtn" type="submit">Send now</button>
-          </div>
         </form>
+        </div>
+      </div>
+      <div class="proto-modal-actions" id="campaignStepActions">
+        <button class="ui-control ui-button proto-modal-cancel campaign-step-back" id="campaignStepBack" type="button">Cancel</button>
+        <button class="ui-control ui-button ui-button-primary proto-modal-save" id="campaignStepContinue" type="submit" form="campaignSettingsModalForm">
+          <span class="campaign-continue-spinner" aria-hidden="true"></span>
+          <span class="campaign-continue-label">Next</span>
+        </button>
       </div>
     </section>
   </div>

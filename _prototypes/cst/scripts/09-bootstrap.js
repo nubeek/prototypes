@@ -489,9 +489,6 @@ function bindTableHeadingFloatingTooltip(trigger, { tooltipClass = "", onlyBelow
 bindTableHeadingFloatingTooltip(tableHeadingInfo, { tooltipClass: "table-heading-info-floating-tooltip" });
 bindTableHeadingFloatingTooltip(readerEditQueryBtn);
 bindTableHeadingFloatingTooltip(readerViewSettingsBtn, { onlyBelowWidth: 1480 });
-bindTableHeadingFloatingTooltip(document.getElementById("campaignRenameBtn"), {
-  tooltipClass: "is-over-modal"
-});
 window.bindActionTooltip?.(document.getElementById("startCampaignRemainingInfo"), {
   tooltipClass: "start-campaign-remaining-info-tooltip is-over-modal"
 });

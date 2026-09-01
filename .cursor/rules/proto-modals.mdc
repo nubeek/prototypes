@@ -11,6 +11,7 @@ When adding or changing a form dialog (title + inline close, body, Cancel/Save),
 - Markup and `createProtoModal()` contract are documented at the top of `proto-modal.js`.
 - Overlay clicks do not close dialogs. Pass `shouldCloseOnOverlay: true` to opt in.
 - Put the X in `.proto-modal-header` next to the title. Never as a sibling above the form.
-- Unique body content stays in the feature. Shared chrome (overlay, card, header, fields, footer) does not.
+- Unique body content stays in the feature. Shared chrome (overlay, card, header, fields, check groups, footer) does not.
+- Radio and checkbox stacks in dialogs use `.proto-modal-check-group` / `.proto-modal-check`. Do not reuse `.filter-check-group` / `.filter-check` inside proto-modals.
 - Profile-style cards (centered hero, no title row) still use `createProtoModal()` for open/close; keep `.profile-modal-close` in the corner.
 - Existing pages may still use `profile-modal-*` / `target-modal-*` aliases. New dialogs should use `proto-modal-*`.

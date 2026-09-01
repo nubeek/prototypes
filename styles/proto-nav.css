@@ -341,7 +341,7 @@ body > .proto-nav:not(.is-open) {
 
 .proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-radio {
   background: #fff;
-  box-shadow: inset 0 0 0 1px #e1e1e1;
+  box-shadow: inset 0 0 0 2px #e1e1e1;
 }
 
 .proto-nav__settings-item[aria-checked="true"] .proto-nav__settings-radio::before {

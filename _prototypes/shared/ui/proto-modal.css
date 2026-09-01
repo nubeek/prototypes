@@ -261,7 +261,7 @@ body.reduce-motion .target-modal.is-resizing {
 .target-modal-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   margin: 0 0 16px;
   color: #050505;
   font-size: var(--font-size-base);
@@ -589,6 +589,112 @@ body.reduce-motion .target-modal.is-resizing {
   color: #fc353d;
 }
 
+.proto-modal-field:has(> .proto-modal-check-group),
+.target-modal-field:has(> .proto-modal-check-group) {
+  gap: 0;
+  margin-bottom: 0;
+}
+
+.proto-modal-check-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 28px;
+}
+
+.proto-modal-check {
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.proto-modal-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.proto-modal-checkbox {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-control);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  transition: background-color var(--transition-fast);
+}
+
+.proto-modal-checkbox::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: url("../../../assets/icons/check.svg") center / contain no-repeat;
+  opacity: 0;
+  transition: opacity .12s ease;
+}
+
+.proto-modal-check:hover:not(.is-checked) .proto-modal-checkbox {
+  background: var(--color-surface-control-hover);
+}
+
+.proto-modal-check.is-checked .proto-modal-checkbox {
+  background: var(--color-surface);
+}
+
+.proto-modal-check.is-checked .proto-modal-checkbox::before {
+  opacity: 1;
+}
+
+.proto-modal-checkbox--radio {
+  border-radius: 50%;
+}
+
+.proto-modal-checkbox--radio::before {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-text);
+}
+
+.proto-modal-check.is-checked .proto-modal-checkbox--radio {
+  box-shadow: inset 0 0 0 2px #e1e1e1;
+}
+
+.proto-modal-check-muted {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.proto-modal-check-muted:not(:has(input:disabled)) {
+  cursor: pointer;
+}
+
+.proto-modal-check-muted .proto-modal-checkbox {
+  background: #e5e5e5;
+}
+
+.proto-modal-check-muted.is-checked {
+  color: var(--color-text);
+}
+
+.proto-modal-check-muted.is-checked .proto-modal-checkbox {
+  background: var(--color-surface);
+}
+
+.proto-modal-check-muted input:disabled {
+  cursor: not-allowed;
+}
+
 .proto-modal-select-field,
 .target-modal-select-field {
   position: relative;
@@ -619,7 +725,7 @@ body.reduce-motion .target-modal.is-resizing {
 .target-modal-divider {
   width: 100%;
   height: 1px;
-  margin: 28px 0 20px 0;
+  margin: 20px 0;
   background: var(--color-border);
 }
 
