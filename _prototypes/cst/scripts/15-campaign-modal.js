@@ -16,7 +16,7 @@ const CAMPAIGN_DESIGN_TEMPLATES = {
   "event-invitation": "Event invitation"
 };
 const CAMPAIGN_DESIGN_PREVIEW_TEMPLATE_ID = "introduction";
-const CAMPAIGN_STEP_TRANSITION_MS = 400;
+const CAMPAIGN_STEP_TRANSITION_MS = 380;
 const CAMPAIGN_REVIEW_DELAY_MS = 2000;
 const CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT = "philip@litassy.com";
 const DEFAULT_CAMPAIGN_NAME = "Untitled campaign";
@@ -30,15 +30,16 @@ const CAMPAIGN_FIELD_ERRORS = {
   designTemplate: "Choose a design template"
 };
 const CAMPAIGN_STEPS = [
-  { id: "sender", title: "Sender" },
-  { id: "recipients", title: "Recipients" },
-  { id: "subject", title: "Subject" },
-  { id: "design", title: "Design" }
+  { id: "sender", title: "Sender", level: "campaign" },
+  { id: "recipients", title: "Recipients", level: "campaign" },
+  { id: "subject", title: "Subject", level: "campaign" },
+  { id: "design", title: "Design", level: "campaign" },
+  { id: "review", title: "Review", level: "review" },
+  { id: "schedule", title: "Schedule", level: "review" }
 ];
-const CAMPAIGN_REVIEW_STEPS = [
-  { id: "review", title: "Review & Send" },
-  { id: "schedule", title: "Schedule" }
-];
+const CAMPAIGN_DESIGN_STEP_INDEX = CAMPAIGN_STEPS.findIndex((step) => step.id === "design");
+const CAMPAIGN_REVIEW_STEP_INDEX = CAMPAIGN_STEPS.findIndex((step) => step.id === "review");
+const CAMPAIGN_SCHEDULE_STEP_INDEX = CAMPAIGN_STEPS.findIndex((step) => step.id === "schedule");
 const CAMPAIGN_REVIEW_SCHEDULE_LABELS = {
   "send-now": "Send now",
   "schedule-later": "Schedule",
@@ -153,9 +154,10 @@ function getCampaignStepErrors(stepIndex) {
 
 function getCampaignWizardErrors() {
   const errors = [];
-  for (let stepIndex = 0; stepIndex < CAMPAIGN_STEPS.length; stepIndex += 1) {
+  CAMPAIGN_STEPS.forEach((step, stepIndex) => {
+    if (step.level !== "campaign") return;
     errors.push(...getCampaignStepErrors(stepIndex));
-  }
+  });
   return errors;
 }
 
@@ -212,6 +214,10 @@ const campaignSenderAuthNotice = document.getElementById("campaignSenderAuthNoti
 const startCampaignModal = document.getElementById("startCampaignModal");
 const startCampaignModalTitle = document.getElementById("startCampaignModalTitle");
 const campaignWizardModal = startCampaignModal?.querySelector(".campaign-wizard-modal");
+const campaignTitleGroup = document.getElementById("campaignTitleGroup");
+const reviewTitleGroup = document.getElementById("reviewTitleGroup");
+const campaignStepLevel = document.getElementById("campaignStepLevel");
+const campaignReviewChrome = document.getElementById("campaignReviewChrome");
 const campaignNameInput = document.getElementById("campaignNameInput");
 const campaignRenameBtn = document.getElementById("campaignRenameBtn");
 const campaignRenameConfirm = document.getElementById("campaignRenameConfirm");
@@ -243,11 +249,6 @@ const campaignDesignPreviewEmpty = document.getElementById("campaignDesignPrevie
 const campaignDesignPreviewContent = document.getElementById("campaignDesignPreviewContent");
 const campaignDesignPreviewImage = document.getElementById("campaignDesignPreviewImage");
 const campaignDesignPreviewUnavailable = document.getElementById("campaignDesignPreviewUnavailable");
-const reviewCampaignModal = document.getElementById("reviewCampaignModal");
-const campaignReviewStepViewport = document.getElementById("campaignReviewStepViewport");
-const campaignReviewStepPanels = Array.from(
-  campaignReviewStepViewport?.querySelectorAll(".campaign-step-panel") || []
-);
 const reviewCampaignModalForm = document.getElementById("reviewCampaignModalForm");
 const scheduleCampaignModalForm = document.getElementById("scheduleCampaignModalForm");
 const campaignScheduleOptions = document.getElementById("campaignScheduleOptions");
@@ -284,13 +285,9 @@ let campaignReviewPending = false;
 let campaignReviewValidated = false;
 let campaignReviewTimeoutId = null;
 let campaignReviewDraft = null;
-let pendingCampaignReviewOpen = false;
 let campaignReviewTestTimeoutId = null;
 let campaignReviewNameBeforeRename = DEFAULT_CAMPAIGN_NAME;
-let activeCampaignReviewStepIndex = 0;
-let campaignReviewStepTransitionTimeoutId = null;
-let campaignReviewStepAnimating = false;
-let pendingCampaignReviewStepIndex = null;
+let lastCampaignLevelStepIndex = CAMPAIGN_DESIGN_STEP_INDEX;
 
 function closeCampaignSenderDropdown() {
   campaignSenderEmailApi?.close();
@@ -735,6 +732,10 @@ function syncCampaignDesignPreview() {
   if (hasTemplate && campaignDesignPreview) {
     campaignDesignPreview.scrollTop = 0;
   }
+
+  if (CAMPAIGN_STEPS[activeCampaignStepIndex]?.id === "design") {
+    syncCampaignStepHeight();
+  }
 }
 
 function resetCampaignDesignModal() {
@@ -747,6 +748,7 @@ function closeCampaignDropdowns() {
   closeCampaignSenderDropdown();
   closeStartCampaignDropdowns();
   closeCampaignDesignDropdown();
+  closeCampaignLevelDropdown();
 }
 
 function clampCampaignName(value) {
@@ -833,7 +835,15 @@ function resetCampaignName() {
   setCampaignRenaming(false);
 }
 
+function closeCampaignLevelDropdown() {
+  campaignStepLevel?.removeAttribute("open");
+}
+
 function closeOpenCampaignDropdown() {
+  if (campaignStepLevel?.open) {
+    closeCampaignLevelDropdown();
+    return true;
+  }
   if (isCampaignSenderDropdownOpen()) {
     closeCampaignSenderDropdown();
     return true;
@@ -847,6 +857,36 @@ function closeOpenCampaignDropdown() {
     return true;
   }
   return false;
+}
+
+function isCampaignReviewLevel(index = activeCampaignStepIndex) {
+  return CAMPAIGN_STEPS[index]?.level === "review";
+}
+
+function rememberCampaignLevelStep(index) {
+  if (CAMPAIGN_STEPS[index]?.level === "campaign") {
+    lastCampaignLevelStepIndex = index;
+  }
+}
+
+function syncCampaignHeaderLevel(index = activeCampaignStepIndex) {
+  const isReview = isCampaignReviewLevel(index);
+
+  campaignWizardModal?.classList.toggle("is-review-level", isReview);
+  if (campaignTitleGroup) campaignTitleGroup.hidden = isReview;
+  if (reviewTitleGroup) reviewTitleGroup.hidden = !isReview;
+  if (campaignStepTabs) campaignStepTabs.hidden = isReview;
+  if (campaignReviewChrome) campaignReviewChrome.hidden = !isReview;
+
+  campaignStepLevel?.querySelectorAll("[data-campaign-level]").forEach((option) => {
+    const checked = option.dataset.campaignLevel === (isReview ? "review" : "campaign");
+    option.setAttribute("aria-checked", String(checked));
+  });
+
+  campaignWizardModal?.setAttribute(
+    "aria-labelledby",
+    isReview ? "reviewCampaignModalTitle" : "startCampaignModalTitle"
+  );
 }
 
 function getCampaignStepPanel(index) {
@@ -892,6 +932,8 @@ function updateCampaignStepChrome(index) {
     tab.classList.toggle("is-active", isActive);
     tab.setAttribute("aria-selected", String(isActive));
   });
+
+  syncCampaignHeaderLevel(index);
 }
 
 function syncCampaignStepHeight({ immediate = false } = {}) {
@@ -942,6 +984,7 @@ function setCampaignStepImmediate(index, { syncHeight = false, focusTab = false 
   campaignStepAnimating = false;
   pendingCampaignStepIndex = null;
   activeCampaignStepIndex = nextIndex;
+  rememberCampaignLevelStep(nextIndex);
   campaignStepPanels.forEach((panel) => {
     setCampaignStepPanelState(panel, panel === getCampaignStepPanel(nextIndex));
   });
@@ -987,7 +1030,9 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
   }
 
   if (isCampaignRenaming()) commitCampaignRename();
+  if (isCampaignReviewRenaming()) commitCampaignReviewRename();
   closeCampaignDropdowns();
+  closeCampaignLevelDropdown();
 
   const outgoingIndex = activeCampaignStepIndex;
   const outgoingPanel = getCampaignStepPanel(outgoingIndex);
@@ -1004,6 +1049,7 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
 
   campaignStepAnimating = true;
   activeCampaignStepIndex = index;
+  rememberCampaignLevelStep(index);
   updateCampaignStepChrome(index);
 
   outgoingPanel.classList.remove("is-active", "is-entering");
@@ -1045,16 +1091,20 @@ function resetCampaignWizard() {
   cancelCampaignReviewPending();
   campaignReviewValidated = false;
   closeCampaignDropdowns();
+  closeCampaignLevelDropdown();
   clearAllCampaignFieldErrors();
   syncCampaignStepErrorChrome();
   resetCampaignName();
+  lastCampaignLevelStepIndex = CAMPAIGN_DESIGN_STEP_INDEX;
   setCampaignStepImmediate(0);
   resetCampaignSenderModal();
   resetStartCampaignModal();
   resetCampaignSubjectModal();
   resetCampaignDesignModal();
+  resetReviewCampaignModal();
   campaignSenderDraft = null;
   startCampaignDraft = null;
+  campaignReviewDraft = null;
 }
 
 function setCampaignReviewLoading(isLoading) {
@@ -1198,127 +1248,6 @@ function resetCampaignReviewTestSend() {
   if (campaignReviewTestEmail) clearCampaignReviewTestError();
 }
 
-function getCampaignReviewStepPanel(index) {
-  const step = CAMPAIGN_REVIEW_STEPS[index];
-  if (!step) return null;
-  return campaignReviewStepPanels.find((panel) => panel.dataset.campaignReviewStep === step.id) || null;
-}
-
-function syncCampaignReviewStepHeight({ immediate = false } = {}) {
-  if (!campaignReviewStepViewport || !reviewCampaignModalApi?.isVisible()) return;
-  if (measuringCampaignStepHeight) return;
-
-  const activePanel = getCampaignReviewStepPanel(activeCampaignReviewStepIndex);
-  if (!activePanel) return;
-
-  const nextHeight = getCampaignStepNaturalHeight(activePanel);
-  const currentHeight = Math.round(campaignReviewStepViewport.getBoundingClientRect().height);
-  if (!immediate && Math.abs(currentHeight - nextHeight) < 1) return;
-
-  if (immediate) campaignReviewStepViewport.style.transition = "none";
-  campaignReviewStepViewport.style.height = `${nextHeight}px`;
-
-  if (immediate) {
-    campaignReviewStepViewport.offsetHeight;
-    campaignReviewStepViewport.style.transition = "";
-  }
-}
-
-function setCampaignReviewStepImmediate(index, { syncHeight = false } = {}) {
-  const nextIndex = Math.max(0, Math.min(index, CAMPAIGN_REVIEW_STEPS.length - 1));
-
-  if (campaignReviewStepTransitionTimeoutId) {
-    window.clearTimeout(campaignReviewStepTransitionTimeoutId);
-    campaignReviewStepTransitionTimeoutId = null;
-  }
-
-  campaignReviewStepAnimating = false;
-  pendingCampaignReviewStepIndex = null;
-  activeCampaignReviewStepIndex = nextIndex;
-  campaignReviewStepPanels.forEach((panel) => {
-    setCampaignStepPanelState(panel, panel === getCampaignReviewStepPanel(nextIndex));
-  });
-
-  if (campaignReviewStepViewport && !syncHeight) campaignReviewStepViewport.style.height = "";
-  if (syncHeight) syncCampaignReviewStepHeight({ immediate: true });
-}
-
-function finishCampaignReviewStepTransition(incomingPanel, outgoingPanel) {
-  setCampaignStepPanelState(outgoingPanel, false);
-  setCampaignStepPanelState(incomingPanel, true);
-  campaignReviewStepAnimating = false;
-  campaignReviewStepTransitionTimeoutId = null;
-  syncCampaignReviewStepHeight();
-
-  const queuedIndex = pendingCampaignReviewStepIndex;
-  pendingCampaignReviewStepIndex = null;
-  if (queuedIndex !== null && queuedIndex !== activeCampaignReviewStepIndex) {
-    goToCampaignReviewStep(queuedIndex);
-  }
-}
-
-function goToCampaignReviewStep(index) {
-  if (!Number.isInteger(index) || index < 0 || index >= CAMPAIGN_REVIEW_STEPS.length) return;
-  if (index === activeCampaignReviewStepIndex) return;
-
-  if (campaignReviewStepAnimating) {
-    pendingCampaignReviewStepIndex = index;
-    return;
-  }
-
-  if (isCampaignReviewRenaming()) commitCampaignReviewRename();
-
-  const outgoingIndex = activeCampaignReviewStepIndex;
-  const outgoingPanel = getCampaignReviewStepPanel(outgoingIndex);
-  const incomingPanel = getCampaignReviewStepPanel(index);
-  if (!outgoingPanel || !incomingPanel) return;
-
-  if (document.body.classList.contains("reduce-motion")) {
-    setCampaignReviewStepImmediate(index, { syncHeight: true });
-    return;
-  }
-
-  const direction = index > outgoingIndex ? 1 : -1;
-  const nextHeight = getCampaignStepNaturalHeight(incomingPanel);
-
-  campaignReviewStepAnimating = true;
-  activeCampaignReviewStepIndex = index;
-
-  outgoingPanel.classList.remove("is-active", "is-entering");
-  outgoingPanel.classList.add("is-leaving");
-  outgoingPanel.setAttribute("aria-hidden", "true");
-  outgoingPanel.inert = true;
-
-  incomingPanel.classList.remove("is-active", "is-leaving");
-  incomingPanel.classList.add("is-entering");
-  incomingPanel.removeAttribute("aria-hidden");
-  incomingPanel.inert = false;
-
-  outgoingPanel.style.transition = "none";
-  incomingPanel.style.transition = "none";
-  outgoingPanel.style.transform = "translateX(0)";
-  incomingPanel.style.transform = `translateX(${direction * 100}%)`;
-  outgoingPanel.style.opacity = "1";
-  incomingPanel.style.opacity = "0";
-  outgoingPanel.offsetWidth;
-  incomingPanel.offsetWidth;
-  outgoingPanel.style.transition = "";
-  incomingPanel.style.transition = "";
-
-  window.requestAnimationFrame(() => {
-    if (!campaignReviewStepAnimating || !reviewCampaignModalApi.isVisible()) return;
-    outgoingPanel.style.transform = `translateX(${-direction * 100}%)`;
-    incomingPanel.style.transform = "translateX(0)";
-    outgoingPanel.style.opacity = "0";
-    incomingPanel.style.opacity = "1";
-    if (campaignReviewStepViewport) campaignReviewStepViewport.style.height = `${nextHeight}px`;
-  });
-
-  campaignReviewStepTransitionTimeoutId = window.setTimeout(() => {
-    finishCampaignReviewStepTransition(incomingPanel, outgoingPanel);
-  }, CAMPAIGN_STEP_TRANSITION_MS);
-}
-
 function getCampaignReviewScheduleValue() {
   const selected = campaignScheduleOptions?.querySelector("input[name='campaignSchedule']:checked");
   return selected?.value || CAMPAIGN_REVIEW_SCHEDULE_DEFAULT;
@@ -1350,12 +1279,11 @@ function resetReviewCampaignModal() {
   cancelCampaignReviewRename();
   resetCampaignReviewTestSend();
   resetCampaignReviewScheduleSelection();
-  setCampaignReviewStepImmediate(0);
   if (campaignReviewTestEmail) campaignReviewTestEmail.value = CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT;
 }
 
 function handleCampaignReviewScheduleAction(_action) {
-  closeReviewCampaignModal();
+  closeStartCampaignModal();
 }
 
 function getCampaignReviewTestField() {
@@ -1412,7 +1340,7 @@ function sendCampaignReviewTestEmail() {
   }, 800);
 }
 
-function openCampaignReviewFromWizard() {
+function enterCampaignReview() {
   const sender = getCampaignSenderSelection();
   const audience = buildCampaignAudiencePreview(getSelectedAudienceValues());
   const subject = getCampaignSubjectSelection();
@@ -1429,8 +1357,43 @@ function openCampaignReviewFromWizard() {
     design
   };
   campaignReviewDraft = collectCampaignReviewDraft();
-  pendingCampaignReviewOpen = true;
-  closeStartCampaignModal();
+  renderCampaignReviewModal();
+  goToCampaignStep(CAMPAIGN_REVIEW_STEP_INDEX);
+}
+
+function requestCampaignReview() {
+  if (campaignReviewPending) return;
+  if (isCampaignReviewLevel()) {
+    goToCampaignStep(CAMPAIGN_REVIEW_STEP_INDEX);
+    return;
+  }
+
+  setCampaignReviewLoading(true);
+  campaignReviewTimeoutId = window.setTimeout(() => {
+    campaignReviewTimeoutId = null;
+    setCampaignReviewLoading(false);
+
+    const validationErrors = getCampaignWizardErrors();
+    if (validationErrors.length) {
+      revealCampaignWizardErrors(validationErrors);
+      return;
+    }
+
+    enterCampaignReview();
+  }, CAMPAIGN_REVIEW_DELAY_MS);
+}
+
+function goToCampaignLevel(level) {
+  closeCampaignLevelDropdown();
+
+  if (level === "review") {
+    if (isCampaignReviewLevel()) return;
+    requestCampaignReview();
+    return;
+  }
+
+  if (!isCampaignReviewLevel()) return;
+  goToCampaignStep(lastCampaignLevelStepIndex);
 }
 
 function revealCampaignWizardErrors(errors) {
@@ -1457,16 +1420,18 @@ const startCampaignModalApi = window.createProtoModal({
   closeSelectors: ".proto-modal-close",
   onBeforeClose() {
     closeCampaignDropdowns();
+    closeCampaignLevelDropdown();
   },
   onClose() {
-    const shouldOpenReview = pendingCampaignReviewOpen;
-    pendingCampaignReviewOpen = false;
     resetCampaignWizard();
-    if (shouldOpenReview) reviewCampaignModalApi.open();
   },
   shouldCloseOnEscape() {
     if (isCampaignRenaming()) {
       cancelCampaignRename();
+      return false;
+    }
+    if (isCampaignReviewRenaming()) {
+      cancelCampaignReviewRename();
       return false;
     }
     return !closeOpenCampaignDropdown();
@@ -1479,40 +1444,8 @@ const startCampaignModalApi = window.createProtoModal({
   }
 });
 
-const reviewCampaignModalApi = window.createProtoModal({
-  overlay: reviewCampaignModal,
-  disableHeightAnimation: true,
-  closeSelectors: ".proto-modal-close",
-  onOpen() {
-    resetCampaignReviewScheduleSelection();
-    setCampaignReviewStepImmediate(0);
-    renderCampaignReviewModal();
-  },
-  onOpened() {
-    syncCampaignReviewStepHeight({ immediate: true });
-  },
-  onClose() {
-    resetReviewCampaignModal();
-    campaignReviewDraft = null;
-  },
-  shouldCloseOnEscape() {
-    if (isCampaignReviewRenaming()) {
-      cancelCampaignReviewRename();
-      return false;
-    }
-    return true;
-  },
-  getFocusElement() {
-    return reviewCampaignModal?.querySelector(".proto-modal-close");
-  }
-});
-
 function closeStartCampaignModal() {
   startCampaignModalApi.close();
-}
-
-function closeReviewCampaignModal() {
-  reviewCampaignModalApi.close();
 }
 
 function openStartCampaignModal(trigger = null) {
@@ -1538,19 +1471,6 @@ if (typeof ResizeObserver === "function") {
       return;
     }
     Array.from(body.children).forEach((child) => campaignStepResizeObserver.observe(child));
-  });
-
-  const campaignReviewStepResizeObserver = new ResizeObserver(() => {
-    if (measuringCampaignStepHeight || campaignReviewStepAnimating) return;
-    syncCampaignReviewStepHeight();
-  });
-  campaignReviewStepPanels.forEach((panel) => {
-    const body = panel.querySelector(".proto-modal-body");
-    if (!body) {
-      campaignReviewStepResizeObserver.observe(panel);
-      return;
-    }
-    Array.from(body.children).forEach((child) => campaignReviewStepResizeObserver.observe(child));
   });
 }
 
@@ -1610,6 +1530,12 @@ campaignDesignTemplateApi = window.WefranchFilterCombobox.enhance(campaignDesign
 campaignDesignTemplateSelect?.addEventListener("change", () => {
   clearCampaignFieldError(campaignDesignTemplateField);
   syncCampaignDesignContinue();
+});
+
+campaignDesignPreviewImage?.addEventListener("load", () => {
+  if (CAMPAIGN_STEPS[activeCampaignStepIndex]?.id === "design") {
+    syncCampaignStepHeight();
+  }
 });
 
 startCampaignOption?.addEventListener("click", (event) => {
@@ -1711,21 +1637,14 @@ campaignSubjectModalForm?.addEventListener("submit", (event) => {
 
 campaignDesignModalForm?.addEventListener("submit", (event) => {
   event.preventDefault();
-  if (campaignReviewPending) return;
+  requestCampaignReview();
+});
 
-  setCampaignReviewLoading(true);
-  campaignReviewTimeoutId = window.setTimeout(() => {
-    campaignReviewTimeoutId = null;
-    setCampaignReviewLoading(false);
-
-    const validationErrors = getCampaignWizardErrors();
-    if (validationErrors.length) {
-      revealCampaignWizardErrors(validationErrors);
-      return;
-    }
-
-    openCampaignReviewFromWizard();
-  }, CAMPAIGN_REVIEW_DELAY_MS);
+campaignStepLevel?.querySelector("[role='menu']")?.addEventListener("click", (event) => {
+  const option = event.target.closest("[data-campaign-level]");
+  if (!option) return;
+  event.preventDefault();
+  goToCampaignLevel(option.dataset.campaignLevel);
 });
 
 campaignReviewName?.addEventListener("click", () => {
@@ -1778,20 +1697,12 @@ campaignReviewSendTest?.addEventListener("click", (event) => {
 
 reviewCampaignModalForm?.addEventListener("submit", (event) => {
   event.preventDefault();
-  goToCampaignReviewStep(1);
+  goToCampaignStep(CAMPAIGN_SCHEDULE_STEP_INDEX);
 });
 
 scheduleCampaignModalForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   handleCampaignReviewScheduleAction(getCampaignReviewScheduleValue());
-});
-
-reviewCampaignModal?.addEventListener("click", (event) => {
-  const backButton = event.target.closest(".campaign-review-step-back");
-  if (!backButton) return;
-
-  event.preventDefault();
-  goToCampaignReviewStep(activeCampaignReviewStepIndex - 1);
 });
 
 campaignScheduleOptions?.addEventListener("change", () => {
@@ -1808,10 +1719,4 @@ window.cstStartCampaignModal = {
   close: closeStartCampaignModal,
   isVisible: () => startCampaignModalApi.isVisible(),
   open: openStartCampaignModal
-};
-
-window.cstReviewCampaignModal = {
-  close: closeReviewCampaignModal,
-  isVisible: () => reviewCampaignModalApi.isVisible(),
-  open: () => reviewCampaignModalApi.open()
 };

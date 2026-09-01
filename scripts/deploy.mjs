@@ -74,8 +74,15 @@ const rewritePublicPaths = async (directory) => {
   const sortedRewrites = [...PUBLIC_PATH_REWRITES.entries()]
     .sort((a, b) => b[0].length - a[0].length);
 
+  const rewritableExtensions = new Set([".html", ".js", ".json", ".css"]);
+
   for (const file of files) {
-    if (path.extname(file) !== ".html") {
+    const basename = path.basename(file);
+    if (
+      !rewritableExtensions.has(path.extname(file))
+      || basename.startsWith("generate-")
+      || basename.startsWith("patch-")
+    ) {
       continue;
     }
 

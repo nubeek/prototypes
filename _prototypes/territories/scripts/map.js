@@ -1831,7 +1831,7 @@ function populateTerritoryInfoCard(record, { compare = false } = {}) {
 
   const logo = document.getElementById(getTerritoryInfoFieldId("territoryInfoLogo", { compare }));
   if (logo) {
-    logo.src = brand?.logo || "";
+    logo.src = resolvePublicAssetUrl(brand?.logo || "");
     logo.alt = brandName ? `${brandName} logo` : "";
   }
 
@@ -1965,7 +1965,7 @@ function createTerritoryAreaBrandRow(record) {
   );
 
   logo.className = "territory-area-card__logo";
-  logo.src = brand?.logo || "";
+  logo.src = resolvePublicAssetUrl(brand?.logo || "");
   logo.alt = "";
   logo.setAttribute("aria-hidden", "true");
 
@@ -1976,7 +1976,7 @@ function createTerritoryAreaBrandRow(record) {
   status.textContent = formatTerritoryStatus(record.status);
 
   chevron.className = "territory-area-card__chevron";
-  chevron.src = "../../assets/icons/chevron.svg";
+  chevron.src = resolvePublicAssetUrl("../../assets/icons/chevron.svg");
   chevron.alt = "";
   chevron.setAttribute("aria-hidden", "true");
 
@@ -5175,6 +5175,9 @@ function loadTerritoryDataBundle() {
     fetchTerritoryJson(TERRITORY_MACRODATA_URL),
     ...activeDataset.brandFiles.map((file) => fetchTerritoryJson(`data/${file}`))
   ]).then(async ([statesGeojson, macrodata, ...brands]) => {
+    brands.forEach((brand) => {
+      if (brand?.logo) brand.logo = resolvePublicAssetUrl(brand.logo);
+    });
     const needsCounties = brands.some((brand) => isCountyLevelBrand(brand));
     const needsGeoFeatures = brands.some((brand) => isGeoLevelBrand(brand));
     const [countiesGeojson, geoFeaturesGeojson] = await Promise.all([
@@ -5369,32 +5372,38 @@ function buildTerritoryLogoIconSizeExpression(imageWidth) {
 
 async function loadBrandLogoImage(territoryMap, brand) {
   const imageId = `territory-logo-${brand.id}`;
+  const logoUrl = resolvePublicAssetUrl(brand.logo);
 
-  if (!brand.logo) return null;
+  if (!logoUrl) return null;
 
   if (brandLogoMetaById.has(brand.id)) {
     return brandLogoMetaById.get(brand.id);
   }
 
-  const image = await new Promise((resolve, reject) => {
-    territoryMap.loadImage(brand.logo, (error, loadedImage) => {
-      if (error) reject(error);
-      else resolve(loadedImage);
+  try {
+    const image = await new Promise((resolve, reject) => {
+      territoryMap.loadImage(logoUrl, (error, loadedImage) => {
+        if (error) reject(error);
+        else resolve(loadedImage);
+      });
     });
-  });
 
-  if (!territoryMap.hasImage(imageId)) {
-    territoryMap.addImage(imageId, createRoundedLogoImage(image));
+    if (!territoryMap.hasImage(imageId)) {
+      territoryMap.addImage(imageId, createRoundedLogoImage(image));
+    }
+
+    const logoMeta = {
+      imageId,
+      imageWidth: TERRITORY_LOGO_TEXTURE_SIZE,
+      iconSize: buildTerritoryLogoIconSizeExpression(TERRITORY_LOGO_TEXTURE_SIZE)
+    };
+
+    brandLogoMetaById.set(brand.id, logoMeta);
+    return logoMeta;
+  } catch (error) {
+    console.warn(`Unable to load the ${brand.id} logo.`, error);
+    return null;
   }
-
-  const logoMeta = {
-    imageId,
-    imageWidth: TERRITORY_LOGO_TEXTURE_SIZE,
-    iconSize: buildTerritoryLogoIconSizeExpression(TERRITORY_LOGO_TEXTURE_SIZE)
-  };
-
-  brandLogoMetaById.set(brand.id, logoMeta);
-  return logoMeta;
 }
 
 function collectGeometryPolygons(geometry) {

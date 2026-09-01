@@ -677,7 +677,7 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
   filterButton.dataset.tooltip = "Add to\nFranchise filter";
 
   filterIcon.className = "territory-brand-item__filter-icon";
-  filterIcon.src = "../../assets/icons/filter-single.svg";
+  filterIcon.src = resolvePublicAssetUrl("../../assets/icons/filter-single.svg");
   filterIcon.alt = "";
   filterIcon.setAttribute("aria-hidden", "true");
 
@@ -688,7 +688,7 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
   expandToggle.setAttribute("aria-label", `Toggle ${brand.brand} territories`);
 
   logo.className = "territory-brand-item__logo";
-  logo.src = brand.logo;
+  logo.src = resolvePublicAssetUrl(brand.logo);
   logo.alt = "";
   logo.loading = "lazy";
   logo.decoding = "async";
@@ -703,7 +703,7 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
   count.textContent = formatTerritoryCount(territories.length);
 
   chevron.className = "territory-brand-item__chevron";
-  chevron.src = "../../assets/icons/chevron.svg";
+  chevron.src = resolvePublicAssetUrl("../../assets/icons/chevron.svg");
   chevron.alt = "";
   chevron.setAttribute("aria-hidden", "true");
 
@@ -754,7 +754,7 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
     territoryInfoButton.type = "button";
     territoryInfoButton.setAttribute("aria-label", "Request information");
     territoryInfoIcon.className = "territory-brand-territory__info-icon";
-    territoryInfoIcon.src = "../../assets/icons/info-filled.svg";
+    territoryInfoIcon.src = resolvePublicAssetUrl("../../assets/icons/info-filled.svg");
     territoryInfoIcon.alt = "";
     territoryInfoIcon.loading = "lazy";
     territoryInfoIcon.decoding = "async";
@@ -1062,7 +1062,7 @@ function syncTerritoryBrandPanelExpandToggle() {
   button.dataset.tooltip = label;
 
   if (icon) {
-    icon.src = allCollapsed ? "../../assets/icons/expand.svg" : "../../assets/icons/collapse.svg";
+    icon.src = resolvePublicAssetUrl(allCollapsed ? "../../assets/icons/expand.svg" : "../../assets/icons/collapse.svg");
   }
 }
 

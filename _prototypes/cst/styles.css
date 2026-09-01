@@ -1064,11 +1064,19 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   width: min(580px, calc(100vw - 48px));
 }
 
+.proto-modal.campaign-wizard-modal:has(.campaign-step-level[open]) {
+  overflow: visible;
+}
+
+.campaign-wizard-modal .proto-modal-field-message.is-error {
+  font-size: 14px;
+}
+
 .campaign-wizard-modal .proto-modal-header {
   margin-bottom: 28px;
 }
 
-.campaign-modal-title-group {
+.campaign-modal-title-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1077,12 +1085,39 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   min-height: 28px;
 }
 
+.campaign-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 1 auto;
+  min-height: 28px;
+}
+
+.campaign-modal-title-group[hidden] {
+  display: none;
+}
+
+.campaign-wizard-modal.is-renaming .campaign-modal-title-group {
+  flex: 1 1 auto;
+}
+
 .campaign-wizard-modal .proto-modal-title {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
+}
+
+.campaign-wizard-modal .campaign-modal-title-group.is-static .proto-modal-title {
+  cursor: default;
+}
+
+.campaign-wizard-modal.is-review-level #campaignRenameBtn,
+.campaign-wizard-modal.is-review-level #campaignRenameConfirm,
+.campaign-wizard-modal.is-review-level #campaignNameCount {
+  display: none;
 }
 
 .campaign-modal-title-input {
@@ -1207,6 +1242,58 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   margin: -4px 0 28px;
 }
 
+.campaign-step-tabs[hidden] {
+  display: none;
+}
+
+.campaign-step-level {
+  flex: 0 0 auto;
+}
+
+.campaign-step-level-chevron {
+  display: block;
+  width: 11px;
+  height: 6px;
+  transition: transform var(--transition-fast);
+}
+
+.campaign-step-level[open] .campaign-step-level-toggle {
+  background: var(--color-surface-control);
+}
+
+.campaign-step-level[open] .campaign-step-level-chevron {
+  transform: rotate(180deg);
+}
+
+.campaign-step-level > .campaign-step-level-menu {
+  left: 0;
+  right: auto;
+  width: max-content;
+  min-width: 180px;
+  z-index: 30;
+}
+
+.campaign-step-level-menu .toolbar-dropdown-label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.campaign-step-level-check {
+  display: block;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  opacity: 0;
+}
+
+.campaign-step-level-menu .toolbar-dropdown-option[aria-checked="true"] .campaign-step-level-check {
+  opacity: 1;
+}
+
+.campaign-step-level-menu .toolbar-dropdown-option[aria-checked="true"] .toolbar-dropdown-label {
+  font-weight: 500;
+}
+
 .campaign-step-tab {
   display: inline-flex;
   align-items: center;
@@ -1260,7 +1347,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  transition: height 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: height 380ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .campaign-step-viewport:has(.filter-select-field.is-open) {
@@ -1280,7 +1367,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   opacity: 1;
   transform: translateX(0);
   transition:
-    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 50ms ease;
   will-change: transform, opacity;
 }
@@ -1304,14 +1391,15 @@ body.reduce-motion .campaign-step-viewport {
 .campaign-design-preview {
   position: relative;
   width: 100%;
-  height: 200px;
-  min-height: 200px;
-  max-height: 260px;
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
   border-radius: var(--radius-md);
   scrollbar-width: thin;
 }
 
 .campaign-design-preview.is-empty {
+  height: 240px;
   padding: 0;
   overflow: hidden;
   border: none;
@@ -1839,13 +1927,18 @@ body.reduce-motion .campaign-continue-spinner {
   mask: url("../../assets/icons/mail-send.svg") center / contain no-repeat;
 }
 
-.proto-modal.campaign-review-modal {
-  overflow: hidden;
-}
-
 .campaign-review-chrome {
   flex: 0 0 auto;
   padding-inline: 1px;
+  margin: -4px 0 28px;
+}
+
+.campaign-review-chrome[hidden] {
+  display: none;
+}
+
+.campaign-review-chrome .proto-modal-field {
+  margin-bottom: 16px;
 }
 
 .campaign-schedule-options {
@@ -5649,6 +5742,10 @@ a.franchise-name:focus-visible {
     --control-height: 44px;
     --radius-md: 8px;
     --radius-lg: 10px;
+  }
+
+  .campaign-wizard-modal .proto-modal-field-message.is-error {
+    font-size: 13px;
   }
 
   .card {

@@ -1009,16 +1009,16 @@ function createPresetTile(preset, { baseMapUrl, fillUrl, bordersUrl, counts, kin
     ? `
         <span class="target-card-actions">
           <span class="target-settings" role="button" tabindex="0" aria-label="Edit search settings">
-            <img src="../../assets/icons/settings.svg" alt="">
+            <img src="${escapeHtml(resolvePublicAssetUrl("../../assets/icons/settings.svg"))}" alt="">
           </span>
           <span class="target-chevron" aria-hidden="true">
-            <img src="../../assets/icons/chevron.svg" alt="">
+            <img src="${escapeHtml(resolvePublicAssetUrl("../../assets/icons/chevron.svg"))}" alt="">
           </span>
         </span>
       `
     : `
         <span class="target-chevron" aria-hidden="true">
-          <img src="../../assets/icons/chevron.svg" alt="">
+          <img src="${escapeHtml(resolvePublicAssetUrl("../../assets/icons/chevron.svg"))}" alt="">
         </span>
       `;
 
@@ -1620,7 +1620,7 @@ function getCrossroadLocalSuggestions(query) {
       group: "Franchises",
       label: brand.brand,
       logoFallback: getCrossroadBrandInitials(brand.brand),
-      logoSrc: brand.logo || "",
+      logoSrc: resolvePublicAssetUrl(brand.logo || ""),
       type: "brand"
     }))
     .forEach((item) => {
@@ -1728,7 +1728,7 @@ function createCrossroadSuggestionIcon(item) {
     fallback.textContent = item.logoFallback || "";
 
     const image = document.createElement("img");
-    image.src = item.logoSrc;
+    image.src = resolvePublicAssetUrl(item.logoSrc);
     image.alt = "";
     image.loading = "lazy";
     image.addEventListener("error", () => {
@@ -1891,7 +1891,7 @@ function bindCrossroadLocationSearch() {
     action.setAttribute("aria-hidden", "true");
     actionLabel.textContent = "Select";
     actionKey.className = "territory-crossroad__search-suggestion-key";
-    actionKey.src = "../../assets/icons/enter.svg";
+    actionKey.src = resolvePublicAssetUrl("../../assets/icons/enter.svg");
     actionKey.alt = "";
     action.append(actionLabel, actionKey);
 

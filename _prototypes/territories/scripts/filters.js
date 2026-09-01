@@ -1446,7 +1446,7 @@ function initTerritoryFilters() {
   const filterToggle = document.getElementById("territoryFilterToggle");
 
   window.WefranchFilterSections.enhanceHeaders(filterPanel, {
-    iconSrc: "../../assets/icons/remove.svg",
+    iconSrc: resolvePublicAssetUrl("../../assets/icons/remove.svg"),
     onClear: clearFilterSection
   });
   restoreSavedTerritorySettings();
