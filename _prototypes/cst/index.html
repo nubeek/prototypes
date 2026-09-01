@@ -1057,9 +1057,10 @@
         <div class="proto-modal-divider" aria-hidden="true"></div>
       </div>
 
+      <p class="campaign-sequence-title" id="campaignSequenceTitle" hidden>Sequence</p>
+
       <div class="campaign-step-body" id="campaignStepBody">
         <aside class="campaign-sequence-panel" id="campaignSequencePanel" hidden>
-          <p class="campaign-sequence-title">Sequence</p>
           <div class="campaign-sequence-list" id="campaignSequenceList"></div>
           <button class="campaign-sequence-add" id="campaignSequenceAddBtn" type="button" aria-label="Add email">
             <img src="../../assets/icons/add.svg" alt="" aria-hidden="true">
@@ -1072,16 +1073,18 @@
 
           <div class="proto-modal-field">
             <span id="campaignTypeDescription">Campaign type</span>
-            <div class="proto-modal-check-group" id="campaignTypeOptions" role="radiogroup" aria-labelledby="campaignTypeDescription">
-              <label class="proto-modal-check is-checked">
+            <div class="proto-modal-check-group campaign-type-options" id="campaignTypeOptions" role="radiogroup" aria-labelledby="campaignTypeDescription">
+              <label class="proto-modal-check campaign-type-option is-checked">
                 <input type="radio" name="campaignType" id="campaignTypeRegular" value="regular" checked>
                 <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
-                <span>Regular</span>
+                <span class="campaign-type-option__label">Single</span>
+                <img class="campaign-type-option__image" src="assets/images/email-single.png" alt="" width="100" height="74" aria-hidden="true">
               </label>
-              <label class="proto-modal-check">
+              <label class="proto-modal-check campaign-type-option">
                 <input type="radio" name="campaignType" id="campaignTypeDrip" value="drip">
                 <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
-                <span>Drip</span>
+                <span class="campaign-type-option__label">Drip</span>
+                <img class="campaign-type-option__image" src="assets/images/email-drip.png" alt="" width="100" height="74" aria-hidden="true">
               </label>
             </div>
           </div>
