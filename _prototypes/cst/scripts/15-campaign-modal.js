@@ -270,6 +270,10 @@ const campaignTitleGroup = document.getElementById("campaignTitleGroup");
 const settingsTitleGroup = document.getElementById("settingsTitleGroup");
 const reviewTitleGroup = document.getElementById("reviewTitleGroup");
 const campaignStepLevel = document.getElementById("campaignStepLevel");
+const campaignLevelTitle = document.getElementById("startCampaignModalTitle");
+const campaignLevelMenuLabel = campaignStepLevel?.querySelector(
+  "[data-campaign-level='campaign'] .toolbar-dropdown-label"
+);
 const campaignReviewChrome = document.getElementById("campaignReviewChrome");
 const startCampaignModalForm = document.getElementById("startCampaignModalForm");
 const startCampaignOption = document.getElementById("startCampaignOption");
@@ -283,7 +287,7 @@ const campaignStepBody = document.getElementById("campaignStepBody");
 const campaignStepViewport = document.getElementById("campaignStepViewport");
 const campaignStepPanels = Array.from(campaignStepViewport?.querySelectorAll(".campaign-step-panel") || []);
 const campaignSequencePanel = document.getElementById("campaignSequencePanel");
-const campaignSequenceTitle = document.getElementById("campaignSequenceTitle");
+const campaignEmailPanelTitle = document.getElementById("campaignEmailPanelTitle");
 const campaignSequenceList = document.getElementById("campaignSequenceList");
 const campaignSequenceAddBtn = document.getElementById("campaignSequenceAddBtn");
 const campaignReviewSequenceField = document.getElementById("campaignReviewSequenceField");
@@ -353,6 +357,7 @@ let lastStepByLevel = {
 };
 let campaignSequenceEmails = [];
 let activeSequenceEmailIndex = 0;
+let emailPanelCollapsed = false;
 let nextSequenceEmailId = 1;
 
 function closeCampaignSenderDropdown() {
@@ -935,7 +940,7 @@ function getCampaignWizardChromeHeight() {
     + (parseFloat(modalStyles.paddingBottom) || 0);
 
   Array.from(campaignWizardModal.children).forEach((child) => {
-    if (child === campaignStepBody || child === campaignStepViewport || child === campaignSequenceTitle) return;
+    if (child === campaignStepBody || child === campaignStepViewport || child === campaignEmailPanelTitle) return;
     if (child.hidden || child.hasAttribute("hidden")) return;
 
     const styles = getComputedStyle(child);
@@ -1012,9 +1017,10 @@ function getCampaignStepNaturalHeight(panel) {
 
 function getCampaignStepContinueLabel(index = activeCampaignStepIndex) {
   const stepId = CAMPAIGN_STEPS[index]?.id;
+  const isDripSequence = isDripCampaign() && getCampaignStepLevel(index) === "campaign";
 
-  if (stepId === "design" && campaignReviewPending) return "Reviewing";
-  if (stepId === "design") return "Review";
+  if ((isDripSequence || stepId === "design") && campaignReviewPending) return "Reviewing";
+  if (isDripSequence || stepId === "design") return "Review";
   if (stepId === "review") return "Schedule";
   if (stepId === "schedule") {
     return CAMPAIGN_REVIEW_SCHEDULE_LABELS[getCampaignReviewScheduleValue()]
@@ -1066,6 +1072,14 @@ function syncCampaignStepHeight({ immediate = false } = {}) {
   if (!heightTarget || !startCampaignModalApi?.isVisible()) return;
   if (measuringCampaignStepHeight) return;
 
+  // Sequence is a fixed 580px card. Don't size the sidebar from content or it
+  // will stretch the modal. The list and form bodies scroll inside the card.
+  if (isDripSequenceActive()) {
+    heightTarget.style.height = "";
+    campaignWizardModal?.style.removeProperty("--campaign-step-viewport-height");
+    return;
+  }
+
   const activePanel = getCampaignStepPanel(activeCampaignStepIndex);
   if (!activePanel) return;
 
@@ -1075,12 +1089,7 @@ function syncCampaignStepHeight({ immediate = false } = {}) {
 
   if (immediate) heightTarget.style.transition = "none";
   heightTarget.style.height = `${nextHeight}px`;
-
-  if (isDripSequenceActive()) {
-    campaignWizardModal?.style.setProperty("--campaign-step-viewport-height", `${nextHeight}px`);
-  } else {
-    campaignWizardModal?.style.removeProperty("--campaign-step-viewport-height");
-  }
+  campaignWizardModal?.style.removeProperty("--campaign-step-viewport-height");
 
   if (immediate) {
     heightTarget.offsetHeight;
@@ -1167,6 +1176,10 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
   if (isDripCampaign() && CAMPAIGN_STEPS[activeCampaignStepIndex]?.level === "campaign") {
     commitActiveSequenceEmailFields();
   }
+  // Subject and Design live in the sidebar, so stepping into either has to open it.
+  if (isDripCampaign() && CAMPAIGN_STEPS[index]?.level === "campaign") {
+    setEmailPanelCollapsed(false);
+  }
   closeCampaignDropdowns();
   closeCampaignLevelDropdown();
 
@@ -1188,10 +1201,8 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
   updateCampaignStepChrome(index);
 
   if (isDripSequenceActive() && campaignStepViewport) {
-    const lockedHeight = Math.round(campaignStepViewport.getBoundingClientRect().height)
-      || getCampaignStepViewportMinHeight();
-    campaignStepViewport.style.height = `${lockedHeight}px`;
-    campaignWizardModal?.style.setProperty("--campaign-step-viewport-height", `${lockedHeight}px`);
+    campaignStepViewport.style.height = "";
+    campaignWizardModal?.style.removeProperty("--campaign-step-viewport-height");
     if (campaignStepBody) campaignStepBody.style.height = "";
   }
 
@@ -1217,7 +1228,7 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
   incomingPanel.style.transition = "";
 
   const nextHeight = isDripSequenceActive()
-    ? getCampaignStepViewportMinHeight()
+    ? null
     : getCampaignStepViewportHeight(incomingPanel);
 
   window.requestAnimationFrame(() => {
@@ -1227,10 +1238,7 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
     outgoingPanel.style.opacity = "0";
     incomingPanel.style.opacity = "1";
     const heightTarget = getCampaignStepHeightTarget();
-    if (heightTarget) heightTarget.style.height = `${nextHeight}px`;
-    if (isDripSequenceActive()) {
-      campaignWizardModal?.style.setProperty("--campaign-step-viewport-height", `${nextHeight}px`);
-    }
+    if (heightTarget && nextHeight !== null) heightTarget.style.height = `${nextHeight}px`;
   });
 
   campaignStepTransitionTimeoutId = window.setTimeout(() => {
@@ -1512,11 +1520,13 @@ function discardCampaignSequenceEmails() {
   applySequenceEmailToForm(campaignSequenceEmails[0]);
   campaignSequenceEmails = [];
   activeSequenceEmailIndex = 0;
+  emailPanelCollapsed = false;
 }
 
 function resetCampaignSequence() {
   campaignSequenceEmails = [];
   activeSequenceEmailIndex = 0;
+  emailPanelCollapsed = false;
   nextSequenceEmailId = 1;
   if (campaignSequenceList) campaignSequenceList.replaceChildren();
 }
@@ -1530,7 +1540,11 @@ function getCampaignSequenceViewTransitionName(type, emailId) {
   return `campaign-sequence-${type}-${emailId}`;
 }
 
-function createCampaignSequenceTransitionStyle({ fadeNames = [], blurNames = [] } = {}) {
+function getCampaignSequenceTransitionSelector(pseudo) {
+  return `html.is-campaign-sequence-transitioning .campaign-sequence-panel::${pseudo}`;
+}
+
+function createCampaignSequenceTransitionStyle({ fadeNames = [], blurNames = [], slideNames = [] } = {}) {
   const style = document.createElement("style");
   style.dataset.campaignSequenceTransition = "";
   const rules = [];
@@ -1538,16 +1552,23 @@ function createCampaignSequenceTransitionStyle({ fadeNames = [], blurNames = [] 
   fadeNames.forEach((name) => {
     const escapedName = CSS.escape(name);
     rules.push(
-      `html.is-campaign-sequence-transitioning::view-transition-old(${escapedName}){animation:campaign-sequence-opacity-out 130ms ease-out both!important}`,
-      `html.is-campaign-sequence-transitioning::view-transition-new(${escapedName}){animation:campaign-sequence-opacity-in 180ms ease-out both!important}`
+      `${getCampaignSequenceTransitionSelector(`view-transition-old(${escapedName})`)}{animation:campaign-sequence-opacity-out 130ms ease-out both!important}`,
+      `${getCampaignSequenceTransitionSelector(`view-transition-new(${escapedName})`)}{animation:campaign-sequence-opacity-in 180ms ease-out both!important}`
     );
   });
 
   blurNames.forEach((name) => {
     const escapedName = CSS.escape(name);
     rules.push(
-      `html.is-campaign-sequence-transitioning::view-transition-old(${escapedName}){animation:campaign-sequence-blur-out 130ms ease-out both!important}`,
-      `html.is-campaign-sequence-transitioning::view-transition-new(${escapedName}){animation:campaign-sequence-blur-in 180ms ease-out both!important}`
+      `${getCampaignSequenceTransitionSelector(`view-transition-old(${escapedName})`)}{animation:campaign-sequence-blur-out 130ms ease-out both!important}`,
+      `${getCampaignSequenceTransitionSelector(`view-transition-new(${escapedName})`)}{animation:campaign-sequence-blur-in 180ms ease-out both!important}`
+    );
+  });
+
+  slideNames.forEach((name) => {
+    const escapedName = CSS.escape(name);
+    rules.push(
+      `${getCampaignSequenceTransitionSelector(`view-transition-new(${escapedName})`)}{animation:campaign-sequence-slide-in 250ms cubic-bezier(0.4, 0, 0.2, 1) both!important}`
     );
   });
 
@@ -1556,9 +1577,45 @@ function createCampaignSequenceTransitionStyle({ fadeNames = [], blurNames = [] 
   return style;
 }
 
-function updateCampaignSequenceWithTransition(update, { fadeNames = [], blurNames = [] } = {}) {
-  const canTransition = typeof document.startViewTransition === "function"
-    && !shouldReduceCampaignSequenceMotion();
+function getCampaignSequenceTransitionRoot() {
+  if (campaignSequencePanel && typeof campaignSequencePanel.startViewTransition === "function") {
+    return campaignSequencePanel;
+  }
+  return null;
+}
+
+function revealCampaignSequenceEnd() {
+  if (!campaignSequencePanel) return;
+  campaignSequencePanel.scrollTop = campaignSequencePanel.scrollHeight;
+}
+
+function scrollCampaignSequenceEmailToTop(index) {
+  if (!campaignSequencePanel || !campaignSequenceList) return;
+  if (!Number.isInteger(index) || index < 0) return;
+
+  const scroll = () => {
+    const item = campaignSequenceList.querySelector(
+      `.campaign-sequence-item[data-sequence-index="${index}"]`
+    );
+    if (!item) return;
+
+    const connector = item.previousElementSibling;
+    const target = connector?.classList.contains("campaign-sequence-connector") ? connector : item;
+    const panel = campaignSequencePanel;
+    const nextScrollTop = panel.scrollTop + target.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+
+    panel.scrollTo({
+      top: Math.max(0, nextScrollTop),
+      behavior: shouldReduceCampaignSequenceMotion() ? "auto" : "smooth"
+    });
+  };
+
+  requestAnimationFrame(scroll);
+}
+
+function updateCampaignSequenceWithTransition(update, { fadeNames = [], blurNames = [], slideNames = [] } = {}) {
+  const transitionRoot = getCampaignSequenceTransitionRoot();
+  const canTransition = Boolean(transitionRoot) && !shouldReduceCampaignSequenceMotion();
 
   if (!canTransition) {
     update();
@@ -1566,10 +1623,10 @@ function updateCampaignSequenceWithTransition(update, { fadeNames = [], blurName
   }
 
   document.documentElement.classList.add("is-campaign-sequence-transitioning");
-  const transitionStyle = createCampaignSequenceTransitionStyle({ fadeNames, blurNames });
+  const transitionStyle = createCampaignSequenceTransitionStyle({ fadeNames, blurNames, slideNames });
   let transition;
   try {
-    transition = document.startViewTransition(update);
+    transition = transitionRoot.startViewTransition(update);
   } catch {
     document.documentElement.classList.remove("is-campaign-sequence-transitioning");
     transitionStyle.remove();
@@ -1585,9 +1642,16 @@ function updateCampaignSequenceWithTransition(update, { fadeNames = [], blurName
     });
 }
 
+function applySequenceItemSubtitle(subtitle, email) {
+  const subjectLine = String(email?.subjectLine || "").trim();
+  subtitle.textContent = subjectLine || "Add a subject";
+  subtitle.classList.toggle("is-placeholder", !subjectLine);
+}
+
 function renderSequenceList() {
   if (!campaignSequenceList) return;
 
+  syncCampaignEmailPanelTitle();
   campaignSequenceList.replaceChildren();
   if (!isDripCampaign()) return;
 
@@ -1605,14 +1669,15 @@ function renderSequenceList() {
     item.dataset.sequenceEmailId = email.id;
     item.style.viewTransitionName = getCampaignSequenceViewTransitionName("item", email.id);
     const isExpanded = email.expanded !== false;
-    if (index === activeSequenceEmailIndex) item.classList.add("is-selected");
+    const isSelected = isSequenceEmailSelected(index);
+    if (isSelected) item.classList.add("is-selected");
     if (isExpanded) item.classList.add("is-expanded");
     if (campaignReviewValidated && sequenceEmailHasError(email)) item.classList.add("is-error");
 
     const summary = document.createElement("button");
     summary.className = "campaign-sequence-item-summary";
     summary.type = "button";
-    summary.setAttribute("aria-pressed", String(index === activeSequenceEmailIndex));
+    summary.setAttribute("aria-pressed", String(isSelected));
     summary.setAttribute("aria-label", `Select email ${index + 1}`);
 
     const icon = document.createElement("img");
@@ -1630,13 +1695,7 @@ function renderSequenceList() {
 
     const subtitle = document.createElement("span");
     subtitle.className = "campaign-sequence-item-subtitle";
-    const subjectLine = String(email.subjectLine || "").trim();
-    if (subjectLine) {
-      subtitle.textContent = subjectLine;
-    } else {
-      subtitle.textContent = "Add a subject";
-      subtitle.classList.add("is-placeholder");
-    }
+    applySequenceItemSubtitle(subtitle, email);
 
     text.append(title, subtitle);
 
@@ -1658,14 +1717,23 @@ function renderSequenceList() {
 
     summary.append(icon, text);
 
-    const header = document.createElement("div");
-    header.className = "campaign-sequence-item-header";
-    header.addEventListener("click", (event) => {
-      if (event.target.closest(".campaign-sequence-item-toggle, .campaign-sequence-item-delete")) {
+    item.addEventListener("click", (event) => {
+      if (
+        event.target.closest(
+          ".campaign-sequence-item-toggle, .campaign-sequence-item-delete, .campaign-sequence-item-detail"
+        )
+      ) {
+        return;
+      }
+      if (isSequenceEmailSelected(index)) {
+        setEmailPanelCollapsed(true);
         return;
       }
       selectSequenceEmail(index);
     });
+
+    const header = document.createElement("div");
+    header.className = "campaign-sequence-item-header";
     header.appendChild(summary);
 
     if (isExpanded && index > 0) {
@@ -1765,12 +1833,27 @@ function refreshCampaignSequenceList(transitionOptions = {}) {
 
 function selectSequenceEmail(index) {
   if (!Number.isInteger(index) || index < 0 || index >= campaignSequenceEmails.length) return;
-  if (index === activeSequenceEmailIndex) return;
 
-  commitActiveSequenceEmailFields();
-  activeSequenceEmailIndex = index;
-  applySequenceEmailToForm(campaignSequenceEmails[index]);
+  const sameEmail = index === activeSequenceEmailIndex;
+  if (sameEmail && !emailPanelCollapsed) return;
+
+  if (!sameEmail) {
+    commitActiveSequenceEmailFields();
+    activeSequenceEmailIndex = index;
+    applySequenceEmailToForm(campaignSequenceEmails[index]);
+    syncCampaignEmailPanelTitle();
+  }
+
+  // Reopening the sidebar animates the modal width, so let setEmailPanelCollapsed
+  // patch the cards in place instead of running a view transition over it.
+  if (emailPanelCollapsed) {
+    setEmailPanelCollapsed(false);
+    scrollCampaignSequenceEmailToTop(index);
+    return;
+  }
+
   refreshCampaignSequenceList();
+  scrollCampaignSequenceEmailToTop(index);
 }
 
 function toggleSequenceEmailExpanded(index) {
@@ -1803,15 +1886,31 @@ function addSequenceEmail() {
 
   activeSequenceEmailIndex = campaignSequenceEmails.length - 1;
   applySequenceEmailToForm(email);
-  const blurNames = [
-    getCampaignSequenceViewTransitionName("connector", email.id),
-    getCampaignSequenceViewTransitionName("item", email.id),
-    getCampaignSequenceViewTransitionName("detail", email.id)
-  ];
-  updateCampaignSequenceWithTransition(() => {
+
+  // A new email always opens the sidebar. When that means resizing the modal,
+  // skip the view transition so it doesn't snapshot over the resize.
+  const reopening = emailPanelCollapsed;
+  emailPanelCollapsed = false;
+  syncEmailPanelChrome();
+
+  const update = () => {
     renderSequenceList();
     syncCampaignStepHeight();
-  }, { blurNames });
+    revealCampaignSequenceEnd();
+  };
+
+  if (reopening) {
+    update();
+    return;
+  }
+
+  updateCampaignSequenceWithTransition(update, {
+    slideNames: [
+      getCampaignSequenceViewTransitionName("connector", email.id),
+      getCampaignSequenceViewTransitionName("item", email.id),
+      getCampaignSequenceViewTransitionName("detail", email.id)
+    ]
+  });
 }
 
 function deleteSequenceEmail(index) {
@@ -1852,12 +1951,66 @@ function updateSequenceEmailDelay(index, delayDays) {
   syncCampaignStepHeight();
 }
 
+function syncCampaignLevelLabels() {
+  const label = isDripCampaign() ? "Sequence" : "Email";
+  if (campaignLevelTitle) campaignLevelTitle.textContent = label;
+  if (campaignLevelMenuLabel) campaignLevelMenuLabel.textContent = label;
+}
+
+function syncCampaignEmailPanelTitle() {
+  if (!campaignEmailPanelTitle) return;
+  campaignEmailPanelTitle.textContent = `Email #${activeSequenceEmailIndex + 1}`;
+}
+
+function isSequenceEmailSelected(index) {
+  return !emailPanelCollapsed && index === activeSequenceEmailIndex;
+}
+
+function syncEmailPanelChrome() {
+  const collapsed = emailPanelCollapsed && isDripSequenceActive();
+  campaignWizardModal?.classList.toggle("is-email-panel-collapsed", collapsed);
+  if (campaignStepViewport) campaignStepViewport.inert = collapsed;
+  if (campaignStepTabs) campaignStepTabs.inert = collapsed;
+}
+
+/* Selection and subject changes are applied to the existing cards rather than
+   re-rendering, so the card's own transitions survive and, when the sidebar is
+   opening or closing, nothing competes with the modal resize. */
+function syncSequenceItemChrome() {
+  campaignSequenceList?.querySelectorAll(".campaign-sequence-item").forEach((item) => {
+    const index = Number(item.dataset.sequenceIndex);
+    const email = campaignSequenceEmails[index];
+    if (!email) return;
+
+    const selected = isSequenceEmailSelected(index);
+    item.classList.toggle("is-selected", selected);
+    item.querySelector(".campaign-sequence-item-summary")
+      ?.setAttribute("aria-pressed", String(selected));
+
+    const subtitle = item.querySelector(".campaign-sequence-item-subtitle");
+    if (subtitle) applySequenceItemSubtitle(subtitle, email);
+  });
+}
+
+function setEmailPanelCollapsed(collapsed) {
+  if (emailPanelCollapsed === collapsed) return;
+
+  if (collapsed) commitActiveSequenceEmailFields();
+  emailPanelCollapsed = collapsed;
+  syncEmailPanelChrome();
+  syncSequenceItemChrome();
+  syncCampaignStepHeight();
+}
+
 function syncDripSequenceChrome() {
   const active = isDripSequenceActive();
   campaignWizardModal?.classList.toggle("is-drip-sequence", active);
+  syncCampaignLevelLabels();
+  syncCampaignEmailPanelTitle();
+  syncEmailPanelChrome();
 
   if (campaignSequencePanel) campaignSequencePanel.hidden = !active;
-  if (campaignSequenceTitle) campaignSequenceTitle.hidden = !active;
+  if (campaignEmailPanelTitle) campaignEmailPanelTitle.hidden = !active;
 
   if (!active) {
     campaignWizardModal?.style.removeProperty("--campaign-step-viewport-height");
@@ -2326,6 +2479,10 @@ startCampaignModal?.addEventListener("click", (event) => {
     closeStartCampaignModal();
     return;
   }
+  if (isDripSequenceActive()) {
+    goToCampaignStep(CAMPAIGN_RECIPIENTS_STEP_INDEX);
+    return;
+  }
   goToCampaignStep(activeCampaignStepIndex - 1);
 });
 
@@ -2385,7 +2542,11 @@ startCampaignModalForm?.addEventListener("submit", (event) => {
 
 campaignSubjectModalForm?.addEventListener("submit", (event) => {
   event.preventDefault();
-  if (isDripCampaign()) commitActiveSequenceEmailFields();
+  if (isDripCampaign()) {
+    commitActiveSequenceEmailFields();
+    requestCampaignReview();
+    return;
+  }
 
   const subject = getCampaignSubjectSelection();
   if (subject) {

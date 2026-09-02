@@ -1074,7 +1074,10 @@ body img[src$="/chevron.svg"] {
 }
 
 .proto-modal.campaign-wizard-modal {
-  --campaign-sequence-width: 320px;
+  --campaign-email-panel-width: 320px;
+  /* The grid track collapses to zero; the panel width above never does, so the
+     step forms keep their layout instead of rewrapping as the column closes. */
+  --campaign-email-panel-track: var(--campaign-email-panel-width);
   --campaign-sequence-gutter: 32px;
   overflow: hidden;
   width: min(580px, calc(100vw - 48px));
@@ -1083,23 +1086,40 @@ body img[src$="/chevron.svg"] {
     transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 240ms ease,
     filter 300ms ease,
-    width 380ms cubic-bezier(0.22, 1, 0.36, 1);
+    width 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    max-height 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    grid-template-columns 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    grid-template-rows 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    column-gap 380ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .proto-modal.campaign-wizard-modal.is-drip-sequence {
   width: min(
-    calc(580px + var(--campaign-sequence-width) + 2 * var(--campaign-sequence-gutter)),
+    calc(580px + var(--campaign-email-panel-track) + 2 * var(--campaign-sequence-gutter)),
     calc(100vw - 48px)
   );
+  height: 580px;
+  max-height: min(580px, calc(100vh - 48px));
+  min-height: 0;
   display: grid;
-  grid-template-columns: var(--campaign-sequence-width) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) var(--campaign-email-panel-track);
   grid-template-rows:
     auto
     auto
-    minmax(var(--campaign-step-viewport-height, 0px), 1fr)
+    minmax(0, 1fr)
     auto;
   column-gap: calc(2 * var(--campaign-sequence-gutter));
   position: relative;
+}
+
+/* Deselecting an email collapses the sidebar track to zero. The modal width,
+   the track and the gap all shrink over the same duration, which keeps column 1
+   at a constant width so the sequence content never reflows mid-animation. */
+.proto-modal.campaign-wizard-modal.is-drip-sequence.is-email-panel-collapsed {
+  --campaign-email-panel-track: 0px;
+  width: min(580px, calc(100vw - 48px));
+  column-gap: 0;
 }
 
 .proto-modal.campaign-wizard-modal.is-drip-sequence::before {
@@ -1107,14 +1127,22 @@ body img[src$="/chevron.svg"] {
   position: absolute;
   top: var(--campaign-sequence-gutter);
   bottom: var(--campaign-sequence-gutter);
-  left: calc(var(--campaign-sequence-gutter) + var(--campaign-sequence-width) + var(--campaign-sequence-gutter));
+  left: calc(100% - var(--campaign-email-panel-track) - 2 * var(--campaign-sequence-gutter));
   width: 1px;
   background: var(--color-border);
   pointer-events: none;
+  transition: opacity 150ms ease;
 }
 
+.proto-modal.campaign-wizard-modal.is-drip-sequence.is-email-panel-collapsed::before {
+  opacity: 0;
+}
+
+/* Column 1 is the Sequence phase (stage dropdown, email list, Back/Next).
+   Column 2 is the Email side panel (its own title, step tabs, step forms). */
+
 .campaign-wizard-modal.is-drip-sequence .proto-modal-header {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
 }
 
@@ -1124,7 +1152,7 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaign-wizard-modal.is-drip-sequence .campaign-review-chrome:not([hidden]) {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 2;
   margin-bottom: 20px;
 }
@@ -1135,12 +1163,50 @@ body img[src$="/chevron.svg"] {
 
 .campaign-wizard-modal.is-drip-sequence .campaign-step-viewport {
   grid-column: 2;
-  grid-row: 3;
+  grid-row: 3 / -1;
+  align-self: stretch;
+  min-height: 0;
+  height: auto;
+}
+
+/* Held at the open width so a closing column clips the form rather than
+   rewrapping it, which would report a much taller step height. */
+.campaign-wizard-modal.is-drip-sequence .campaign-step-panel {
+  display: flex;
+  flex-direction: column;
+  width: var(--campaign-email-panel-width);
+  height: 100%;
+}
+
+.campaign-wizard-modal.is-drip-sequence .campaign-subject-modal-body,
+.campaign-wizard-modal.is-drip-sequence .campaign-design-modal-body {
+  flex: 1 1 auto;
   min-height: 0;
 }
 
+.campaign-wizard-modal.is-drip-sequence.is-email-panel-collapsed .campaign-email-panel-title {
+  white-space: nowrap;
+}
+
+/* Fades in a beat behind the widening modal, and out ahead of the collapse so
+   the sidebar reads as empty before its column is narrower than its contents. */
+.campaign-wizard-modal.is-drip-sequence .campaign-email-panel-title,
+.campaign-wizard-modal.is-drip-sequence .campaign-step-tabs:not([hidden]),
+.campaign-wizard-modal.is-drip-sequence .campaign-step-viewport {
+  transition: opacity 200ms ease 140ms;
+}
+
+.campaign-wizard-modal.is-drip-sequence.is-email-panel-collapsed .campaign-email-panel-title,
+.campaign-wizard-modal.is-drip-sequence.is-email-panel-collapsed .campaign-step-tabs:not([hidden]),
+.campaign-wizard-modal.is-drip-sequence.is-email-panel-collapsed .campaign-step-viewport {
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
 .campaign-wizard-modal.is-drip-sequence .proto-modal-actions {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 4;
   margin-top: 24px;
 }
@@ -1501,16 +1567,17 @@ body img[src$="/chevron.svg"] {
 body.reduce-motion .campaign-step-panel,
 body.reduce-motion .campaign-step-viewport,
 body.reduce-motion .campaign-step-body,
-body.reduce-motion .proto-modal.campaign-wizard-modal {
+body.reduce-motion .campaign-email-panel-title,
+body.reduce-motion .campaign-step-tabs,
+body.reduce-motion .proto-modal.campaign-wizard-modal,
+body.reduce-motion .proto-modal.campaign-wizard-modal::before {
   transition: none;
 }
 
 .campaign-sequence-panel {
   display: flex;
   flex-direction: column;
-  flex: 0 0 var(--campaign-sequence-width);
-  width: var(--campaign-sequence-width);
-  min-width: var(--campaign-sequence-width);
+  min-width: 0;
   min-height: 0;
   padding-right: 20px;
   overflow-x: hidden;
@@ -1518,8 +1585,8 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
   overscroll-behavior: contain;
 }
 
-.campaign-wizard-modal.is-drip-sequence .campaign-sequence-title {
-  grid-column: 1;
+.campaign-wizard-modal.is-drip-sequence .campaign-email-panel-title {
+  grid-column: 2;
   grid-row: 1;
   align-self: start;
   margin: 0;
@@ -1529,9 +1596,10 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
   line-height: 1.1;
 }
 
+/* Stops one row short of the bottom so Back/Next keep the last row. */
 .campaign-wizard-modal.is-drip-sequence .campaign-sequence-panel {
   grid-column: 1;
-  grid-row: 2 / -1;
+  grid-row: 2 / -2;
   display: flex;
   flex-direction: column;
   align-self: stretch;
@@ -1545,16 +1613,23 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
 .campaign-wizard-modal.is-drip-sequence .campaign-sequence-list {
   flex: 0 0 auto;
   min-height: 0;
-  padding: 1px;
+  padding: 0 24px;
   overflow: visible;
 }
 
 .campaign-wizard-modal.is-drip-sequence .campaign-sequence-add {
   flex: 0 0 auto;
-  margin-top: 32px;
+  margin-top: 24px;
 }
 
-html.is-campaign-sequence-transitioning::view-transition-group(*) {
+/* Sequence view transitions are scoped to the list panel so overflowing
+   snapshots stay clipped to the scrollport instead of painting over the modal. */
+html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transition {
+  overflow: clip;
+  pointer-events: none;
+}
+
+html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transition-group(*) {
   animation-duration: 250ms;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1564,12 +1639,12 @@ html.is-campaign-sequence-transitioning::view-transition-group(*) {
    for the whole group animation, so a sequence item that resizes would sit at
    its old height and pop to the new one at the end. */
 
-html.is-campaign-sequence-transitioning::view-transition-old(root) {
+html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transition-old(root) {
   animation: none;
   opacity: 0;
 }
 
-html.is-campaign-sequence-transitioning::view-transition-new(root) {
+html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transition-new(root) {
   animation: none;
   opacity: 1;
 }
@@ -1600,11 +1675,18 @@ html.is-campaign-sequence-transitioning::view-transition-new(root) {
   }
 }
 
+@keyframes campaign-sequence-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
 .campaign-sequence-panel[hidden] {
   display: none;
 }
 
-.campaign-sequence-title {
+.campaign-email-panel-title {
   flex: 0 0 auto;
   margin: 0 0 16px;
   color: #050505;
@@ -1637,6 +1719,7 @@ html.is-campaign-sequence-transitioning::view-transition-new(root) {
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
   background: #f5f2fe;
+  cursor: pointer;
   transition:
     background-color var(--transition-fast),
     border-color var(--transition-fast),
@@ -1645,6 +1728,10 @@ html.is-campaign-sequence-transitioning::view-transition-new(root) {
 
 .campaign-sequence-item:last-child {
   margin-bottom: 0;
+}
+
+.campaign-sequence-item:hover {
+  background: #eae6f7;
 }
 
 .campaign-sequence-item.is-selected {
@@ -1665,7 +1752,6 @@ html.is-campaign-sequence-transitioning::view-transition-new(root) {
   align-items: center;
   gap: 8px;
   min-width: 0;
-  cursor: pointer;
 }
 
 .campaign-sequence-item-summary {
@@ -1801,6 +1887,7 @@ html.is-campaign-sequence-transitioning::view-transition-new(root) {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+  cursor: default;
 }
 
 .campaign-sequence-item-detail::before {
@@ -2356,15 +2443,16 @@ body.reduce-motion .start-campaign-progress-over {
 .campaign-continue-spinner {
   display: block;
   width: 0;
+  min-width: 0;
   height: 18px;
-  flex: 0 0 auto;
+  flex: 0 0 0;
   box-sizing: border-box;
-  border: 2px solid transparent;
+  border: 0;
   border-radius: 50%;
   opacity: 0;
   overflow: hidden;
-  animation: campaign-btn-spin 720ms linear infinite;
-  transition: width 280ms ease, opacity 200ms ease, border-color 200ms ease;
+  animation: none;
+  transition: width 280ms ease, opacity 200ms ease, border-color 200ms ease, border-width 200ms ease;
 }
 
 #campaignStepContinue.is-loading,
@@ -2378,10 +2466,12 @@ body.reduce-motion .start-campaign-progress-over {
 }
 
 #campaignStepContinue.is-loading .campaign-continue-spinner {
+  flex: 0 0 auto;
   width: 18px;
   opacity: 1;
-  border-color: rgba(255, 255, 255, 0.32);
+  border: 2px solid rgba(255, 255, 255, 0.32);
   border-top-color: #fff;
+  animation: campaign-btn-spin 720ms linear infinite;
 }
 
 body.reduce-motion #campaignStepContinue,
@@ -6335,7 +6425,7 @@ a.franchise-name:focus-visible {
   }
 
   .proto-modal.campaign-wizard-modal {
-    --campaign-sequence-width: 280px;
+    --campaign-email-panel-width: 280px;
     --campaign-sequence-gutter: 28px;
   }
 
