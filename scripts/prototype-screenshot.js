@@ -343,7 +343,7 @@
     }
 
     if (node.matches(
-      "[data-proto-nav], [data-proto-screenshot-toast], [data-proto-screenshot-preview], [data-proto-recorder], [data-proto-screenshot-ignore-frame]"
+      "[data-proto-nav], [data-proto-screenshot-toast], [data-proto-screenshot-preview], [data-proto-recorder], [data-proto-screenshot-ignore-frame], [hidden], [inert]"
     )) {
       return false;
     }
@@ -421,7 +421,7 @@
         },
         fetch: {
           requestInit: {
-            cache: "no-cache",
+            cache: "force-cache",
           },
         },
         fetchFn: async (url) => {

@@ -17,7 +17,7 @@ const CAMPAIGN_DESIGN_TEMPLATES = {
 };
 const CAMPAIGN_DESIGN_PREVIEW_TEMPLATE_ID = "introduction";
 const CAMPAIGN_STEP_TRANSITION_MS = 380;
-const CAMPAIGN_WIZARD_MIN_HEIGHT = 560;
+const CAMPAIGN_WIZARD_MIN_HEIGHT = 580;
 const CAMPAIGN_REVIEW_DELAY_MS = 2000;
 const CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT = "philip@litassy.com";
 const DEFAULT_CAMPAIGN_NAME = "Untitled campaign";
@@ -353,7 +353,6 @@ let lastStepByLevel = {
 };
 let campaignSequenceEmails = [];
 let activeSequenceEmailIndex = 0;
-let sequenceEmailExpanded = true;
 let nextSequenceEmailId = 1;
 
 function closeCampaignSenderDropdown() {
@@ -1461,6 +1460,7 @@ function createSequenceEmail(overrides = {}) {
     previewText: "",
     designTemplate: "",
     delayDays: CAMPAIGN_SEQUENCE_DEFAULT_DELAY,
+    expanded: true,
     ...overrides
   };
 }
@@ -1503,7 +1503,6 @@ function ensureCampaignSequenceEmails() {
     })
   ];
   activeSequenceEmailIndex = 0;
-  sequenceEmailExpanded = true;
 }
 
 function discardCampaignSequenceEmails() {
@@ -1513,15 +1512,77 @@ function discardCampaignSequenceEmails() {
   applySequenceEmailToForm(campaignSequenceEmails[0]);
   campaignSequenceEmails = [];
   activeSequenceEmailIndex = 0;
-  sequenceEmailExpanded = true;
 }
 
 function resetCampaignSequence() {
   campaignSequenceEmails = [];
   activeSequenceEmailIndex = 0;
-  sequenceEmailExpanded = true;
   nextSequenceEmailId = 1;
   if (campaignSequenceList) campaignSequenceList.replaceChildren();
+}
+
+function shouldReduceCampaignSequenceMotion() {
+  return document.body.classList.contains("reduce-motion")
+    || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getCampaignSequenceViewTransitionName(type, emailId) {
+  return `campaign-sequence-${type}-${emailId}`;
+}
+
+function createCampaignSequenceTransitionStyle({ fadeNames = [], blurNames = [] } = {}) {
+  const style = document.createElement("style");
+  style.dataset.campaignSequenceTransition = "";
+  const rules = [];
+
+  fadeNames.forEach((name) => {
+    const escapedName = CSS.escape(name);
+    rules.push(
+      `html.is-campaign-sequence-transitioning::view-transition-old(${escapedName}){animation:campaign-sequence-opacity-out 130ms ease-out both!important}`,
+      `html.is-campaign-sequence-transitioning::view-transition-new(${escapedName}){animation:campaign-sequence-opacity-in 180ms ease-out both!important}`
+    );
+  });
+
+  blurNames.forEach((name) => {
+    const escapedName = CSS.escape(name);
+    rules.push(
+      `html.is-campaign-sequence-transitioning::view-transition-old(${escapedName}){animation:campaign-sequence-blur-out 130ms ease-out both!important}`,
+      `html.is-campaign-sequence-transitioning::view-transition-new(${escapedName}){animation:campaign-sequence-blur-in 180ms ease-out both!important}`
+    );
+  });
+
+  style.textContent = rules.join("");
+  document.head.appendChild(style);
+  return style;
+}
+
+function updateCampaignSequenceWithTransition(update, { fadeNames = [], blurNames = [] } = {}) {
+  const canTransition = typeof document.startViewTransition === "function"
+    && !shouldReduceCampaignSequenceMotion();
+
+  if (!canTransition) {
+    update();
+    return;
+  }
+
+  document.documentElement.classList.add("is-campaign-sequence-transitioning");
+  const transitionStyle = createCampaignSequenceTransitionStyle({ fadeNames, blurNames });
+  let transition;
+  try {
+    transition = document.startViewTransition(update);
+  } catch {
+    document.documentElement.classList.remove("is-campaign-sequence-transitioning");
+    transitionStyle.remove();
+    update();
+    return;
+  }
+
+  transition.finished
+    .catch(() => {})
+    .finally(() => {
+      document.documentElement.classList.remove("is-campaign-sequence-transitioning");
+      transitionStyle.remove();
+    });
 }
 
 function renderSequenceList() {
@@ -1533,13 +1594,17 @@ function renderSequenceList() {
   campaignSequenceEmails.forEach((email, index) => {
     const connector = document.createElement("p");
     connector.className = "campaign-sequence-connector";
+    connector.dataset.sequenceEmailId = email.id;
+    connector.style.viewTransitionName = getCampaignSequenceViewTransitionName("connector", email.id);
     connector.textContent = index === 0 ? "Start" : getCampaignSequenceDelayLabel(email.delayDays);
     campaignSequenceList.appendChild(connector);
 
     const item = document.createElement("div");
     item.className = "campaign-sequence-item";
     item.dataset.sequenceIndex = String(index);
-    const isExpanded = index === activeSequenceEmailIndex && sequenceEmailExpanded;
+    item.dataset.sequenceEmailId = email.id;
+    item.style.viewTransitionName = getCampaignSequenceViewTransitionName("item", email.id);
+    const isExpanded = email.expanded !== false;
     if (index === activeSequenceEmailIndex) item.classList.add("is-selected");
     if (isExpanded) item.classList.add("is-expanded");
     if (campaignReviewValidated && sequenceEmailHasError(email)) item.classList.add("is-error");
@@ -1547,7 +1612,8 @@ function renderSequenceList() {
     const summary = document.createElement("button");
     summary.className = "campaign-sequence-item-summary";
     summary.type = "button";
-    summary.setAttribute("aria-expanded", String(isExpanded));
+    summary.setAttribute("aria-pressed", String(index === activeSequenceEmailIndex));
+    summary.setAttribute("aria-label", `Select email ${index + 1}`);
 
     const icon = document.createElement("img");
     icon.className = "campaign-sequence-item-icon";
@@ -1574,24 +1640,60 @@ function renderSequenceList() {
 
     text.append(title, subtitle);
 
-    const toggle = document.createElement("span");
+    const toggle = document.createElement("button");
     toggle.className = "campaign-sequence-item-toggle";
-    toggle.setAttribute("aria-hidden", "true");
+    toggle.type = "button";
+    toggle.setAttribute("aria-label", isExpanded ? `Collapse email ${index + 1}` : `Expand email ${index + 1}`);
+    toggle.setAttribute("aria-expanded", String(isExpanded));
     const chevron = document.createElement("img");
     chevron.src = "../../assets/icons/chevron.svg";
     chevron.alt = "";
+    chevron.setAttribute("aria-hidden", "true");
     toggle.appendChild(chevron);
+    toggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleSequenceEmailExpanded(index);
+    });
 
-    summary.append(icon, text, toggle);
-    summary.addEventListener("click", () => {
+    summary.append(icon, text);
+
+    const header = document.createElement("div");
+    header.className = "campaign-sequence-item-header";
+    header.addEventListener("click", (event) => {
+      if (event.target.closest(".campaign-sequence-item-toggle, .campaign-sequence-item-delete")) {
+        return;
+      }
       selectSequenceEmail(index);
     });
-    item.appendChild(summary);
+    header.appendChild(summary);
+
+    if (isExpanded && index > 0) {
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "campaign-sequence-item-delete";
+      deleteBtn.type = "button";
+      deleteBtn.setAttribute("aria-label", `Delete email ${index + 1}`);
+      const deleteIcon = document.createElement("img");
+      deleteIcon.src = "../../assets/icons/delete.svg";
+      deleteIcon.alt = "";
+      deleteIcon.setAttribute("aria-hidden", "true");
+      deleteBtn.appendChild(deleteIcon);
+      deleteBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        deleteSequenceEmail(index);
+      });
+      header.appendChild(deleteBtn);
+    }
+
+    header.appendChild(toggle);
+    item.appendChild(header);
 
     if (isExpanded) {
       const isFirstEmail = index === 0;
       const detail = document.createElement("div");
       detail.className = "campaign-sequence-item-detail";
+      detail.style.viewTransitionName = getCampaignSequenceViewTransitionName("detail", email.id);
 
       const when = document.createElement("label");
       when.className = "campaign-sequence-when";
@@ -1642,28 +1744,6 @@ function renderSequenceList() {
       delayField.append(delaySelect, delayChevron);
       when.append(whenLabel, delayField);
       detail.appendChild(when);
-
-      if (!isFirstEmail) {
-        const actions = document.createElement("div");
-        actions.className = "campaign-sequence-item-actions";
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "campaign-sequence-item-delete";
-        deleteBtn.type = "button";
-        deleteBtn.setAttribute("aria-label", `Delete email ${index + 1}`);
-        const deleteIcon = document.createElement("img");
-        deleteIcon.src = "../../assets/icons/delete.svg";
-        deleteIcon.alt = "";
-        deleteIcon.setAttribute("aria-hidden", "true");
-        deleteBtn.appendChild(deleteIcon);
-        deleteBtn.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          deleteSequenceEmail(index);
-        });
-        actions.appendChild(deleteBtn);
-        detail.appendChild(actions);
-      }
-
       item.appendChild(detail);
     }
 
@@ -1671,32 +1751,44 @@ function renderSequenceList() {
   });
 }
 
-function selectSequenceEmail(index, { skipCommit = false, forceExpand = false } = {}) {
+function refreshCampaignSequenceList(transitionOptions = {}) {
+  updateCampaignSequenceWithTransition(() => {
+    if (campaignReviewValidated) {
+      showCampaignValidationErrors(getCampaignStepErrors(activeCampaignStepIndex));
+      return;
+    }
+
+    renderSequenceList();
+    syncCampaignStepHeight();
+  }, transitionOptions);
+}
+
+function selectSequenceEmail(index) {
+  if (!Number.isInteger(index) || index < 0 || index >= campaignSequenceEmails.length) return;
+  if (index === activeSequenceEmailIndex) return;
+
+  commitActiveSequenceEmailFields();
+  activeSequenceEmailIndex = index;
+  applySequenceEmailToForm(campaignSequenceEmails[index]);
+  refreshCampaignSequenceList();
+}
+
+function toggleSequenceEmailExpanded(index) {
   if (!Number.isInteger(index) || index < 0 || index >= campaignSequenceEmails.length) return;
 
-  const sameEmail = index === activeSequenceEmailIndex;
-  if (!skipCommit && !sameEmail) {
+  const email = campaignSequenceEmails[index];
+  if (!email) return;
+
+  if (index !== activeSequenceEmailIndex) {
     commitActiveSequenceEmailFields();
-  }
-
-  if (!sameEmail) {
     activeSequenceEmailIndex = index;
-    applySequenceEmailToForm(campaignSequenceEmails[index]);
-    sequenceEmailExpanded = true;
-  } else if (forceExpand) {
-    sequenceEmailExpanded = true;
-  } else {
-    sequenceEmailExpanded = !sequenceEmailExpanded;
+    applySequenceEmailToForm(email);
   }
 
-  renderSequenceList();
-
-  if (campaignReviewValidated) {
-    const errors = getCampaignStepErrors(activeCampaignStepIndex);
-    showCampaignValidationErrors(errors);
-  } else {
-    syncCampaignStepHeight();
-  }
+  email.expanded = !(email.expanded !== false);
+  refreshCampaignSequenceList({
+    fadeNames: [getCampaignSequenceViewTransitionName("detail", email.id)]
+  });
 }
 
 function addSequenceEmail() {
@@ -1704,21 +1796,49 @@ function addSequenceEmail() {
 
   ensureCampaignSequenceEmails();
   commitActiveSequenceEmailFields();
-  campaignSequenceEmails.push(createSequenceEmail({
+  const email = createSequenceEmail({
     delayDays: CAMPAIGN_SEQUENCE_DEFAULT_DELAY
-  }));
-  selectSequenceEmail(campaignSequenceEmails.length - 1, { skipCommit: true, forceExpand: true });
+  });
+  campaignSequenceEmails.push(email);
+
+  activeSequenceEmailIndex = campaignSequenceEmails.length - 1;
+  applySequenceEmailToForm(email);
+  const blurNames = [
+    getCampaignSequenceViewTransitionName("connector", email.id),
+    getCampaignSequenceViewTransitionName("item", email.id),
+    getCampaignSequenceViewTransitionName("detail", email.id)
+  ];
+  updateCampaignSequenceWithTransition(() => {
+    renderSequenceList();
+    syncCampaignStepHeight();
+  }, { blurNames });
 }
 
 function deleteSequenceEmail(index) {
   if (index <= 0 || campaignSequenceEmails.length <= 1) return;
 
   commitActiveSequenceEmailFields();
+  const deletedEmailId = campaignSequenceEmails[index].id;
   campaignSequenceEmails.splice(index, 1);
   campaignSequenceEmails[0].delayDays = null;
 
-  const nextIndex = Math.min(index, campaignSequenceEmails.length - 1);
-  selectSequenceEmail(nextIndex, { skipCommit: true, forceExpand: true });
+  activeSequenceEmailIndex = Math.min(index, campaignSequenceEmails.length - 1);
+  applySequenceEmailToForm(campaignSequenceEmails[activeSequenceEmailIndex]);
+  const blurNames = [
+    getCampaignSequenceViewTransitionName("connector", deletedEmailId),
+    getCampaignSequenceViewTransitionName("item", deletedEmailId),
+    getCampaignSequenceViewTransitionName("detail", deletedEmailId)
+  ];
+  const fadeNames = [
+    getCampaignSequenceViewTransitionName(
+      "detail",
+      campaignSequenceEmails[activeSequenceEmailIndex].id
+    )
+  ];
+  updateCampaignSequenceWithTransition(() => {
+    renderSequenceList();
+    syncCampaignStepHeight();
+  }, { fadeNames, blurNames });
 }
 
 function updateSequenceEmailDelay(index, delayDays) {
@@ -2022,7 +2142,7 @@ function getFirstCampaignWizardError(errors) {
 function revealCampaignWizardErrors(errors) {
   const firstError = getFirstCampaignWizardError(errors);
   if (Number.isInteger(firstError?.emailIndex) && isDripCampaign()) {
-    selectSequenceEmail(firstError.emailIndex, { forceExpand: true });
+    selectSequenceEmail(firstError.emailIndex);
   }
 
   showCampaignValidationErrors(errors);

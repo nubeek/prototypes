@@ -93,6 +93,20 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   padding: 0;
 }
 
+/*
+ * Keep the 11×6 chevron artwork centered inside one rotation-safe square.
+ * The small optical offset balances the SVG's heavier top half. Dimensions
+ * are authoritative so component rules cannot stretch or recrop the icon.
+ */
+body img[src$="/chevron.svg"] {
+  width: 12px !important;
+  height: 12px !important;
+  display: block;
+  object-fit: none;
+  object-position: 50% calc(50% + 0.25px);
+  transform-origin: center;
+}
+
 .ui-button {
   min-height: var(--control-height);
   border-radius: var(--radius-md);
@@ -1064,7 +1078,7 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   --campaign-sequence-gutter: 32px;
   overflow: hidden;
   width: min(580px, calc(100vw - 48px));
-  min-height: 560px;
+  min-height: 580px;
   transition:
     transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 240ms ease,
@@ -1200,10 +1214,11 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   filter: brightness(0) saturate(100%);
 }
 
-.campaign-step-level-chevron {
+.campaign-step-level-chevron-wrap .campaign-step-level-chevron {
   display: block;
   width: 11px;
   height: 6px;
+  object-position: 50% calc(50% + 0.5px);
   transition: transform var(--transition-fast);
 }
 
@@ -1300,14 +1315,16 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   min-height: 88px;
   padding: 0 28px 0 16px;
   overflow: hidden;
+  border: 2px solid transparent;
   border-radius: 10px;
   background: var(--color-surface-muted);
   font-weight: 400;
-  transition: background-color var(--transition-fast);
+  transition: border-color 50ms ease-in-out;
 }
 
-.campaign-wizard-modal .campaign-type-option:hover {
-  background: #e3e3e3;
+.campaign-wizard-modal .campaign-type-option:hover,
+.campaign-wizard-modal .campaign-type-option.is-checked {
+  border-color: var(--color-border);
 }
 
 .campaign-wizard-modal .campaign-type-option__label {
@@ -1528,12 +1545,59 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
 .campaign-wizard-modal.is-drip-sequence .campaign-sequence-list {
   flex: 0 0 auto;
   min-height: 0;
+  padding: 1px;
   overflow: visible;
 }
 
 .campaign-wizard-modal.is-drip-sequence .campaign-sequence-add {
   flex: 0 0 auto;
   margin-top: 32px;
+}
+
+html.is-campaign-sequence-transitioning::view-transition-group(*) {
+  animation-duration: 250ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Paired old/new snapshots keep the browser crossfade (and its plus-lighter
+   blending). Pinning them to opacity 1 holds the old box at its captured size
+   for the whole group animation, so a sequence item that resizes would sit at
+   its old height and pop to the new one at the end. */
+
+html.is-campaign-sequence-transitioning::view-transition-old(root) {
+  animation: none;
+  opacity: 0;
+}
+
+html.is-campaign-sequence-transitioning::view-transition-new(root) {
+  animation: none;
+  opacity: 1;
+}
+
+@keyframes campaign-sequence-opacity-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes campaign-sequence-opacity-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes campaign-sequence-blur-out {
+  to {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes campaign-sequence-blur-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
 }
 
 .campaign-sequence-panel[hidden] {
@@ -1569,10 +1633,14 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
   flex-direction: column;
   min-width: 0;
   margin-bottom: 12px;
-  padding: 12px;
-  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
   background: #f5f2fe;
-  transition: background-color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .campaign-sequence-item:last-child {
@@ -1580,23 +1648,38 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
 }
 
 .campaign-sequence-item.is-selected {
-  background: #efeafc;
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 1px var(--color-brand-primary);
 }
 
 .campaign-sequence-item.is-error {
   box-shadow: inset 0 0 0 1.5px #fc353d;
 }
 
+.campaign-sequence-item.is-selected.is-error {
+  box-shadow: 0 0 0 1px var(--color-brand-primary), inset 0 0 0 1.5px #fc353d;
+}
+
+.campaign-sequence-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  cursor: pointer;
+}
+
 .campaign-sequence-item-summary {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
+  flex: 1 1 auto;
+  width: auto;
   min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
   color: inherit;
+  font: inherit;
   text-align: left;
   cursor: pointer;
 }
@@ -1609,8 +1692,8 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
 
 .campaign-sequence-item-icon {
   display: block;
-  width: 16px;
-  height: 14px;
+  width: 18px;
+  height: 16px;
   flex: 0 0 auto;
   filter: invert(46%) sepia(38%) saturate(1412%) hue-rotate(220deg) brightness(93%) contrast(92%);
 }
@@ -1618,83 +1701,113 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
 .campaign-sequence-item-text {
   display: flex;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
   flex: 1 1 auto;
 }
 
 .campaign-sequence-item-title {
   color: #050505;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 400;
   line-height: 1.2;
 }
 
 .campaign-sequence-item-subtitle {
   color: #050505;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   line-height: 1.2;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .campaign-sequence-item:not(.is-selected) .campaign-sequence-item-subtitle {
   color: var(--color-text-soft);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .campaign-sequence-item-subtitle.is-placeholder,
 .campaign-sequence-item:not(.is-selected) .campaign-sequence-item-subtitle.is-placeholder {
+  align-self: start;
+  width: fit-content;
+  max-width: 100%;
   color: #c5bedb;
   font-weight: 400;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.campaign-sequence-item-subtitle.is-placeholder:hover {
+  color: var(--color-brand);
 }
 
 .campaign-sequence-item-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
   width: 28px;
   height: 28px;
-  margin: -4px -4px -4px 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
   opacity: 0;
-  pointer-events: none;
   transition: opacity var(--transition-fast), background-color var(--transition-fast);
 }
 
-.campaign-sequence-item:hover .campaign-sequence-item-toggle,
-.campaign-sequence-item-summary:focus-visible .campaign-sequence-item-toggle {
+.campaign-sequence-item:not(.is-expanded):hover .campaign-sequence-item-toggle {
   opacity: 1;
+}
+
+.campaign-sequence-item.is-expanded .campaign-sequence-item-toggle {
+  opacity: 1;
+}
+
+.campaign-sequence-item-toggle:hover,
+.campaign-sequence-item-toggle:focus-visible {
   background: rgba(128, 101, 232, 0.12);
+}
+
+.campaign-sequence-item-toggle:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
 }
 
 .campaign-sequence-item-toggle img {
   display: block;
   width: 11px;
   height: 6px;
-  filter: var(--color-chevron-soft);
+  object-position: 50% 50%;
+  filter: brightness(0) saturate(100%) invert(81%) sepia(11%) saturate(815%) hue-rotate(204deg) brightness(93%) contrast(87%);
   transform: none;
   transition: filter var(--transition-fast), transform var(--transition-fast);
 }
 
 .campaign-sequence-item.is-expanded .campaign-sequence-item-toggle img {
-  transform: rotate(180deg);
+  transform: scaleY(-1);
 }
 
-.campaign-sequence-item:hover .campaign-sequence-item-toggle img,
-.campaign-sequence-item-summary:focus-visible .campaign-sequence-item-toggle img {
+.campaign-sequence-item-toggle:hover img,
+.campaign-sequence-item-toggle:focus-visible img {
   filter: brightness(0) saturate(100%);
 }
 
 .campaign-sequence-item-detail {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
-  padding-top: 12px;
+}
+
+.campaign-sequence-item-detail::before {
+  content: "";
+  display: block;
+  margin-top: 12px;
+  border-top: 1px solid #e2dbf7;
 }
 
 .campaign-sequence-when {
@@ -1706,8 +1819,8 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
 
 .campaign-sequence-when-label {
   color: var(--color-text);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -1719,14 +1832,15 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
 .campaign-sequence-delay-select {
   appearance: none;
   width: 100%;
-  min-height: var(--control-height-sm);
-  padding: 8px 32px 8px 10px;
+  height: var(--control-height);
+  min-height: var(--control-height);
+  padding: 0 32px 0 12px;
   border: 2px solid transparent;
   border-radius: var(--radius-md);
   background: var(--color-surface);
   color: #050505;
   font: inherit;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   font-weight: 500;
   line-height: 1.2;
   cursor: pointer;
@@ -1767,31 +1881,28 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
   filter: var(--color-chevron-soft);
 }
 
-.campaign-sequence-item-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
 .campaign-sequence-item-delete {
   width: 28px;
   height: 28px;
+  margin: 0;
   padding: 0;
   border: 0;
   border-radius: 50%;
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
   background: transparent;
   cursor: pointer;
+  transition: background-color var(--transition-fast);
 }
 
 .campaign-sequence-item-delete:hover,
 .campaign-sequence-item-delete:focus-visible {
-  background: rgba(252, 53, 61, 0.08);
+  background: rgba(128, 101, 232, 0.12);
 }
 
 .campaign-sequence-item-delete:focus-visible {
-  outline: 2px solid #fc353d;
+  outline: 2px solid var(--color-brand-primary);
   outline-offset: 2px;
 }
 
@@ -1799,13 +1910,13 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
   display: block;
   width: 12px;
   height: 14px;
-  opacity: 0.36;
+  filter: brightness(0) saturate(100%) invert(81%) sepia(11%) saturate(815%) hue-rotate(204deg) brightness(93%) contrast(87%);
+  transition: filter var(--transition-fast);
 }
 
 .campaign-sequence-item-delete:hover img,
 .campaign-sequence-item-delete:focus-visible img {
-  opacity: 1;
-  filter: invert(32%) sepia(86%) saturate(4288%) hue-rotate(338deg) brightness(101%) contrast(99%);
+  filter: brightness(0) saturate(100%);
 }
 
 .campaign-sequence-add {
@@ -1820,6 +1931,7 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
   place-items: center;
   background: var(--color-brand-primary);
   cursor: pointer;
+  view-transition-name: campaign-sequence-add-button;
   transition: background-color var(--transition-fast);
 }
 
@@ -1843,15 +1955,15 @@ body.reduce-motion .proto-modal.campaign-wizard-modal {
 .campaign-design-preview {
   position: relative;
   width: 100%;
-  height: 240px;
-  min-height: 240px;
-  max-height: 240px;
+  height: 200px;
+  min-height: 200px;
+  max-height: 200px;
   border-radius: var(--radius-md);
   scrollbar-width: thin;
 }
 
 .campaign-design-preview.is-empty {
-  height: 240px;
+  height: 200px;
   padding: 0;
   overflow: hidden;
   border: none;
@@ -7785,7 +7897,7 @@ a.franchise-name:focus-visible {
   display: block;
   width: 11px;
   height: 6px;
-  transform: translateX(1px) rotate(-90deg);
+  transform: rotate(-90deg);
   filter: var(--color-chevron-soft);
   transition: filter var(--transition-fast);
 }
