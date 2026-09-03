@@ -1590,9 +1590,8 @@ body.reduce-motion .proto-modal.campaign-wizard-modal::before {
   grid-row: 1;
   align-self: start;
   margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 18px;
+  font-weight: 400;
   line-height: 1.1;
 }
 
@@ -1608,6 +1607,10 @@ body.reduce-motion .proto-modal.campaign-wizard-modal::before {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* 3px circles with 9px gaps: 1.5px radius, 12px tile. */
+  background-image: radial-gradient(circle, var(--color-surface-control-active) 1.5px, transparent 1.5px);
+  background-size: 12px 12px;
+  background-position: 0 var(--campaign-sequence-dot-offset, 0px);
 }
 
 .campaign-wizard-modal.is-drip-sequence .campaign-sequence-list {
@@ -1703,7 +1706,7 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
 
 .campaign-sequence-connector {
   margin: 0;
-  padding: 0 0 12px;
+  padding: 12px 0;
   color: var(--color-text-muted);
   font-size: 16px;
   font-weight: 400;
@@ -1714,7 +1717,6 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
   display: flex;
   flex-direction: column;
   min-width: 0;
-  margin-bottom: 12px;
   padding: 16px;
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
@@ -1845,8 +1847,11 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
   transition: opacity var(--transition-fast), background-color var(--transition-fast);
 }
 
-.campaign-sequence-item:not(.is-expanded):hover .campaign-sequence-item-toggle {
+.campaign-sequence-item:not(.is-expanded):hover .campaign-sequence-item-toggle,
+.campaign-sequence-item:not(.is-expanded):hover .campaign-sequence-item-delete,
+.campaign-sequence-item-delete:focus-visible {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .campaign-sequence-item.is-expanded .campaign-sequence-item-toggle {
@@ -1897,6 +1902,7 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
   border-top: 1px solid #e2dbf7;
 }
 
+.campaign-sequence-field,
 .campaign-sequence-when {
   display: flex;
   flex-direction: column;
@@ -1904,6 +1910,7 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
   min-width: 0;
 }
 
+.campaign-sequence-field-label,
 .campaign-sequence-when-label {
   color: var(--color-text);
   font-size: 16px;
@@ -1930,6 +1937,9 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
   font-size: var(--font-size-base);
   font-weight: 500;
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -1980,7 +1990,14 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
   flex: 0 0 auto;
   background: transparent;
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+}
+
+.campaign-sequence-item.is-expanded .campaign-sequence-item-delete {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .campaign-sequence-item-delete:hover,

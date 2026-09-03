@@ -42,15 +42,33 @@ const CAMPAIGN_STEPS = [
 const CAMPAIGN_LEVEL_ORDER = ["settings", "campaign", "review"];
 const CAMPAIGN_TYPE_DEFAULT = "regular";
 const CAMPAIGN_SEQUENCE_DEFAULT_DELAY = 2;
+const CAMPAIGN_SEQUENCE_DOT_PARALLAX = 0.4;
+const CAMPAIGN_SEQUENCE_TRIGGER_TIME = "time";
+const CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT = "engagement";
+const CAMPAIGN_SEQUENCE_TRIGGERS = [
+  { value: CAMPAIGN_SEQUENCE_TRIGGER_TIME, label: "Time-based" },
+  { value: CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT, label: "Engagement-based" }
+];
 const CAMPAIGN_SEQUENCE_DELAYS = [
   { value: 0, label: "Immediately" },
   { value: 1, label: "1 day later" },
   { value: 2, label: "2 days later" },
   { value: 3, label: "3 days later" },
-  { value: 5, label: "5 days later" },
-  { value: 7, label: "7 days later" },
-  { value: 14, label: "14 days later" },
-  { value: 30, label: "30 days later" }
+  { value: 7, label: "1 week later" },
+  { value: 14, label: "2 weeks later" }
+];
+const CAMPAIGN_SEQUENCE_WAIT_WINDOWS = [
+  { value: 1, label: "1 day" },
+  { value: 2, label: "2 days" },
+  { value: 3, label: "3 days" },
+  { value: 7, label: "1 week" },
+  { value: 14, label: "2 weeks" }
+];
+const CAMPAIGN_SEQUENCE_ENGAGEMENT_EVENTS = [
+  { value: "opens", label: "Opens previous email", negative: false },
+  { value: "does-not-open", label: "Doesn't open previous email", negative: true },
+  { value: "clicks", label: "Clicks a link in previous email", negative: false },
+  { value: "does-not-click", label: "Doesn't click a link in previous email", negative: true }
 ];
 const CAMPAIGN_SETTINGS_STEP_INDEX = CAMPAIGN_STEPS.findIndex((step) => step.id === "campaign");
 const CAMPAIGN_SENDER_STEP_INDEX = CAMPAIGN_STEPS.findIndex((step) => step.id === "sender");
@@ -1454,11 +1472,106 @@ function isDripSequenceActive() {
   return isDripCampaign() && getCampaignStepLevel() === "campaign";
 }
 
+function getCampaignSequenceOption(options, value, fallbackValue) {
+  return options.find((option) => String(option.value) === String(value))
+    || options.find((option) => String(option.value) === String(fallbackValue))
+    || options[0]
+    || null;
+}
+
 function getCampaignSequenceDelayLabel(delayDays) {
-  if (delayDays == null) return "Start";
-  return CAMPAIGN_SEQUENCE_DELAYS.find((option) => option.value === delayDays)?.label
-    || CAMPAIGN_SEQUENCE_DELAYS.find((option) => option.value === CAMPAIGN_SEQUENCE_DEFAULT_DELAY)?.label
-    || "2 days later";
+  if (delayDays == null) return "On campaign start";
+  return getCampaignSequenceOption(
+    CAMPAIGN_SEQUENCE_DELAYS,
+    delayDays,
+    CAMPAIGN_SEQUENCE_DEFAULT_DELAY
+  )?.label || "2 days later";
+}
+
+function getCampaignSequenceWaitLabel(waitDays) {
+  return getCampaignSequenceOption(
+    CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
+    waitDays,
+    CAMPAIGN_SEQUENCE_DEFAULT_DELAY
+  )?.label || "2 days";
+}
+
+function getSequenceTriggerType(email, index = 0) {
+  if (index === 0) return CAMPAIGN_SEQUENCE_TRIGGER_TIME;
+  return email?.triggerType === CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT
+    ? CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT
+    : CAMPAIGN_SEQUENCE_TRIGGER_TIME;
+}
+
+function getSequenceEngagementEvent(email) {
+  return getCampaignSequenceOption(
+    CAMPAIGN_SEQUENCE_ENGAGEMENT_EVENTS,
+    email?.engagementEvent,
+    "opens"
+  );
+}
+
+function getCampaignSequenceConnectorLabel(email, index) {
+  if (index === 0) return "On campaign start";
+  if (getSequenceTriggerType(email, index) === CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT) {
+    const event = getSequenceEngagementEvent(email);
+    if (event?.negative) {
+      return `${event.label} after ${getCampaignSequenceWaitLabel(email.engagementWaitDays)}`;
+    }
+    return event?.label || CAMPAIGN_SEQUENCE_ENGAGEMENT_EVENTS[0].label;
+  }
+  return getCampaignSequenceDelayLabel(email?.delayDays);
+}
+
+function fillCampaignSequenceSelect(select, options, selectedValue) {
+  const selected = getCampaignSequenceOption(options, selectedValue, options[0]?.value);
+  options.forEach((option) => {
+    const optionEl = document.createElement("option");
+    optionEl.value = String(option.value);
+    optionEl.textContent = option.label;
+    if (selected && String(option.value) === String(selected.value)) optionEl.selected = true;
+    select.appendChild(optionEl);
+  });
+  if (selected) select.value = String(selected.value);
+}
+
+function createCampaignSequenceSelectField({
+  label,
+  ariaLabel,
+  options,
+  value,
+  disabled = false,
+  onChange
+}) {
+  const field = document.createElement("label");
+  field.className = "campaign-sequence-field";
+
+  const labelEl = document.createElement("span");
+  labelEl.className = "campaign-sequence-field-label";
+  labelEl.textContent = label;
+
+  const control = document.createElement("div");
+  control.className = "campaign-sequence-delay-field";
+
+  const select = document.createElement("select");
+  select.className = "campaign-sequence-delay-select";
+  select.setAttribute("aria-label", ariaLabel);
+  fillCampaignSequenceSelect(select, options, value);
+  if (disabled) {
+    select.disabled = true;
+  } else if (typeof onChange === "function") {
+    select.addEventListener("change", () => onChange(select.value));
+  }
+
+  const chevron = document.createElement("img");
+  chevron.className = "campaign-sequence-delay-chevron";
+  chevron.src = "../../assets/icons/chevron.svg";
+  chevron.alt = "";
+  chevron.setAttribute("aria-hidden", "true");
+
+  control.append(select, chevron);
+  field.append(labelEl, control);
+  return field;
 }
 
 function createSequenceEmail(overrides = {}) {
@@ -1467,7 +1580,10 @@ function createSequenceEmail(overrides = {}) {
     subjectLine: "",
     previewText: "",
     designTemplate: "",
+    triggerType: CAMPAIGN_SEQUENCE_TRIGGER_TIME,
     delayDays: CAMPAIGN_SEQUENCE_DEFAULT_DELAY,
+    engagementEvent: "opens",
+    engagementWaitDays: CAMPAIGN_SEQUENCE_DEFAULT_DELAY,
     expanded: true,
     ...overrides
   };
@@ -1584,6 +1700,18 @@ function getCampaignSequenceTransitionRoot() {
   return null;
 }
 
+function syncCampaignSequenceDotParallax() {
+  if (!campaignSequencePanel) return;
+
+  if (!isDripSequenceActive() || shouldReduceCampaignSequenceMotion()) {
+    campaignSequencePanel.style.removeProperty("--campaign-sequence-dot-offset");
+    return;
+  }
+
+  const offset = Math.round(-campaignSequencePanel.scrollTop * CAMPAIGN_SEQUENCE_DOT_PARALLAX);
+  campaignSequencePanel.style.setProperty("--campaign-sequence-dot-offset", `${offset}px`);
+}
+
 function revealCampaignSequenceEnd() {
   if (!campaignSequencePanel) return;
   campaignSequencePanel.scrollTop = campaignSequencePanel.scrollHeight;
@@ -1660,7 +1788,7 @@ function renderSequenceList() {
     connector.className = "campaign-sequence-connector";
     connector.dataset.sequenceEmailId = email.id;
     connector.style.viewTransitionName = getCampaignSequenceViewTransitionName("connector", email.id);
-    connector.textContent = index === 0 ? "Start" : getCampaignSequenceDelayLabel(email.delayDays);
+    connector.textContent = getCampaignSequenceConnectorLabel(email, index);
     campaignSequenceList.appendChild(connector);
 
     const item = document.createElement("div");
@@ -1736,7 +1864,7 @@ function renderSequenceList() {
     header.className = "campaign-sequence-item-header";
     header.appendChild(summary);
 
-    if (isExpanded && index > 0) {
+    if (index > 0) {
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "campaign-sequence-item-delete";
       deleteBtn.type = "button";
@@ -1762,56 +1890,49 @@ function renderSequenceList() {
       const detail = document.createElement("div");
       detail.className = "campaign-sequence-item-detail";
       detail.style.viewTransitionName = getCampaignSequenceViewTransitionName("detail", email.id);
+      const triggerType = getSequenceTriggerType(email, index);
 
-      const when = document.createElement("label");
-      when.className = "campaign-sequence-when";
+      detail.appendChild(createCampaignSequenceSelectField({
+        label: "Trigger",
+        ariaLabel: `Trigger for email ${index + 1}`,
+        options: isFirstEmail
+          ? CAMPAIGN_SEQUENCE_TRIGGERS.filter((option) => option.value === CAMPAIGN_SEQUENCE_TRIGGER_TIME)
+          : CAMPAIGN_SEQUENCE_TRIGGERS,
+        value: triggerType,
+        disabled: isFirstEmail,
+        onChange: (value) => updateSequenceEmailTrigger(index, value)
+      }));
 
-      const whenLabel = document.createElement("span");
-      whenLabel.className = "campaign-sequence-when-label";
-      whenLabel.textContent = "When";
+      if (triggerType === CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT) {
+        const engagement = getSequenceEngagementEvent(email);
+        detail.appendChild(createCampaignSequenceSelectField({
+          label: "If recipient",
+          ariaLabel: `Engagement trigger for email ${index + 1}`,
+          options: CAMPAIGN_SEQUENCE_ENGAGEMENT_EVENTS,
+          value: engagement.value,
+          onChange: (value) => updateSequenceEmailEngagement(index, value)
+        }));
 
-      const delayField = document.createElement("div");
-      delayField.className = "campaign-sequence-delay-field";
-
-      const delaySelect = document.createElement("select");
-      delaySelect.className = "campaign-sequence-delay-select";
-      delaySelect.setAttribute("aria-label", `When to send email ${index + 1}`);
-
-      if (isFirstEmail) {
-        const optionEl = document.createElement("option");
-        optionEl.value = "0";
-        optionEl.textContent = "Immediately";
-        optionEl.selected = true;
-        optionEl.disabled = true;
-        delaySelect.appendChild(optionEl);
-        delaySelect.value = "0";
-        delaySelect.disabled = true;
+        if (engagement.negative) {
+          detail.appendChild(createCampaignSequenceSelectField({
+            label: "After",
+            ariaLabel: `Wait window for email ${index + 1}`,
+            options: CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
+            value: email.engagementWaitDays,
+            onChange: (value) => updateSequenceEmailEngagementWait(index, Number(value))
+          }));
+        }
       } else {
-        CAMPAIGN_SEQUENCE_DELAYS.forEach((option) => {
-          const optionEl = document.createElement("option");
-          optionEl.value = String(option.value);
-          optionEl.textContent = option.label;
-          delaySelect.appendChild(optionEl);
-        });
-        delaySelect.value = String(
-          CAMPAIGN_SEQUENCE_DELAYS.some((option) => option.value === email.delayDays)
-            ? email.delayDays
-            : CAMPAIGN_SEQUENCE_DEFAULT_DELAY
-        );
-        delaySelect.addEventListener("change", () => {
-          updateSequenceEmailDelay(index, Number(delaySelect.value));
-        });
+        detail.appendChild(createCampaignSequenceSelectField({
+          label: "When",
+          ariaLabel: `When to send email ${index + 1}`,
+          options: isFirstEmail ? [{ value: 0, label: "Immediately" }] : CAMPAIGN_SEQUENCE_DELAYS,
+          value: isFirstEmail ? 0 : email.delayDays,
+          disabled: isFirstEmail,
+          onChange: (value) => updateSequenceEmailDelay(index, Number(value))
+        }));
       }
 
-      const delayChevron = document.createElement("img");
-      delayChevron.className = "campaign-sequence-delay-chevron";
-      delayChevron.src = "../../assets/icons/chevron.svg";
-      delayChevron.alt = "";
-      delayChevron.setAttribute("aria-hidden", "true");
-
-      delayField.append(delaySelect, delayChevron);
-      when.append(whenLabel, delayField);
-      detail.appendChild(when);
       item.appendChild(detail);
     }
 
@@ -1920,6 +2041,7 @@ function deleteSequenceEmail(index) {
   const deletedEmailId = campaignSequenceEmails[index].id;
   campaignSequenceEmails.splice(index, 1);
   campaignSequenceEmails[0].delayDays = null;
+  campaignSequenceEmails[0].triggerType = CAMPAIGN_SEQUENCE_TRIGGER_TIME;
 
   activeSequenceEmailIndex = Math.min(index, campaignSequenceEmails.length - 1);
   applySequenceEmailToForm(campaignSequenceEmails[activeSequenceEmailIndex]);
@@ -1940,15 +2062,81 @@ function deleteSequenceEmail(index) {
   }, { fadeNames, blurNames });
 }
 
+function refreshSequenceEmailFields() {
+  renderSequenceList();
+  syncCampaignStepHeight();
+}
+
 function updateSequenceEmailDelay(index, delayDays) {
   const email = campaignSequenceEmails[index];
   if (!email || index === 0) return;
 
-  email.delayDays = CAMPAIGN_SEQUENCE_DELAYS.some((option) => option.value === delayDays)
-    ? delayDays
-    : CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
-  renderSequenceList();
-  syncCampaignStepHeight();
+  email.triggerType = CAMPAIGN_SEQUENCE_TRIGGER_TIME;
+  email.delayDays = getCampaignSequenceOption(
+    CAMPAIGN_SEQUENCE_DELAYS,
+    delayDays,
+    CAMPAIGN_SEQUENCE_DEFAULT_DELAY
+  )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
+  refreshSequenceEmailFields();
+}
+
+function updateSequenceEmailTrigger(index, triggerType) {
+  const email = campaignSequenceEmails[index];
+  if (!email || index === 0) return;
+
+  email.triggerType = triggerType === CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT
+    ? CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT
+    : CAMPAIGN_SEQUENCE_TRIGGER_TIME;
+
+  if (email.triggerType === CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT) {
+    email.engagementEvent = getSequenceEngagementEvent(email).value;
+    email.engagementWaitDays = getCampaignSequenceOption(
+      CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
+      email.engagementWaitDays,
+      CAMPAIGN_SEQUENCE_DEFAULT_DELAY
+    )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
+  } else {
+    email.delayDays = getCampaignSequenceOption(
+      CAMPAIGN_SEQUENCE_DELAYS,
+      email.delayDays,
+      CAMPAIGN_SEQUENCE_DEFAULT_DELAY
+    )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
+  }
+
+  refreshSequenceEmailFields();
+}
+
+function updateSequenceEmailEngagement(index, engagementEvent) {
+  const email = campaignSequenceEmails[index];
+  if (!email || index === 0) return;
+
+  email.triggerType = CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT;
+  email.engagementEvent = getCampaignSequenceOption(
+    CAMPAIGN_SEQUENCE_ENGAGEMENT_EVENTS,
+    engagementEvent,
+    "opens"
+  )?.value || "opens";
+  if (getSequenceEngagementEvent(email).negative) {
+    email.engagementWaitDays = getCampaignSequenceOption(
+      CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
+      email.engagementWaitDays,
+      CAMPAIGN_SEQUENCE_DEFAULT_DELAY
+    )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
+  }
+  refreshSequenceEmailFields();
+}
+
+function updateSequenceEmailEngagementWait(index, waitDays) {
+  const email = campaignSequenceEmails[index];
+  if (!email || index === 0) return;
+
+  email.triggerType = CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT;
+  email.engagementWaitDays = getCampaignSequenceOption(
+    CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
+    waitDays,
+    CAMPAIGN_SEQUENCE_DEFAULT_DELAY
+  )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
+  refreshSequenceEmailFields();
 }
 
 function syncCampaignLevelLabels() {
@@ -2021,8 +2209,11 @@ function syncDripSequenceChrome() {
     if (campaignStepBody) campaignStepBody.style.height = "";
     ensureCampaignSequenceEmails();
     renderSequenceList();
+    syncCampaignSequenceDotParallax();
     return;
   }
+
+  syncCampaignSequenceDotParallax();
 
   if (campaignSequenceList && !isDripCampaign()) {
     campaignSequenceList.replaceChildren();
@@ -2502,6 +2693,8 @@ campaignSettingsModalForm?.addEventListener("submit", (event) => {
 });
 
 campaignTypeOptions?.addEventListener("change", handleCampaignTypeChange);
+
+campaignSequencePanel?.addEventListener("scroll", syncCampaignSequenceDotParallax, { passive: true });
 
 campaignSequenceAddBtn?.addEventListener("click", (event) => {
   event.preventDefault();
