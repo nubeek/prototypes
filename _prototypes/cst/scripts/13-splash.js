@@ -576,22 +576,6 @@ function getCstSplashContactCount(owners) {
   return owners.reduce((total, owner) => total + getOwnerContactCount(owner), 0);
 }
 
-function getCstSplashMatches(filters) {
-  return withCstSplashFilterScope(filters, () => {
-    const matchedOwners = getFilteredFranchisees();
-    const matchedUnits = matchedOwners
-      .flatMap((owner) => window.ownerLocationsData?.[owner.originalIndex]?.units || [])
-      .map(toCstSplashUnitRow)
-      .filter((row) => unitRowMatchesFilters(row));
-
-    return {
-      contactCount: getCstSplashContactCount(matchedOwners),
-      ownerCount: matchedOwners.length,
-      units: matchedUnits
-    };
-  });
-}
-
 /* Tiles ----------------------------------------------------------------- */
 
 function escapeCstSplashHtml(value) {
@@ -1220,10 +1204,6 @@ function revealDeletedCstSplashSavedSearch({ savedSearch, scopeIndex = 0 } = {})
 function isCstLocationFilterSection(section) {
   return section.dataset.filterSection === "location"
     || Boolean(section.querySelector("#locationFilterSearchField"));
-}
-
-function setCstFilterSectionExpanded(section, shouldExpand) {
-  window.WefranchFilterSections.setSectionExpanded(section, shouldExpand);
 }
 
 function resetCstFilterSectionsToDefault() {

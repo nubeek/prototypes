@@ -1,5 +1,6 @@
 .DS_Store
 .env.local
+node_modules/
 /_out/
 /cst/
 /targets/
@@ -10,6 +11,8 @@
 # Playwright CLI test artifacts
 .playwright-cli/
 
+# Screenshots and benchmark output from local Playwright runs
+/output/
+
 # Local source dumps used to generate the real territories dataset
-_prototypes/territories/data/real/_source/
 _prototypes/territories/data/real/_source/

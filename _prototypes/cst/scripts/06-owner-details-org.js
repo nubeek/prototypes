@@ -540,8 +540,8 @@ function syncOpenOrgPanelWithSelection() {
 function initializeOwnerDetailsMap(ownerIndex) {
   if (!HAS_MAPBOX_ACCESS_TOKEN) return;
 
-  if (!window.mapboxgl) {
-    ensureCstMapboxGl?.()
+  if (!window.mapboxgl || !cstMapStyle) {
+    Promise.all([ensureCstMapboxGl?.(), loadCstMapStyle()])
       .then(() => initializeOwnerDetailsMap(ownerIndex))
       .catch((error) => console.warn("Unable to initialize the owner details map.", error));
     return;
@@ -561,7 +561,7 @@ function initializeOwnerDetailsMap(ownerIndex) {
   mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
   ownerDetailsMap = new mapboxgl.Map({
     container: mapContainer,
-    style: MAPBOX_STYLE,
+    style: cstMapStyle || MAPBOX_STYLE,
     center: MAP_INITIAL_CENTER,
     zoom: 3,
     projection: "mercator",

@@ -1675,7 +1675,10 @@ function setSelectedTerritory(territoryKey, compareKey = null) {
 
 // Header "Settings" (edit) is disabled for now — private searches opened from
 // the crossroad are treated as new queries. activeTerritorySavedSearch remains
-// available if edit-from-header is re-enabled later.
+// available if edit-from-header is re-enabled later. The button has no click
+// handler, so it stays hidden rather than showing a control that does nothing;
+// flip this to true once the edit flow is wired up.
+const TERRITORY_SAVED_SEARCH_EDIT_ENABLED = false;
 let activeTerritorySavedSearch = null;
 let isActiveTerritorySavedSearchDirty = false;
 
@@ -1683,7 +1686,9 @@ function syncTerritorySavedSearchHeading() {
   const titleElement = document.getElementById("territoryBrandPanelTitle");
   const saveButton = document.getElementById("territorySaveSearch");
   const settingsButton = document.getElementById("territorySavedSearchSettings");
-  const showSettings = Boolean(activeTerritorySavedSearch) && !isActiveTerritorySavedSearchDirty;
+  const showSettings = TERRITORY_SAVED_SEARCH_EDIT_ENABLED
+    && Boolean(activeTerritorySavedSearch)
+    && !isActiveTerritorySavedSearchDirty;
   const isCrossroadOpen = document.querySelector(".territory-shell")?.classList.contains("is-crossroad-open");
   const crossroadChoice = window.territoryCrossroadChoice;
   const breadcrumbSavedSearch = !isCrossroadOpen && (

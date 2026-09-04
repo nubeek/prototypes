@@ -1488,17 +1488,6 @@ function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
   return runFit();
 }
 
-function fitMapToCoordinates(mapInstance, coordinates, padding = MAP_FIT_PADDING) {
-  if (!mapInstance || !window.mapboxgl || !coordinates.length) return;
-
-  if (!bounds) return;
-
-  flyMapToBounds(mapInstance, bounds, {
-    padding,
-    maxZoom: 8.6
-  });
-}
-
 function getMapBoundsForCoordinates(coordinates) {
   if (!window.mapboxgl || !coordinates.length) return null;
 
@@ -1855,7 +1844,9 @@ function resetPanelModeAfterClose(closingMode) {
   mapPanel.addEventListener("transitioncancel", resetMode);
 }
 
-function openSidebar(mode, ownerIndex = null, { scrollTable = false } = {}) {
+// `skipViewRefresh` is for callers that already ran the filter/sort/map pipeline
+// for this same change, so the table and map points are not rebuilt twice.
+function openSidebar(mode, ownerIndex = null, { scrollTable = false, skipViewRefresh = false } = {}) {
   const owner = ownerIndex !== null
     ? owners.find((item) => item.originalIndex === ownerIndex)
     : null;
@@ -1888,13 +1879,15 @@ function openSidebar(mode, ownerIndex = null, { scrollTable = false } = {}) {
     openMapPanel("map", { scrollTable });
   }
 
-  const pointTransition = mode === "map" && wasMapVisible ? "fade" : "radial";
-  syncMapLocationFilter({ pointTransition });
-  renderActiveTable();
+  if (!skipViewRefresh) {
+    const pointTransition = mode === "map" && wasMapVisible ? "fade" : "radial";
+    syncMapLocationFilter({ pointTransition });
+    renderActiveTable();
+  }
   syncToolbarTabState(getCurrentPanelMode());
 }
 
-function closeSidebar() {
+function closeSidebar({ skipViewRefresh = false } = {}) {
   const closingMode = getCurrentPanelMode();
 
   lockedToolbarMode = null;
@@ -1903,7 +1896,7 @@ function closeSidebar() {
   mapToggle?.setAttribute("aria-expanded", "false");
   cancelOwnersMapReveal({ hideBusy: true });
   resetPanelModeAfterClose(closingMode);
-  renderActiveTable();
+  if (!skipViewRefresh) renderActiveTable();
   syncToolbarTabState(closingMode);
   updateOwnersMapResetVisibility();
 }
@@ -2316,13 +2309,13 @@ function initializeOwnersMap() {
   if (card?.classList.contains("is-splash-open")) return Promise.resolve();
   if (ownersMapInitialized || !HAS_MAPBOX_ACCESS_TOKEN) return Promise.resolve();
 
-  return ensureCstMapboxGl().then(() => {
+  return Promise.all([ensureCstMapboxGl(), loadCstMapStyle()]).then(([, mapStyle]) => {
     if (ownersMapInitialized || !window.mapboxgl || card?.classList.contains("is-splash-open")) return;
-    createOwnersMap();
+    createOwnersMap(mapStyle);
   });
 }
 
-function createOwnersMap() {
+function createOwnersMap(mapStyle) {
   if (ownersMapInitialized || !window.mapboxgl || !HAS_MAPBOX_ACCESS_TOKEN) return;
 
   installCstMockGeolocation();
@@ -2331,7 +2324,7 @@ function createOwnersMap() {
   setOwnersMapBusy(true);
   ownersMap = new mapboxgl.Map({
     container: "ownersMap",
-    style: MAPBOX_STYLE,
+    style: mapStyle || MAPBOX_STYLE,
     center: MAP_INITIAL_CENTER,
     zoom: 3.1,
     projection: "mercator",

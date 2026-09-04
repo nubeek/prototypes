@@ -714,26 +714,47 @@ function ownerMatchesLocationTableFilters(owner) {
   return true;
 }
 
+let allLocationRowsCache = null;
+
 function getAllLocationRows() {
   if (currentTableView !== "locations") {
     return getProspectDatasetRows(currentTableView);
   }
 
-  return owners.flatMap((owner) => getOwnerLocationRows(owner));
-}
-
-function getFilteredLocationRows() {
-  if (currentTableView !== "locations") {
-    return getProspectDatasetRows(currentTableView)
-      .filter((row) => unitRowMatchesFilters(row))
-      .filter((row) => locationRowMatchesSearchQuery(row));
+  // Unfiltered, so it only changes with the roster. `updateFilterSummary` asks
+  // for this on every render just to show the "of N" total.
+  if (allLocationRowsCache?.ownerCount === owners.length) {
+    return allLocationRowsCache.rows;
   }
 
-  return owners
-    .filter(ownerMatchesLocationTableFilters)
-    .flatMap((owner) => getOwnerLocationRows(owner))
-    .filter((row) => unitRowMatchesFilters(row))
-    .filter((row) => locationRowMatchesSearchQuery(row));
+  const rows = owners.flatMap((owner) => getOwnerLocationRows(owner));
+  allLocationRowsCache = { ownerCount: owners.length, rows };
+  return rows;
+}
+
+let filteredLocationRowsCache = null;
+
+function getFilteredLocationRows() {
+  // Mirrors the franchisee cache: re-flattening every owner's units on each
+  // keystroke dominates the locations view, and the filter state fully
+  // determines the result. The view and roster size guard dataset swaps.
+  const cacheKey = [currentTableView, owners.length, getCstFilterResultCacheKey()].join("\u0003");
+  if (filteredLocationRowsCache?.key === cacheKey) {
+    return filteredLocationRowsCache.rows.slice();
+  }
+
+  const matchedRows = currentTableView !== "locations"
+    ? getProspectDatasetRows(currentTableView)
+      .filter((row) => unitRowMatchesFilters(row))
+      .filter((row) => locationRowMatchesSearchQuery(row))
+    : owners
+      .filter(ownerMatchesLocationTableFilters)
+      .flatMap((owner) => getOwnerLocationRows(owner))
+      .filter((row) => unitRowMatchesFilters(row))
+      .filter((row) => locationRowMatchesSearchQuery(row));
+
+  filteredLocationRowsCache = { key: cacheKey, rows: matchedRows };
+  return matchedRows.slice();
 }
 
 function getLocationSortValue(row, key) {

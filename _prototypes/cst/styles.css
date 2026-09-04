@@ -725,20 +725,6 @@ body img[src$="/chevron.svg"] {
   padding-top: 22px;
 }
 
-.owner-raw-section-title {
-  margin: 0 0 12px;
-  position: sticky;
-  left: 0;
-  z-index: 4;
-  width: fit-content;
-  background: var(--owner-header-bg);
-  color: var(--color-text);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
 .owner-raw-table {
   --owner-raw-index-width: 52px;
   --owner-raw-name-width: 308px;
@@ -4522,19 +4508,6 @@ h1 {
   -webkit-appearance: none;
   appearance: none;
   display: none;
-}
-
-.export-csv-btn {
-  height: var(--control-height);
-  padding: 0 16px;
-  border-radius: var(--radius-lg);
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.export-csv-icon {
-  width: 18px;
-  height: 18px;
 }
 
 .toolbar-btn-divider-left {

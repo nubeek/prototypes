@@ -87,22 +87,6 @@ function unitRowMatchesFilters(row) {
   return row.franchises.some((franchiseName) => selectedFranchiseIndexes.includes(franchiseName));
 }
 
-function getAllOwnerUnitRows() {
-  return getRawDataOwnerScope()
-    .flatMap((owner) => getOwnerUnitRows(owner.originalIndex))
-    .filter((row) => unitRowMatchesFilters(row));
-}
-
-function getScopedOwnerUnitRows(ownerIndex = null) {
-  if (ownerIndex === null || Number.isNaN(ownerIndex)) {
-    return getAllOwnerUnitRows();
-  }
-
-  const isVisibleOwner = getRawDataOwnerScope().some((owner) => owner.originalIndex === ownerIndex);
-  if (!isVisibleOwner) return [];
-  return getOwnerUnitRows(ownerIndex).filter((row) => unitRowMatchesFilters(row));
-}
-
 function getRawSidebarHeader(owner) {
   if (owner) {
     return getOwnerHeader(owner, {
@@ -199,19 +183,6 @@ function getRawContactRowMarkup(row, rowIndex) {
       </td>
       <td><span class="ui-link ui-ellipsis raw-email">${row.email}</span></td>
       <td><span class="raw-phone">${row.phone}</span></td>
-      <td>${getRawValueMarkup(row.location, "raw-location")}</td>
-      <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
-    </tr>
-  `;
-}
-
-function getRawUnitRowMarkup(row, rowIndex) {
-  return `
-    <tr class="raw-unit-row" data-owner-index="${row.ownerIndex}" data-unit-row-index="${row.unitIndex}">
-      <td class="raw-index-cell">${rowIndex + 1}</td>
-      <td>${getRawValueMarkup(row.name, "raw-name")}</td>
-      <td>${getRawValueMarkup(row.email, "ui-link ui-ellipsis raw-email")}</td>
-      <td>${getRawValueMarkup(row.phone, "raw-phone")}</td>
       <td>${getRawValueMarkup(row.location, "raw-location")}</td>
       <td><span class="raw-franchise">${row.franchises.join(", ")}</span></td>
     </tr>
@@ -351,7 +322,11 @@ function restoreFranchiseesTableView({ clearRaw = true, clearGlobalRaw = true } 
   defaultHeaderState.forEach((state) => {
     state.header.className = state.className;
     state.header.hidden = state.hidden;
-    state.header.innerHTML = state.html;
+    // Rebuilding identical header markup would discard the chevron nodes and
+    // wake every subtree MutationObserver on each sort, so only write on change.
+    if (state.header.innerHTML !== state.html) {
+      state.header.innerHTML = state.html;
+    }
     state.header.style.width = state.styleWidth;
 
     if (state.datasetSortKey) {
@@ -390,7 +365,7 @@ function refreshFilteredViews() {
   if (globalRawDataViewOpen) {
     const visibleOwnerIndexes = new Set(getRawDataOwnerScope().map((owner) => owner.originalIndex));
     const nextOwnerIndex = visibleOwnerIndexes.has(activeRawOwnerIndex) ? activeRawOwnerIndex : null;
-    openSidebar("raw", nextOwnerIndex);
+    openSidebar("raw", nextOwnerIndex, { skipViewRefresh: true });
   }
 }
 

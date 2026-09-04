@@ -198,7 +198,6 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
     { id: "territories", label: "Territories", href: "/_prototypes/territories/" },
     { id: "financial-modeling", label: "Financial Modeling", href: "/_prototypes/financial-modeling/" },
     { id: "targets", label: "Targets", href: "/_prototypes/targets/" },
-    { id: "one-pager", label: "One Pager", href: "/_prototypes/one-pager/" },
     { id: "logos", label: "Logo Collection", href: "/logos/" },
   ];
   const STYLES = `
@@ -892,7 +891,6 @@ iframe[data-proto-nav-shell].is-fading {
 
   const matchActiveId = (pathname) => {
     if (/\/logos(?:\/|$)/.test(pathname)) return "logos";
-    if (/\/one-pager(?:\/|$)/.test(pathname)) return "one-pager";
     if (/\/financial-modeling(?:\/|$)/.test(pathname)) return "financial-modeling";
     if (/\/territories(?:\/|$)/.test(pathname)) return "territories";
     if (/\/targets(?:\/|$)/.test(pathname)) return "targets";

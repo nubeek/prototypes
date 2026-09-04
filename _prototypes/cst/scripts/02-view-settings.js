@@ -468,7 +468,7 @@ function resetViewSettings() {
     restoreFilterSectionState({});
     setPanelLayout("right");
     setFilterPanelOpen(true);
-    closeSidebar();
+    closeSidebar({ skipViewRefresh: true });
     syncMapLocationFilter();
     applySort();
     toolbarDropdown?.removeAttribute("open");

@@ -19,7 +19,7 @@ const CAMPAIGN_DESIGN_PREVIEW_TEMPLATE_ID = "introduction";
 const CAMPAIGN_STEP_TRANSITION_MS = 380;
 const CAMPAIGN_WIZARD_MIN_HEIGHT = 580;
 const CAMPAIGN_REVIEW_DELAY_MS = 2000;
-const CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT = "philip@litassy.com";
+const CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT = "you@wefranch.com";
 const DEFAULT_CAMPAIGN_NAME = "Untitled campaign";
 const CAMPAIGN_NAME_MAX_LENGTH = 64;
 const CAMPAIGN_FIELD_ERRORS = {
@@ -2175,6 +2175,10 @@ function syncSequenceItemChrome() {
     item.querySelector(".campaign-sequence-item-summary")
       ?.setAttribute("aria-pressed", String(selected));
 
+    // Typing a subject clears the email's error, so refresh it here too or the
+    // card keeps a stale error outline until the next full render.
+    item.classList.toggle("is-error", campaignReviewValidated && sequenceEmailHasError(email));
+
     const subtitle = item.querySelector(".campaign-sequence-item-subtitle");
     if (subtitle) applySequenceItemSubtitle(subtitle, email);
   });
@@ -2605,7 +2609,7 @@ campaignSenderName?.addEventListener("input", () => {
 function syncActiveSequenceEmailPreview() {
   if (!isDripCampaign() || !getActiveSequenceEmail()) return;
   commitActiveSequenceEmailFields();
-  renderSequenceList();
+  syncSequenceItemChrome();
 }
 
 campaignSubjectLine?.addEventListener("input", () => {

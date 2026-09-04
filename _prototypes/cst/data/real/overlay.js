@@ -372,9 +372,4 @@
   const stats = replaceRoster(dumpData);
 
   window.cstDumpOverlay = { dataSource, generatedAt: dumpData.generatedAt, ...stats };
-  console.info(
-    `[cst] CST roster: ${stats.ownerCount} owners, ${stats.unitCount} units, `
-    + `${stats.labelledUnitCount} units with a location label, `
-    + `${stats.multiBrandOwnerCount} multi-brand owners, ${stats.reusedLogoCount} logos reused`
-  );
 }());

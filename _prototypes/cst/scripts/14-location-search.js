@@ -674,13 +674,6 @@ function getAutoRadiusMilesForLocation(result) {
   return CST_LOCATION_AUTO_RADIUS_MILES[result?.geoLevel] || null;
 }
 
-function getLocationRecordCoordinates(location) {
-  const latitude = Number(location?.lat ?? location?.coordinates?.latitude);
-  const longitude = Number(location?.lng ?? location?.coordinates?.longitude);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-  return { latitude, longitude };
-}
-
 const locationRecordRegionCodeCache = new Map();
 
 function getLocationRecordRegionCode(location) {

@@ -210,6 +210,18 @@ if (franchiseesTable) {
 
     const shouldSelect = checkbox.checked;
 
+    // Rows already rendered are updated in place. Rows still behind pagination
+    // pick the state up from the selection set when they render.
+    const syncRenderedRowCheckboxes = (rowSelector) => {
+      tableBody?.querySelectorAll(rowSelector).forEach((row) => {
+        const rowCheckbox = row.querySelector(".location-row-checkbox");
+        if (rowCheckbox instanceof HTMLInputElement) {
+          rowCheckbox.checked = shouldSelect;
+        }
+        row.classList.toggle("is-checked", shouldSelect);
+      });
+    };
+
     if (isDatasetTableView()) {
       displayedLocations.forEach((row) => {
         if (shouldSelect) {
@@ -219,8 +231,8 @@ if (franchiseesTable) {
         }
       });
 
-      renderLocations(displayedLocations);
-      syncSortHeaders();
+      syncRenderedRowCheckboxes("tr[data-location-row-id]");
+      syncLocationHeaderCheckboxState(displayedLocations);
       syncOwnersMapRowSelectionHighlight();
       return;
     }
@@ -233,8 +245,8 @@ if (franchiseesTable) {
       }
     });
 
-    renderFranchisees(displayedFranchisees);
-    syncSortHeaders();
+    syncRenderedRowCheckboxes("tr[data-owner-index]");
+    syncFranchiseeHeaderCheckboxState(displayedFranchisees);
     syncOwnersMapRowSelectionHighlight();
   });
 }
@@ -524,17 +536,32 @@ if (tableHeadingSummary) {
 
 if (toolbarSearchInput) {
   const searchField = toolbarSearchInput.closest(".toolbar-search-btn");
+  let searchRefreshTimer = null;
+
+  const runSearchRefresh = () => {
+    searchRefreshTimer = null;
+    activeMapOwnerIndex = null;
+    activeOrgOwnerIndex = null;
+    refreshFilteredViews();
+    syncOpenOrgPanelWithSelection();
+    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+  };
+
   toolbarSearchInput.addEventListener("input", () => {
     searchQuery = toolbarSearchInput.value.trim().toLocaleLowerCase();
     searchField?.classList.toggle("is-active-search", Boolean(searchQuery));
     if (toolbarSearchClear) {
       toolbarSearchClear.hidden = !searchQuery;
     }
-    activeMapOwnerIndex = null;
-    activeOrgOwnerIndex = null;
-    refreshFilteredViews();
-    syncOpenOrgPanelWithSelection();
-    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+
+    // Filtering the whole roster per keystroke is wasted while the user is still
+    // typing. Clearing the field stays immediate so the full list snaps back.
+    window.clearTimeout(searchRefreshTimer);
+    if (!searchQuery) {
+      runSearchRefresh();
+      return;
+    }
+    searchRefreshTimer = window.setTimeout(runSearchRefresh, CST_SEARCH_DEBOUNCE_MS);
   });
 
   if (toolbarSearchClear) {

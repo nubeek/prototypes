@@ -169,10 +169,42 @@ const inactiveIconColor = "rgba(122, 99, 221, 0.15)";
 const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
 const TOOLBAR_TAB_DROPDOWN_OPEN_DELAY_MS = 800;
 const TOOLBAR_TAB_DROPDOWN_CLOSE_DELAY_MS = 800;
+const CST_SEARCH_DEBOUNCE_MS = 180;
 const MAPBOX_ACCESS_TOKEN = window.CST_ENV?.MAPBOX_ACCESS_TOKEN
   || "pk.eyJ1IjoibnViZWVrIiwiYSI6ImNtcDQ5bHZ1ODA3OGYycXF6czNpNzl0a2kifQ.PRQujjMXkroy4irt3-Az1Q";
 const HAS_MAPBOX_ACCESS_TOKEN = Boolean(MAPBOX_ACCESS_TOKEN);
 const MAPBOX_STYLE = window.CST_ENV?.MAPBOX_STYLE || "mapbox://styles/nubeek/cka7zizn720s71iogpmkvmw5z";
+// The Wefranch base style still references a deprecated hillshade source layer on
+// composite; Mapbox GL v3 rejects the style before the map can load without this.
+const MAPBOX_STYLE_BROKEN_LAYER_IDS = new Set(["hillshade"]);
+let cstMapStylePromise = null;
+// Resolved style, so map builders that run synchronously can read it directly.
+let cstMapStyle = null;
+
+function loadCstMapStyle() {
+  if (cstMapStylePromise) return cstMapStylePromise;
+
+  const stylePath = MAPBOX_STYLE.replace(/^mapbox:\/\/styles\//, "");
+  const url = `https://api.mapbox.com/styles/v1/${stylePath}?access_token=${encodeURIComponent(MAPBOX_ACCESS_TOKEN)}`;
+
+  cstMapStylePromise = fetch(url)
+    .then((response) => {
+      if (!response.ok) throw new Error(`Unable to load map style (${response.status})`);
+      return response.json();
+    })
+    .then((style) => {
+      style.layers = style.layers.filter((layer) => !MAPBOX_STYLE_BROKEN_LAYER_IDS.has(layer.id));
+      return style;
+    })
+    .catch(() => MAPBOX_STYLE)
+    .then((style) => {
+      cstMapStyle = style;
+      return style;
+    });
+
+  return cstMapStylePromise;
+}
+
 const MAP_INITIAL_CENTER = [-98.5795, 39.8283];
 const MAP_FIT_PADDING = 32;
 const MAP_FOCUS_DURATION = 1000;
