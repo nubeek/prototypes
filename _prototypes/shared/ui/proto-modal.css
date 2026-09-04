@@ -729,6 +729,64 @@ body.reduce-motion .target-modal.is-resizing {
   background: var(--color-border);
 }
 
+.proto-modal-divider[hidden] {
+  display: none;
+}
+
+.proto-modal-field:has(+ .proto-modal-divider) .proto-modal-check-group {
+  margin-bottom: 0;
+}
+
+.proto-modal-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft, #f6f4fe);
+}
+
+.proto-modal-notice[hidden] {
+  display: none;
+}
+
+.proto-modal-notice__icon {
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  background: var(--color-brand);
+  -webkit-mask: url("../../../assets/icons/info.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/info.svg") center / contain no-repeat;
+}
+
+.proto-modal-notice__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.proto-modal-notice__text {
+  margin: 0;
+  color: #050505;
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.proto-modal-notice__action {
+  min-height: auto;
+  font-size: var(--font-size-base);
+  line-height: 1.4;
+}
+
+.proto-modal-notice__text .proto-modal-notice__action {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 .proto-modal-actions,
 .target-modal-actions {
   display: flex;
@@ -776,4 +834,58 @@ body.reduce-motion .target-modal.is-resizing {
   .target-modal-field .filter-combobox-menu {
     padding: 8px 0;
   }
+}
+
+/* Compact confirmation dialog. Overlay color/opacity come from .proto-modal-overlay.
+   Nest with .is-nested so it covers a host panel instead of the viewport. */
+.proto-confirm-overlay,
+.proto-confirm-overlay.is-nested {
+  backdrop-filter: none;
+}
+
+.proto-confirm-overlay.is-nested {
+  position: absolute;
+  z-index: 50;
+}
+
+.proto-confirm {
+  width: 360px;
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.proto-confirm-title,
+.proto-confirm-body {
+  text-align: center;
+}
+
+.proto-confirm-title {
+  margin: 0 0 16px;
+}
+
+.proto-confirm-body {
+  margin: 0;
+}
+
+.proto-confirm-body strong {
+  font-weight: 600;
+}
+
+.proto-confirm-actions {
+  margin-top: 24px;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 8px;
+}
+
+.proto-confirm-actions .proto-modal-cancel,
+.proto-confirm-actions .proto-modal-save,
+.proto-confirm-actions [data-proto-confirm-action] {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
 }

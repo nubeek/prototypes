@@ -2838,7 +2838,7 @@ async function initTerritoryCrossroad() {
       return;
     }
 
-    if (window.WefranchReload?.isHardReload) {
+    if (!window.WefranchReload?.isSoftReload) {
       resetTerritoryCrossroadSearch?.();
       if (shouldRevealOnLoad) {
         revealTerritoryCrossroadEnter(crossroad);

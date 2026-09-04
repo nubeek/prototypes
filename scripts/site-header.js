@@ -93,17 +93,71 @@
     return next;
   };
 
+  const getMenuButton = () => document.querySelector(".site-header-menu");
+
+  const syncMenuButton = (isOpen) => {
+    const button = getMenuButton();
+    if (!button) {
+      return;
+    }
+
+    const open = Boolean(isOpen);
+    button.setAttribute("aria-expanded", String(open));
+    button.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  };
+
+  const toggleQuickMenu = () => {
+    if (typeof window.wefranchProtoNav?.toggle === "function") {
+      syncMenuButton(window.wefranchProtoNav.toggle());
+      return;
+    }
+
+    try {
+      window.parent.postMessage({
+        type: "wefranch:proto-nav-toggle",
+      }, window.location.origin);
+    } catch (error) {
+      // Ignore cross-origin parent access.
+    }
+  };
+
+  const bindMenuButton = () => {
+    const button = getMenuButton();
+    if (!button || button.dataset.quickMenuBound === "true") {
+      return;
+    }
+
+    button.dataset.quickMenuBound = "true";
+    button.setAttribute("aria-haspopup", "true");
+    syncMenuButton(window.wefranchProtoNav?.isOpen?.() ?? false);
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      toggleQuickMenu();
+    });
+  };
+
   applyVisible(readVisible());
+  bindMenuButton();
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       applyVisible(readVisible());
+      bindMenuButton();
     }, { once: true });
   }
+
+  window.addEventListener("message", (event) => {
+    if (event.origin !== window.location.origin || event.data?.type !== "wefranch:proto-nav-state") {
+      return;
+    }
+
+    syncMenuButton(event.data.isOpen);
+  });
 
   window.wefranchSiteHeader = {
     setBreadcrumb,
     isVisible: readVisible,
     setVisible,
+    syncMenuButton,
   };
 })();

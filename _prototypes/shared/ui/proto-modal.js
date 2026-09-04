@@ -15,6 +15,7 @@
          </div>
          <div class="proto-modal-body">
            <!-- unique body; radio/checkbox stacks use .proto-modal-check-group -->
+           <!-- info callouts use .proto-modal-notice (optional .proto-modal-divider above) -->
          </div>
          <div class="proto-modal-actions">
            <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>

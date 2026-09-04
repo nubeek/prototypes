@@ -2407,6 +2407,7 @@ iframe[data-proto-nav-shell].is-fading {
 
       applySiteHeaderVisible(isSiteHeaderVisible());
       applyReduceMotion(readReduceMotionEnabled());
+      syncHeaderMenuButtons();
       syncDocumentTitle();
 
       if (push && window.location.href !== nextUrl) {
@@ -2788,6 +2789,7 @@ iframe[data-proto-nav-shell].is-fading {
     }
 
     syncRecorderChip();
+    syncHeaderMenuButtons();
   };
 
   const mountNav = () => {
@@ -2808,10 +2810,30 @@ iframe[data-proto-nav-shell].is-fading {
     return nav;
   };
 
+  const syncHeaderMenuButtons = () => {
+    window.wefranchSiteHeader?.syncMenuButton?.(isOpen);
+
+    try {
+      shellFrame?.contentWindow?.wefranchSiteHeader?.syncMenuButton?.(isOpen);
+    } catch (error) {
+      // Ignore cross-origin frame access.
+    }
+
+    try {
+      shellFrame?.contentWindow?.postMessage({
+        type: "wefranch:proto-nav-state",
+        isOpen,
+      }, window.location.origin);
+    } catch (error) {
+      // Ignore cross-origin frame access.
+    }
+  };
+
   const toggleNav = () => {
     mountNav();
     isOpen = !isOpen;
     syncOpenState(true);
+    return isOpen;
   };
 
   window.addEventListener("keydown", (event) => {
@@ -2857,8 +2879,22 @@ iframe[data-proto-nav-shell].is-fading {
     }
   }, true);
 
+  window.wefranchProtoNav = {
+    toggle: toggleNav,
+    isOpen: () => isOpen,
+  };
+
   window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin || event.data?.type !== "wefranch:proto-nav-key") {
+    if (event.origin !== window.location.origin) {
+      return;
+    }
+
+    if (event.data?.type === "wefranch:proto-nav-toggle") {
+      toggleNav();
+      return;
+    }
+
+    if (event.data?.type !== "wefranch:proto-nav-key") {
       return;
     }
 

@@ -95,7 +95,7 @@
                 <img class="toolbar-dropdown-icon" src="../../assets/icons/mail-new.svg" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Start new campaign</span>
               </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem" disabled>
                 <img class="toolbar-dropdown-icon" src="../../assets/icons/mail-send.svg?v=2" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Send a message...</span>
               </button>
@@ -1030,7 +1030,8 @@
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabSchedule" type="button" role="tab" aria-selected="false" aria-controls="scheduleCampaignModalForm" data-campaign-step="schedule">Schedule</button>
       </div>
 
-      <div class="campaign-review-chrome" id="campaignReviewChrome" hidden>
+      <div class="campaign-review-chrome is-collapsed" id="campaignReviewChrome" inert aria-hidden="true">
+        <div class="campaign-review-chrome-inner">
         <div class="proto-modal-field">
           <span>Campaign</span>
           <div class="campaign-review-name">
@@ -1057,6 +1058,7 @@
           </div>
         </div>
         <div class="proto-modal-divider" aria-hidden="true"></div>
+        </div>
       </div>
 
       <div class="campaign-step-body" id="campaignStepBody">
@@ -1070,24 +1072,6 @@
         <form class="proto-modal-form campaign-step-panel is-active" id="campaignSettingsModalForm" role="tabpanel" aria-labelledby="campaignStepTabCampaign" data-campaign-step="campaign" novalidate>
         <div class="proto-modal-body campaign-settings-modal-body">
           <p class="proto-modal-subtitle">Share updates, promote products, and announce events. Start an email campaign.</p>
-
-          <div class="proto-modal-field">
-            <span id="campaignTypeDescription">Campaign type</span>
-            <div class="proto-modal-check-group campaign-type-options" id="campaignTypeOptions" role="radiogroup" aria-labelledby="campaignTypeDescription">
-              <label class="proto-modal-check campaign-type-option is-checked">
-                <input type="radio" name="campaignType" id="campaignTypeRegular" value="regular" checked>
-                <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
-                <span class="campaign-type-option__label">Single</span>
-                <img class="campaign-type-option__image" src="assets/images/email-single.png" alt="" width="100" height="74" aria-hidden="true">
-              </label>
-              <label class="proto-modal-check campaign-type-option">
-                <input type="radio" name="campaignType" id="campaignTypeDrip" value="drip">
-                <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
-                <span class="campaign-type-option__label">Drip</span>
-                <img class="campaign-type-option__image" src="assets/images/email-drip.png" alt="" width="100" height="74" aria-hidden="true">
-              </label>
-            </div>
-          </div>
 
           <label class="proto-modal-field" for="campaignSettingsName">
             <span>Campaign name</span>
@@ -1118,13 +1102,13 @@
             <input class="proto-modal-control proto-modal-input" id="campaignSenderName" name="senderName" type="text" autocomplete="name" placeholder="Who is sending the campaign?" required>
           </label>
 
-          <div class="proto-modal-divider campaign-sender-auth-divider" id="campaignSenderAuthDivider" hidden aria-hidden="true"></div>
+          <div class="proto-modal-divider" id="campaignSenderAuthDivider" hidden aria-hidden="true"></div>
 
-          <div class="campaign-sender-auth-notice" id="campaignSenderAuthNotice" role="status" hidden>
-            <span class="campaign-sender-auth-notice__icon" aria-hidden="true"></span>
-            <div class="campaign-sender-auth-notice__content">
-              <p class="campaign-sender-auth-notice__text">Your domain isn't authenticated for sending.</p>
-              <button class="campaign-sender-auth-notice__action ui-text-button" type="button">Set up your domain</button>
+          <div class="proto-modal-notice" id="campaignSenderAuthNotice" role="status" hidden>
+            <span class="proto-modal-notice__icon" aria-hidden="true"></span>
+            <div class="proto-modal-notice__content">
+              <p class="proto-modal-notice__text">Your domain isn't authenticated for sending.</p>
+              <button class="proto-modal-notice__action ui-text-button" type="button">Set up your domain</button>
             </div>
           </div>
         </div>
@@ -1177,7 +1161,10 @@
 
         <form class="proto-modal-form campaign-step-panel" id="campaignSubjectModalForm" role="tabpanel" aria-labelledby="campaignStepTabSubject" data-campaign-step="subject" aria-hidden="true" inert novalidate>
         <div class="proto-modal-body campaign-subject-modal-body">
-          <p class="proto-modal-subtitle">Write the subject line and preview text recipients will see in their inbox.</p>
+          <p class="proto-modal-subtitle" id="campaignSubjectModeSubtitle">
+            <span id="campaignSubjectModeText">Set up a single email, or</span>
+            <button type="button" class="ui-control ui-link campaign-type-switch-link" id="campaignTypeSwitchLink" aria-expanded="false" aria-haspopup="dialog">switch to an email sequence</button>.
+          </p>
 
           <label class="proto-modal-field" for="campaignSubjectLine">
             <span>Subject line</span>
@@ -1283,11 +1270,38 @@
                   <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
                   <span>Schedule for later</span>
                 </label>
-                <label class="proto-modal-check">
-                  <input type="radio" name="campaignSchedule" id="campaignScheduleBatches" value="send-batches">
-                  <span class="proto-modal-checkbox proto-modal-checkbox--radio" aria-hidden="true"></span>
-                  <span>Send in batches</span>
+              </div>
+
+              <div class="campaign-schedule-later-fields" id="campaignScheduleLaterFields" hidden>
+                <label class="proto-modal-field" for="campaignScheduleDate">
+                  <span>Date</span>
+                  <input class="proto-modal-control proto-modal-input" id="campaignScheduleDate" name="scheduleDate" type="date">
                 </label>
+                <div class="proto-modal-field">
+                  <span>Time</span>
+                  <div class="campaign-schedule-time-fields">
+                    <div class="filter-select-field" id="campaignScheduleHourField">
+                      <select class="ui-select filter-field-select" id="campaignScheduleHourSelect" data-input-id="campaignScheduleHourInput" aria-label="Hour"></select>
+                      <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+                    </div>
+                    <div class="filter-select-field" id="campaignScheduleMinuteField">
+                      <select class="ui-select filter-field-select" id="campaignScheduleMinuteSelect" data-input-id="campaignScheduleMinuteInput" aria-label="Minute"></select>
+                      <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="proto-modal-divider" aria-hidden="true"></div>
+
+            <div class="proto-modal-notice" role="status">
+              <span class="proto-modal-notice__icon" aria-hidden="true"></span>
+              <div class="proto-modal-notice__content">
+                <p class="proto-modal-notice__text">
+                  To prevent excessive traffic on your website, your campaign will be sent in batches.
+                  <button class="proto-modal-notice__action ui-text-button" type="button">Learn more</button>
+                </p>
               </div>
             </div>
           </div>
@@ -1317,6 +1331,7 @@
   <script src="data/real/overlay.js"></script>
   <script src="../shared/filter/radius-control.js"></script>
   <script src="../shared/ui/proto-modal.js"></script>
+  <script src="../shared/ui/proto-confirm-modal.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
   <script src="../shared/ui/action-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>

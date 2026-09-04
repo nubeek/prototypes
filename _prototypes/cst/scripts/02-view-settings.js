@@ -1,4 +1,4 @@
-const savedViewSettings = window.WefranchReload?.isHardReload ? null : readSavedViewSettings();
+const savedViewSettings = window.WefranchReload?.isSoftReload ? readSavedViewSettings() : null;
 function readSavedViewSettings() {
   try {
     const savedValue = window.localStorage?.getItem(VIEW_SETTINGS_STORAGE_KEY);
@@ -295,11 +295,12 @@ function clearCstUrlQueryParams() {
 }
 
 function shouldResetCstToSplashOnLoad() {
-  return Boolean(window.WefranchReload?.isHardReload);
+  return !window.WefranchReload?.isSoftReload;
 }
 
-// A normal reload resumes the previous session, so the start screen only comes
-// back when that session was sitting on it.
+// A same-tab reload resumes the previous session, so the start screen only
+// comes back when that session was sitting on it. Closing and reopening
+// always starts from splash.
 function shouldOpenCstSplashOnLoad() {
   if (typeof savedViewSettings?.startScreen === "boolean") {
     return savedViewSettings.startScreen;

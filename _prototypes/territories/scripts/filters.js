@@ -61,7 +61,7 @@ let selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
 let selectedLocationSearches = [];
 let implicitViewportBounds = null;
 let filterLocationSearchControl = null;
-const savedTerritorySettings = window.WefranchReload?.isHardReload ? null : readSavedTerritorySettings();
+const savedTerritorySettings = window.WefranchReload?.isSoftReload ? readSavedTerritorySettings() : null;
 
 function setTerritoryStatusFilters(statuses) {
   const statusSet = new Set(getSavedStringArray(statuses));

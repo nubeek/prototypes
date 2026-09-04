@@ -1295,13 +1295,25 @@ function applyCstSplashQuery(filters = {}, { view = "franchisees" } = {}) {
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });
 }
 
+function activateSavedSearchMapTab() {
+  lockedToolbarMode = "map";
+  if (card?.classList.contains("is-map-open") && getCurrentPanelMode() === "map") {
+    syncToolbarTabState("map");
+    return;
+  }
+  openSidebar("map", null, { skipViewRefresh: true });
+}
+
 function openCstSplashSavedSearch(savedSearch) {
+  // Saved searches always land on Map, not the last org/contacts tab.
+  lockedToolbarMode = "map";
   dismissCstSplash({ refresh: false });
   // Enter read mode before applying filters so a slow location query cannot
   // leave the workspace looking like edit mode, and so a later apply error
   // cannot skip read mode entirely.
   setReaderMode(true, { title: savedSearch.title, savedSearchId: savedSearch.id });
   applyCstSplashQuery(savedSearch.filters || {}, { view: normalizeTableView(savedSearch.view) });
+  activateSavedSearchMapTab();
 }
 
 function restoreCstSavedSearchSession() {

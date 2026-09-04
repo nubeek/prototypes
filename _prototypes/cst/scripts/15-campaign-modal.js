@@ -79,10 +79,12 @@ const CAMPAIGN_REVIEW_STEP_INDEX = CAMPAIGN_STEPS.findIndex((step) => step.id ==
 const CAMPAIGN_SCHEDULE_STEP_INDEX = CAMPAIGN_STEPS.findIndex((step) => step.id === "schedule");
 const CAMPAIGN_REVIEW_SCHEDULE_LABELS = {
   "send-now": "Send now",
-  "schedule-later": "Schedule",
-  "send-batches": "Send now"
+  "schedule-later": "Schedule"
 };
 const CAMPAIGN_REVIEW_SCHEDULE_DEFAULT = "send-now";
+const CAMPAIGN_SCHEDULE_DEFAULT_HOUR = "09";
+const CAMPAIGN_SCHEDULE_DEFAULT_MINUTE = "00";
+const CAMPAIGN_SCHEDULE_MINUTE_STEP = 15;
 
 function getCampaignFieldWrapper(element) {
   return element?.closest?.(".proto-modal-field") || null;
@@ -299,7 +301,6 @@ const campaignSettingsStepTabs = document.getElementById("campaignSettingsStepTa
 const campaignStepTabs = document.getElementById("campaignStepTabs");
 const campaignReviewStepTabs = document.getElementById("campaignReviewStepTabs");
 const campaignSettingsModalForm = document.getElementById("campaignSettingsModalForm");
-const campaignTypeOptions = document.getElementById("campaignTypeOptions");
 const campaignSettingsName = document.getElementById("campaignSettingsName");
 const campaignStepBody = document.getElementById("campaignStepBody");
 const campaignStepViewport = document.getElementById("campaignStepViewport");
@@ -324,6 +325,8 @@ const startCampaignProgressOver = document.getElementById("startCampaignProgress
 const campaignSubjectModalForm = document.getElementById("campaignSubjectModalForm");
 const campaignSubjectLine = document.getElementById("campaignSubjectLine");
 const campaignPreviewText = document.getElementById("campaignPreviewText");
+const campaignSubjectModeText = document.getElementById("campaignSubjectModeText");
+const campaignTypeSwitchLink = document.getElementById("campaignTypeSwitchLink");
 const campaignDesignModalForm = document.getElementById("campaignDesignModalForm");
 const campaignDesignTemplateField = document.getElementById("campaignDesignTemplateField");
 const campaignDesignTemplateSelect = document.getElementById("campaignDesignTemplateSelect");
@@ -335,6 +338,10 @@ const campaignDesignPreviewUnavailable = document.getElementById("campaignDesign
 const reviewCampaignModalForm = document.getElementById("reviewCampaignModalForm");
 const scheduleCampaignModalForm = document.getElementById("scheduleCampaignModalForm");
 const campaignScheduleOptions = document.getElementById("campaignScheduleOptions");
+const campaignScheduleLaterFields = document.getElementById("campaignScheduleLaterFields");
+const campaignScheduleDate = document.getElementById("campaignScheduleDate");
+const campaignScheduleHourSelect = document.getElementById("campaignScheduleHourSelect");
+const campaignScheduleMinuteSelect = document.getElementById("campaignScheduleMinuteSelect");
 
 const campaignReviewName = document.getElementById("campaignReviewName");
 const campaignReviewNameRow = campaignReviewName?.closest(".campaign-review-name");
@@ -354,9 +361,12 @@ const campaignReviewSendLabel = campaignReviewSendTest?.querySelector(".campaign
 let campaignSenderEmailApi = null;
 let campaignSenderDraft = null;
 let campaignName = DEFAULT_CAMPAIGN_NAME;
+let campaignType = CAMPAIGN_TYPE_DEFAULT;
 let startCampaignAudienceApi = null;
 let startCampaignDraft = null;
 let campaignDesignTemplateApi = null;
+let campaignScheduleHourApi = null;
+let campaignScheduleMinuteApi = null;
 let activeCampaignStepIndex = 0;
 let campaignStepTransitionTimeoutId = null;
 let campaignStepAnimating = false;
@@ -837,6 +847,9 @@ function closeCampaignDropdowns() {
   closeStartCampaignDropdowns();
   closeCampaignDesignDropdown();
   closeCampaignLevelDropdown();
+  closeCampaignTypeSwitchConfirm();
+  campaignScheduleHourApi?.close();
+  campaignScheduleMinuteApi?.close();
 }
 
 function clampCampaignName(value) {
@@ -934,7 +947,6 @@ function syncCampaignHeaderLevel(index = activeCampaignStepIndex) {
   if (campaignSettingsStepTabs) campaignSettingsStepTabs.hidden = level !== "settings";
   if (campaignStepTabs) campaignStepTabs.hidden = level !== "campaign";
   if (campaignReviewStepTabs) campaignReviewStepTabs.hidden = level !== "review";
-  if (campaignReviewChrome) campaignReviewChrome.hidden = level !== "review";
   syncDripSequenceChrome();
 
   campaignStepLevel?.querySelectorAll("[data-campaign-level]").forEach((option) => {
@@ -959,6 +971,18 @@ function getCampaignWizardChromeHeight() {
 
   Array.from(campaignWizardModal.children).forEach((child) => {
     if (child === campaignStepBody || child === campaignStepViewport || child === campaignEmailPanelTitle) return;
+    if (child === campaignReviewChrome) {
+      if (CAMPAIGN_STEPS[activeCampaignStepIndex]?.id !== "review") return;
+      const inner = child.querySelector(".campaign-review-chrome-inner");
+      const collapsed = child.classList.contains("is-collapsed");
+      chromeHeight += collapsed
+        ? (inner?.scrollHeight || 0)
+        : child.getBoundingClientRect().height;
+      const reviewStyles = getComputedStyle(child);
+      chromeHeight += (parseFloat(reviewStyles.marginTop) || 0)
+        + (parseFloat(reviewStyles.marginBottom) || 0);
+      return;
+    }
     if (child.hidden || child.hasAttribute("hidden")) return;
 
     const styles = getComputedStyle(child);
@@ -1085,6 +1109,23 @@ function updateCampaignStepChrome(index) {
   syncCampaignStepFooter(index);
 }
 
+function shouldShowCampaignReviewChrome(index = activeCampaignStepIndex) {
+  return CAMPAIGN_STEPS[index]?.id === "review";
+}
+
+function setCampaignReviewChromeVisible(visible, { immediate = false } = {}) {
+  if (!campaignReviewChrome) return;
+
+  if (immediate) campaignReviewChrome.style.transition = "none";
+  campaignReviewChrome.classList.toggle("is-collapsed", !visible);
+  campaignReviewChrome.inert = !visible;
+  campaignReviewChrome.setAttribute("aria-hidden", String(!visible));
+  if (immediate) {
+    campaignReviewChrome.offsetHeight;
+    campaignReviewChrome.style.transition = "";
+  }
+}
+
 function syncCampaignStepHeight({ immediate = false } = {}) {
   const heightTarget = getCampaignStepHeightTarget();
   if (!heightTarget || !startCampaignModalApi?.isVisible()) return;
@@ -1103,7 +1144,9 @@ function syncCampaignStepHeight({ immediate = false } = {}) {
 
   const nextHeight = getCampaignStepViewportHeight(activePanel);
   const currentHeight = Math.round(heightTarget.getBoundingClientRect().height);
-  if (!immediate && Math.abs(currentHeight - nextHeight) < 1) return;
+  // Flex can report the right used height while style.height is still empty.
+  // Percentage children (the viewport/panels) then resolve to 0 until we write px.
+  if (!immediate && heightTarget.style.height && Math.abs(currentHeight - nextHeight) < 1) return;
 
   if (immediate) heightTarget.style.transition = "none";
   heightTarget.style.height = `${nextHeight}px`;
@@ -1148,6 +1191,7 @@ function setCampaignStepImmediate(index, { syncHeight = false, focusTab = false 
     setCampaignStepPanelState(panel, panel === getCampaignStepPanel(nextIndex));
   });
   updateCampaignStepChrome(nextIndex);
+  setCampaignReviewChromeVisible(shouldShowCampaignReviewChrome(nextIndex), { immediate: true });
 
   const heightTarget = getCampaignStepHeightTarget();
   if (heightTarget && !syncHeight) heightTarget.style.height = "";
@@ -1256,6 +1300,7 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
     outgoingPanel.style.opacity = "0";
     incomingPanel.style.opacity = "1";
     const heightTarget = getCampaignStepHeightTarget();
+    setCampaignReviewChromeVisible(shouldShowCampaignReviewChrome());
     if (heightTarget && nextHeight !== null) heightTarget.style.height = `${nextHeight}px`;
   });
 
@@ -1460,8 +1505,7 @@ function resetCampaignReviewTestSend() {
 }
 
 function getCampaignTypeValue() {
-  const selected = campaignTypeOptions?.querySelector("input[name='campaignType']:checked");
-  return selected?.value || CAMPAIGN_TYPE_DEFAULT;
+  return campaignType === "drip" ? "drip" : CAMPAIGN_TYPE_DEFAULT;
 }
 
 function isDripCampaign() {
@@ -2145,6 +2189,105 @@ function syncCampaignLevelLabels() {
   if (campaignLevelMenuLabel) campaignLevelMenuLabel.textContent = label;
 }
 
+function syncCampaignSubjectModeSubtitle() {
+  const drip = isDripCampaign();
+  if (campaignSubjectModeText) {
+    campaignSubjectModeText.textContent = drip
+      ? "Set up an email sequence, or"
+      : "Set up a single email, or";
+  }
+  if (campaignTypeSwitchLink) {
+    campaignTypeSwitchLink.textContent = drip
+      ? "switch to a single email"
+      : "switch to an email sequence";
+  }
+}
+
+function setCampaignType(value) {
+  campaignType = value === "drip" ? "drip" : CAMPAIGN_TYPE_DEFAULT;
+  handleCampaignTypeChange();
+}
+
+function requestSwitchToSingleEmail() {
+  commitActiveSequenceEmailFields();
+  if (campaignSequenceEmails.length > 1) {
+    openCampaignTypeSwitchConfirm();
+    return;
+  }
+  setCampaignType("regular");
+}
+
+const campaignTypeSwitchConfirmApi = campaignWizardModal && window.createProtoConfirmModal
+  ? window.createProtoConfirmModal({
+      host: campaignWizardModal,
+      onOpen() {
+        campaignTypeSwitchLink?.setAttribute("aria-expanded", "true");
+      },
+      onClose() {
+        campaignTypeSwitchLink?.setAttribute("aria-expanded", "false");
+      }
+    })
+  : null;
+
+function openCampaignTypeSwitchConfirm() {
+  campaignTypeSwitchConfirmApi?.open({
+    title: "Switch to a single email?",
+    messageHtml: "Switching to a single email keeps your first email and discards the rest of the sequence. <strong>This can't be undone.</strong>",
+    cancelLabel: "Cancel",
+    confirmLabel: "Switch",
+    confirmPlacement: "start",
+    confirmVariant: "secondary",
+    cancelVariant: "primary",
+    trigger: campaignTypeSwitchLink,
+    onConfirm() {
+      setCampaignType("regular");
+    }
+  });
+}
+
+function closeCampaignTypeSwitchConfirm() {
+  if (!campaignTypeSwitchConfirmApi?.isVisible()) return false;
+  if (campaignTypeSwitchConfirmApi.isOpen()) {
+    campaignTypeSwitchConfirmApi.close();
+  }
+  return true;
+}
+
+const campaignDiscardConfirmApi = campaignWizardModal && window.createProtoConfirmModal
+  ? window.createProtoConfirmModal({
+      host: campaignWizardModal
+    })
+  : null;
+
+function shouldConfirmCampaignDiscard() {
+  return activeCampaignStepIndex > CAMPAIGN_SETTINGS_STEP_INDEX;
+}
+
+function openCampaignDiscardConfirm() {
+  closeCampaignTypeSwitchConfirm();
+  campaignDiscardConfirmApi?.open({
+    title: "Discard changes?",
+    message: "Are you sure you want to leave?\nChanges you made will not be saved.",
+    confirmLabel: "Discard",
+    cancelLabel: "Cancel",
+    confirmPlacement: "start",
+    confirmVariant: "secondary",
+    cancelVariant: "primary",
+    trigger: startCampaignModal?.querySelector(".proto-modal-close"),
+    onConfirm() {
+      closeStartCampaignModal({ force: true });
+    }
+  });
+}
+
+function closeCampaignDiscardConfirm() {
+  if (!campaignDiscardConfirmApi?.isVisible()) return false;
+  if (campaignDiscardConfirmApi.isOpen()) {
+    campaignDiscardConfirmApi.close();
+  }
+  return true;
+}
+
 function syncCampaignEmailPanelTitle() {
   if (!campaignEmailPanelTitle) return;
   campaignEmailPanelTitle.textContent = `Email #${activeSequenceEmailIndex + 1}`;
@@ -2175,9 +2318,11 @@ function syncSequenceItemChrome() {
     item.querySelector(".campaign-sequence-item-summary")
       ?.setAttribute("aria-pressed", String(selected));
 
-    // Typing a subject clears the email's error, so refresh it here too or the
-    // card keeps a stale error outline until the next full render.
-    item.classList.toggle("is-error", campaignReviewValidated && sequenceEmailHasError(email));
+    // Keep the card in sync while typing so a fixed subject/design drops the
+    // error outline immediately, including the selected purple ring.
+    const hasError = Boolean(campaignReviewValidated && sequenceEmailHasError(email));
+    item.classList.toggle("is-error", hasError);
+    if (!hasError) item.classList.remove("is-error");
 
     const subtitle = item.querySelector(".campaign-sequence-item-subtitle");
     if (subtitle) applySequenceItemSubtitle(subtitle, email);
@@ -2198,6 +2343,7 @@ function syncDripSequenceChrome() {
   const active = isDripSequenceActive();
   campaignWizardModal?.classList.toggle("is-drip-sequence", active);
   syncCampaignLevelLabels();
+  syncCampaignSubjectModeSubtitle();
   syncCampaignEmailPanelTitle();
   syncEmailPanelChrome();
 
@@ -2225,7 +2371,7 @@ function syncDripSequenceChrome() {
 }
 
 function handleCampaignTypeChange() {
-  syncCampaignTypeOptionChrome();
+  closeCampaignTypeSwitchConfirm();
 
   if (isDripCampaign()) {
     ensureCampaignSequenceEmails();
@@ -2235,7 +2381,7 @@ function handleCampaignTypeChange() {
   }
 
   syncDripSequenceChrome();
-  syncCampaignStepHeight();
+  syncCampaignStepHeight({ immediate: !isDripSequenceActive() });
 }
 
 function getCampaignSequenceValidationErrors() {
@@ -2267,20 +2413,9 @@ function getCampaignSequenceValidationErrors() {
   return errors;
 }
 
-function syncCampaignTypeOptionChrome() {
-  campaignTypeOptions?.querySelectorAll(".proto-modal-check").forEach((option) => {
-    const input = option.querySelector("input[type='radio']");
-    option.classList.toggle("is-checked", Boolean(input?.checked));
-  });
-}
-
 function resetCampaignTypeSelection() {
-  const regular = document.getElementById("campaignTypeRegular");
-  if (regular) regular.checked = true;
-  const drip = document.getElementById("campaignTypeDrip");
-  if (drip) drip.checked = false;
+  campaignType = CAMPAIGN_TYPE_DEFAULT;
   resetCampaignSequence();
-  syncCampaignTypeOptionChrome();
   syncDripSequenceChrome();
 }
 
@@ -2300,6 +2435,55 @@ function getCampaignReviewScheduleValue() {
   return selected?.value || CAMPAIGN_REVIEW_SCHEDULE_DEFAULT;
 }
 
+function formatCampaignScheduleDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getDefaultCampaignScheduleDate() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  return formatCampaignScheduleDate(date);
+}
+
+function fillCampaignScheduleTimeSelect(select, { max, step, selected }) {
+  if (!select) return;
+
+  select.replaceChildren();
+  for (let value = 0; value < max; value += step) {
+    const option = document.createElement("option");
+    const label = String(value).padStart(2, "0");
+    option.value = label;
+    option.textContent = label;
+    option.selected = label === selected;
+    select.appendChild(option);
+  }
+}
+
+function resetCampaignScheduleLaterValues() {
+  if (campaignScheduleDate) {
+    const today = formatCampaignScheduleDate(new Date());
+    campaignScheduleDate.min = today;
+    campaignScheduleDate.value = getDefaultCampaignScheduleDate();
+  }
+  campaignScheduleHourApi?.reset(CAMPAIGN_SCHEDULE_DEFAULT_HOUR);
+  campaignScheduleMinuteApi?.reset(CAMPAIGN_SCHEDULE_DEFAULT_MINUTE);
+}
+
+function syncCampaignScheduleLaterFields() {
+  const showLater = getCampaignReviewScheduleValue() === "schedule-later";
+  if (campaignScheduleLaterFields) campaignScheduleLaterFields.hidden = !showLater;
+  if (!showLater) {
+    campaignScheduleHourApi?.close();
+    campaignScheduleMinuteApi?.close();
+  }
+  if (CAMPAIGN_STEPS[activeCampaignStepIndex]?.id === "schedule") {
+    syncCampaignStepHeight();
+  }
+}
+
 function syncCampaignScheduleOptionChrome() {
   campaignScheduleOptions?.querySelectorAll(".proto-modal-check").forEach((option) => {
     const input = option.querySelector("input[type='radio']");
@@ -2315,7 +2499,9 @@ function syncCampaignReviewConfirmLabel() {
 function resetCampaignReviewScheduleSelection() {
   const sendNow = document.getElementById("campaignScheduleSendNow");
   if (sendNow) sendNow.checked = true;
+  resetCampaignScheduleLaterValues();
   syncCampaignScheduleOptionChrome();
+  syncCampaignScheduleLaterFields();
   syncCampaignReviewConfirmLabel();
 }
 
@@ -2526,7 +2712,14 @@ const startCampaignModalApi = window.createProtoModal({
       cancelCampaignReviewRename();
       return false;
     }
-    return !closeOpenCampaignDropdown();
+    if (closeCampaignTypeSwitchConfirm()) return false;
+    if (closeCampaignDiscardConfirm()) return false;
+    if (closeOpenCampaignDropdown()) return false;
+    if (shouldConfirmCampaignDiscard()) {
+      openCampaignDiscardConfirm();
+      return false;
+    }
+    return true;
   },
   getFocusElement() {
     if (activeCampaignStepIndex === CAMPAIGN_SETTINGS_STEP_INDEX && campaignSettingsName) {
@@ -2542,7 +2735,12 @@ const startCampaignModalApi = window.createProtoModal({
   }
 });
 
-function closeStartCampaignModal() {
+function closeStartCampaignModal({ force = false } = {}) {
+  if (!force && shouldConfirmCampaignDiscard()) {
+    openCampaignDiscardConfirm();
+    return;
+  }
+  closeCampaignDiscardConfirm();
   startCampaignModalApi.close();
 }
 
@@ -2647,6 +2845,13 @@ campaignDesignPreviewImage?.addEventListener("load", () => {
   }
 });
 
+startCampaignModal?.querySelector(".proto-modal-close")?.addEventListener("click", (event) => {
+  if (!shouldConfirmCampaignDiscard()) return;
+  event.preventDefault();
+  event.stopPropagation();
+  openCampaignDiscardConfirm();
+});
+
 startCampaignOption?.addEventListener("click", (event) => {
   event.preventDefault();
   openStartCampaignModal(startCampaignOption);
@@ -2696,7 +2901,14 @@ campaignSettingsModalForm?.addEventListener("submit", (event) => {
   goToCampaignStep(CAMPAIGN_SENDER_STEP_INDEX, { focusTab: true });
 });
 
-campaignTypeOptions?.addEventListener("change", handleCampaignTypeChange);
+campaignTypeSwitchLink?.addEventListener("click", (event) => {
+  event.preventDefault();
+  if (isDripCampaign()) {
+    requestSwitchToSingleEmail();
+    return;
+  }
+  setCampaignType("drip");
+});
 
 campaignSequencePanel?.addEventListener("scroll", syncCampaignSequenceDotParallax, { passive: true });
 
@@ -2829,8 +3041,32 @@ scheduleCampaignModalForm?.addEventListener("submit", (event) => {
   handleCampaignReviewScheduleAction(getCampaignReviewScheduleValue());
 });
 
+fillCampaignScheduleTimeSelect(campaignScheduleHourSelect, {
+  max: 24,
+  step: 1,
+  selected: CAMPAIGN_SCHEDULE_DEFAULT_HOUR
+});
+fillCampaignScheduleTimeSelect(campaignScheduleMinuteSelect, {
+  max: 60,
+  step: CAMPAIGN_SCHEDULE_MINUTE_STEP,
+  selected: CAMPAIGN_SCHEDULE_DEFAULT_MINUTE
+});
+
+campaignScheduleHourApi = window.WefranchFilterCombobox.enhance(campaignScheduleHourSelect, {
+  singleSelect: true,
+  clearable: false,
+  searchable: false
+});
+campaignScheduleMinuteApi = window.WefranchFilterCombobox.enhance(campaignScheduleMinuteSelect, {
+  singleSelect: true,
+  clearable: false,
+  searchable: false
+});
+resetCampaignScheduleLaterValues();
+
 campaignScheduleOptions?.addEventListener("change", () => {
   syncCampaignScheduleOptionChrome();
+  syncCampaignScheduleLaterFields();
   syncCampaignReviewConfirmLabel();
 });
 

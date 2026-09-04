@@ -550,7 +550,7 @@ function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
 function getOwnersMapPointFeatureCollection() {
   return {
     type: "FeatureCollection",
-    features: getMapPointFeatures()
+    features: getMapPointFeatures(null)
   };
 }
 
@@ -1190,6 +1190,7 @@ function whenOwnersMapCameraSettled(callback) {
 function commitOwnersMapPointCollections(collection = getOwnersMapPointFeatureCollection()) {
   setOwnersMapPointData(collection);
   ownersMap?.getSource("radius-circles")?.setData(getRadiusCircleFeatureCollection());
+  syncOwnersMapOwnerVisibility();
   return collection;
 }
 
@@ -1534,20 +1535,48 @@ function getMapPointHoverCircleRadiusExpression() {
   ];
 }
 
-function getMapPointHoverLayerFilter(featureId = null) {
-  if (!featureId) {
-    return ["==", ["get", "featureId"], ""];
-  }
+function getOwnersMapOwnerVisibilityFilter() {
+  if (activeMapOwnerIndex === null) return null;
+  return ["==", ["to-number", ["get", "ownerIndex"]], Number(activeMapOwnerIndex)];
+}
 
-  return ["==", ["get", "featureId"], featureId];
+function combineOwnersMapFilters(...filters) {
+  const parts = filters.filter((filter) => filter && filter !== true);
+  if (!parts.length) return true;
+  if (parts.length === 1) return parts[0];
+  return ["all", ...parts];
+}
+
+function getMapPointHoverLayerFilter(featureId = null) {
+  const hoverFilter = featureId
+    ? ["==", ["get", "featureId"], featureId]
+    : ["==", ["get", "featureId"], ""];
+  return combineOwnersMapFilters(getOwnersMapOwnerVisibilityFilter(), hoverFilter);
 }
 
 function getMapPointBaseLayerFilter(featureId = null) {
-  if (!featureId) {
-    return true;
+  const hoverFilter = featureId
+    ? ["!=", ["get", "featureId"], featureId]
+    : true;
+  return combineOwnersMapFilters(getOwnersMapOwnerVisibilityFilter(), hoverFilter);
+}
+
+function syncOwnersMapOwnerVisibility() {
+  if (ownersMapPointHover?.syncFilters) {
+    ownersMapPointHover.syncFilters();
+    return;
   }
 
-  return ["!=", ["get", "featureId"], featureId];
+  if (!ownersMap?.getLayer("owner-points")) return;
+
+  ownersMap.setFilter("owner-points", getMapPointBaseLayerFilter(null));
+  ownersMap.setFilter("owner-points-hover", getMapPointHoverLayerFilter(null));
+  if (ownersMap.getLayer("owner-points-logos")) {
+    ownersMap.setFilter("owner-points-logos", getMapPointBaseLayerFilter(null));
+  }
+  if (ownersMap.getLayer("owner-points-logos-hover")) {
+    ownersMap.setFilter("owner-points-logos-hover", getMapPointHoverLayerFilter(null));
+  }
 }
 
 function fitMapPointTooltipToContent(tooltip) {
@@ -1789,7 +1818,7 @@ function createOwnersMapInteractionController(mapInstance) {
     });
   };
 
-  return { bind, clearHover };
+  return { bind, clearHover, syncFilters: syncHoverLayers };
 }
 
 function syncMapLocationFilter({ pointTransition = "radial" } = {}) {
@@ -1880,9 +1909,17 @@ function openSidebar(mode, ownerIndex = null, { scrollTable = false, skipViewRef
   }
 
   if (!skipViewRefresh) {
-    const pointTransition = mode === "map" && wasMapVisible ? "fade" : "radial";
-    syncMapLocationFilter({ pointTransition });
-    renderActiveTable();
+    if (mode === "map" && wasMapVisible) {
+      syncOwnerMapHeader();
+      ownersMapPointHover?.clearHover();
+      syncOwnersMapOwnerVisibility();
+      syncOwnersMapRowSelectionHighlight();
+      renderActiveTable();
+    } else {
+      const pointTransition = mode === "map" && wasMapVisible ? "fade" : "radial";
+      syncMapLocationFilter({ pointTransition });
+      renderActiveTable();
+    }
   }
   syncToolbarTabState(getCurrentPanelMode());
 }
