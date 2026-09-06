@@ -1,7 +1,7 @@
 {
   "id": "dominos",
   "brand": "Domino's",
-  "category": "Food & Beverage",
+  "categoryId": "food-beverage",
   "color": "#006491",
   "logo": "../../assets/logos/franchises/dominos.jpg",
   "country": "US",

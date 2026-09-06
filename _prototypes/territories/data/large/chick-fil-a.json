@@ -1,7 +1,7 @@
 {
   "id": "chick-fil-a",
   "brand": "Chick-fil-A",
-  "category": "Food & Beverage",
+  "categoryId": "food-beverage",
   "color": "#E51636",
   "logo": "../../assets/logos/franchises/chick-fil-a.jpg",
   "country": "US",

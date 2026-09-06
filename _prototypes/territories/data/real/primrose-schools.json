@@ -1,7 +1,7 @@
 {
   "id": "primrose-schools",
   "brand": "Primrose Schools",
-  "category": "Youth Enrichment",
+  "categoryId": "youth-enrichment",
   "color": "#55642A",
   "logo": "../../assets/logos/franchises/primrose-schools.png",
   "country": "US",

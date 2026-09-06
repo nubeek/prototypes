@@ -1,7 +1,7 @@
 {
   "id": "tradewell",
   "brand": "Tradewell",
-  "category": "Home & Services",
+  "categoryId": "home-building-services",
   "color": "#C9743D",
   "logo": "../../assets/logos/franchises/tradewell.jpg",
   "country": "US",

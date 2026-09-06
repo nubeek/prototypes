@@ -1,7 +1,7 @@
 {
   "id": "popeyes",
   "brand": "Popeyes",
-  "category": "Food & Beverage",
+  "categoryId": "food-beverage",
   "color": "#FF7900",
   "logo": "../../assets/logos/franchises/popeyes-louisiana-kitchen.jpg",
   "country": "US",

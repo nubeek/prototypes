@@ -304,33 +304,14 @@ if (ownerFilterSelect) {
 }
 
 if (categoryFilterSelect) {
-  const prospectCategoryNames = Object.values(window.prospectDatasetsData || {})
-    .flatMap((dataset) => dataset.rows || [])
-    .map((row) => row.category)
-    .map(normalizeDatasetCellValue)
-    .filter(Boolean);
-  const categoryNames = [
-    ...new Set([
-      "Children Programs",
-      "Education & Children",
-      "Home and Building Services",
-      "Food & Beverage",
-      "Retail Products and Services",
-      "Professional Business Services",
-      "Health & Wellness",
-      "Fitness",
-      ...prospectCategoryNames
-    ])
-  ];
-
-  categoryFilterSelect.disabled = false;
-
-  categoryNames.forEach((categoryName) => {
+  window.WefranchCategories.getOptions().forEach((item) => {
     const option = document.createElement("option");
-    option.value = categoryName;
-    option.textContent = categoryName;
+    option.value = item.value;
+    option.textContent = item.label;
     categoryFilterSelect.append(option);
   });
+
+  categoryFilterSelect.disabled = false;
 
   categoryFilterSelect.addEventListener("change", () => {
     selectedCategoryValues = getFilterSelectIncludedValues(categoryFilterSelect);
@@ -870,6 +851,7 @@ const createTargetModalApi = window.createProtoModal({
   },
   onClose() {
     createTargetForm?.reset();
+    window.WefranchFieldErrors?.clearAll(createTargetForm, { silent: true });
     editingSavedSearchId = null;
     setCreateTargetAlerts(null);
   }
@@ -881,7 +863,7 @@ function openCreateTargetModal(trigger = null, { savedSearch = null } = {}) {
 
   editingSavedSearchId = savedSearch?.id || null;
   createTargetForm?.reset();
-  createTargetTitleInput?.setCustomValidity("");
+  window.WefranchFieldErrors?.clearAll(createTargetForm, { silent: true });
   if (createTargetModalTitle) {
     createTargetModalTitle.textContent = editingSavedSearchId ? "Edit search" : "Save search";
   }
@@ -955,8 +937,12 @@ if (createTargetForm) {
 
     const formData = new FormData(createTargetForm);
     const title = String(formData.get("title") || "").trim();
-    createTargetTitleInput?.setCustomValidity(title ? "" : "Enter a title.");
-    if (!createTargetForm.reportValidity()) return;
+    window.WefranchFieldErrors?.clearAll(createTargetForm, { silent: true });
+    if (!title) {
+      window.WefranchFieldErrors?.set(createTargetTitleInput, "Enter a title.");
+      createTargetTitleInput?.focus({ preventScroll: true });
+      return;
+    }
 
     const viewDetails = {
       title,
@@ -970,8 +956,8 @@ if (createTargetForm) {
       ? window.cstSplash?.updateSavedView?.(editingSavedSearchId, viewDetails)
       : window.cstSplash?.saveCurrentView?.(viewDetails);
     if (!savedSearch) {
-      createTargetTitleInput?.setCustomValidity("This view could not be saved. Please try again.");
-      createTargetForm.reportValidity();
+      window.WefranchFieldErrors?.set(createTargetTitleInput, "This view could not be saved. Please try again.");
+      createTargetTitleInput?.focus({ preventScroll: true });
       return;
     }
 
@@ -998,11 +984,11 @@ deleteSavedViewBtn?.addEventListener("click", () => {
   if (!editingSavedSearchId) return;
 
   const deletedSearch = window.cstSplash?.deleteSavedView?.(editingSavedSearchId);
-  if (!deletedSearch) {
-    createTargetTitleInput?.setCustomValidity("This view could not be deleted. Please try again.");
-    createTargetForm?.reportValidity();
-    return;
-  }
+    if (!deletedSearch) {
+      window.WefranchFieldErrors?.set(createTargetTitleInput, "This view could not be deleted. Please try again.");
+      createTargetTitleInput?.focus({ preventScroll: true });
+      return;
+    }
 
     closeCreateTargetModal();
     window.setTimeout(() => {
@@ -1010,9 +996,6 @@ deleteSavedViewBtn?.addEventListener("click", () => {
     }, window.PROTO_MODAL_CLOSE_DURATION_MS);
 });
 
-createTargetTitleInput?.addEventListener("input", () => {
-  createTargetTitleInput.setCustomValidity("");
-});
 
 const TOOLBAR_SUBMENU_VIEWPORT_GUTTER = 8;
 const TOOLBAR_SUBMENU_OVERLAP_PX = 4;
@@ -1235,6 +1218,7 @@ if (profileModal) {
         const nodeId = profileModal.dataset.nodeId ?? null;
         if (saveLeadButton.classList.contains("is-saved")) {
           setContactLeadSaved(ownerIndex, nodeId, false);
+          removeCrmLead({ ownerIndex, nodeId });
           closePersonProfile();
           refreshContactStateViews();
           syncOwnerDetailLeadButton(ownerIndex);

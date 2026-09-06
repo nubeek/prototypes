@@ -1,7 +1,7 @@
 {
   "id": "subway",
   "brand": "Subway",
-  "category": "Food & Beverage",
+  "categoryId": "food-beverage",
   "color": "#e1b523",
   "logo": "../../assets/logos/franchises/subway.jpg",
   "country": "US",

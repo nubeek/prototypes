@@ -1,7 +1,7 @@
 {
   "id": "modo-yoga-international",
   "brand": "Modo Yoga International",
-  "category": "Fitness",
+  "categoryId": "fitness",
   "color": "#941B23",
   "logo": "../../assets/logos/franchises/modo-yoga-international.png",
   "country": "US",

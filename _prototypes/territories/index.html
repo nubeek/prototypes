@@ -153,7 +153,7 @@
     </div>
 
     <div class="territory-workspace">
-        <div class="territory-crossroad is-preparing-enter" id="territoryCrossroad" data-territory-crossroad role="group" aria-label="Choose how to start">
+        <div class="territory-crossroad proto-scrollbar is-preparing-enter" id="territoryCrossroad" data-territory-crossroad role="group" aria-label="Choose how to start">
           <div class="territory-crossroad__inner">
             <div class="territory-crossroad__search-intro">
               <p class="territory-crossroad__heading">Start a new search<br>or browse most popular territory searches</p>
@@ -176,7 +176,7 @@
                   aria-describedby="territoryCrossroadSearchFeedback"
                 >
                 <div
-                  class="territory-crossroad__search-suggestions"
+                  class="territory-crossroad__search-suggestions proto-scrollbar"
                   id="territoryCrossroadSearchSuggestions"
                   role="listbox"
                   aria-label="Brand, category, and location suggestions"
@@ -279,7 +279,7 @@
             ></button>
             <div class="filter-combobox-menu" id="locationFilterSearchMenu" aria-hidden="true">
               <div
-                class="filter-combobox-options"
+                class="filter-combobox-options proto-scrollbar"
                 id="locationFilterSearchSuggestions"
                 role="listbox"
                 aria-label="Location suggestions"
@@ -600,7 +600,7 @@
                     <h3 class="territory-info-card__brand" id="territoryAreaTitle"></h3>
                   </div>
                 </header>
-                <div class="territory-info-card__scroll territory-area-card__scroll" id="territoryAreaGroups"></div>
+                <div class="territory-info-card__scroll territory-area-card__scroll proto-scrollbar" id="territoryAreaGroups"></div>
               </section>
 
               <section class="territory-info-card__pane" id="territoryInfoDetail" aria-labelledby="territoryInfoBrand" aria-hidden="true" inert>
@@ -612,7 +612,7 @@
                   </div>
                 </header>
 
-                <div class="territory-info-card__scroll">
+                <div class="territory-info-card__scroll proto-scrollbar">
                   <section class="territory-info-card__section" aria-labelledby="territoryInfoOverview">
                     <h4 class="territory-info-card__section-title" id="territoryInfoOverview">Territory Overview</h4>
                     <dl class="territory-info-card__rows">
@@ -669,7 +669,7 @@
             <button class="ui-control territory-info-card__close" id="territoryInfoCloseCompare" type="button" aria-label="Remove from comparison"></button>
           </header>
 
-          <div class="territory-info-card__scroll">
+          <div class="territory-info-card__scroll proto-scrollbar">
             <section class="territory-info-card__section" aria-labelledby="territoryInfoOverviewCompare">
               <h4 class="territory-info-card__section-title" id="territoryInfoOverviewCompare">Territory Overview</h4>
               <dl class="territory-info-card__rows">
@@ -728,7 +728,7 @@
 
   <div class="profile-modal-overlay target-modal-overlay save-search-modal-overlay" id="saveSearchModal" hidden>
     <section class="profile-modal target-modal save-search-modal" role="dialog" aria-modal="true" aria-labelledby="saveSearchModalTitle">
-      <form class="target-modal-form save-search-modal-form" id="saveSearchModalForm">
+      <form class="target-modal-form save-search-modal-form" id="saveSearchModalForm" novalidate>
         <div class="target-modal-header">
           <h2 class="target-modal-title save-search-modal-title" id="saveSearchModalTitle">Save search</h2>
           <div class="target-modal-header-actions">
@@ -810,7 +810,7 @@
 
   <div class="profile-modal-overlay target-modal-overlay save-search-modal-overlay" id="requestInfoModal" hidden>
     <section class="profile-modal target-modal save-search-modal request-info-modal" role="dialog" aria-modal="true" aria-labelledby="requestInfoModalTitle">
-      <form class="target-modal-form request-info-modal-form" id="requestInfoModalForm">
+      <form class="target-modal-form request-info-modal-form" id="requestInfoModalForm" novalidate>
         <div class="target-modal-header request-info-modal-header">
           <h2 class="target-modal-title request-info-modal-title" id="requestInfoModalTitle">Request information</h2>
           <div class="target-modal-header-actions">
@@ -889,6 +889,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
   <script src="../../scripts/cst-env.js"></script>
   <script src="../shared/filter/radius-control.js"></script>
+  <script src="../shared/ui/proto-field-captions.js"></script>
+  <script src="../shared/ui/proto-field-error.js"></script>
   <script src="../shared/ui/proto-modal.js"></script>
   <script src="../shared/ui/proto-confirm-modal.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
@@ -896,9 +898,9 @@
   <script src="../shared/filter/filter-sections.js"></script>
   <script src="../shared/filter/filter-range.js"></script>
   <script src="../shared/map/map-pills.js"></script>
+  <script src="../shared/data/categories.js"></script>
   <script src="scripts/datasets.js"></script>
   <script src="data/saved-searches.js"></script>
-  <script src="scripts/categories.js"></script>
   <script src="scripts/location-search.js"></script>
   <script src="scripts/filters.js"></script>
   <script src="scripts/brand-panel.js"></script>

@@ -1,7 +1,7 @@
 {
   "id": "mr-handyman",
   "brand": "Mr. Handyman",
-  "category": "Cleaning and Maintenance",
+  "categoryId": "cleaning-maintenance",
   "color": "#B72027",
   "logo": "../../assets/logos/franchises/mr-handyman.png",
   "country": "US",

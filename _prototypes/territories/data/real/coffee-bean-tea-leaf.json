@@ -1,7 +1,7 @@
 {
   "id": "coffee-bean-tea-leaf",
   "brand": "Coffee Bean & Tea Leaf",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#4A2C6A",
   "logo": "../../assets/logos/franchises/coffee-bean-tea-leaf.png",
   "country": "US",

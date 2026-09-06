@@ -3628,7 +3628,7 @@ function getTerritoryProperties(brand, territory) {
   return {
     brandId: brand.id,
     brand: brand.brand,
-    category: brand.category || "",
+    categoryId: brand.categoryId || null,
     color: brand.color,
     logo: brand.logo || "",
     status: territory.status,
@@ -3653,7 +3653,7 @@ function buildTerritoryRegistry(brands, geoIndex) {
     return {
       brandId: brand.id,
       brand: brand.brand,
-      category: brand.category || "",
+      categoryId: brand.categoryId || null,
       franchiseeRating: brand.franchiseeRating ?? 0,
       state: territory.state,
       geoKey,
@@ -5175,8 +5175,23 @@ function loadTerritoryDataBundle() {
     fetchTerritoryJson(TERRITORY_MACRODATA_URL),
     ...activeDataset.brandFiles.map((file) => fetchTerritoryJson(`data/${file}`))
   ]).then(async ([statesGeojson, macrodata, ...brands]) => {
-    brands.forEach((brand) => {
-      if (brand?.logo) brand.logo = resolvePublicAssetUrl(brand.logo);
+    brands.forEach((brand, index) => {
+      const hydrated = window.WefranchCategories.hydrateRecord(brand, {
+        source: "territories",
+        brandId: brand.id
+      });
+      brands[index] = {
+        ...hydrated,
+        ...window.WefranchCategories.toStoredFields(hydrated)
+      };
+      delete brands[index].category;
+      delete brands[index].categories;
+      delete brands[index].categoryIds;
+      if (!brands[index].categoryNeedsReview) {
+        delete brands[index].categoryOriginal;
+        delete brands[index].categoryNeedsReview;
+      }
+      if (brands[index]?.logo) brands[index].logo = resolvePublicAssetUrl(brands[index].logo);
     });
     const needsCounties = brands.some((brand) => isCountyLevelBrand(brand));
     const needsGeoFeatures = brands.some((brand) => isGeoLevelBrand(brand));

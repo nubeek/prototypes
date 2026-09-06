@@ -1,7 +1,7 @@
 {
   "id": "molly-maid",
   "brand": "Molly Maid",
-  "category": "Home & Services",
+  "categoryId": "home-building-services",
   "color": "#EEB2CB",
   "logo": "../../assets/logos/franchises/molly-maid.png",
   "country": "US",
@@ -630,7 +630,7 @@
       "geoKey": "cbsa:15860",
       "geoType": "cbsa",
       "state": "CO",
-      "name": "Ca\u00f1on City, CO",
+      "name": "Cañon City, CO",
       "status": "available"
     },
     {
@@ -3493,7 +3493,7 @@
       "geoKey": "cbsa:21580",
       "geoType": "cbsa",
       "state": "NM",
-      "name": "Espa\u00f1ola, NM",
+      "name": "Española, NM",
       "status": "available"
     },
     {

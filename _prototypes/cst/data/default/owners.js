@@ -464,7 +464,7 @@ window.ownersData = getDedupedOwnerSeeds(ownerSeedRows).map((owner, index) => {
   const primaryContact = contacts[0];
   const unitCount = owner.unitCount || 0;
   const franchises = mergeUniqueStrings(owner.franchiseNames || []);
-  const category = owner.category || "Fitness";
+  const categoryId = owner.categoryId || "fitness";
 
   return {
     ...owner,
@@ -473,8 +473,8 @@ window.ownersData = getDedupedOwnerSeeds(ownerSeedRows).map((owner, index) => {
     unitCount,
     locations: unitCount,
     units: [],
-    category,
-    categories: [category],
+    categoryId,
+    categoryIds: [categoryId],
     contactName: primaryContact.name,
     email: primaryContact.email,
     franchise: franchises.join(", "),

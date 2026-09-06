@@ -403,6 +403,7 @@ function syncLocationTableView() {
   restoreFranchiseesTableView({ clearRaw: false, clearGlobalRaw: false });
   franchiseesTable?.classList.add("locations-table");
   franchiseesTable?.classList.add("has-row-select");
+  franchiseesTable?.classList.remove("is-franchisees-table");
   tableWrap?.classList.add("is-locations-view");
   LOCATION_TABLE_HEADERS.forEach((config) => setMainTableHeader(config.header, config));
 }
@@ -411,6 +412,7 @@ function syncFranchiseesTableView() {
   restoreFranchiseesTableView({ clearRaw: false, clearGlobalRaw: false });
   franchiseesTable?.classList.remove("locations-table");
   franchiseesTable?.classList.add("has-row-select");
+  franchiseesTable?.classList.add("is-franchisees-table");
   tableWrap?.classList.remove("is-locations-view");
   if (locationNumberColumnHeader) {
     setMainTableHeader(locationNumberColumnHeader, { label: "", sortKey: "", width: "48px" });
@@ -561,7 +563,7 @@ function getOwnerLocationRows(owner) {
   const ownerUnits = Array.isArray(ownerLocationData?.units) ? ownerLocationData.units : [];
   const ownerFranchises = getOwnerFranchises(owner);
   const fallbackFranchise = ownerFranchises[0] || "Franchise";
-  const fallbackCategory = owner.category || "Fitness";
+  const fallbackCategory = window.WefranchCategories.getRecordId(owner) || (owner.cstSource ? null : "fitness");
 
   return ownerUnits.map((unit, unitIndex) => {
     // A unit inherits every brand its owner is a franchisee of, unless the unit
@@ -570,7 +572,7 @@ function getOwnerLocationRows(owner) {
       ? unit.franchises
       : [unit.franchise || fallbackFranchise];
     const franchise = unitFranchises.join(", ");
-    const category = unit.category || fallbackCategory;
+    const categoryId = unit.categoryId || fallbackCategory;
     return {
       id: unit.id || `${owner.originalIndex}-${unitIndex}`,
       owner,
@@ -588,8 +590,8 @@ function getOwnerLocationRows(owner) {
       address: unit.address || "",
       city: unit.city || "",
       state: unit.state || "",
-      category,
-      categories: [category],
+      categoryId,
+      categoryIds: categoryId ? [categoryId] : [],
       franchise,
       franchises: unitFranchises
     };
@@ -658,7 +660,7 @@ function getProspectDatasetRows(tableView = currentTableView) {
 
   return rows.map((row, rowIndex) => {
     const franchise = normalizeDatasetCellValue(row.franchise);
-    const category = normalizeDatasetCellValue(row.category);
+    const categoryId = window.WefranchCategories.hydrateRecord(row, { source: "cst" }).categoryId;
 
     return {
       id: normalizeDatasetCellValue(row.id) || `${tableView}-${rowIndex}`,
@@ -671,8 +673,8 @@ function getProspectDatasetRows(tableView = currentTableView) {
       location: normalizeDatasetCellValue(row.location),
       franchise,
       institution: normalizeDatasetCellValue(row.institution),
-      category,
-      categories: category ? [category] : [],
+      categoryId,
+      categoryIds: categoryId ? [categoryId] : [],
       franchises: getDatasetValueList(row.franchise)
     };
   });
@@ -687,7 +689,8 @@ function getLocationSearchIndex(row) {
     row.name,
     row.email,
     row.phone,
-    row.category,
+    window.WefranchCategories.getRecordLabel(row),
+    row.categoryId,
     row.franchise,
     row.institution,
     row.owner?.ownerName,
@@ -762,7 +765,7 @@ function getLocationSortValue(row, key) {
   if (key === "contactName") return row.name;
   if (key === "email") return row.email;
   if (key === "franchise") return row.franchise;
-  if (key === "category") return row.category;
+  if (key === "category") return window.WefranchCategories.getRecordLabel(row);
   if (key === "phone") return row.phone;
   return row.location;
 }
@@ -869,7 +872,7 @@ function getDatasetCellValueMarkup(value, className = "") {
   const missingClass = normalizedValue ? "" : " dataset-empty-value";
   const classAttribute = `location-table-value${className ? ` ${className}` : ""}${missingClass}`;
 
-  return `<span class="${classAttribute}">${normalizedValue || "-"}</span>`;
+  return `<span class="${classAttribute}">${normalizedValue || "–"}</span>`;
 }
 
 function getLocationRowAttributeMarkup(row, pageRowIndex) {
@@ -935,13 +938,15 @@ function getDatasetFranchiseCellMarkup(row) {
     return getDatasetCellValueMarkup("");
   }
 
-  const showNames = row.isProspectDataset ? row.franchises.length === 1 : true;
+  const [firstFranchise, ...rest] = row.franchises;
+  const title = row.franchises.join(", ");
   return `
-    <span class="dataset-franchise-cell">
+    <span class="dataset-franchise-cell" title="${title}">
       ${getFranchiseLogosColumn(
-        { franchises: row.franchises, franchise: row.franchise },
-        { showNames, containerTag: "span" }
+        { franchises: [firstFranchise], franchise: firstFranchise },
+        { showNames: true, containerTag: "span" }
       )}
+      ${rest.length ? `<span class="dataset-franchise-more">+${rest.length}</span>` : ""}
     </span>
   `;
 }
@@ -997,7 +1002,7 @@ function renderLocations(rows) {
           <td class="location-inner-hover-cell">
             ${getDatasetInstitutionCellMarkup(row)}
           </td>
-          <td>${getDatasetCellValueMarkup(row.category)}</td>
+          <td>${getDatasetCellValueMarkup(window.WefranchCategories.getRecordLabel(row))}</td>
         </tr>
       `;
     })
@@ -1010,6 +1015,7 @@ function getSortValue(owner, key) {
   if (key === "contacts") return getOwnerContactCount(owner);
   if (key === "locations") return getOwnerUnitCount(owner);
   if (key === "franchise") return getFranchiseCount(owner);
+  if (key === "category") return window.WefranchCategories.getRecordLabel(owner);
   return owner[key] || "";
 }
 
@@ -1254,23 +1260,17 @@ function ownerExcludesLocationLabel(owner, locationLabels = excludedLocationLabe
 }
 
 function getOwnerCategories(owner) {
-  if (Array.isArray(owner.categories) && owner.categories.length) {
-    return [...new Set(owner.categories.map((value) => String(value).trim()).filter(Boolean))];
-  }
+  const hydrated = window.WefranchCategories.hydrateRecord(owner, { source: "cst" });
+  const ids = window.WefranchCategories.getRecordIds(hydrated);
+  if (ids.length) return ids;
 
-  if (typeof owner.category === "string" && owner.category.trim()) {
-    return [owner.category.trim()];
-  }
+  const unitIds = (window.ownerLocationsData?.[owner.originalIndex]?.units || [])
+    .map((unit) => window.WefranchCategories.hydrateRecord(unit, { source: "cst" }).categoryId)
+    .filter(Boolean);
+  if (unitIds.length) return [...new Set(unitIds)];
 
-  const unitCategories = (window.ownerLocationsData?.[owner.originalIndex]?.units || [])
-    .map((unit) => unit.category)
-    .filter((value) => typeof value === "string" && value.trim())
-    .map((value) => value.trim());
-  if (unitCategories.length) {
-    return [...new Set(unitCategories)];
-  }
-
-  return ["Fitness"];
+  if (hydrated.categoryNeedsReview || owner.cstSource) return [];
+  return ["fitness"];
 }
 
 function ownerMatchesCategoryFilter(owner) {
@@ -1336,8 +1336,9 @@ function getOwnerSearchIndex(owner) {
     owner.contactName,
     owner.email,
     owner.franchise,
-    owner.category,
-    ...(Array.isArray(owner.categories) ? owner.categories : []),
+    window.WefranchCategories.getRecordLabel(owner),
+    owner.categoryOriginal,
+    ...(window.WefranchCategories.getRecordIds(owner)),
     ...locations.flatMap((location) => [location.label, location.city, location.state, location.address]),
     ...units.flatMap((unit) => [
       unit.name,
@@ -1345,7 +1346,8 @@ function getOwnerSearchIndex(owner) {
       unit.city,
       unit.state,
       unit.address,
-      unit.category,
+      window.WefranchCategories.getRecordLabel(unit),
+      unit.categoryId,
       unit.franchise,
       unit.email,
       unit.phone
@@ -1366,9 +1368,7 @@ function ownerMatchesSearchQuery(owner) {
 
 function rawRowMatchesFilters(row) {
   if (!rowMatchesLocationFilter(row)) return false;
-  const rowCategories = Array.isArray(row.categories) && row.categories.length
-    ? row.categories
-    : [row.category || "Fitness"];
+  const rowCategories = window.WefranchCategories.getRecordIds(row);
   if (rowCategories.some((category) => excludedCategoryValues.includes(category))) return false;
   if (selectedCategoryValues.length && !rowCategories.some((category) => selectedCategoryValues.includes(category))) {
     return false;

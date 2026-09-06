@@ -11,7 +11,8 @@
  *   - Owner logos: reused from a seeded owner of the same name, otherwise the
  *     table falls back to initials.
  *   - Industry: no such field, so the brands present in the dump are mapped onto
- *     the category names the filter already offers. That mapping is ours.
+ *     shared category IDs. Unmapped concepts stay categoryId null and flagged
+ *     for review instead of becoming Other.
  *   - Unit addresses: coordinates only. Labels come from the reverse-geocode
  *     cache in data/real/place-labels.js.
  *   - Unit brand: the map endpoint has no concept on a point. Multi-brand
@@ -22,14 +23,11 @@
 (function () {
   const SEED_DATA_SOURCE = "seed";
   const DUMP_DATA_SOURCE = "dump";
-  const UNKNOWN_CATEGORY = "Other";
-
-  // Our classification, not CST's. Categories match the fixed list the filter in
-  // scripts/09-bootstrap.js builds, so dump owners stay filterable.
+  // Our classification, not CST's. Concept names map to shared category IDs.
   const CONCEPTS_BY_CATEGORY = {
-    Fitness: ["Planet Fitness", "Club Pilates Franchise", "Crunch", "Orangetheory"],
-    "Health & Wellness": ["European Wax Center", "Massage Envy", "Phenix Salon Suites"],
-    "Food & Beverage": [
+    fitness: ["Planet Fitness", "Club Pilates Franchise", "Crunch", "Orangetheory"],
+    "health-wellness": ["European Wax Center", "Massage Envy", "Phenix Salon Suites"],
+    "food-beverage": [
       "Popeyes Louisiana Kitchen", "Dunkin'", "Burger King", "Denny's",
       "Pizza Hut Traditional", "Applebee's", "Panera Bread", "IHOP",
       "Jimmy John's", "Taco Bell Traditional", "Buffalo Wild Wings",
@@ -232,7 +230,7 @@
     return [contacts[primaryIndex], ...contacts.filter((_, index) => index !== primaryIndex)];
   }
 
-  function buildUnits(dumpOwner, franchises, category) {
+  function buildUnits(dumpOwner, franchises, categoryId) {
     const locations = window.cstDumpLocations || {};
 
     return (dumpOwner.units || []).map(([lat, lng, cstUnitId], unitIndex) => {
@@ -256,7 +254,7 @@
         franchise,
         franchises,
         color,
-        category,
+        categoryId,
         lat,
         lng,
         label: locations[getLocationCellKey(lat, lng)] || ""
@@ -266,16 +264,24 @@
 
   function buildOwner(dumpOwner, seedLogosByName) {
     const franchises = (dumpOwner.concepts || []).map((concept) => concept.name).filter(Boolean);
-    const categories = [...new Set(
-      franchises.map((franchise) => CATEGORY_BY_CONCEPT[franchise] || UNKNOWN_CATEGORY)
-    )];
-    const category = categories[0] || UNKNOWN_CATEGORY;
+    const resolved = franchises.map((franchise) => {
+      const categoryId = CATEGORY_BY_CONCEPT[franchise] || null;
+      return {
+        franchise,
+        categoryId,
+        unresolved: !categoryId
+      };
+    });
+    const categoryIds = [...new Set(resolved.map((item) => item.categoryId).filter(Boolean))];
+    const unresolvedConcepts = resolved.filter((item) => item.unresolved).map((item) => item.franchise);
+    const categoryId = categoryIds[0] || null;
+    const categoryNeedsReview = unresolvedConcepts.length > 0;
     const orgNodes = buildOrgNodes(dumpOwner);
     const contacts = buildContacts(orgNodes);
     const unitCount = Number.isFinite(dumpOwner.unitsCount)
       ? dumpOwner.unitsCount
       : (dumpOwner.units || []).length;
-    const units = buildUnits(dumpOwner, franchises, category);
+    const units = buildUnits(dumpOwner, franchises, categoryId);
     const seedLogo = seedLogosByName.get(normalizeOwnerName(dumpOwner.name));
 
     return {
@@ -293,8 +299,11 @@
         unitCount,
         locations: unitCount,
         units,
-        category,
-        categories,
+        categoryId,
+        categoryIds,
+        ...(categoryNeedsReview
+          ? { categoryOriginal: unresolvedConcepts.join(", "), categoryNeedsReview: true }
+          : {}),
         franchise: franchises.join(", "),
         franchises,
         logoSrc: getOwnerLogoSrc(dumpOwner.name, seedLogo),
@@ -329,6 +338,14 @@
     window.ownerLocationsData = built.map((entry) => entry.locationData);
     window.ownerOrgChartData = built.map((entry) => entry.orgChart);
 
+    const unresolvedConcepts = [...new Set(
+      built.flatMap((entry) => (
+        entry.owner.categoryNeedsReview
+          ? String(entry.owner.categoryOriginal || "").split(", ").filter(Boolean)
+          : []
+      ))
+    )].sort((left, right) => left.localeCompare(right));
+
     return {
       ownerCount: built.length,
       unitCount: built.reduce((total, entry) => total + entry.locationData.units.length, 0),
@@ -339,7 +356,10 @@
       brandCount: new Set(built.flatMap((entry) => entry.owner.franchises)).size,
       labelledUnitCount: built.reduce((total, entry) => (
         total + entry.locationData.units.filter((unit) => unit.label).length
-      ), 0)
+      ), 0),
+      reviewOwnerCount: built.filter((entry) => entry.owner.categoryNeedsReview).length,
+      unresolvedConceptCount: unresolvedConcepts.length,
+      unresolvedConcepts
     };
   }
 
@@ -372,4 +392,10 @@
   const stats = replaceRoster(dumpData);
 
   window.cstDumpOverlay = { dataSource, generatedAt: dumpData.generatedAt, ...stats };
+  if (stats.unresolvedConceptCount) {
+    console.warn(
+      `[cst] ${stats.unresolvedConceptCount} dump concepts need category review`,
+      stats.unresolvedConcepts
+    );
+  }
 }());

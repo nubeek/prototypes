@@ -1,7 +1,7 @@
 {
   "id": "captain-ds",
   "brand": "Captain D's",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#02A6E4",
   "logo": "../../assets/logos/franchises/captain-ds.png",
   "country": "US",

@@ -1,7 +1,7 @@
 {
   "id": "pizza-factory",
   "brand": "Pizza Factory",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#3B7C37",
   "logo": "../../assets/logos/franchises/pizza-factory.jpg",
   "country": "US",

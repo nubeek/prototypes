@@ -53,7 +53,7 @@ function getOwnerUnitRows(ownerIndex) {
 
   const franchises = getOwnerFranchises(owner);
   const primaryFranchise = franchises[0] || "Franchise";
-  const ownerCategory = owner.category || "Fitness";
+  const ownerCategory = window.WefranchCategories.getRecordId(owner) || (owner.cstSource ? null : "fitness");
 
   return ownerLocationData.units.map((unit, unitIndex) => ({
     ownerIndex: owner.originalIndex,
@@ -64,8 +64,8 @@ function getOwnerUnitRows(ownerIndex) {
     location: unit.label || "",
     lat: unit.lat,
     lng: unit.lng,
-    category: unit.category || ownerCategory,
-    categories: [unit.category || ownerCategory],
+    categoryId: unit.categoryId || ownerCategory,
+    categoryIds: (unit.categoryId || ownerCategory) ? [unit.categoryId || ownerCategory] : [],
     franchises: Array.isArray(unit.franchises) && unit.franchises.length
       ? unit.franchises
       : [unit.franchise || primaryFranchise]
@@ -74,9 +74,7 @@ function getOwnerUnitRows(ownerIndex) {
 
 function unitRowMatchesFilters(row) {
   if (!rowMatchesLocationFilter(row)) return false;
-  const rowCategories = Array.isArray(row.categories) && row.categories.length
-    ? row.categories
-    : [row.category || "Fitness"];
+  const rowCategories = window.WefranchCategories.getRecordIds(row);
   if (rowCategories.some((category) => excludedCategoryValues.includes(category))) return false;
   if (selectedCategoryValues.length && !rowCategories.some((category) => selectedCategoryValues.includes(category))) {
     return false;
@@ -136,13 +134,13 @@ function getRawTableHeader(widths = RAW_SIDEBAR_COLUMN_WIDTHS) {
   `;
 }
 
-// An unknown value reads as unknown rather than as an empty cell, matching how
-// the locations table renders missing data.
+// Missing values use the shared en dash, matching how the locations table
+// renders empty cells.
 function getRawValueMarkup(value, className) {
   const text = String(value ?? "").trim();
   if (text) return `<span class="${className}">${text}</span>`;
 
-  return `<span class="${className} dataset-empty-value">-</span>`;
+  return `<span class="${className} dataset-empty-value">–</span>`;
 }
 
 function getRawContactRowMarkup(row, rowIndex) {

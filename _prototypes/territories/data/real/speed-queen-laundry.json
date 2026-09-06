@@ -1,7 +1,7 @@
 {
   "id": "speed-queen-laundry",
   "brand": "Speed Queen Laundry",
-  "category": "Retail Products and Services",
+  "categoryId": "retail-consumer-services",
   "color": "#E63B11",
   "logo": "../../assets/logos/franchises/speed-queen-laundry.png",
   "country": "US",

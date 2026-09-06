@@ -1,7 +1,7 @@
 {
   "id": "synergy-homecare",
   "brand": "SYNERGY HomeCare",
-  "category": "Senior Services",
+  "categoryId": "senior-care",
   "color": "#912037",
   "logo": "../../assets/logos/franchises/synergy-homecare.png",
   "country": "US",

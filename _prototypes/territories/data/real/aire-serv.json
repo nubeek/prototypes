@@ -1,7 +1,7 @@
 {
   "id": "aire-serv",
   "brand": "Aire Serv",
-  "category": "Home & Services",
+  "categoryId": "home-building-services",
   "color": "#E32324",
   "logo": "../../assets/logos/franchises/aire-serv.png",
   "country": "US",
@@ -623,7 +623,7 @@
       "geoKey": "cbsa:15860",
       "geoType": "cbsa",
       "state": "CO",
-      "name": "Ca\u00f1on City, CO",
+      "name": "Cañon City, CO",
       "status": "available"
     },
     {
@@ -3458,7 +3458,7 @@
       "geoKey": "cbsa:21580",
       "geoType": "cbsa",
       "state": "NM",
-      "name": "Espa\u00f1ola, NM",
+      "name": "Española, NM",
       "status": "available"
     },
     {

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "notes": {
+    "health-fitness": "Legacy Health & Fitness maps to health-wellness. Pure gyms and sports stay under fitness (for example Planet Fitness)."
+  },
+  "categories": [
+    { "id": "cleaning-maintenance", "label": "Cleaning & Maintenance" },
+    { "id": "ecommerce", "label": "E-commerce" },
+    { "id": "education-training", "label": "Education & Training" },
+    { "id": "fitness", "label": "Fitness", "notes": "Gyms, studios, and sports." },
+    { "id": "food-beverage", "label": "Food & Beverage" },
+    { "id": "health-wellness", "label": "Health & Wellness", "notes": "Wellness and non-gym health. Ambiguous Health & Fitness imports land here." },
+    { "id": "healthcare", "label": "Healthcare" },
+    { "id": "home-building-services", "label": "Home & Building Services" },
+    { "id": "logistics", "label": "Logistics" },
+    { "id": "pet-services", "label": "Pet Services" },
+    { "id": "business-services", "label": "Business Services" },
+    { "id": "real-estate", "label": "Real Estate" },
+    { "id": "retail-consumer-services", "label": "Retail & Consumer Services" },
+    { "id": "senior-care", "label": "Senior Care" },
+    { "id": "youth-enrichment", "label": "Youth Enrichment" },
+    { "id": "other", "label": "Other" }
+  ]
+}

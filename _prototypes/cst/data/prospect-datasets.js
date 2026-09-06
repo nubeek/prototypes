@@ -143,27 +143,26 @@ const PROSPECT_LOCATIONS = [
 ];
 
 const USER_PROFILE_FRANCHISES = [
-  { franchise: "OrangeTheory Fitness", category: "Fitness" },
-  { franchise: "Crumbl Cookies", category: "Food & Beverage" },
-  { franchise: "The Learning Experience", category: "Education & Children" },
-  { franchise: "Drybar", category: "Health & Wellness" },
-  { franchise: "Ace Handyman Services", category: "Home and Building Services" },
-  { franchise: "StretchLab", category: "Fitness" },
-  { franchise: "Mathnasium", category: "Children Programs" },
-  { franchise: "MaidPro", category: "Professional Business Services" },
-  { franchise: "", category: "Retail Products and Services" },
-  { franchise: "", category: "Food & Beverage" }
+  { franchise: "OrangeTheory Fitness", categoryId: "fitness" },
+  { franchise: "Crumbl Cookies", categoryId: "food-beverage" },
+  { franchise: "The Learning Experience", categoryId: "youth-enrichment" },
+  { franchise: "Drybar", categoryId: "health-wellness" },
+  { franchise: "Ace Handyman Services", categoryId: "home-building-services" },
+  { franchise: "StretchLab", categoryId: "fitness" },
+  { franchise: "Mathnasium", categoryId: "youth-enrichment" },
+  { franchise: "MaidPro", categoryId: "business-services" },
+  { franchise: "", categoryId: "retail-consumer-services" },
+  { franchise: "", categoryId: "food-beverage" }
 ];
 
 const SEARCHER_CATEGORIES = [
-  "Food & Beverage",
-  "Fitness",
-  "Health & Wellness",
-  "Home and Building Services",
-  "Education & Children",
-  "Retail Products and Services",
-  "Professional Business Services",
-  "Children Programs"
+  "food-beverage",
+  "fitness",
+  "health-wellness",
+  "home-building-services",
+  "youth-enrichment",
+  "retail-consumer-services",
+  "business-services"
 ];
 
 const ATHLETE_FRANCHISE_PROFILES = [
@@ -172,140 +171,140 @@ const ATHLETE_FRANCHISE_PROFILES = [
     location: "Louisville, Kentucky",
     franchise: "Wendy's, Chili's",
     institution: "Bridgeman Foods",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Shaquille O'Neal",
     location: "Atlanta, Georgia",
     franchise: "Papa John's, Five Guys, Krispy Kreme",
     institution: "Shaq Ventures",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Drew Brees",
     location: "New Orleans, Louisiana",
     franchise: "Jimmy John's, Dunkin'",
     institution: "Brees Dream Foundation",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "LeBron James",
     location: "Los Angeles, California",
     franchise: "Blaze Pizza",
     institution: "LRMR Ventures",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Jamal Mashburn",
     location: "Lexington, Kentucky",
     franchise: "Outback Steakhouse, Papa John's, Dunkin'",
     institution: "Mashburn Family Office",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Phil Mickelson",
     location: "San Diego, California",
     franchise: "Five Guys",
     institution: "",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Ray Mickens",
     location: "Dallas, Texas",
     franchise: "Smoothie King, Starbucks, Qdoba",
     institution: "M2 Concepts",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Bryan Scott",
     location: "Atlanta, Georgia",
     franchise: "Title Boxing Club",
     institution: "",
-    category: "Fitness"
+    categoryId: "fitness"
   },
   {
     name: "Hank Aaron",
     location: "Atlanta, Georgia",
     franchise: "Popeyes Louisiana Kitchen",
     institution: "755 Restaurant Corporation",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Everette Brown",
     location: "Charlotte, North Carolina",
     franchise: "Tropical Smoothie Cafe",
     institution: "",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Cameron Thomas",
     location: "Carlsbad, California",
     franchise: "Aussie Pet Mobile",
     institution: "Thomas Brothers Franchise Group",
-    category: "Retail Products and Services"
+    categoryId: "retail-consumer-services"
   },
   {
     name: "Zachary Thomas",
     location: "Del Mar, California",
     franchise: "Aussie Pet Mobile",
     institution: "Thomas Brothers Franchise Group",
-    category: "Retail Products and Services"
+    categoryId: "retail-consumer-services"
   },
   {
     name: "Peyton Manning",
     location: "Denver, Colorado",
     franchise: "Papa John's",
     institution: "Manning Ventures",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Tony McGee",
     location: "Cincinnati, Ohio",
     franchise: "Dunkin'",
     institution: "",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Marcus Burley",
     location: "Richmond, Virginia",
     franchise: "Tropical Smoothie Cafe",
     institution: "",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Donnell Thompson",
     location: "Raleigh, North Carolina",
     franchise: "Popeyes Louisiana Kitchen",
     institution: "Thompson Hospitality Group",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Keith Smith",
     location: "Detroit, Michigan",
     franchise: "Mathnasium",
     institution: "",
-    category: "Children Programs"
+    categoryId: "youth-enrichment"
   },
   {
     name: "Billy Bajema",
     location: "Oklahoma City, Oklahoma",
     franchise: "Blaze Pizza",
     institution: "",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Brooklynn Lorenzen",
     location: "Salt Lake City, Utah",
     franchise: "Smoothie King",
     institution: "",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   },
   {
     name: "Kris Brown",
     location: "Omaha, Nebraska",
     franchise: "Dunkin'",
     institution: "",
-    category: "Food & Beverage"
+    categoryId: "food-beverage"
   }
 ];
 
@@ -530,7 +529,7 @@ function getSyntheticAthleteProfile(index) {
     location: PROSPECT_LOCATIONS[(index * 3) % PROSPECT_LOCATIONS.length],
     franchise: franchiseProfile.franchise,
     institution: index % 3 === 0 ? `${name.split(" ").pop()} Sports Ventures` : "",
-    category: franchiseProfile.category
+    categoryId: franchiseProfile.categoryId
   };
 }
 
@@ -548,7 +547,7 @@ function createCandidates() {
       phone: getProspectPhone(index + 3),
       franchise,
       institution: "",
-      category: franchiseProfile.category
+      categoryId: franchiseProfile.categoryId
     };
   });
 }
@@ -565,7 +564,7 @@ function createSearchers() {
       phone: getProspectPhone(index + 151),
       franchise: "",
       institution: "",
-      category: SEARCHER_CATEGORIES[index % SEARCHER_CATEGORIES.length]
+      categoryId: SEARCHER_CATEGORIES[index % SEARCHER_CATEGORIES.length]
     };
   });
 }
@@ -584,7 +583,7 @@ function createAthletes() {
       phone: getProspectPhone(index + 301),
       franchise: profile.franchise,
       institution: profile.institution,
-      category: profile.category
+      categoryId: profile.categoryId
     };
   });
 }

@@ -518,8 +518,8 @@ function applyCstSplashFilterState(filters = {}) {
       .map((label) => window.cstLocationSearch?.fromLabel?.(label))
       .filter(Boolean);
   }
-  selectedCategoryValues = getSavedStringArray(filters.categories);
-  excludedCategoryValues = getSavedStringArray(filters.categoriesExcluded);
+  selectedCategoryValues = window.WefranchCategories.resolveFilterValues(filters.categories, { source: "cst" });
+  excludedCategoryValues = window.WefranchCategories.resolveFilterValues(filters.categoriesExcluded, { source: "cst" });
   selectedOwnerIndexes = getSavedStringArray(filters.franchisees || filters.owners);
   excludedOwnerIndexes = getSavedStringArray(filters.franchiseesExcluded || filters.ownersExcluded);
   selectedFranchiseIndexes = getSavedStringArray(filters.franchises);
@@ -557,8 +557,8 @@ function applyCstSplashFilterState(filters = {}) {
 
 function toCstSplashUnitRow(unit) {
   return {
-    categories: [unit.category],
-    category: unit.category,
+    categoryId: unit.categoryId,
+    categoryIds: unit.categoryId ? [unit.categoryId] : [],
     color: unit.color,
     franchise: unit.franchise,
     // A unit can carry several brands, and unit.franchise is only their display
@@ -1678,17 +1678,11 @@ function isExactCstSplashSuggestion(item, query) {
 }
 
 function getCstSplashCategoryPool() {
-  const names = new Set();
-
-  Array.from(categoryFilterSelect?.options || []).forEach((option) => {
-    if (option.value) names.add(option.value);
-  });
-
-  owners.forEach((owner) => {
-    getOwnerCategories(owner).forEach((category) => names.add(category));
-  });
-
-  return [...names].sort((left, right) => left.localeCompare(right));
+  return window.WefranchCategories.list()
+    .map((item) => item.id)
+    .sort((left, right) => (
+      window.WefranchCategories.getLabel(left).localeCompare(window.WefranchCategories.getLabel(right))
+    ));
 }
 
 function getCstSplashLocalSuggestionPool() {
@@ -1711,10 +1705,10 @@ function getCstSplashLocalSuggestionPool() {
       logoSrc: getFranchiseLogoSrc(brandName),
       type: "brand"
     })),
-    ...getCstSplashCategoryPool().map((categoryName) => ({
-      filters: { categories: [categoryName] },
+    ...getCstSplashCategoryPool().map((categoryId) => ({
+      filters: { categories: [categoryId] },
       group: "Categories",
-      label: categoryName,
+      label: window.WefranchCategories.getLabel(categoryId),
       type: "category"
     }))
   ];
@@ -1908,6 +1902,7 @@ function bindCstSplashSearch() {
     input.setAttribute("aria-expanded", String(isOpen));
     suggestions.setAttribute("aria-hidden", String(!isOpen));
     form.classList.toggle("is-suggestions-open", isOpen);
+    if (isOpen) window.WefranchFilterCombobox?.fitOpenMenus?.();
   }
 
   function closeSuggestions() {
@@ -2309,6 +2304,21 @@ function initCstSplash() {
     }
 
     renderCstSplashTiles();
+
+    const urlView = getCstTableViewUrlState();
+    if (urlView) {
+      clearCstSavedSearchSession({ persist: false });
+      applyCstSplashQuery({}, { view: urlView.view });
+      if (isCstSplashOpen()) {
+        dismissCstSplash({ refresh: false });
+      } else {
+        hideCstSplashImmediately();
+      }
+      clearCstUrlQueryParams();
+      persistViewSettings();
+      return;
+    }
+
     if (shouldResetCstToSplashOnLoad()) {
       clearCstUrlQueryParams();
       clearCstSavedSearchSession({ persist: false });

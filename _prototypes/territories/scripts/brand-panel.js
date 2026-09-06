@@ -1361,7 +1361,7 @@ function buildStatusSummaryConcept(filters) {
 }
 
 function buildCategorySummaryConcept(filters) {
-  const formatCategory = (value) => window.territoryCategories?.formatLabel?.(value) || value;
+  const formatCategory = (value) => window.WefranchCategories.getLabel(value) || value;
   const included = getSummarySelectLabels(
     "categoryFilterSelect",
     filters.categories?.included || [],

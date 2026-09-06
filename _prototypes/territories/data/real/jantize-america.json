@@ -1,7 +1,7 @@
 {
   "id": "jantize-america",
   "brand": "Jantize America",
-  "category": "Professional Business Services",
+  "categoryId": "business-services",
   "color": "#263775",
   "logo": "../../assets/logos/franchises/jantize-america.png",
   "country": "US",

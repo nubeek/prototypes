@@ -1,7 +1,7 @@
 {
   "id": "glass-doctor",
   "brand": "Glass Doctor",
-  "category": "Cleaning and Maintenance",
+  "categoryId": "cleaning-maintenance",
   "color": "#000B8B",
   "logo": "../../assets/logos/franchises/glass-doctor.png",
   "country": "US",

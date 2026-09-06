@@ -17,3 +17,6 @@ When adding or changing a form dialog (title + inline close, body, Cancel/Save),
 - Radio and checkbox stacks in dialogs use `.proto-modal-check-group` / `.proto-modal-check`. Do not reuse `.filter-check-group` / `.filter-check` inside proto-modals.
 - Profile-style cards (centered hero, no title row) still use `createProtoModal()` for open/close; keep `.profile-modal-close` in the corner.
 - Existing pages may still use `profile-modal-*` / `target-modal-*` aliases. New dialogs should use `proto-modal-*`.
+- Field captions never focus or blur a control. Clicking "Phone number", "Location", or any other label must do nothing. Load `_prototypes/shared/ui/proto-field-captions.js` on every page that renders `.proto-modal-field`, `.profile-modal-field`, or `.target-modal-field`.
+- Field errors use `_prototypes/shared/ui/proto-field-error.js` (`WefranchFieldErrors.set` / `clear`). Do not use `reportValidity()`, `setCustomValidity()`, or native validation bubbles. Validating forms set `novalidate`.
+- Do not wrap an input, textarea, or dropdown in `<label for>`. Use a field container plus a caption `<span>` (or a `<label>` with no `for`) and put `aria-labelledby` or `aria-label` on the control. Keep using `.proto-modal-check` / `.filter-check` for actual checkbox and radio labels.

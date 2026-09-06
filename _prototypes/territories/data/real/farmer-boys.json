@@ -1,7 +1,7 @@
 {
   "id": "farmer-boys",
   "brand": "Farmer Boys",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#1F4D2E",
   "logo": "../../assets/logos/franchises/farmer-boys.png",
   "country": "US",

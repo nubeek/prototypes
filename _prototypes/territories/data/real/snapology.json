@@ -1,7 +1,7 @@
 {
   "id": "snapology",
   "brand": "Snapology",
-  "category": "Youth Enrichment",
+  "categoryId": "youth-enrichment",
   "color": "#F5C518",
   "logo": "../../assets/logos/franchises/snapology.png",
   "country": "US",

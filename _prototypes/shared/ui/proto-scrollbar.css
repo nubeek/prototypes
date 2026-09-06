@@ -1,0 +1,84 @@
+/* Shared native scrollbar. Put it on the scroll container and use
+   padding-right as the gutter so the bar sits between the content
+   (dividers, fields) and the panel edge.
+
+   Add .proto-scrollbar to a new surface, or include its selector below. */
+
+:root {
+  --scrollbar-size: 8px;
+  --scrollbar-thumb: #d8d8d8;
+}
+
+:is(
+  .proto-scrollbar,
+  .filter-combobox-options,
+  .owner-search-options,
+  .dataset-selector-options,
+  .proto-modal-body,
+  .target-modal-body,
+  .profile-modal-body,
+  .lead-detail-form .profile-modal-content,
+  .campaign-design-preview:not(.is-empty),
+  .map-panel.is-org-mode .owner-detail-panel,
+  .cst-splash,
+  .territory-crossroad,
+  .territory-info-card__scroll
+) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+:is(
+  .proto-scrollbar,
+  .filter-combobox-options,
+  .owner-search-options,
+  .dataset-selector-options,
+  .proto-modal-body,
+  .target-modal-body,
+  .profile-modal-body,
+  .lead-detail-form .profile-modal-content,
+  .campaign-design-preview:not(.is-empty),
+  .map-panel.is-org-mode .owner-detail-panel,
+  .cst-splash,
+  .territory-crossroad,
+  .territory-info-card__scroll
+)::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+}
+
+:is(
+  .proto-scrollbar,
+  .filter-combobox-options,
+  .owner-search-options,
+  .dataset-selector-options,
+  .proto-modal-body,
+  .target-modal-body,
+  .profile-modal-body,
+  .lead-detail-form .profile-modal-content,
+  .campaign-design-preview:not(.is-empty),
+  .map-panel.is-org-mode .owner-detail-panel,
+  .cst-splash,
+  .territory-crossroad,
+  .territory-info-card__scroll
+)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:is(
+  .proto-scrollbar,
+  .filter-combobox-options,
+  .owner-search-options,
+  .dataset-selector-options,
+  .proto-modal-body,
+  .target-modal-body,
+  .profile-modal-body,
+  .lead-detail-form .profile-modal-content,
+  .campaign-design-preview:not(.is-empty),
+  .map-panel.is-org-mode .owner-detail-panel,
+  .cst-splash,
+  .territory-crossroad,
+  .territory-info-card__scroll
+)::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--scrollbar-thumb);
+}

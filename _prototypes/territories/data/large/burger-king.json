@@ -1,7 +1,7 @@
 {
   "id": "burger-king",
   "brand": "Burger King",
-  "category": "Food & Beverage",
+  "categoryId": "food-beverage",
   "color": "#d3c2a7",
   "logo": "../../assets/logos/franchises/burger-king.jpg",
   "country": "US",

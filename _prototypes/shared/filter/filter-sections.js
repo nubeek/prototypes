@@ -60,8 +60,24 @@
     }
 
     return Boolean(section.querySelector(
-      ".filter-check:not(.filter-radius-toggle) :is(input[type='checkbox'], input[type='radio'])"
+      ".filter-check:not(.filter-radius-toggle) :is(input[type='checkbox'], input[type='radio']), .filter-date-field, .filter-date-input, input[type='date']"
     ));
+  }
+
+  function formatDateInputLabel(value) {
+    const raw = String(value || "").trim();
+    const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+      return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1].slice(-2)}`;
+    }
+
+    const displayMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+    if (!displayMatch) return "";
+
+    const day = displayMatch[1].padStart(2, "0");
+    const month = displayMatch[2].padStart(2, "0");
+    const year = displayMatch[3].slice(-2);
+    return `${day}/${month}/${year}`;
   }
 
   function getDefaultSelectionLabel(section) {
@@ -75,6 +91,18 @@
 
     if (checkboxLabels.length) {
       return checkboxLabels.join(", ");
+    }
+
+    const dateFields = Array.from(section.querySelectorAll(".filter-date-field"));
+    const dateInputs = dateFields.length
+      ? dateFields
+      : Array.from(section.querySelectorAll(".filter-date-input, input[type='date']"));
+    if (dateInputs.length >= 2) {
+      const fromText = formatDateInputLabel(dateInputs[0].dataset?.date || dateInputs[0].value);
+      const toText = formatDateInputLabel(dateInputs[1].dataset?.date || dateInputs[1].value);
+      if (fromText && toText) return `${fromText} – ${toText}`;
+      if (fromText) return `From ${fromText}`;
+      if (toText) return `To ${toText}`;
     }
 
     const numberInputs = Array.from(section.querySelectorAll(".filter-number-input"));

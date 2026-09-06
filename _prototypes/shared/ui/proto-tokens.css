@@ -1,0 +1,132 @@
+@import url("./proto-scrollbar.css");
+
+/* Shared prototype type, control, and table-row scale.
+   Import this first from a page stylesheet (or rely on proto-modal /
+   filter-sidebar, which import it). Do not redeclare these tokens or
+   add another max-width: 1480px override for them.
+
+   Wide screens: 16px type, 48px controls, 62px table rows, 84px Franchisees rows.
+   Below 1480px: 15px type, 44px controls, 56px table rows, 78px Franchisees rows.
+
+   Regular one-line tables in `.table-wrap` (or `table.proto-table`) use
+   `--table-row-height`. Mark the Franchisees table with `.is-franchisees-table`
+   so it uses `--franchisees-table-row-height`. Raw-data tables keep
+   `.raw-data-table`. */
+
+:root {
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  --control-height: 48px;
+  --control-height-sm: 28px;
+  --font-size-base: 16px;
+  --table-row-height: 62px;
+  --franchisees-table-row-height: 84px;
+
+  --color-initials-bg: #dfdbf1;
+  --color-initials-fg: #8065e8;
+}
+
+@media (max-width: 1480px) {
+  :root {
+    --font-size-base: 15px;
+    --control-height: 44px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --table-row-height: 56px;
+    --franchisees-table-row-height: 78px;
+  }
+}
+
+.table-wrap > table:not(.raw-data-table):not(.is-franchisees-table) tbody > tr:not(.location-pagination-row):not(.owner-raw-load-more-row),
+table.proto-table:not(.is-franchisees-table) tbody > tr:not(.location-pagination-row):not(.owner-raw-load-more-row) {
+  height: var(--table-row-height);
+}
+
+.table-wrap > table:not(.raw-data-table):not(.is-franchisees-table) tbody > tr:not(.location-pagination-row):not(.owner-raw-load-more-row) > td,
+table.proto-table:not(.is-franchisees-table) tbody > tr:not(.location-pagination-row):not(.owner-raw-load-more-row) > td {
+  height: var(--table-row-height);
+  box-sizing: border-box;
+}
+
+.table-wrap > table.is-franchisees-table tbody > tr,
+table.is-franchisees-table tbody > tr {
+  height: var(--franchisees-table-row-height);
+}
+
+.table-wrap > table.is-franchisees-table tbody > tr > td,
+table.is-franchisees-table tbody > tr > td {
+  height: var(--franchisees-table-row-height);
+  box-sizing: border-box;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  flex: 0 0 64px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 9px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.raw-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.ui-button-primary {
+  border: 0;
+  background: var(--color-brand-primary, #8065e8);
+  color: var(--color-surface, #fff);
+  font-weight: 600;
+}
+
+.ui-button-primary:hover {
+  background: var(--color-brand-primary-hover, #765bdd);
+}
+
+.ui-button-primary img {
+  display: block;
+  flex: 0 0 auto;
+  filter: brightness(0) invert(1);
+}
+
+/* Initials-only thumbnails (no logo image). */
+.ui-avatar,
+.profile-avatar,
+.raw-avatar,
+.org-person-avatar,
+.org-branch-avatar,
+.owner-logo-fallback,
+.owner-profile-logo-fallback,
+.owner-detail-logo:not(:has(img)),
+.franchise-logo-fallback,
+.owner-detail-franchise-logo-fallback,
+.target-franchise-logo-fallback,
+.cst-splash__search-suggestion-logo-fallback,
+.territory-crossroad__search-suggestion-logo-fallback {
+  background-color: var(--color-initials-bg);
+  background-image: none;
+  color: var(--color-initials-fg);
+}
+
+/* Missing field values: render an en dash "–" with this class. Stays muted
+   even inside profile/table value rules that set a stronger text color. */
+.dataset-empty-value,
+.profile-modal-field .dataset-empty-value,
+.profile-modal-field strong.dataset-empty-value {
+  color: var(--color-text-muted, #aaa);
+}

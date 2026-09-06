@@ -1,7 +1,7 @@
 {
   "id": "bay-area-kids-rentals",
   "brand": "Bay Area Kids Rentals",
-  "category": "Youth Enrichment",
+  "categoryId": "youth-enrichment",
   "color": "#D6A129",
   "logo": "../../assets/logos/franchises/bay-area-kids-rentals.jpg",
   "country": "US",

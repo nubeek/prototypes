@@ -1,7 +1,7 @@
 {
   "id": "junk-king",
   "brand": "Junk King",
-  "category": "Cleaning and Maintenance",
+  "categoryId": "cleaning-maintenance",
   "color": "#EE3739",
   "logo": "../../assets/logos/franchises/junk-king.png",
   "country": "US",

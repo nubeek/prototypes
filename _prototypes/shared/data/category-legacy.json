@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "shared": {
+    "Business Services": "business-services",
+    "Children Programs": "youth-enrichment",
+    "Cleaning and Maintenance": "cleaning-maintenance",
+    "Cleaning & Maintenance": "cleaning-maintenance",
+    "E-commerce": "ecommerce",
+    "Ecommerce": "ecommerce",
+    "Education & Children": "youth-enrichment",
+    "Education & Training": "education-training",
+    "Education Programs": "education-training",
+    "Fitness": "fitness",
+    "Food and Beverage": "food-beverage",
+    "Food & Beverage": "food-beverage",
+    "Health & Wellness": "health-wellness",
+    "Healthcare": "healthcare",
+    "Healthcare Services": "healthcare",
+    "Home and Building Services": "home-building-services",
+    "Home & Building Services": "home-building-services",
+    "Home & Services": "home-building-services",
+    "Home Services": "home-building-services",
+    "Logistics": "logistics",
+    "Other": "other",
+    "Other Businesses": "other",
+    "Pet Services": "pet-services",
+    "Pets": "pet-services",
+    "Professional Business Services": "business-services",
+    "Real Estate": "real-estate",
+    "Retail": "retail-consumer-services",
+    "Retail & Consumer Services": "retail-consumer-services",
+    "Retail Products and Services": "retail-consumer-services",
+    "Senior Care": "senior-care",
+    "Senior Services": "senior-care",
+    "Youth Enrichment": "youth-enrichment"
+  },
+  "sources": {
+    "cst": {},
+    "territories": {
+      "Health & Fitness": "health-wellness"
+    },
+    "leads": {}
+  },
+  "brands": {
+    "planet-fitness": "fitness"
+  }
+}

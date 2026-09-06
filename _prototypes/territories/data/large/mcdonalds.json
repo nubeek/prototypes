@@ -1,7 +1,7 @@
 {
   "id": "mcdonalds",
   "brand": "McDonald's",
-  "category": "Food & Beverage",
+  "categoryId": "food-beverage",
   "color": "#FFC72C",
   "logo": "../../assets/logos/franchises/mcdonalds.jpg",
   "country": "US",

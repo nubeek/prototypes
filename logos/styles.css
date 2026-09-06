@@ -1,3 +1,5 @@
+@import url("../_prototypes/shared/ui/proto-tokens.css");
+
 :root {
   --font-sans: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --color-surface: #fff;
@@ -12,10 +14,6 @@
   --color-text-disabled: #cdcdcd;
   --color-brand: #7a63dd;
   --color-chevron-soft: brightness(0) saturate(100%) invert(72%) sepia(0%) saturate(0%) hue-rotate(183deg) brightness(91%) contrast(86%);
-  --radius-md: 10px;
-  --radius-pill: 999px;
-  --control-height: 48px;
-  --font-size-base: 16px;
   --shadow-menu: 0 10px 28px rgba(0, 0, 0, 0.14);
   --transition-fast: 180ms ease;
 }
@@ -31,7 +29,7 @@ body {
   background: var(--color-surface);
   color: var(--color-text-soft);
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: var(--font-size-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

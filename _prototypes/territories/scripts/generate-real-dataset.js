@@ -10,6 +10,7 @@ const fsp = require("fs/promises");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
+const categories = require("../../shared/data/categories.js");
 
 const TERRITORIES_DIR = path.resolve(__dirname, "..");
 const REPO_ROOT = path.resolve(TERRITORIES_DIR, "../..");
@@ -113,23 +114,37 @@ function deriveCategory(concept) {
   ].join(" ").toLowerCase();
 
   const matches = (pattern) => pattern.test(haystack);
+  const context = concept.name || concept.id || "concept";
 
-  if (matches(/\b(entertainment|trampoline|amusement|recreation)\b/)) {
-    return "Youth Enrichment";
+  if (matches(/\b(yoga|fitness|gym|pilates|studio)\b/)) {
+    return categories.requireId("fitness", context);
   }
-  if (matches(/\b(restaurant|coffee|pizza|food|beverage|bakery|kitchen|paleta|burger|yoga cafe)\b/)) {
-    return "Food & Beverage";
+  if (matches(/\b(entertainment|trampoline|amusement|recreation|museum|school|sports)\b/)) {
+    return categories.requireId("youth-enrichment", context);
   }
-  if (matches(/\b(yoga|fitness|gym|health|homecare|home care|wellness|pet care)\b/)) {
-    return "Health & Fitness";
+  if (matches(/\b(restaurant|coffee|pizza|food|beverage|bakery|kitchen|paleta|burger)\b/)) {
+    return categories.requireId("food-beverage", context);
   }
-  if (matches(/\b(plumb|electric|handyman|appliance|painting|lawn|landscape|maid|clean|restoration|roof|door|window|mosquito|property|moving|junk|vent|inspection|glass|home service|grounds|hvac)\b/)) {
-    return "Home & Services";
+  if (matches(/\b(pet care|pets?)\b/)) {
+    return categories.requireId("pet-services", context);
+  }
+  if (matches(/\b(homecare|home care|senior)\b/)) {
+    return categories.requireId("senior-care", context);
+  }
+  if (matches(/\b(health|wellness|spa)\b/)) {
+    return categories.requireId("health-wellness", context);
+  }
+  if (matches(/\b(plumb|electric|handyman|appliance|painting|lawn|landscape|restoration|roof|door|window|mosquito|property|moving|junk|vent|inspection|glass|home service|grounds|hvac)\b/)) {
+    return categories.requireId("home-building-services", context);
+  }
+  if (matches(/\b(maid|clean|maintenance)\b/)) {
+    return categories.requireId("cleaning-maintenance", context);
   }
   if (matches(/\b(retail|store|shop|rental|laundry|franchise products)\b/)) {
-    return "Retail";
+    return categories.requireId("retail-consumer-services", context);
   }
-  return "Services";
+
+  throw new Error(`Unable to derive a valid categoryId for ${context}`);
 }
 
 async function ensureSourceLayout() {
@@ -735,7 +750,7 @@ async function generate() {
     const brand = {
       id: brandId,
       brand: normalizeText(concept.name),
-      category: deriveCategory(concept),
+      categoryId: deriveCategory(concept),
       color: logo ? deriveLogoColor(logo.file, brandId) : fallbackColor(brandId),
       logo: logo?.publicPath || "",
       country: "US",
@@ -763,7 +778,7 @@ async function generate() {
 
   const territoryCount = generatedBrands.reduce((sum, brand) => sum + brand.territories.length, 0);
   const categoryCounts = generatedBrands.reduce((counts, brand) => {
-    counts[brand.category] = (counts[brand.category] || 0) + 1;
+    counts[brand.categoryId] = (counts[brand.categoryId] || 0) + 1;
     return counts;
   }, {});
   const statusCounts = generatedBrands.flatMap((brand) => brand.territories).reduce((counts, territory) => {

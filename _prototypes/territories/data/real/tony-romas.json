@@ -1,7 +1,7 @@
 {
   "id": "tony-romas",
   "brand": "Tony Roma's",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#A51B25",
   "logo": "../../assets/logos/franchises/tony-romas.png",
   "country": "US",

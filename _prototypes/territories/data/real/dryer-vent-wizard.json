@@ -1,7 +1,7 @@
 {
   "id": "dryer-vent-wizard",
   "brand": "Dryer Vent Wizard",
-  "category": "Cleaning and Maintenance",
+  "categoryId": "cleaning-maintenance",
   "color": "#8584C0",
   "logo": "../../assets/logos/franchises/dryer-vent-wizard.png",
   "country": "US",

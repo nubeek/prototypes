@@ -684,7 +684,7 @@ function presetMatchesRecord(record, filters = {}, context = null) {
   const investment = filters.investment;
   const matchContext = context || createCrossroadMatchContext(filters, null);
 
-  if (categories.length && !categories.includes(record.category)) return false;
+  if (categories.length && !categories.includes(record.categoryId)) return false;
   if (statuses.length && !statuses.includes(record.status)) return false;
   if (franchises.length && !franchises.includes(record.brandId)) return false;
   if (geoLevels.length && !geoLevels.includes(record.geoType)) return false;
@@ -741,7 +741,7 @@ function buildCrossroadRecords(brands) {
   return brands.flatMap((brand) => (brand.territories || []).map((territory) => ({
     brandId: brand.id,
     brandLevel: brand.level || "state",
-    category: brand.category || "",
+    categoryId: brand.categoryId || null,
     state: territory.state,
     geoKey: territory.geoKey || null,
     fips: territory.fips || null,
@@ -1604,7 +1604,7 @@ function isExactCrossroadSuggestion(item, query) {
 }
 
 function getCrossroadCategoryLabel(value) {
-  return window.territoryCategories?.formatLabel?.(value) || value;
+  return window.WefranchCategories.getLabel(value) || "";
 }
 
 function getCrossroadLocalSuggestions(query) {
@@ -1635,7 +1635,7 @@ function getCrossroadLocalSuggestions(query) {
   const categoryGroups = new Map();
 
   crossroadTerritoryBrands.forEach((brand) => {
-    const value = String(brand.category || "").trim();
+    const value = String(brand.categoryId || "").trim();
     if (!value) return;
 
     const label = getCrossroadCategoryLabel(value);
@@ -1845,6 +1845,7 @@ function bindCrossroadLocationSearch() {
     input.setAttribute("aria-expanded", String(isOpen));
     suggestions.setAttribute("aria-hidden", String(!isOpen));
     form.classList.toggle("is-suggestions-open", isOpen);
+    if (isOpen) window.WefranchFilterCombobox?.fitOpenMenus?.();
   }
 
   function closeSuggestions() {

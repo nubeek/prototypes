@@ -325,9 +325,8 @@ function getOwnerLocationFranchises(owner) {
   return uniqueFranchises.length ? uniqueFranchises : ["Franchise"];
 }
 function getOwnerCategory(owner) {
-  if (Array.isArray(owner.categories) && owner.categories.length) return owner.categories[0];
-  if (typeof owner.category === "string" && owner.category.trim()) return owner.category.trim();
-  return "Fitness";
+  const hydrated = window.WefranchCategories.hydrateRecord(owner, { source: "cst" });
+  return window.WefranchCategories.getRecordId(hydrated) || (owner.cstSource ? null : "fitness");
 }
 
 function getOwnerUnitPhone(ownerIndex, locationIndex) {
@@ -436,7 +435,7 @@ function getOwnerLocations(owner, ownerIndex) {
   const headquartersCenter = getOwnerHeadquartersCenter(ownerIndex);
   const closeCount = getCloseLocationCount(locationCount, ownerIndex);
   const franchiseNames = getOwnerLocationFranchises(owner);
-  const category = getOwnerCategory(owner);
+  const categoryId = getOwnerCategory(owner);
 
   return Array.from({ length: locationCount }, (_, locationIndex) => {
     const seed = (ownerIndex + 1) * 10000 + locationIndex + 1;
@@ -465,7 +464,7 @@ function getOwnerLocations(owner, ownerIndex) {
       phone: getOwnerUnitPhone(ownerIndex, locationIndex),
       franchise: franchiseName,
       color: getFranchiseAccentColor(franchiseName),
-      category,
+      categoryId,
       ...location,
       label: getNearestOwnerLocationLabel(location)
     };

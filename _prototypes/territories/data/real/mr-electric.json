@@ -1,7 +1,7 @@
 {
   "id": "mr-electric",
   "brand": "Mr. Electric",
-  "category": "Cleaning and Maintenance",
+  "categoryId": "cleaning-maintenance",
   "color": "#0074BD",
   "logo": "../../assets/logos/franchises/mr-electric.png",
   "country": "US",

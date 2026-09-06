@@ -1,0 +1,18 @@
+---
+description: Use shared proto-tokens for type size, control height, and the 1480px compact scale
+globs: _prototypes/**
+alwaysApply: false
+---
+
+# Prototype tokens
+
+Control height, base type size, radii, and one-line table row height come from `_prototypes/shared/ui/proto-tokens.css`. Import it first in a new page stylesheet. `proto-modal.css` and `filter-sidebar.css` already import it.
+
+- Wide screens: 16px type, 48px controls, 62px table rows, 84px Franchisees rows.
+- Below 1480px: 15px type, 44px controls, 56px table rows, 78px Franchisees rows.
+- Do not redeclare `--font-size-base`, `--control-height`, `--control-height-sm`, `--radius-md`, `--radius-lg`, `--table-row-height`, or `--franchisees-table-row-height`.
+- Do not add another `max-width: 1480px` override for those tokens. Page-specific layout at that breakpoint is fine.
+- Use `var(--font-size-base)` and `var(--control-height)` on buttons and chrome instead of hardcoded `16px` / `48px`.
+- Regular one-line tables pick up `--table-row-height` via `.table-wrap > table` or `table.proto-table`. Mark the Franchisees table with `.is-franchisees-table` so it uses `--franchisees-table-row-height`. Raw-data tables keep `.raw-data-table`.
+- Missing field values use the en dash "–" with `.dataset-empty-value` (muted gray from proto-tokens). Do not use "Unknown", a hyphen, or a custom empty color. Omit the field only when the row itself should not appear (for example an optional Note).
+- Visible scrollbars use `_prototypes/shared/ui/proto-scrollbar.css` (loaded with proto-tokens). Add `.proto-scrollbar` on a new scroll surface, or include its selector there. Use `padding-right` on that same element as the gutter so the bar sits between the content and the panel edge. Do not restyle `::-webkit-scrollbar` in a feature stylesheet. Tables and filter rails that hide the bar stay as they are.

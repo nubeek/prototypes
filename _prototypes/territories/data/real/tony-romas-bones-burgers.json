@@ -1,7 +1,7 @@
 {
   "id": "tony-romas-bones-burgers",
   "brand": "Tony Roma's Bones & Burgers®",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#BA7C81",
   "logo": "../../assets/logos/franchises/tony-romas-bones-burgers.jpg",
   "country": "US",

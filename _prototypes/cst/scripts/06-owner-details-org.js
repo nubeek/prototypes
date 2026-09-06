@@ -456,6 +456,7 @@ function setupOwnerSearchField(mode) {
     field.classList.add("is-open");
     input.setAttribute("aria-expanded", "true");
     renderOptions();
+    window.WefranchFilterCombobox?.fitOpenMenus?.();
   }
 
   input.addEventListener("focus", openMenu);

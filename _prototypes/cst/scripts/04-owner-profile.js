@@ -533,7 +533,7 @@ function renderPersonProfile(profile) {
       </div>
       <div class="profile-modal-field">
         <span>Location</span>
-        <strong class="${profile.location ? "" : "dataset-empty-value"}">${profile.location || "Unknown"}</strong>
+        <strong class="${profile.location ? "" : "dataset-empty-value"}">${profile.location || "–"}</strong>
       </div>
     </div>
   `;

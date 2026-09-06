@@ -1,5 +1,5 @@
 const SAVE_LEAD_NOTE_LINE_HEIGHT = 24;
-const CRM_LEAD_LISTS = [
+const CRM_LEAD_LISTS = window.WefranchLeadsStore?.LEAD_LISTS || [
   "Denver territory prospects",
   "High priority outreach",
   "Multi-unit operators",
@@ -15,6 +15,221 @@ function getSaveLeadListOptions() {
   return CRM_LEAD_LISTS.map((label) => ({ label, value: label }));
 }
 
+function getCrmLeadSourceId({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
+  const store = window.WefranchLeadsStore;
+  if (!store) return "";
+
+  if (prospectRowKey) {
+    return store.buildSourceId({ prospectRowKey });
+  }
+
+  if (!Number.isFinite(ownerIndex)) return "";
+
+  if (typeof isOwnerMainContactNode === "function" && isOwnerMainContactNode(ownerIndex, nodeId)) {
+    return store.buildSourceId({ ownerIndex, nodeId: null });
+  }
+
+  return store.buildSourceId({ ownerIndex, nodeId });
+}
+
+function getEmptyCrmLeadContext() {
+  return {
+    ownerName: "",
+    franchise: "",
+    location: "",
+    locationPlace: null,
+    website: "",
+    linkedin: "",
+    categoryId: null,
+    sourceDataset: "",
+    sourceView: ""
+  };
+}
+
+function getCrmLeadSourceView({ ownerIndex = null, prospectRowKey = null } = {}) {
+  if (prospectRowKey) {
+    const row = typeof getProspectRowByStateKey === "function"
+      ? getProspectRowByStateKey(prospectRowKey)
+      : null;
+    return row?.sourceView || String(prospectRowKey).split(":")[0] || "";
+  }
+
+  if (Number.isFinite(ownerIndex)) return "franchisees";
+  return "";
+}
+
+function getCrmLeadSourceDataset({ ownerIndex = null, prospectRowKey = null } = {}) {
+  const labels = window.WefranchLeadsStore?.SOURCE_DATASET_LABELS || {};
+  const view = getCrmLeadSourceView({ ownerIndex, prospectRowKey });
+  return labels[view] || TABLE_VIEW_OPTIONS?.[view]?.label || "";
+}
+
+function getLeadWebsite(owner) {
+  if (!owner) return "";
+  if (owner.websiteUrl) return owner.websiteUrl;
+  if (owner.hasWebsite && typeof getOwnerWebsiteUrl === "function") {
+    const url = getOwnerWebsiteUrl(owner);
+    return url && url !== "#" ? url : "";
+  }
+  return owner.website || "";
+}
+
+function getLeadLinkedin(owner) {
+  if (!owner) return "";
+  if (owner.linkedinUrl) return owner.linkedinUrl;
+  if (owner.hasLinkedin && typeof getOwnerLinkedinUrl === "function") {
+    return getOwnerLinkedinUrl(owner) || "";
+  }
+  return "";
+}
+
+function getCrmLeadContext({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
+  if (prospectRowKey) {
+    const row = getProspectRowByStateKey(prospectRowKey);
+    if (!row) return getEmptyCrmLeadContext();
+
+    return {
+      ...getEmptyCrmLeadContext(),
+      ownerName: row.institution || "",
+      franchise: Array.isArray(row.franchises) && row.franchises.length
+        ? row.franchises.join(", ")
+        : row.franchise || "",
+      location: row.location || "",
+      locationPlace: window.WefranchLocationSearch?.toStoredPlace?.(
+        window.WefranchLocationSearch?.fromRecord?.(row)
+      ) || null,
+      categoryId: window.WefranchCategories.hydrateRecord(row, { source: "cst" }).categoryId,
+      sourceDataset: getCrmLeadSourceDataset({ prospectRowKey }),
+      sourceView: getCrmLeadSourceView({ prospectRowKey })
+    };
+  }
+
+  const owner = owners.find((item) => item.originalIndex === ownerIndex);
+  if (!owner) return getEmptyCrmLeadContext();
+
+  const rows = typeof getOwnerRawRows === "function" ? getOwnerRawRows(ownerIndex) : [];
+  const row = nodeId
+    ? rows.find((item) => item.nodeId === nodeId)
+    : rows.find((item) => item.name === owner.contactName) || rows[0] || null;
+
+  return {
+    ownerName: owner.ownerName || "",
+    franchise: (row?.franchises?.length ? row.franchises : getOwnerFranchises(owner)).join(", "),
+    location: row?.location || "",
+    locationPlace: window.WefranchLocationSearch?.toStoredPlace?.(
+      window.WefranchLocationSearch?.fromRecord?.(row)
+    ) || null,
+    website: getLeadWebsite(owner),
+    linkedin: getLeadLinkedin(owner),
+    categoryId: window.WefranchCategories.getRecordId(owner),
+    sourceDataset: getCrmLeadSourceDataset({ ownerIndex }),
+    sourceView: getCrmLeadSourceView({ ownerIndex })
+  };
+}
+
+function persistCrmLead({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
+  const store = window.WefranchLeadsStore;
+  if (!store) return null;
+
+  const id = getCrmLeadSourceId({ ownerIndex, nodeId, prospectRowKey });
+  if (!id) return null;
+
+  const firstName = saveLeadFirstName?.value.trim() || "";
+  const surname = saveLeadSurname?.value.trim() || "";
+  const fallbackName = saveLeadContactName?.textContent?.trim() || "";
+  const name = [firstName, surname].filter(Boolean).join(" ") || fallbackName;
+  const context = getCrmLeadContext({ ownerIndex, nodeId, prospectRowKey });
+
+  return store.upsert({
+    id,
+    name,
+    firstName,
+    surname,
+    email: saveLeadEmail?.value.trim() || saveLeadContactEmail?.textContent?.trim() || "",
+    phone: saveLeadPhone?.value.trim() || "",
+    franchise: context.franchise,
+    ownerName: context.ownerName,
+    location: context.location,
+    locationPlace: context.locationPlace,
+    website: context.website,
+    linkedin: context.linkedin,
+    categoryId: context.categoryId,
+    sourceDataset: context.sourceDataset,
+    sourceView: context.sourceView,
+    list: saveLeadListApi?.getValue?.() || "",
+    note: saveLeadNoteField?.value.trim() || "",
+    source: "cst"
+  });
+}
+
+function removeCrmLead({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
+  const store = window.WefranchLeadsStore;
+  if (!store) return false;
+
+  const id = getCrmLeadSourceId({ ownerIndex, nodeId, prospectRowKey });
+  return id ? store.remove(id) : false;
+}
+
+function backfillCrmLeadContext(lead, parsed) {
+  const store = window.WefranchLeadsStore;
+  if (!store || !lead || !parsed) return;
+
+  const context = parsed.kind === "prospect"
+    ? getCrmLeadContext({ prospectRowKey: parsed.prospectRowKey })
+    : getCrmLeadContext({ ownerIndex: parsed.ownerIndex, nodeId: parsed.nodeId });
+
+  const nextRecord = {
+    ...lead,
+    location: lead.location || context.location,
+    locationPlace: lead.locationPlace || context.locationPlace,
+    website: lead.website || context.website,
+    linkedin: lead.linkedin || context.linkedin,
+    categoryId: lead.categoryId || context.categoryId,
+    sourceDataset: lead.sourceDataset || context.sourceDataset,
+    sourceView: lead.sourceView || context.sourceView
+  };
+
+  if (
+    nextRecord.location === lead.location
+    && nextRecord.locationPlace === lead.locationPlace
+    && nextRecord.website === lead.website
+    && nextRecord.linkedin === lead.linkedin
+    && nextRecord.categoryId === lead.categoryId
+    && nextRecord.sourceDataset === lead.sourceDataset
+    && nextRecord.sourceView === lead.sourceView
+  ) {
+    return;
+  }
+
+  store.upsert(nextRecord);
+}
+
+function hydrateContactLeadFlagsFromStore() {
+  const store = window.WefranchLeadsStore;
+  if (!store) return;
+
+  store.getAll().forEach((lead) => {
+    const parsed = store.parseSourceId(lead.id);
+    if (!parsed) return;
+
+    backfillCrmLeadContext(lead, parsed);
+
+    if (parsed.kind === "prospect" && parsed.prospectRowKey) {
+      savedLeadProspectRowKeys.add(parsed.prospectRowKey);
+      return;
+    }
+
+    if (parsed.kind !== "owner" || !Number.isFinite(parsed.ownerIndex)) return;
+
+    if (parsed.nodeId) {
+      savedLeadContactKeys.add(getContactStateKey(parsed.ownerIndex, parsed.nodeId));
+      return;
+    }
+
+    savedLeadOwnerIndexes.add(parsed.ownerIndex);
+  });
+}
+
 function initSaveLeadListSelect() {
   if (!saveLeadListSelect) return null;
 
@@ -25,7 +240,14 @@ function initSaveLeadListSelect() {
   return window.WefranchFilterCombobox.enhance(saveLeadListSelect, {
     singleSelect: true,
     clearable: true,
-    searchable: true
+    searchable: true,
+    menuActions: [
+      {
+        label: "Create new list",
+        icon: "../../assets/icons/add.svg",
+        onClick() {}
+      }
+    ]
   });
 }
 
@@ -256,6 +478,7 @@ function handleSaveLeadAction(trigger, ownerIndex, nodeId = null, prospectRowKey
 
     if (trigger?.classList.contains("is-saved") || isProspectRowLeadSaved(row)) {
       setProspectRowLeadSaved(row, false);
+      removeCrmLead({ prospectRowKey });
       refreshContactStateViews();
       return;
     }
@@ -268,6 +491,7 @@ function handleSaveLeadAction(trigger, ownerIndex, nodeId = null, prospectRowKey
 
   if (trigger?.classList.contains("is-saved") || isContactLeadSaved(ownerIndex, nodeId)) {
     setContactLeadSaved(ownerIndex, nodeId, false);
+    removeCrmLead({ ownerIndex, nodeId });
     refreshContactStateViews();
     syncOwnerDetailLeadButton(ownerIndex);
     return;
@@ -282,6 +506,7 @@ function confirmSaveLeadFromModal() {
     if (!row) return;
 
     setProspectRowLeadSaved(row, true);
+    persistCrmLead({ prospectRowKey: pendingSaveLeadProspectRowKey });
     refreshContactStateViews();
     closeSaveLeadModal();
     return;
@@ -290,6 +515,10 @@ function confirmSaveLeadFromModal() {
   if (!Number.isFinite(pendingSaveLeadOwnerIndex)) return;
 
   setContactLeadSaved(pendingSaveLeadOwnerIndex, pendingSaveLeadNodeId, true);
+  persistCrmLead({
+    ownerIndex: pendingSaveLeadOwnerIndex,
+    nodeId: pendingSaveLeadNodeId
+  });
   refreshContactStateViews();
   syncOwnerDetailLeadButton(pendingSaveLeadOwnerIndex);
   closeSaveLeadModal();
@@ -307,3 +536,5 @@ function toggleSaveLeadNoteField() {
 if (saveLeadNoteField) {
   saveLeadNoteField.addEventListener("input", syncSaveLeadNoteHeight);
 }
+
+hydrateContactLeadFlagsFromStore();

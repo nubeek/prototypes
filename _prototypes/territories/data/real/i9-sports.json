@@ -1,7 +1,7 @@
 {
   "id": "i9-sports",
   "brand": "i9 Sports",
-  "category": "Youth Enrichment",
+  "categoryId": "youth-enrichment",
   "color": "#083B78",
   "logo": "../../assets/logos/franchises/i9-sports.png",
   "country": "US",

@@ -1,7 +1,7 @@
 {
   "id": "wendys",
   "brand": "Wendy's",
-  "category": "Food & Beverage",
+  "categoryId": "food-beverage",
   "color": "#49bbef",
   "logo": "../../assets/logos/franchises/wendys.jpg",
   "country": "US",

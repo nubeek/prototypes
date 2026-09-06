@@ -86,41 +86,12 @@ const CAMPAIGN_SCHEDULE_DEFAULT_HOUR = "09";
 const CAMPAIGN_SCHEDULE_DEFAULT_MINUTE = "00";
 const CAMPAIGN_SCHEDULE_MINUTE_STEP = 15;
 
-function getCampaignFieldWrapper(element) {
-  return element?.closest?.(".proto-modal-field") || null;
-}
-
 function setCampaignFieldError(fieldElement, message) {
-  const field = getCampaignFieldWrapper(fieldElement);
-  if (!field) return;
-
-  field.classList.add("is-error");
-
-  let messageEl = field.querySelector(".proto-modal-field-message");
-  if (!messageEl) {
-    messageEl = document.createElement("p");
-    messageEl.className = "proto-modal-field-message is-error";
-    messageEl.setAttribute("role", "alert");
-    field.appendChild(messageEl);
-  }
-
-  messageEl.textContent = message;
-}
-
-function clearCampaignFieldError(fieldElement) {
-  const field = getCampaignFieldWrapper(fieldElement);
-  if (!field) return;
-
-  field.classList.remove("is-error");
-  field.querySelector(".proto-modal-field-message")?.remove();
-  syncCampaignStepErrorChrome();
+  window.WefranchFieldErrors?.set(fieldElement, message);
 }
 
 function clearAllCampaignFieldErrors() {
-  campaignWizardModal?.querySelectorAll(".proto-modal-field.is-error").forEach((field) => {
-    field.classList.remove("is-error");
-    field.querySelector(".proto-modal-field-message")?.remove();
-  });
+  window.WefranchFieldErrors?.clearAll(campaignWizardModal, { silent: true });
 }
 
 function getCampaignStepErrors(stepIndex) {
@@ -2516,30 +2487,12 @@ function handleCampaignReviewScheduleAction(_action) {
   closeStartCampaignModal();
 }
 
-function getCampaignReviewTestField() {
-  return campaignReviewTestEmail?.closest(".proto-modal-field") || null;
-}
-
 function clearCampaignReviewTestError() {
-  const field = getCampaignReviewTestField();
-  if (!field) return;
-  field.classList.remove("is-error");
-  field.querySelector(".proto-modal-field-message")?.remove();
+  window.WefranchFieldErrors?.clear(campaignReviewTestEmail);
 }
 
 function setCampaignReviewTestError(message) {
-  const field = getCampaignReviewTestField();
-  if (!field) return;
-
-  field.classList.add("is-error");
-  let messageEl = field.querySelector(".proto-modal-field-message");
-  if (!messageEl) {
-    messageEl = document.createElement("p");
-    messageEl.className = "proto-modal-field-message is-error";
-    messageEl.setAttribute("role", "alert");
-    field.appendChild(messageEl);
-  }
-  messageEl.textContent = message;
+  window.WefranchFieldErrors?.set(campaignReviewTestEmail, message);
 }
 
 function isValidCampaignTestEmail(value) {
@@ -2792,16 +2745,13 @@ startCampaignAudienceApi = window.WefranchFilterCombobox.enhance(startCampaignAu
 });
 
 startCampaignAudienceSelect?.addEventListener("change", () => {
-  clearCampaignFieldError(startCampaignAudienceField);
   syncStartCampaignAudienceState();
 });
 
 campaignSenderEmailSelect?.addEventListener("change", () => {
-  clearCampaignFieldError(campaignSenderEmailField);
   syncCampaignSenderName();
 });
 campaignSenderName?.addEventListener("input", () => {
-  clearCampaignFieldError(campaignSenderName);
   syncCampaignSenderContinue();
 });
 function syncActiveSequenceEmailPreview() {
@@ -2811,7 +2761,6 @@ function syncActiveSequenceEmailPreview() {
 }
 
 campaignSubjectLine?.addEventListener("input", () => {
-  clearCampaignFieldError(campaignSubjectLine);
   syncCampaignSubjectContinue();
   syncActiveSequenceEmailPreview();
 });
@@ -2834,7 +2783,6 @@ campaignDesignTemplateApi = window.WefranchFilterCombobox.enhance(campaignDesign
 });
 
 campaignDesignTemplateSelect?.addEventListener("change", () => {
-  clearCampaignFieldError(campaignDesignTemplateField);
   syncCampaignDesignContinue();
   syncActiveSequenceEmailPreview();
 });
@@ -3016,6 +2964,10 @@ campaignReviewNameInput?.addEventListener("keydown", (event) => {
     event.preventDefault();
     cancelCampaignReviewRename();
   }
+});
+
+campaignWizardModal?.addEventListener("proto-field-error-cleared", () => {
+  syncCampaignStepErrorChrome();
 });
 
 campaignReviewTestEmail?.addEventListener("input", clearCampaignReviewTestError);

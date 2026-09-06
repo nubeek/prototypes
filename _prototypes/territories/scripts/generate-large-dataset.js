@@ -9,6 +9,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const categories = require("../../shared/data/categories.js");
 
 const DATA_DIR = path.join(__dirname, "../data");
 const DEFAULT_DIR = path.join(DATA_DIR, "default");
@@ -246,7 +247,7 @@ function buildLargeBrandFile(brand, catalog) {
   return {
     id: brand.id,
     brand: brand.brand,
-    category: brand.category,
+    categoryId: categories.requireId(brand.categoryId, brand.id),
     color: brand.color,
     logo: brand.logo,
     country: brand.country,

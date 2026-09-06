@@ -339,7 +339,7 @@
     menu.id = menuId;
     menu.setAttribute("role", "listbox");
     menu.setAttribute("aria-label", select.getAttribute("aria-label") || placeholder);
-    menuList.className = "filter-combobox-options";
+    menuList.className = "filter-combobox-options proto-scrollbar";
 
     field.classList.toggle("is-not-clearable", !clearable);
     field.classList.toggle("is-single-select", singleSelect);
@@ -748,6 +748,8 @@
       } else {
         input.removeAttribute("aria-activedescendant");
       }
+
+      scheduleFitOpenMenus();
     }
 
     function openCombobox({ selectInputText = searchable } = {}) {
@@ -949,6 +951,85 @@
     });
   }
 
+  const DROPDOWN_VIEWPORT_GAP = 8;
+  let fitMenusFrame = 0;
+
+  function readPxToken(element, name, fallback) {
+    const value = parseFloat(getComputedStyle(element).getPropertyValue(name));
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  function getClippingBottom(element) {
+    let bottom = window.innerHeight;
+    let node = element.parentElement;
+
+    while (node && node !== document.documentElement) {
+      const overflowY = getComputedStyle(node).overflowY;
+      if (overflowY === "auto" || overflowY === "scroll" || overflowY === "hidden" || overflowY === "clip") {
+        bottom = Math.min(bottom, node.getBoundingClientRect().bottom);
+      }
+      node = node.parentElement;
+    }
+
+    return bottom;
+  }
+
+  function fitDropdownList(anchor, list, { capPx, menuIsList = false } = {}) {
+    if (!anchor || !list) return;
+
+    const menu = menuIsList
+      ? list
+      : (list.closest(".filter-combobox-menu, .owner-search-menu, .dataset-selector-menu") || list.parentElement);
+    const menuStyle = menu ? getComputedStyle(menu) : null;
+    const menuPad = menu && !menuIsList
+      ? (parseFloat(menuStyle.paddingTop) || 0) + (parseFloat(menuStyle.paddingBottom) || 0)
+      : 0;
+    const footer = menu && !menuIsList ? menu.querySelector(".filter-combobox-menu-footer") : null;
+    const available = Math.floor(
+      getClippingBottom(anchor)
+      - anchor.getBoundingClientRect().bottom
+      - DROPDOWN_VIEWPORT_GAP
+      - readPxToken(document.documentElement, "--dropdown-offset-closed", 2)
+      - readPxToken(document.documentElement, "--dropdown-reveal-travel", 10)
+      - menuPad
+      - (footer?.offsetHeight || 0)
+    );
+    const rowHeight = readPxToken(list, "--control-height", 48);
+    const cap = capPx ?? rowHeight * 5;
+    const fitted = Math.max(Math.min(rowHeight, cap), Math.min(cap, available));
+
+    list.style.setProperty("--proto-dropdown-available-height", `${fitted}px`);
+    list.classList.toggle("is-scrollable", list.scrollHeight > list.clientHeight + 1);
+  }
+
+  function fitOpenMenus() {
+    document.querySelectorAll(
+      ".filter-select-field.is-open .filter-combobox-options, .filter-location-search-field.is-open .filter-combobox-options"
+    ).forEach((list) => {
+      fitDropdownList(list.closest(".filter-select-field, .filter-location-search-field"), list);
+    });
+    document.querySelectorAll(".owner-search.is-open .owner-search-options").forEach((list) => {
+      fitDropdownList(list.closest(".owner-search"), list, { capPx: 210 });
+    });
+    document.querySelectorAll(".cst-splash__search.is-suggestions-open .cst-splash__search-suggestions").forEach((list) => {
+      fitDropdownList(list.closest(".cst-splash__search"), list, { capPx: 330, menuIsList: true });
+    });
+    document.querySelectorAll(".territory-crossroad__search.is-suggestions-open .territory-crossroad__search-suggestions").forEach((list) => {
+      fitDropdownList(list.closest(".territory-crossroad__search"), list, { capPx: 310, menuIsList: true });
+    });
+  }
+
+  function scheduleFitOpenMenus() {
+    if (fitMenusFrame) return;
+
+    fitMenusFrame = window.requestAnimationFrame(() => {
+      fitMenusFrame = 0;
+      fitOpenMenus();
+    });
+  }
+
+  window.addEventListener("resize", scheduleFitOpenMenus);
+
   function closeComboboxesInSection(section) {
     section?.querySelectorAll(".filter-field-select").forEach((select) => {
       filterComboboxes.get(select)?.close();
@@ -984,7 +1065,8 @@
     closeComboboxesInSection,
     bindOutsideClick: bindComboboxOutsideClick,
     renderChip: renderFilterChip,
-    normalizeText: normalizeComboboxText
+    normalizeText: normalizeComboboxText,
+    fitOpenMenus: scheduleFitOpenMenus
   };
 
   window.normalizeComboboxText = normalizeComboboxText;

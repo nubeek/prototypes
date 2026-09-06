@@ -1,7 +1,7 @@
 {
   "id": "wonder-family",
   "brand": "Wonder Family",
-  "category": "Ecommerce",
+  "categoryId": "ecommerce",
   "color": "#4338CA",
   "logo": "../../assets/logos/franchises/wonder-family.jpg",
   "country": "US",

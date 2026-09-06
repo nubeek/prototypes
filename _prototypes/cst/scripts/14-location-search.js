@@ -837,11 +837,12 @@ function bindCstLocationSearch({
       if (menuElement) {
         menuElement.setAttribute("aria-hidden", String(!isOpen));
       }
-      return;
+    } else {
+      suggestions.setAttribute("aria-hidden", String(!isOpen));
+      form?.classList.toggle("is-suggestions-open", isOpen);
     }
 
-    suggestions.setAttribute("aria-hidden", String(!isOpen));
-    form?.classList.toggle("is-suggestions-open", isOpen);
+    if (isOpen) window.WefranchFilterCombobox?.fitOpenMenus?.();
   }
 
   function closeSuggestions() {

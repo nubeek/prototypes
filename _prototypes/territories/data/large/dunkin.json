@@ -1,7 +1,7 @@
 {
   "id": "dunkin",
   "brand": "Dunkin'",
-  "category": "Food & Beverage",
+  "categoryId": "food-beverage",
   "color": "#FF671F",
   "logo": "../../assets/logos/franchises/dunkin.jpg",
   "country": "US",

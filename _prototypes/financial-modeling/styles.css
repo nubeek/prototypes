@@ -1,3 +1,5 @@
+@import url("../shared/ui/proto-tokens.css");
+
 /* ==========================================================================
    Foundation (cst design tokens)
    ========================================================================== */
@@ -24,14 +26,6 @@
   --color-brand-soft: #e9ddff;
   --color-chevron-soft: brightness(0) saturate(100%) invert(72%) sepia(0%) saturate(0%) hue-rotate(183deg) brightness(91%) contrast(86%);
 
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-pill: 999px;
-
-  --control-height: 46px;
-  --control-height-sm: 28px;
   --transition-fast: 180ms ease;
 
   --shadow-menu: 0 10px 28px rgba(0, 0, 0, 0.14);
@@ -65,7 +59,7 @@ body {
   min-height: 100vh;
   background: var(--color-surface);
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: var(--font-size-base);
   color: var(--color-text-soft);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
@@ -98,21 +92,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  font-size: 16px;
+  font-size: var(--font-size-base);
   line-height: 1;
   cursor: pointer;
   transition: background-color var(--transition-fast), color var(--transition-fast);
-}
-
-.ui-button-primary {
-  border: 0;
-  background: var(--color-brand-primary);
-  color: var(--color-surface);
-  font-weight: 400;
-}
-
-.ui-button-primary:hover {
-  background: var(--color-brand-primary-hover);
 }
 
 .ui-button-muted {

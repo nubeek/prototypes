@@ -1,7 +1,7 @@
 {
   "id": "remax",
   "brand": "RE/MAX",
-  "category": "Real Estate",
+  "categoryId": "real-estate",
   "color": "#DC1C2E",
   "logo": "../../assets/logos/franchises/remax.jpg",
   "country": "US",

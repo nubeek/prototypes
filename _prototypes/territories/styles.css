@@ -650,6 +650,7 @@ body {
 .request-info-name-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
   gap: 16px;
   margin: 0 0 16px;
 }
@@ -678,6 +679,12 @@ body {
 .request-info-territory-field:focus-within .request-info-territory-display {
   border-color: var(--color-brand);
   box-shadow: 0 0 0 1px var(--color-brand);
+}
+
+.target-modal-field.is-error .request-info-territory-display,
+.target-modal-field.is-error .request-info-territory-field:focus-within .request-info-territory-display {
+  border-color: #fc353d;
+  box-shadow: 0 0 0 1px #fc353d;
 }
 
 .request-info-territory-logo {
@@ -1287,6 +1294,7 @@ body {
 }
 
 .territory-info-card {
+  --territory-info-padding-x: 22px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1364,7 +1372,7 @@ body {
   align-items: center;
   gap: 12px;
   min-width: 0;
-  padding: 20px 22px 0;
+  padding: 20px var(--territory-info-padding-x) 0;
   margin-bottom: 14px;
 }
 
@@ -1375,7 +1383,7 @@ body {
 .territory-info-card__scroll {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 0 22px 4px;
+  padding: 0 calc(var(--territory-info-padding-x) + var(--scrollbar-size) + 4px) 4px var(--territory-info-padding-x);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1413,10 +1421,6 @@ a.territory-info-card__action.is-disabled {
   opacity: 0.45;
   pointer-events: none;
   cursor: not-allowed;
-}
-
-.territory-info-card__action.ui-button-primary {
-  font-weight: 600;
 }
 
 .territory-info-card__action.ui-button-secondary {
@@ -2126,7 +2130,7 @@ a.territory-info-card__action.is-disabled {
   left: 0;
   right: 0;
   z-index: 8;
-  max-height: 310px;
+  max-height: min(310px, var(--proto-dropdown-available-height, 310px));
   padding-bottom: 14px;
   overflow: auto;
   border: 1px solid #f1f1f2;
@@ -2148,6 +2152,11 @@ a.territory-info-card__action.is-disabled {
   visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
+}
+
+.territory-crossroad__search-suggestions.is-scrollable {
+  padding-right: calc(var(--scrollbar-size) + 4px);
+  overflow-y: scroll;
 }
 
 .territory-crossroad__search-suggestion-heading {
@@ -2222,8 +2231,6 @@ a.territory-info-card__action.is-disabled {
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
-  color: var(--color-brand);
-  background: rgba(122, 99, 221, 0.12);
 }
 
 .territory-crossroad__search-suggestion-icon.is-logo-missing .territory-crossroad__search-suggestion-logo-fallback {
@@ -2727,8 +2734,12 @@ a.territory-info-card__action.is-disabled {
     max-width: min(348px, calc((100vw - 48px - 12px) / 2));
   }
 
+  .territory-info-card {
+    --territory-info-padding-x: 18px;
+  }
+
   .territory-info-card__header {
-    padding: 18px 18px 0;
+    padding: 18px var(--territory-info-padding-x) 0;
     margin-bottom: 12px;
   }
 
@@ -2739,10 +2750,6 @@ a.territory-info-card__action.is-disabled {
   .territory-info-card > .territory-info-card__controls {
     top: 24px;
     right: 12px;
-  }
-
-  .territory-info-card__scroll {
-    padding: 0 18px 4px;
   }
 }
 

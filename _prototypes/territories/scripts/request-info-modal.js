@@ -11,6 +11,9 @@ const requestInfoSuccessView = document.getElementById("requestInfoSuccessView")
 const requestInfoDescription = document.getElementById("requestInfoDescription");
 const requestInfoSuccessCopy = document.getElementById("requestInfoSuccessCopy");
 const requestInfoFirstName = document.getElementById("requestInfoFirstName");
+const requestInfoLastName = document.getElementById("requestInfoLastName");
+const requestInfoEmail = document.getElementById("requestInfoEmail");
+const requestInfoPhone = document.getElementById("requestInfoPhone");
 const requestInfoTerritory = document.getElementById("requestInfoTerritory");
 const requestInfoTerritoryField = document.getElementById("requestInfoTerritoryField");
 const requestInfoTerritoryLogo = document.getElementById("requestInfoTerritoryLogo");
@@ -193,7 +196,46 @@ function resetRequestInfoModalForm() {
   if (!requestInfoModalForm) return;
 
   requestInfoModalForm.reset();
+  window.WefranchFieldErrors?.clearAll(requestInfoModalForm, { silent: true });
   showRequestInfoFormView();
+}
+
+function isValidRequestInfoEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function validateRequestInfoForm() {
+  const fieldErrors = window.WefranchFieldErrors;
+  fieldErrors?.clearAll(requestInfoModalForm, { silent: true });
+
+  const errors = [];
+  if (!String(requestInfoFirstName?.value || "").trim()) {
+    errors.push([requestInfoFirstName, "Enter a first name"]);
+  }
+  if (!String(requestInfoLastName?.value || "").trim()) {
+    errors.push([requestInfoLastName, "Enter a last name"]);
+  }
+
+  const email = String(requestInfoEmail?.value || "").trim();
+  if (!email) {
+    errors.push([requestInfoEmail, "Enter an email address"]);
+  } else if (!isValidRequestInfoEmail(email)) {
+    errors.push([requestInfoEmail, "Enter a valid email address"]);
+  }
+
+  if (!String(requestInfoPhone?.value || "").trim()) {
+    errors.push([requestInfoPhone, "Enter a phone number"]);
+  }
+
+  if (!requestInfoTerritory?.disabled && !String(requestInfoTerritory?.value || "").trim()) {
+    errors.push([requestInfoTerritory, "Choose a territory"]);
+  }
+
+  errors.forEach(([field, message]) => fieldErrors?.set(field, message));
+  if (!errors.length) return true;
+
+  errors[0][0]?.focus({ preventScroll: true });
+  return false;
 }
 
 const requestInfoModalApi = window.createProtoModal({
@@ -227,6 +269,7 @@ function openRequestInfoModal(trigger = null, context = null) {
 if (requestInfoModal) {
   requestInfoModalForm?.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (!validateRequestInfoForm()) return;
     showRequestInfoSuccessView();
   });
 

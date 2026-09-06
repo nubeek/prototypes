@@ -1,7 +1,7 @@
 {
   "id": "the-grounds-guys",
   "brand": "The Grounds Guys",
-  "category": "Cleaning and Maintenance",
+  "categoryId": "cleaning-maintenance",
   "color": "#36712C",
   "logo": "../../assets/logos/franchises/the-grounds-guys.jpg",
   "country": "US",

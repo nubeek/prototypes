@@ -1012,8 +1012,11 @@ function getValidSavedSelectValues(select, values) {
       .map((option) => option.value)
       .filter(Boolean)
   );
+  const resolvedValues = select.id === "categoryFilterSelect"
+    ? window.WefranchCategories.resolveFilterValues(values, { source: "territories" })
+    : getSavedStringArray(values);
 
-  return getSavedStringArray(values).filter((value) => validValues.has(value));
+  return resolvedValues.filter((value) => validValues.has(value));
 }
 
 function setTerritoryFilterRangeValues(section, min, max) {
@@ -2100,11 +2103,11 @@ function territoryMatchesFilters(record, filters, context) {
     }
   }
 
-  if (context.includedCategories && !context.includedCategories.has(record.category)) {
+  if (context.includedCategories && !context.includedCategories.has(record.categoryId)) {
     return false;
   }
 
-  if (context.excludedCategories.has(record.category)) {
+  if (context.excludedCategories.has(record.categoryId)) {
     return false;
   }
 
@@ -2338,15 +2341,6 @@ function clearTerritoryDatasetFilterOptions() {
   });
 }
 
-function syncCategoryFilterLabels(categoryFilterSelect) {
-  if (!categoryFilterSelect) return;
-
-  Array.from(categoryFilterSelect.options).forEach((option) => {
-    if (!option.value) return;
-    option.textContent = window.territoryCategories?.formatLabel?.(option.value) || option.value;
-  });
-}
-
 function populateTerritoryFilterOptions(brands) {
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
@@ -2355,16 +2349,18 @@ function populateTerritoryFilterOptions(brands) {
     const existingCategories = new Set(
       Array.from(categoryFilterSelect.options).map((option) => option.value)
     );
-    const categories = [...new Set(brands.map((brand) => brand.category).filter(Boolean))].sort();
-    categories.forEach((category) => {
-      if (existingCategories.has(category)) return;
+    const categoryIds = [...new Set(brands.map((brand) => brand.categoryId).filter(Boolean))]
+      .sort((left, right) => (
+        window.WefranchCategories.getLabel(left).localeCompare(window.WefranchCategories.getLabel(right))
+      ));
+    categoryIds.forEach((categoryId) => {
+      if (existingCategories.has(categoryId)) return;
 
       const option = document.createElement("option");
-      option.value = category;
-      option.textContent = window.territoryCategories?.formatLabel?.(category) || category;
+      option.value = categoryId;
+      option.textContent = window.WefranchCategories.getLabel(categoryId);
       categoryFilterSelect.append(option);
     });
-    syncCategoryFilterLabels(categoryFilterSelect);
     categoryFilterSelect.disabled = getComboboxOptions(categoryFilterSelect).length === 0;
   }
 

@@ -143,8 +143,11 @@ function getValidSavedSelectValues(select, values) {
       .map((option) => option.value)
       .filter(Boolean)
   );
+  const resolvedValues = select.id === "categoryFilterSelect"
+    ? window.WefranchCategories.resolveFilterValues(values, { source: "cst" })
+    : getSavedStringArray(values);
 
-  return getSavedStringArray(values).filter((value) => validValues.has(value));
+  return resolvedValues.filter((value) => validValues.has(value));
 }
 
 function setFilterSelectIncludedExcludedValues(select, includedValues = [], excludedValues = []) {
@@ -288,9 +291,26 @@ function clearCstUrlQueryParams() {
     const url = new URL(window.location.href);
     url.searchParams.delete("search");
     url.searchParams.delete("mode");
+    url.searchParams.delete("view");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   } catch (error) {
     console.warn("Unable to clear saved search URL.", error);
+  }
+}
+
+function getCstTableViewUrlState() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("view");
+    if (!raw) return null;
+
+    const view = normalizeTableView(raw);
+    const knownViews = typeof TABLE_VIEW_OPTIONS === "object" && TABLE_VIEW_OPTIONS
+      ? Boolean(TABLE_VIEW_OPTIONS[view])
+      : ["franchisees", "candidates", "searchers", "athletes", "locations"].includes(view);
+    return knownViews ? { view } : null;
+  } catch (_error) {
+    return null;
   }
 }
 
@@ -332,6 +352,7 @@ function syncCstSavedSearchUrl({ searchId = activeSavedSearchId, mode = readerMo
     if (searchId) {
       url.searchParams.set("search", searchId);
       url.searchParams.set("mode", mode);
+      url.searchParams.delete("view");
     } else {
       url.searchParams.delete("search");
       url.searchParams.delete("mode");
@@ -429,6 +450,11 @@ function restoreSavedPanelSettings(settings) {
 }
 
 function restoreSavedViewSettings() {
+  if (getCstTableViewUrlState()) {
+    viewSettingsReadyToPersist = true;
+    return;
+  }
+
   isRestoringViewSettings = true;
 
   try {

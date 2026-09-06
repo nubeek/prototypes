@@ -1,7 +1,7 @@
 {
   "id": "manna-coffee",
   "brand": "Manna Coffee",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#A1DE87",
   "logo": "../../assets/logos/franchises/manna-coffee.jpg",
   "country": "US",

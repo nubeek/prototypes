@@ -1,7 +1,7 @@
 {
   "id": "tommy-pollina-landscape-co",
   "brand": "Tommy Pollina Landscape Co",
-  "category": "Home & Services",
+  "categoryId": "home-building-services",
   "color": "#F4141D",
   "logo": "../../assets/logos/franchises/tommy-pollina-landscape-co.png",
   "country": "US",

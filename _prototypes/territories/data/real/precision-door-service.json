@@ -1,7 +1,7 @@
 {
   "id": "precision-door-service",
   "brand": "Precision Door Service",
-  "category": "Cleaning and Maintenance",
+  "categoryId": "cleaning-maintenance",
   "color": "#00513E",
   "logo": "../../assets/logos/franchises/precision-door-service.png",
   "country": "US",

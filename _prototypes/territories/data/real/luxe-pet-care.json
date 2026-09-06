@@ -1,7 +1,7 @@
 {
   "id": "luxe-pet-care",
   "brand": "Luxe Pet Care®",
-  "category": "Pets",
+  "categoryId": "pet-services",
   "color": "#82ACC5",
   "logo": "../../assets/logos/franchises/luxe-pet-care.png",
   "country": "US",

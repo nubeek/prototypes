@@ -1,3 +1,5 @@
+@import url("./proto-tokens.css");
+
 /* Shared prototype dialog chrome.
    Markup contract lives in proto-modal.js. New form dialogs should use the
    proto-modal-* classes. Existing CST / Territories dialogs keep
@@ -41,12 +43,16 @@
 
 .proto-modal,
 .profile-modal {
+  --proto-modal-padding-top: 42px;
+  --proto-modal-padding-right: 42px;
+  --proto-modal-padding-bottom: 42px;
+  --proto-modal-padding-left: 42px;
   width: min(540px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
   border-radius: 20px;
   background: var(--color-surface);
   box-shadow: var(--shadow-modal);
-  padding: 42px 42px;
+  padding: var(--proto-modal-padding-top) 0 var(--proto-modal-padding-bottom) var(--proto-modal-padding-left);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -158,9 +164,12 @@ body.reduce-motion .target-modal.is-resizing {
 
 .proto-modal--form,
 .target-modal {
+  --proto-modal-padding-top: 32px;
+  --proto-modal-padding-right: 32px;
+  --proto-modal-padding-bottom: 32px;
+  --proto-modal-padding-left: 32px;
   width: min(540px, calc(100vw - 48px));
   border-radius: 16px;
-  padding: 32px;
 }
 
 .proto-modal-form,
@@ -178,7 +187,8 @@ body.reduce-motion .target-modal.is-resizing {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-inline: 1px;
+  padding-left: 1px;
+  padding-right: var(--proto-modal-padding-right, 32px);
 }
 
 .proto-modal-header,
@@ -188,6 +198,7 @@ body.reduce-motion .target-modal.is-resizing {
   justify-content: space-between;
   gap: 20px;
   flex-shrink: 0;
+  margin-right: var(--proto-modal-padding-right, 32px);
   margin-bottom: 24px;
 }
 
@@ -275,16 +286,19 @@ body.reduce-motion .target-modal.is-resizing {
 }
 
 .proto-modal-field > span:first-child,
+.profile-modal-field > span:first-child,
 .target-modal-field > span:first-child {
   display: block;
 }
 
-/* Captions are not mouse focus targets. Only the input or dropdown itself
-   can focus or blur. proto-modal.js ignores caption mousedown so a click
-   that passes through these labels does not steal focus either. */
+/* Captions are not mouse focus targets. Only the control itself can focus
+   or blur. proto-field-captions.js ignores caption mousedown so a click
+   that lands on (or passes through) these labels does not move focus. */
 .proto-modal-field > label,
+.profile-modal-field > label,
 .target-modal-field > label,
 .proto-modal-field > span:first-child,
+.profile-modal-field > span:first-child,
 .target-modal-field > span:first-child {
   pointer-events: none;
 }
@@ -554,8 +568,10 @@ body.reduce-motion .target-modal.is-resizing {
 }
 
 .proto-modal-field.is-error .proto-modal-control,
+.profile-modal-field.is-error .proto-modal-control,
 .target-modal-field.is-error .target-modal-control,
 .proto-modal-field.is-error .proto-modal-control:focus,
+.profile-modal-field.is-error .proto-modal-control:focus,
 .target-modal-field.is-error .target-modal-control:focus {
   background: var(--color-surface);
   border-color: #fc353d;
@@ -563,16 +579,22 @@ body.reduce-motion .target-modal.is-resizing {
 }
 
 .proto-modal-field.is-error .filter-select-field.is-single-select:not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control,
+.profile-modal-field.is-error .filter-select-field.is-single-select:not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control,
 .target-modal-field.is-error .filter-select-field.is-single-select:not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control,
 .proto-modal-field.is-error .filter-select-field:not(.is-single-select):not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control,
+.profile-modal-field.is-error .filter-select-field:not(.is-single-select):not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control,
 .target-modal-field.is-error .filter-select-field:not(.is-single-select):not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control,
 .proto-modal-field.is-error .filter-select-field .filter-combobox-control,
+.profile-modal-field.is-error .filter-select-field .filter-combobox-control,
 .target-modal-field.is-error .filter-select-field .filter-combobox-control,
 .proto-modal-field.is-error .filter-select-field .filter-combobox-control:hover,
+.profile-modal-field.is-error .filter-select-field .filter-combobox-control:hover,
 .target-modal-field.is-error .filter-select-field .filter-combobox-control:hover,
 .proto-modal-field.is-error .filter-select-field:focus-within .filter-combobox-control,
+.profile-modal-field.is-error .filter-select-field:focus-within .filter-combobox-control,
 .target-modal-field.is-error .filter-select-field:focus-within .filter-combobox-control,
 .proto-modal-field.is-error .filter-select-field.is-open .filter-combobox-control,
+.profile-modal-field.is-error .filter-select-field.is-open .filter-combobox-control,
 .target-modal-field.is-error .filter-select-field.is-open .filter-combobox-control {
   background: var(--color-surface);
   border-color: #fc353d;
@@ -581,7 +603,7 @@ body.reduce-motion .target-modal.is-resizing {
 
 .proto-modal-field-message {
   margin: 0;
-  font-size: var(--font-size-base);
+  font-size: 14px;
   line-height: 1.35;
 }
 
@@ -795,7 +817,12 @@ body.reduce-motion .target-modal.is-resizing {
   gap: 10px;
   flex-shrink: 0;
   margin-top: 24px;
+  margin-right: var(--proto-modal-padding-right, 32px);
   background: var(--color-surface, #fff);
+}
+
+.profile-modal .profile-modal-actions {
+  margin-right: var(--proto-modal-padding-right, 32px);
 }
 
 .proto-modal-cancel,
@@ -827,12 +854,19 @@ body.reduce-motion .target-modal.is-resizing {
 @media (max-width: 1480px) {
   .proto-modal--form,
   .target-modal {
-    padding: 28px;
+    --proto-modal-padding-top: 28px;
+    --proto-modal-padding-right: 28px;
+    --proto-modal-padding-bottom: 28px;
+    --proto-modal-padding-left: 28px;
   }
 
   .proto-modal-field .filter-combobox-menu,
   .target-modal-field .filter-combobox-menu {
     padding: 8px 0;
+  }
+
+  .proto-modal-field-message {
+    font-size: 13px;
   }
 }
 

@@ -1,7 +1,7 @@
 {
   "id": "black-sheep-coffee",
   "brand": "Black Sheep Coffee",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#E8DFB8",
   "logo": "../../assets/logos/franchises/black-sheep-coffee.jpg",
   "country": "US",

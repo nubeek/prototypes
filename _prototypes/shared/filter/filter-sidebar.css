@@ -1,8 +1,13 @@
+@import url("../ui/proto-tokens.css");
 @import url("../ui/dropdown-menu.css");
 
 /* ==========================================================================
    Filter Panel
    ========================================================================== */
+
+:root {
+  --filter-panel-width: 320px;
+}
 
 .filter-panel {
   position: relative;
@@ -97,6 +102,12 @@
 }
 
 @media (max-width: 1480px) {
+  :root,
+  .card,
+  .territory-shell {
+    --filter-panel-width: 280px;
+  }
+
   .filter-header {
     padding: 20px 20px 16px;
   }
@@ -458,6 +469,19 @@
 
 .filter-select-field.is-single-select.has-selection .filter-combobox-input {
   font-weight: 500;
+}
+
+.filter-location-search-field.is-single-select .filter-combobox-control {
+  flex-wrap: nowrap;
+}
+
+.filter-location-search-field.is-single-select .filter-combobox-chips {
+  display: none;
+}
+
+.filter-location-search-field.is-single-select .filter-combobox-input {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .filter-select-field.is-single-select .filter-combobox-clear {
@@ -838,24 +862,16 @@
 }
 
 .filter-combobox-options {
-  max-height: calc(var(--control-height) * 5);
+  max-height: min(
+    calc(var(--control-height) * 5),
+    var(--proto-dropdown-available-height, calc(var(--control-height) * 5))
+  );
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #d8d8d8 transparent;
 }
 
-
-.filter-combobox-options::-webkit-scrollbar {
-  width: 8px;
-}
-
-.filter-combobox-options::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.filter-combobox-options::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-pill);
-  background: #d8d8d8;
+.filter-combobox-options.is-scrollable {
+  padding-right: calc(var(--scrollbar-size) + 4px);
+  overflow-y: scroll;
 }
 
 .filter-combobox-option,
@@ -1358,6 +1374,22 @@
   text-align: right;
 }
 
+.filter-range-labels--fields {
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+}
+
+.filter-range-labels--fields > :first-child,
+.filter-range-labels--fields > :last-child {
+  margin-left: 8px;
+  margin-right: 0;
+  text-align: left;
+}
+
+.filter-range-labels--fields > [data-range-label-gap] {
+  visibility: hidden;
+}
+
 .filter-input-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -1373,7 +1405,7 @@
   background: #fff;
   display: flex;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 10px;
   font-size: var(--font-size-base);
   outline: none;
   transition: border-color var(--transition-fast);
@@ -1405,6 +1437,71 @@
 }
 
 .filter-range-separator {
+  color: #b6b6b6;
+  line-height: 1;
+}
+
+.filter-date-field {
+  width: 100%;
+  min-width: 0;
+  padding: 0 8px;
+  background: var(--color-surface-control);
+  cursor: text;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.filter-date-field:hover {
+  background: var(--color-surface-control-hover);
+}
+
+.filter-date-field:focus-within {
+  background: var(--color-surface);
+}
+
+.filter-date-parts {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.filter-date-part {
+  box-sizing: content-box;
+  width: 1.45em;
+  min-width: 0;
+  flex: 0 0 auto;
+  border: 0;
+  padding: 1px 1px;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: center;
+  outline: none;
+  appearance: textfield;
+}
+
+.filter-date-part[data-date-part="month"] {
+  width: 2.3em;
+}
+
+.filter-date-part::placeholder {
+  color: #b6b6b6;
+}
+
+.filter-date-part:focus {
+  background-color: #accef7;
+}
+
+.filter-date-part:focus::placeholder {
+  color: var(--color-text);
+}
+
+.filter-date-part::selection {
+  background-color: #accef7;
+  color: var(--color-text);
+}
+
+.filter-date-sep {
   color: #b6b6b6;
   line-height: 1;
 }

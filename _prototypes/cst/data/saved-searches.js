@@ -5,7 +5,7 @@
 // filters:
 //   search        free-text query (matches the toolbar search field)
 //   locations     location labels, e.g. "Omaha, Nebraska"
-//   categories    category names
+//   categories    category IDs from the shared catalog
 //   franchises    franchise/brand names
 //   franchisees   franchisee indexes (matches the Franchisee filter)
 //   owners        legacy alias for franchisees
@@ -162,7 +162,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
     snapshot: "assets/snapshots/texas-restaurant-groups.jpg",
     filters: {
       locations: ["Texas"],
-      categories: ["Food & Beverage"]
+      categories: ["food-beverage"]
     }
   },
   {
@@ -218,7 +218,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
     ownerCount: 8,
     snapshot: "assets/snapshots/fitness-groups.jpg",
     filters: {
-      categories: ["Fitness"]
+      categories: ["fitness"]
     }
   },
   {
@@ -229,7 +229,7 @@ const CST_BUNDLED_SAVED_SEARCHES = [
     ownerCount: 10,
     snapshot: "assets/snapshots/wellness-operators.jpg",
     filters: {
-      categories: ["Health & Wellness"]
+      categories: ["health-wellness"]
     }
   },
   {

@@ -1,4 +1,6 @@
+@import url("../shared/ui/proto-tokens.css");
 @import url("../shared/ui/dropdown-menu.css");
+@import url("../shared/ui/table-select.css");
 
 /* ==========================================================================
    Foundation
@@ -30,14 +32,6 @@
   --color-chevron-muted: brightness(0) saturate(100%) invert(67%) sepia(0%) saturate(0%) hue-rotate(153deg) brightness(93%) contrast(89%);
   --color-chevron-soft: brightness(0) saturate(100%) invert(72%) sepia(0%) saturate(0%) hue-rotate(183deg) brightness(91%) contrast(86%);
 
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-pill: 999px;
-
-  --control-height: 48px;
-  --control-height-sm: 28px;
   --transition-fast: 180ms ease;
   --transition-medium: 260ms ease;
 
@@ -46,7 +40,6 @@
   --shadow-tile: 0 4px 5px rgba(0, 0, 0, 0.03);
   --shadow-avatar: 0 6px 14px rgba(0, 0, 0, 0.12);
 
-  --font-size-base: 16px;
   --table-select-pad-x: 11px;
 }
 
@@ -118,17 +111,6 @@ body img[src$="/chevron.svg"] {
   line-height: 1;
   cursor: pointer;
   transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-}
-
-.ui-button-primary {
-  border: 0;
-  background: var(--color-brand-primary);
-  color: var(--color-surface);
-  font-weight: 400;
-}
-
-.ui-button-primary:hover {
-  background: var(--color-brand-primary-hover);
 }
 
 .ui-button-secondary {
@@ -310,8 +292,6 @@ body img[src$="/chevron.svg"] {
 }
 
 .ui-avatar {
-  background: linear-gradient(145deg, #e8e8e8, #cfcfcf);
-  color: var(--color-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -926,28 +906,14 @@ body img[src$="/chevron.svg"] {
 }
 
 .profile-modal-hero {
-  min-height: 120px;
+  min-height: 128px;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   padding-bottom: 8px;
   text-align: center;
-}
-
-.profile-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  background: #dfdbf1;
-  color: var(--color-brand-primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 9px;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.0em;
 }
 
 .profile-modal-hero h2 {
@@ -1044,7 +1010,6 @@ body img[src$="/chevron.svg"] {
 
 .profile-modal-primary {
   gap: 6px;
-  font-weight: 600;
 }
 
 .profile-modal-primary::before,
@@ -1208,10 +1173,6 @@ body img[src$="/chevron.svg"] {
 
 .proto-modal.campaign-wizard-modal:has(.campaign-step-level[open]) {
   overflow: visible;
-}
-
-.campaign-wizard-modal .proto-modal-field-message.is-error {
-  font-size: 14px;
 }
 
 .campaign-wizard-modal .proto-modal-header {
@@ -1414,7 +1375,7 @@ body img[src$="/chevron.svg"] {
   width: 100%;
   gap: 16px;
   flex: 0 0 auto;
-  margin: -4px 0 28px;
+  margin: -4px var(--proto-modal-padding-right) 28px 0;
 }
 
 .campaign-step-tabs[hidden] {
@@ -1682,7 +1643,7 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
 
 .campaign-email-panel-title {
   flex: 0 0 auto;
-  margin: 0 0 16px;
+  margin: 0 var(--proto-modal-padding-right) 16px 0;
   color: #050505;
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -2055,7 +2016,6 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
   min-height: 200px;
   max-height: 200px;
   border-radius: var(--radius-md);
-  scrollbar-width: thin;
 }
 
 .campaign-design-preview.is-empty {
@@ -2126,15 +2086,6 @@ html.is-campaign-sequence-transitioning .campaign-sequence-panel::view-transitio
   align-items: center;
   justify-content: center;
   width: 100%;
-}
-
-.campaign-design-preview::-webkit-scrollbar {
-  width: 8px;
-}
-
-.campaign-design-preview::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: #d4d4d4;
 }
 
 .campaign-design-preview__empty {
@@ -2581,7 +2532,7 @@ body.reduce-motion .campaign-continue-spinner {
   flex: 0 0 auto;
   grid-template-rows: 1fr;
   padding-inline: 1px;
-  margin: 0;
+  margin: 0 var(--proto-modal-padding-right) 0 0;
   opacity: 1;
   transition:
     grid-template-rows 380ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -2918,11 +2869,6 @@ body.reduce-motion .save-lead-note {
   position: relative;
 }
 
-.owner-detail-logo:not(:has(img)) {
-  color: var(--brand-purple);
-  background: rgba(122, 99, 221, 0.12);
-}
-
 .owner-detail-logo img {
   position: absolute;
   inset: 0;
@@ -3019,8 +2965,6 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
 }
 
 .owner-detail-franchise-logo-fallback {
-  background: linear-gradient(135deg, #b000ff, #4c23ff);
-  color: #fff;
   position: absolute;
   inset: 0;
   display: none;
@@ -3078,19 +3022,8 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
    Organization Chart
    ========================================================================== */
 
-.map-panel.is-org-mode .owner-detail-panel {
-  scrollbar-width: thin;
-  scrollbar-color: #d5d5d5 transparent;
-}
-
 .map-panel.is-org-mode .owner-detail-panel::-webkit-scrollbar {
   display: block;
-  width: 7px;
-}
-
-.map-panel.is-org-mode .owner-detail-panel::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: #d5d5d5;
 }
 
 .owner-org-panel {
@@ -3210,23 +3143,13 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
 }
 
 .owner-search-options {
-  max-height: 210px;
+  max-height: min(210px, var(--proto-dropdown-available-height, 210px));
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #d8d8d8 transparent;
 }
 
-.owner-search-options::-webkit-scrollbar {
-  width: 8px;
-}
-
-.owner-search-options::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.owner-search-options::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-pill);
-  background: #d8d8d8;
+.owner-search-options.is-scrollable {
+  padding-right: calc(var(--scrollbar-size) + 4px);
+  overflow-y: scroll;
 }
 
 .owner-search-option,
@@ -3360,8 +3283,6 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   height: 64px;
   border-radius: 12px;
   transform: translateX(-50%);
-  background: linear-gradient(145deg, #e8e8e8, #cfcfcf);
-  color: #111;
   display: grid;
   place-items: center;
   font-size: 18px;
@@ -3509,7 +3430,6 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  background: linear-gradient(145deg, #e8e8e8, #cfcfcf);
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
@@ -4198,21 +4118,6 @@ h1 {
 .dataset-selector-options {
   max-height: 210px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #d8d8d8 transparent;
-}
-
-.dataset-selector-options::-webkit-scrollbar {
-  width: 8px;
-}
-
-.dataset-selector-options::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.dataset-selector-options::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-pill);
-  background: #d8d8d8;
 }
 
 .dataset-selector-option,
@@ -5173,7 +5078,8 @@ th:first-child,
 }
 
 td {
-  padding: 11px 14px;
+  padding: 10px 14px 11px;
+  border-top: 1px solid transparent;
   border-bottom: 1px solid #e9e9ed;
   vertical-align: middle;
   font-size: var(--font-size-base);
@@ -5216,22 +5122,50 @@ tbody tr:is(:hover, .is-selected, .is-checked) + tr:is(:hover, .is-selected, .is
   border-top-right-radius: 0;
 }
 
-/* Draw the top divider on the first highlighted row so it follows the
-   rounded corners. The previous row's straight border-bottom would not. */
+/* Keep the reserved transparent top border so hover cannot grow the row.
+   Hide the previous/header bottom border and redraw that seam 1px up, on
+   the hovered row, so the line can follow the corner radius at the same Y. */
 tbody tr:not(:is(:hover, .is-selected, .is-checked)):has(+ tr:is(:hover, .is-selected, .is-checked)) td {
-  border-bottom-width: 0;
+  border-bottom-color: transparent;
 }
 
 table:has(> tbody > tr:first-child:is(:hover, .is-selected, .is-checked)) > thead th {
-  border-bottom-width: 0;
+  border-bottom-color: transparent;
 }
 
-tbody tr:is(:hover, .is-selected, .is-checked) td {
+tbody tr:is(:hover, .is-selected, .is-checked) > td:not(:first-child) {
+  position: relative;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked) > td::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  z-index: 2;
+  height: 1px;
+  background: #e9e9ed;
+  pointer-events: none;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked) > td:first-child::before,
+tbody tr:is(:hover, .is-selected, .is-checked) > td:last-child::before {
+  height: 12px;
+  background: transparent;
   border-top: 1px solid #e9e9ed;
 }
 
-tbody tr:is(:hover, .is-selected, .is-checked) + tr:is(:hover, .is-selected, .is-checked) td {
-  border-top: none;
+tbody tr:is(:hover, .is-selected, .is-checked) > td:first-child::before {
+  border-top-left-radius: 12px;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked) > td:last-child::before {
+  border-top-right-radius: 12px;
+}
+
+tbody tr:is(:hover, .is-selected, .is-checked) + tr:is(:hover, .is-selected, .is-checked) > td::before {
+  content: none;
 }
 
 tbody tr:hover {
@@ -5284,7 +5218,7 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .locations-table td {
-  padding-top: 7px;
+  padding-top: 6px;
   padding-bottom: 7px;
 }
 
@@ -5435,13 +5369,6 @@ tbody tr.is-checked:hover td:first-child {
   padding-right: 80px;
 }
 
-.raw-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-sm);
-  font-size: 10px;
-}
-
 .raw-name {
   min-width: 0;
   overflow: hidden;
@@ -5488,8 +5415,6 @@ tbody tr.is-checked:hover td:first-child {
   height: 100%;
   font-size: 11px;
   font-weight: 700;
-  color: var(--brand-purple);
-  background: rgba(122, 99, 221, 0.12);
 }
 
 .owner-logo-fallback.is-visible {
@@ -5531,30 +5456,23 @@ tbody tr.is-checked:hover td:first-child {
   text-underline-offset: 2px;
 }
 
-.dataset-empty-value {
-  color: var(--color-text-muted);
-}
-
-.locations-table .prospect-dataset-row td {
-  height: 57px;
-}
 
 .prospect-dataset-row .location-table-value,
 .prospect-dataset-row .location-table-phone {
-  min-height: 42px;
   max-width: 100%;
-  line-height: 42px;
 }
 
 .prospect-dataset-row .dataset-franchise-cell {
-  min-height: 42px;
   display: flex;
   align-items: center;
 }
 
 .prospect-dataset-row .contact-cell-action {
   width: calc(100% + 20px);
-  min-height: 42px;
+  min-height: 0;
+  height: 100%;
+  padding-top: 0;
+  padding-bottom: 0;
   align-items: center;
 }
 
@@ -5597,7 +5515,10 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .dataset-franchise-cell {
+  display: flex;
   justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   min-width: 0;
   text-align: left;
@@ -5614,7 +5535,18 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .dataset-franchise-cell .franchise-logos-with-names {
-  width: 100%;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.dataset-franchise-more {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .dataset-franchise-cell .franchise-item {
@@ -5649,10 +5581,11 @@ tbody tr.is-checked:hover td:first-child {
 .location-cell-action {
   width: fit-content;
   max-width: calc(100% + 20px);
-  min-height: 42px;
+  min-height: 0;
+  height: 100%;
   margin-left: -10px;
   border-radius: var(--radius-md);
-  padding: 4px 8px 4px 6px;
+  padding: 0 8px 0 6px;
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
@@ -5914,6 +5847,13 @@ tbody tr.is-checked:hover td:first-child {
   align-items: flex-start;
   gap: 0;
   transition: background-color var(--transition-fast);
+}
+
+.is-franchisees-table .contact-cell-action {
+  min-height: 0;
+  height: 100%;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .contact-cell-action:hover,
@@ -6283,8 +6223,6 @@ a.franchise-name:focus-visible {
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(135deg, #b000ff, #4c23ff);
-  color: #fff;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: -0.04em;
@@ -6378,20 +6316,9 @@ a.franchise-name:focus-visible {
    ========================================================================== */
 
 @media (max-width: 1480px) {
-  :root {
-    --font-size-base: 15px;
-    --control-height: 44px;
-    --radius-md: 8px;
-    --radius-lg: 10px;
-  }
-
   .proto-modal.campaign-wizard-modal {
     --campaign-email-panel-width: 280px;
     --campaign-sequence-gutter: 28px;
-  }
-
-  .campaign-wizard-modal .proto-modal-field-message.is-error {
-    font-size: 13px;
   }
 
   .card {
@@ -7365,7 +7292,7 @@ a.franchise-name:focus-visible {
   left: 0;
   right: 0;
   z-index: 8;
-  max-height: 330px;
+  max-height: min(330px, var(--proto-dropdown-available-height, 330px));
   padding-bottom: 14px;
   overflow: auto;
   border: 1px solid #f1f1f2;
@@ -7387,6 +7314,11 @@ a.franchise-name:focus-visible {
   visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
+}
+
+.cst-splash__search-suggestions.is-scrollable {
+  padding-right: calc(var(--scrollbar-size) + 4px);
+  overflow-y: scroll;
 }
 
 .cst-splash__search-suggestion-heading {
@@ -7461,8 +7393,6 @@ a.franchise-name:focus-visible {
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
-  color: var(--color-brand);
-  background: rgba(122, 99, 221, 0.12);
 }
 
 .cst-splash__search-suggestion-icon.is-logo-missing .cst-splash__search-suggestion-logo-fallback {

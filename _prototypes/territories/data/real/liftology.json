@@ -1,7 +1,7 @@
 {
   "id": "liftology",
   "brand": "Liftology",
-  "category": "Healthcare Services",
+  "categoryId": "healthcare",
   "color": "#FE5501",
   "logo": "../../assets/logos/franchises/liftology.jpg",
   "country": "US",

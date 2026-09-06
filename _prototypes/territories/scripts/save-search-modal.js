@@ -108,7 +108,7 @@ function resetSaveSearchModalForm() {
   if (!saveSearchModalForm) return;
 
   saveSearchModalForm.reset();
-  saveSearchTitleInput?.setCustomValidity("");
+  window.WefranchFieldErrors?.clearAll(saveSearchModalForm, { silent: true });
 }
 
 const saveSearchModalApi = window.createProtoModal({
@@ -189,8 +189,12 @@ if (saveSearchModal) {
 
     const formData = new FormData(saveSearchModalForm);
     const title = String(formData.get("title") || "").trim();
-    saveSearchTitleInput?.setCustomValidity(title ? "" : "Enter a title.");
-    if (!saveSearchModalForm.reportValidity()) return;
+    window.WefranchFieldErrors?.clearAll(saveSearchModalForm, { silent: true });
+    if (!title) {
+      window.WefranchFieldErrors?.set(saveSearchTitleInput, "Enter a title.");
+      saveSearchTitleInput?.focus({ preventScroll: true });
+      return;
+    }
 
     const alerts = pendingSaveSearchAlerts ? { ...pendingSaveSearchAlerts } : null;
     const wasEditing = Boolean(editingSavedSearchId);
@@ -204,12 +208,13 @@ if (saveSearchModal) {
       });
 
     if (!savedSearch) {
-      saveSearchTitleInput?.setCustomValidity(
+      window.WefranchFieldErrors?.set(
+        saveSearchTitleInput,
         wasEditing
           ? "This search could not be updated. Please try again."
           : "This search could not be saved. Please try again."
       );
-      saveSearchModalForm.reportValidity();
+      saveSearchTitleInput?.focus({ preventScroll: true });
       return;
     }
 
@@ -229,8 +234,8 @@ if (saveSearchModal) {
 
     const deletedSearch = window.territoryCrossroad?.deleteSavedSearch?.(editingSavedSearchId);
     if (!deletedSearch) {
-      saveSearchTitleInput?.setCustomValidity("This search could not be deleted. Please try again.");
-      saveSearchModalForm?.reportValidity();
+      window.WefranchFieldErrors?.set(saveSearchTitleInput, "This search could not be deleted. Please try again.");
+      saveSearchTitleInput?.focus({ preventScroll: true });
       return;
     }
 
@@ -241,9 +246,6 @@ if (saveSearchModal) {
   });
 }
 
-saveSearchTitleInput?.addEventListener("input", () => {
-  saveSearchTitleInput.setCustomValidity("");
-});
 
 window.territorySaveSearchModal = {
   open: openSaveSearchModal,

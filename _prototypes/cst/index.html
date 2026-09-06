@@ -251,7 +251,7 @@
       </div>
 
       <div class="workspace">
-    <div class="cst-splash is-preparing-enter" id="cstSplash" data-cst-splash role="group" aria-label="Start a search">
+    <div class="cst-splash proto-scrollbar is-preparing-enter" id="cstSplash" data-cst-splash role="group" aria-label="Start a search">
       <div class="cst-splash__inner">
         <div class="cst-splash__intro">
           <p class="cst-splash__heading">Start a new search<br>or open one of public or your saved searches</p>
@@ -274,7 +274,7 @@
               aria-describedby="cstSplashSearchFeedback"
             >
             <div
-              class="cst-splash__search-suggestions"
+              class="cst-splash__search-suggestions proto-scrollbar"
               id="cstSplashSearchSuggestions"
               role="listbox"
               aria-label="Search suggestions"
@@ -382,7 +382,7 @@
             ></button>
             <div class="filter-combobox-menu" id="locationFilterSearchMenu" aria-hidden="true">
               <div
-                class="filter-combobox-options"
+                class="filter-combobox-options proto-scrollbar"
                 id="locationFilterSearchSuggestions"
                 role="listbox"
                 aria-label="Location suggestions"
@@ -731,7 +731,7 @@
             <p class="cst-table-loading__label">Loading data...</p>
           </div>
           <div class="table-wrap" id="tableWrap">
-        <table>
+        <table class="is-franchisees-table">
           <thead>
             <tr>
               <th id="locationNumberColumnHeader" hidden><span class="th-content">#</span></th>
@@ -874,7 +874,7 @@
 
   <div class="profile-modal-overlay target-modal-overlay" id="createTargetModal" hidden>
     <section class="profile-modal target-modal" role="dialog" aria-modal="true" aria-labelledby="createTargetModalTitle">
-      <form class="target-modal-form create-target-modal-form" id="createTargetForm">
+      <form class="target-modal-form create-target-modal-form" id="createTargetForm" novalidate>
         <div class="target-modal-header">
           <h2 class="target-modal-title" id="createTargetModalTitle">Save search</h2>
           <div class="target-modal-header-actions">
@@ -1318,6 +1318,7 @@
     </section>
   </div>
 
+  <script src="../shared/data/categories.js"></script>
   <script src="data/franchise-brands.js"></script>
   <script src="data/location-centers.js"></script>
   <script src="data/default/owners.js"></script>
@@ -1330,6 +1331,8 @@
   <script src="../../scripts/cst-env.js"></script>
   <script src="data/real/overlay.js"></script>
   <script src="../shared/filter/radius-control.js"></script>
+  <script src="../shared/ui/proto-field-captions.js"></script>
+  <script src="../shared/ui/proto-field-error.js"></script>
   <script src="../shared/ui/proto-modal.js"></script>
   <script src="../shared/ui/proto-confirm-modal.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
@@ -1348,6 +1351,8 @@
   <script src="scripts/14-location-search.js"></script>
   <script src="scripts/08-filters-combobox.js"></script>
   <script src="scripts/10-dataset-selector.js"></script>
+  <script src="../shared/filter/location-search.js"></script>
+  <script src="../shared/data/leads-store.js"></script>
   <script src="scripts/11-save-lead-modal.js"></script>
   <script src="scripts/12-contact-action-tooltips.js"></script>
   <script src="scripts/09-bootstrap.js"></script>

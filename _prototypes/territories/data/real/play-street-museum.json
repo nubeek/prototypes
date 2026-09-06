@@ -1,7 +1,7 @@
 {
   "id": "play-street-museum",
   "brand": "Play Street Museum",
-  "category": "Youth Enrichment",
+  "categoryId": "youth-enrichment",
   "color": "#1B2B4B",
   "logo": "../../assets/logos/franchises/play-street-museum.png",
   "country": "US",

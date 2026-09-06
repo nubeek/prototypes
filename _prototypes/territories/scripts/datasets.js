@@ -26,7 +26,7 @@ const TERRITORY_DATASETS = {
         title: "QSR in the South-East",
         filters: {
           locations: ["FL", "GA", "AL", "SC", "NC", "TN", "KY", "VA", "MS", "LA"],
-          categories: ["Food & Beverage"],
+          categories: ["food-beverage"],
           statuses: ["available"]
         }
       },
@@ -35,7 +35,7 @@ const TERRITORY_DATASETS = {
         title: "Fitness in California",
         filters: {
           locations: ["CA"],
-          categories: ["Health & Fitness"],
+          categories: ["fitness"],
           statuses: ["available"]
         }
       },
@@ -61,7 +61,7 @@ const TERRITORY_DATASETS = {
         title: "Burgers & Fries in Texas",
         filters: {
           locations: ["TX"],
-          categories: ["Food & Beverage"],
+          categories: ["food-beverage"],
           franchises: ["mcdonalds", "burger-king", "wendys"],
           statuses: ["available", "established", "sold"]
         }
@@ -91,7 +91,7 @@ const TERRITORY_DATASETS = {
         title: "QSR in Texas & Florida",
         filters: {
           locations: ["TX", "FL"],
-          categories: ["Food & Beverage"],
+          categories: ["food-beverage"],
           statuses: ["available"]
         }
       },
@@ -108,7 +108,7 @@ const TERRITORY_DATASETS = {
         title: "Fitness in the West",
         filters: {
           locations: ["CA", "AZ", "CO"],
-          categories: ["Health & Fitness"],
+          categories: ["fitness"],
           statuses: ["available"]
         }
       },
@@ -184,7 +184,7 @@ const TERRITORY_DATASETS = {
         title: "Home Services in Texas",
         filters: {
           locations: ["TX"],
-          categories: ["Home & Services"],
+          categories: ["home-building-services"],
           statuses: ["available"]
         }
       },
@@ -201,7 +201,7 @@ const TERRITORY_DATASETS = {
         title: "Home Services in CA",
         filters: {
           locations: ["CA"],
-          categories: ["Home & Services"],
+          categories: ["home-building-services"],
           statuses: ["available"]
         }
       },
@@ -210,7 +210,7 @@ const TERRITORY_DATASETS = {
         title: "Cleaning in Florida",
         filters: {
           locations: ["FL"],
-          categories: ["Cleaning and Maintenance"],
+          categories: ["cleaning-maintenance"],
           statuses: ["available"]
         }
       },

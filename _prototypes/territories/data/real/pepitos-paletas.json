@@ -1,7 +1,7 @@
 {
   "id": "pepitos-paletas",
   "brand": "Pepitos Paletas",
-  "category": "Food and Beverage",
+  "categoryId": "food-beverage",
   "color": "#E45E7F",
   "logo": "../../assets/logos/franchises/pepitos-paletas.jpg",
   "country": "US",
