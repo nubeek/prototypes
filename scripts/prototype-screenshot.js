@@ -351,7 +351,7 @@
     return !node.closest("[data-proto-nav], [data-proto-screenshot-toast], [data-proto-screenshot-preview], [data-proto-recorder]");
   };
 
-  const captureWindow = async (renderer, targetWindow, format = "png") => {
+  const captureWindow = async (renderer, targetWindow, format = "png", scale = 1) => {
     const targetDocument = targetWindow.document;
     const root = targetDocument.documentElement;
 
@@ -384,7 +384,7 @@
             continue;
           }
 
-          const frameImageUrl = await captureWindow(renderer, childWindow, "png");
+          const frameImageUrl = await captureWindow(renderer, childWindow, "png", scale);
           const frameImage = targetDocument.createElement("img");
           frameImage.src = frameImageUrl;
           frameImage.alt = "";
@@ -408,7 +408,7 @@
       const options = {
         width: targetWindow.innerWidth,
         height: targetWindow.innerHeight,
-        scale: 1,
+        scale,
         backgroundColor: "#ffffff",
         style: {
           width: `${targetWindow.innerWidth}px`,
@@ -458,7 +458,7 @@
     }
   };
 
-  const getFileName = (targetWindow) => {
+  const getFileName = (targetWindow, scale = 1) => {
     const pathSegments = targetWindow.location.pathname.split("/").filter(Boolean);
     const prototypesIndex = pathSegments.lastIndexOf("_prototypes");
     let projectName = pathSegments[prototypesIndex + 1] || "prototypes";
@@ -472,12 +472,13 @@
     const date = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
     const time = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
     const safeProjectName = projectName.replace(/[^a-z0-9_-]/gi, "-").toLowerCase();
-    return `${safeProjectName}-viewport-screenshot-${date}-${time}.png`;
+    const scaleSuffix = scale >= 2 ? "@2x" : "";
+    return `${safeProjectName}-viewport-screenshot-${date}-${time}${scaleSuffix}.png`;
   };
 
-  const render = async (targetWindow = window) => {
+  const render = async (targetWindow = window, { scale = 1 } = {}) => {
     const renderer = await loadRenderer();
-    return captureWindow(renderer, targetWindow);
+    return captureWindow(renderer, targetWindow, "png", scale);
   };
 
   const traceRoundedRect = (context, x, y, width, height, radius) => {
@@ -496,7 +497,7 @@
     context.closePath();
   };
 
-  const createRoundedScreenshot = (image) => {
+  const createRoundedScreenshot = (image, scale = 1) => {
     const card = document.createElement("canvas");
     card.width = image.naturalWidth;
     card.height = image.naturalHeight;
@@ -505,20 +506,21 @@
       return null;
     }
 
-    traceRoundedRect(context, 0, 0, card.width, card.height, BACKGROUND_RADIUS);
+    traceRoundedRect(context, 0, 0, card.width, card.height, BACKGROUND_RADIUS * scale);
     context.clip();
     context.drawImage(image, 0, 0);
     return card;
   };
 
-  const composeBackground = (dataUrl, { transparent = false } = {}) => new Promise((resolve, reject) => {
+  const composeBackground = (dataUrl, { transparent = false, scale = 1 } = {}) => new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = image.naturalWidth + BACKGROUND_MARGIN * 2;
-      canvas.height = image.naturalHeight + BACKGROUND_MARGIN * 2;
+      const margin = BACKGROUND_MARGIN * scale;
+      canvas.width = image.naturalWidth + margin * 2;
+      canvas.height = image.naturalHeight + margin * 2;
       const context = canvas.getContext("2d");
-      const card = createRoundedScreenshot(image);
+      const card = createRoundedScreenshot(image, scale);
       if (!context || !card) {
         reject(new Error("Failed to compose the screenshot background."));
         return;
@@ -528,11 +530,11 @@
         context.fillStyle = BACKGROUND_COLOR;
         context.fillRect(0, 0, canvas.width, canvas.height);
       }
-      context.shadowOffsetX = BACKGROUND_SHADOW.offsetX;
-      context.shadowOffsetY = BACKGROUND_SHADOW.offsetY;
-      context.shadowBlur = BACKGROUND_SHADOW.blur;
+      context.shadowOffsetX = BACKGROUND_SHADOW.offsetX * scale;
+      context.shadowOffsetY = BACKGROUND_SHADOW.offsetY * scale;
+      context.shadowBlur = BACKGROUND_SHADOW.blur * scale;
       context.shadowColor = BACKGROUND_SHADOW.color;
-      context.drawImage(card, BACKGROUND_MARGIN, BACKGROUND_MARGIN);
+      context.drawImage(card, margin, margin);
       resolve(canvas.toDataURL("image/png"));
     };
     image.onerror = () => {
@@ -543,18 +545,22 @@
 
   const take = async ({
     targetWindow = window,
-    fileName = getFileName(targetWindow),
+    fileName,
     background = false,
     transparent = false,
+    scale = 1,
   } = {}) => {
     if (targetWindow.location.protocol === "file:") {
       throw new Error("Open the prototype through localhost to take a screenshot.");
     }
 
-    let dataUrl = await render(targetWindow);
+    const captureScale = scale >= 2 ? 2 : 1;
+    let dataUrl = await render(targetWindow, { scale: captureScale });
     if (background) {
-      dataUrl = await composeBackground(dataUrl, { transparent });
+      dataUrl = await composeBackground(dataUrl, { transparent, scale: captureScale });
     }
+
+    fileName = fileName || getFileName(targetWindow, captureScale);
 
     const download = document.createElement("a");
     download.href = dataUrl;

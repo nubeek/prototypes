@@ -3,7 +3,9 @@
 /* --- cst/styles.css 1-399 --- */
 @import url("../shared/ui/proto-tokens.css");
 @import url("../shared/ui/dropdown-menu.css");
-@import url("../shared/ui/table-select.css");
+@import url("../shared/ui/compact-select.css");
+@import url("../shared/ui/empty-state.css");
+@import url("../shared/ui/ui-link.css");
 
 /* ==========================================================================
    Foundation
@@ -185,16 +187,6 @@ body img[src$="/chevron.svg"] {
   font-weight: 600;
   padding: 0;
   cursor: pointer;
-}
-
-.ui-link {
-  color: var(--color-brand);
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.ui-link:hover {
-  text-decoration: underline;
 }
 
 .ui-select {
@@ -1484,50 +1476,38 @@ body img[src$="/chevron.svg"] {
   container-type: inline-size;
 }
 
+.table-wrap.is-empty {
+  overflow: visible;
+}
+
 .table-wrap.is-empty table {
   visibility: hidden;
   pointer-events: none;
 }
 
-.table-empty-state {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  padding: 24px;
-  color: var(--color-text-muted);
-  font-size: 18px;
-  line-height: 1.4;
-  text-align: center;
+.toolbar-dropdown {
+  position: relative;
 }
 
-.table-empty-state[hidden] {
+.toolbar-dropdown > summary {
+  list-style: none;
+}
+
+.toolbar-dropdown > summary::-webkit-details-marker {
   display: none;
 }
 
-.table-empty-state__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+.toolbar-dropdown-menu {
+  position: absolute;
+  left: 0;
+  right: auto;
+  width: max-content;
+  min-width: 168px;
+  padding: 10px 0;
+  border: 0;
+  z-index: 20;
 }
 
-.table-empty-state__message {
-  margin: 0;
-}
-
-.table-empty-state__action {
-  cursor: pointer;
-  font-size: inherit;
-  line-height: inherit;
-  text-decoration: none;
-}
-
-.table-empty-state__action:hover,
-.table-empty-state__action:focus-visible {
-  text-decoration: none;
-}
 
 .card.is-layout-switching .map-panel,
 .card.is-layout-switching .table-column,

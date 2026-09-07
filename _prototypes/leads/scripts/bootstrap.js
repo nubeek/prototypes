@@ -10,6 +10,10 @@
   const tableWrap = document.getElementById("tableWrap");
   const tableBody = document.getElementById("leadsTableBody");
   const tableEmptyStateClear = document.getElementById("tableEmptyStateClear");
+  const tableEmptyStateAddDropdown = document.getElementById("tableEmptyStateAddDropdown");
+  const tableEmptyStateAddManual = document.getElementById("tableEmptyStateAddManual");
+  const tableEmptyStateImportCsv = document.getElementById("tableEmptyStateImportCsv");
+  const leadImportCsvInput = document.getElementById("leadImportCsvInput");
   const toolbarSearchInput = document.getElementById("toolbarSearchInput");
   const toolbarSearchClear = document.getElementById("toolbarSearchClear");
   const addLeadBtn = document.getElementById("addLeadBtn");
@@ -34,6 +38,44 @@
 
   tableEmptyStateClear?.addEventListener("click", () => {
     page.clearFilters();
+  });
+
+  function closeEmptyStateAddDropdown() {
+    tableEmptyStateAddDropdown?.removeAttribute("open");
+  }
+
+  tableEmptyStateAddManual?.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeEmptyStateAddDropdown();
+    modals?.openAddLead(tableEmptyStateAddManual);
+  });
+
+  tableEmptyStateImportCsv?.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeEmptyStateAddDropdown();
+    if (!leadImportCsvInput) return;
+    leadImportCsvInput.value = "";
+    leadImportCsvInput.click();
+  });
+
+  leadImportCsvInput?.addEventListener("change", async () => {
+    const file = leadImportCsvInput.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      page.importCsv(text);
+    } catch (error) {
+      console.warn("[leads] CSV import failed", error);
+    }
+
+    leadImportCsvInput.value = "";
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!tableEmptyStateAddDropdown?.open) return;
+    if (tableEmptyStateAddDropdown.contains(event.target)) return;
+    closeEmptyStateAddDropdown();
   });
 
   if (toolbarSearchInput) {

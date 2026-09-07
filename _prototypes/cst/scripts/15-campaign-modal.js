@@ -42,7 +42,6 @@ const CAMPAIGN_STEPS = [
 const CAMPAIGN_LEVEL_ORDER = ["settings", "campaign", "review"];
 const CAMPAIGN_TYPE_DEFAULT = "regular";
 const CAMPAIGN_SEQUENCE_DEFAULT_DELAY = 2;
-const CAMPAIGN_SEQUENCE_DOT_PARALLAX = 0.4;
 const CAMPAIGN_SEQUENCE_TRIGGER_TIME = "time";
 const CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT = "engagement";
 const CAMPAIGN_SEQUENCE_TRIGGERS = [
@@ -56,13 +55,6 @@ const CAMPAIGN_SEQUENCE_DELAYS = [
   { value: 3, label: "3 days later" },
   { value: 7, label: "1 week later" },
   { value: 14, label: "2 weeks later" }
-];
-const CAMPAIGN_SEQUENCE_WAIT_WINDOWS = [
-  { value: 1, label: "1 day" },
-  { value: 2, label: "2 days" },
-  { value: 3, label: "3 days" },
-  { value: 7, label: "1 week" },
-  { value: 14, label: "2 weeks" }
 ];
 const CAMPAIGN_SEQUENCE_ENGAGEMENT_EVENTS = [
   { value: "opens", label: "Opens previous email", negative: false },
@@ -278,6 +270,7 @@ const campaignStepViewport = document.getElementById("campaignStepViewport");
 const campaignStepPanels = Array.from(campaignStepViewport?.querySelectorAll(".campaign-step-panel") || []);
 const campaignSequencePanel = document.getElementById("campaignSequencePanel");
 const campaignEmailPanelTitle = document.getElementById("campaignEmailPanelTitle");
+const campaignEmailPanelEmpty = document.getElementById("campaignEmailPanelEmpty");
 const campaignSequenceList = document.getElementById("campaignSequenceList");
 const campaignSequenceAddBtn = document.getElementById("campaignSequenceAddBtn");
 const campaignReviewSequenceField = document.getElementById("campaignReviewSequenceField");
@@ -356,7 +349,7 @@ let lastStepByLevel = {
 };
 let campaignSequenceEmails = [];
 let activeSequenceEmailIndex = 0;
-let emailPanelCollapsed = false;
+let emailPanelUnselected = false;
 let nextSequenceEmailId = 1;
 
 function closeCampaignSenderDropdown() {
@@ -727,6 +720,14 @@ function focusCampaignSubjectLineIfEmpty() {
   });
 }
 
+function focusCampaignSubjectLine() {
+  if (!campaignSubjectLine) return;
+
+  window.requestAnimationFrame(() => {
+    campaignSubjectLine.focus({ preventScroll: true });
+  });
+}
+
 function syncCampaignSubjectStepFocus({ focusTab = false } = {}) {
   if (!startCampaignModalApi.isOpen()) return;
 
@@ -941,7 +942,12 @@ function getCampaignWizardChromeHeight() {
     + (parseFloat(modalStyles.paddingBottom) || 0);
 
   Array.from(campaignWizardModal.children).forEach((child) => {
-    if (child === campaignStepBody || child === campaignStepViewport || child === campaignEmailPanelTitle) return;
+    if (
+      child === campaignStepBody
+      || child === campaignStepViewport
+      || child === campaignEmailPanelTitle
+      || child === campaignEmailPanelEmpty
+    ) return;
     if (child === campaignReviewChrome) {
       if (CAMPAIGN_STEPS[activeCampaignStepIndex]?.id !== "review") return;
       const inner = child.querySelector(".campaign-review-chrome-inner");
@@ -1209,9 +1215,9 @@ function goToCampaignStep(index, { focusTab = false } = {}) {
   if (isDripCampaign() && CAMPAIGN_STEPS[activeCampaignStepIndex]?.level === "campaign") {
     commitActiveSequenceEmailFields();
   }
-  // Subject and Design live in the sidebar, so stepping into either has to open it.
+  // Subject and Design live in the sidebar, so stepping into either has to show them.
   if (isDripCampaign() && CAMPAIGN_STEPS[index]?.level === "campaign") {
-    setEmailPanelCollapsed(false);
+    setEmailPanelUnselected(false);
   }
   closeCampaignDropdowns();
   closeCampaignLevelDropdown();
@@ -1503,12 +1509,12 @@ function getCampaignSequenceDelayLabel(delayDays) {
   )?.label || "2 days later";
 }
 
-function getCampaignSequenceWaitLabel(waitDays) {
+function getSequenceEngagementThenDays(email) {
   return getCampaignSequenceOption(
-    CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
-    waitDays,
+    CAMPAIGN_SEQUENCE_DELAYS,
+    email?.engagementWaitDays,
     CAMPAIGN_SEQUENCE_DEFAULT_DELAY
-  )?.label || "2 days";
+  )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
 }
 
 function getSequenceTriggerType(email, index = 0) {
@@ -1526,28 +1532,23 @@ function getSequenceEngagementEvent(email) {
   );
 }
 
+function uncapitalize(text) {
+  const value = String(text || "");
+  return value ? value.charAt(0).toLowerCase() + value.slice(1) : "";
+}
+
 function getCampaignSequenceConnectorLabel(email, index) {
   if (index === 0) return "On campaign start";
   if (getSequenceTriggerType(email, index) === CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT) {
     const event = getSequenceEngagementEvent(email);
+    const eventLabel = uncapitalize(event?.label || CAMPAIGN_SEQUENCE_ENGAGEMENT_EVENTS[0].label);
     if (event?.negative) {
-      return `${event.label} after ${getCampaignSequenceWaitLabel(email.engagementWaitDays)}`;
+      const thenLabel = getCampaignSequenceDelayLabel(getSequenceEngagementThenDays(email));
+      return `If recipient ${eventLabel} then ${uncapitalize(thenLabel)}`;
     }
-    return event?.label || CAMPAIGN_SEQUENCE_ENGAGEMENT_EVENTS[0].label;
+    return `If recipient ${eventLabel}`;
   }
   return getCampaignSequenceDelayLabel(email?.delayDays);
-}
-
-function fillCampaignSequenceSelect(select, options, selectedValue) {
-  const selected = getCampaignSequenceOption(options, selectedValue, options[0]?.value);
-  options.forEach((option) => {
-    const optionEl = document.createElement("option");
-    optionEl.value = String(option.value);
-    optionEl.textContent = option.label;
-    if (selected && String(option.value) === String(selected.value)) optionEl.selected = true;
-    select.appendChild(optionEl);
-  });
-  if (selected) select.value = String(selected.value);
 }
 
 function createCampaignSequenceSelectField({
@@ -1558,33 +1559,22 @@ function createCampaignSequenceSelectField({
   disabled = false,
   onChange
 }) {
-  const field = document.createElement("label");
+  const field = document.createElement("div");
   field.className = "campaign-sequence-field";
 
   const labelEl = document.createElement("span");
   labelEl.className = "campaign-sequence-field-label";
   labelEl.textContent = label;
 
-  const control = document.createElement("div");
-  control.className = "campaign-sequence-delay-field";
+  const control = window.WefranchCompactSelect.create({
+    options,
+    value,
+    ariaLabel,
+    disabled,
+    fill: true,
+    onChange
+  });
 
-  const select = document.createElement("select");
-  select.className = "campaign-sequence-delay-select";
-  select.setAttribute("aria-label", ariaLabel);
-  fillCampaignSequenceSelect(select, options, value);
-  if (disabled) {
-    select.disabled = true;
-  } else if (typeof onChange === "function") {
-    select.addEventListener("change", () => onChange(select.value));
-  }
-
-  const chevron = document.createElement("img");
-  chevron.className = "campaign-sequence-delay-chevron";
-  chevron.src = "../../assets/icons/chevron.svg";
-  chevron.alt = "";
-  chevron.setAttribute("aria-hidden", "true");
-
-  control.append(select, chevron);
   field.append(labelEl, control);
   return field;
 }
@@ -1651,80 +1641,15 @@ function discardCampaignSequenceEmails() {
   applySequenceEmailToForm(campaignSequenceEmails[0]);
   campaignSequenceEmails = [];
   activeSequenceEmailIndex = 0;
-  emailPanelCollapsed = false;
+  emailPanelUnselected = false;
 }
 
 function resetCampaignSequence() {
   campaignSequenceEmails = [];
   activeSequenceEmailIndex = 0;
-  emailPanelCollapsed = false;
+  emailPanelUnselected = false;
   nextSequenceEmailId = 1;
   if (campaignSequenceList) campaignSequenceList.replaceChildren();
-}
-
-function shouldReduceCampaignSequenceMotion() {
-  return document.body.classList.contains("reduce-motion")
-    || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-function getCampaignSequenceViewTransitionName(type, emailId) {
-  return `campaign-sequence-${type}-${emailId}`;
-}
-
-function getCampaignSequenceTransitionSelector(pseudo) {
-  return `html.is-campaign-sequence-transitioning .campaign-sequence-panel::${pseudo}`;
-}
-
-function createCampaignSequenceTransitionStyle({ fadeNames = [], blurNames = [], slideNames = [] } = {}) {
-  const style = document.createElement("style");
-  style.dataset.campaignSequenceTransition = "";
-  const rules = [];
-
-  fadeNames.forEach((name) => {
-    const escapedName = CSS.escape(name);
-    rules.push(
-      `${getCampaignSequenceTransitionSelector(`view-transition-old(${escapedName})`)}{animation:campaign-sequence-opacity-out 130ms ease-out both!important}`,
-      `${getCampaignSequenceTransitionSelector(`view-transition-new(${escapedName})`)}{animation:campaign-sequence-opacity-in 180ms ease-out both!important}`
-    );
-  });
-
-  blurNames.forEach((name) => {
-    const escapedName = CSS.escape(name);
-    rules.push(
-      `${getCampaignSequenceTransitionSelector(`view-transition-old(${escapedName})`)}{animation:campaign-sequence-blur-out 130ms ease-out both!important}`,
-      `${getCampaignSequenceTransitionSelector(`view-transition-new(${escapedName})`)}{animation:campaign-sequence-blur-in 180ms ease-out both!important}`
-    );
-  });
-
-  slideNames.forEach((name) => {
-    const escapedName = CSS.escape(name);
-    rules.push(
-      `${getCampaignSequenceTransitionSelector(`view-transition-new(${escapedName})`)}{animation:campaign-sequence-slide-in 250ms cubic-bezier(0.4, 0, 0.2, 1) both!important}`
-    );
-  });
-
-  style.textContent = rules.join("");
-  document.head.appendChild(style);
-  return style;
-}
-
-function getCampaignSequenceTransitionRoot() {
-  if (campaignSequencePanel && typeof campaignSequencePanel.startViewTransition === "function") {
-    return campaignSequencePanel;
-  }
-  return null;
-}
-
-function syncCampaignSequenceDotParallax() {
-  if (!campaignSequencePanel) return;
-
-  if (!isDripSequenceActive() || shouldReduceCampaignSequenceMotion()) {
-    campaignSequencePanel.style.removeProperty("--campaign-sequence-dot-offset");
-    return;
-  }
-
-  const offset = Math.round(-campaignSequencePanel.scrollTop * CAMPAIGN_SEQUENCE_DOT_PARALLAX);
-  campaignSequencePanel.style.setProperty("--campaign-sequence-dot-offset", `${offset}px`);
 }
 
 function revealCampaignSequenceEnd() {
@@ -1736,59 +1661,36 @@ function scrollCampaignSequenceEmailToTop(index) {
   if (!campaignSequencePanel || !campaignSequenceList) return;
   if (!Number.isInteger(index) || index < 0) return;
 
-  const scroll = () => {
-    const item = campaignSequenceList.querySelector(
-      `.campaign-sequence-item[data-sequence-index="${index}"]`
-    );
-    if (!item) return;
+  const item = campaignSequenceList.querySelector(
+    `.campaign-sequence-item[data-sequence-index="${index}"]`
+  );
+  if (!item) return;
 
-    const connector = item.previousElementSibling;
-    const target = connector?.classList.contains("campaign-sequence-connector") ? connector : item;
-    const panel = campaignSequencePanel;
-    const nextScrollTop = panel.scrollTop + target.getBoundingClientRect().top - panel.getBoundingClientRect().top;
-
-    panel.scrollTo({
-      top: Math.max(0, nextScrollTop),
-      behavior: shouldReduceCampaignSequenceMotion() ? "auto" : "smooth"
-    });
-  };
-
-  requestAnimationFrame(scroll);
+  const connector = item.previousElementSibling;
+  const target = connector?.classList.contains("campaign-sequence-connector") ? connector : item;
+  const nextScrollTop = campaignSequencePanel.scrollTop
+    + target.getBoundingClientRect().top
+    - campaignSequencePanel.getBoundingClientRect().top;
+  campaignSequencePanel.scrollTop = Math.max(0, nextScrollTop);
 }
 
-function updateCampaignSequenceWithTransition(update, { fadeNames = [], blurNames = [], slideNames = [] } = {}) {
-  const transitionRoot = getCampaignSequenceTransitionRoot();
-  const canTransition = Boolean(transitionRoot) && !shouldReduceCampaignSequenceMotion();
-
-  if (!canTransition) {
-    update();
-    return;
-  }
-
-  document.documentElement.classList.add("is-campaign-sequence-transitioning");
-  const transitionStyle = createCampaignSequenceTransitionStyle({ fadeNames, blurNames, slideNames });
-  let transition;
-  try {
-    transition = transitionRoot.startViewTransition(update);
-  } catch {
-    document.documentElement.classList.remove("is-campaign-sequence-transitioning");
-    transitionStyle.remove();
-    update();
-    return;
-  }
-
-  transition.finished
-    .catch(() => {})
-    .finally(() => {
-      document.documentElement.classList.remove("is-campaign-sequence-transitioning");
-      transitionStyle.remove();
-    });
-}
-
-function applySequenceItemSubtitle(subtitle, email) {
+function applySequenceItemSubtitle(subtitle, email, index) {
   const subjectLine = String(email?.subjectLine || "").trim();
+  const isPlaceholder = !subjectLine;
   subtitle.textContent = subjectLine || "Add a subject";
-  subtitle.classList.toggle("is-placeholder", !subjectLine);
+  subtitle.classList.toggle("is-placeholder", isPlaceholder);
+  if (isPlaceholder) {
+    subtitle.setAttribute("role", "button");
+    subtitle.tabIndex = 0;
+    subtitle.setAttribute(
+      "aria-label",
+      Number.isInteger(index) ? `Add a subject for email ${index + 1}` : "Add a subject"
+    );
+  } else {
+    subtitle.removeAttribute("role");
+    subtitle.removeAttribute("tabindex");
+    subtitle.removeAttribute("aria-label");
+  }
 }
 
 function renderSequenceList() {
@@ -1802,7 +1704,6 @@ function renderSequenceList() {
     const connector = document.createElement("p");
     connector.className = "campaign-sequence-connector";
     connector.dataset.sequenceEmailId = email.id;
-    connector.style.viewTransitionName = getCampaignSequenceViewTransitionName("connector", email.id);
     connector.textContent = getCampaignSequenceConnectorLabel(email, index);
     campaignSequenceList.appendChild(connector);
 
@@ -1810,7 +1711,6 @@ function renderSequenceList() {
     item.className = "campaign-sequence-item";
     item.dataset.sequenceIndex = String(index);
     item.dataset.sequenceEmailId = email.id;
-    item.style.viewTransitionName = getCampaignSequenceViewTransitionName("item", email.id);
     const isExpanded = email.expanded !== false;
     const isSelected = isSequenceEmailSelected(index);
     if (isSelected) item.classList.add("is-selected");
@@ -1829,18 +1729,33 @@ function renderSequenceList() {
     icon.alt = "";
     icon.setAttribute("aria-hidden", "true");
 
-    const text = document.createElement("span");
-    text.className = "campaign-sequence-item-text";
-
     const title = document.createElement("span");
     title.className = "campaign-sequence-item-title";
-    title.textContent = `Email #${index + 1}`;
+    title.textContent = "Send email";
 
     const subtitle = document.createElement("span");
     subtitle.className = "campaign-sequence-item-subtitle";
-    applySequenceItemSubtitle(subtitle, email);
+    applySequenceItemSubtitle(subtitle, email, index);
+    const openSubjectFromSubtitle = (event) => {
+      if (!subtitle.classList.contains("is-placeholder")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openSequenceEmailSubject(index);
+    };
+    subtitle.addEventListener("click", openSubjectFromSubtitle);
+    subtitle.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      openSubjectFromSubtitle(event);
+    });
 
-    text.append(title, subtitle);
+    const text = document.createElement("div");
+    text.className = "campaign-sequence-item-text";
+    summary.appendChild(title);
+    text.append(summary, subtitle);
+
+    const lead = document.createElement("div");
+    lead.className = "campaign-sequence-item-lead";
+    lead.append(icon, text);
 
     const toggle = document.createElement("button");
     toggle.className = "campaign-sequence-item-toggle";
@@ -1858,8 +1773,6 @@ function renderSequenceList() {
       toggleSequenceEmailExpanded(index);
     });
 
-    summary.append(icon, text);
-
     item.addEventListener("click", (event) => {
       if (
         event.target.closest(
@@ -1868,8 +1781,14 @@ function renderSequenceList() {
       ) {
         return;
       }
+      if (event.target.closest(".campaign-sequence-item-subtitle.is-placeholder")) {
+        event.preventDefault();
+        event.stopPropagation();
+        openSequenceEmailSubject(index);
+        return;
+      }
       if (isSequenceEmailSelected(index)) {
-        setEmailPanelCollapsed(true);
+        setEmailPanelUnselected(true);
         return;
       }
       selectSequenceEmail(index);
@@ -1877,7 +1796,7 @@ function renderSequenceList() {
 
     const header = document.createElement("div");
     header.className = "campaign-sequence-item-header";
-    header.appendChild(summary);
+    header.appendChild(lead);
 
     if (index > 0) {
       const deleteBtn = document.createElement("button");
@@ -1904,7 +1823,6 @@ function renderSequenceList() {
       const isFirstEmail = index === 0;
       const detail = document.createElement("div");
       detail.className = "campaign-sequence-item-detail";
-      detail.style.viewTransitionName = getCampaignSequenceViewTransitionName("detail", email.id);
       const triggerType = getSequenceTriggerType(email, index);
 
       detail.appendChild(createCampaignSequenceSelectField({
@@ -1930,10 +1848,10 @@ function renderSequenceList() {
 
         if (engagement.negative) {
           detail.appendChild(createCampaignSequenceSelectField({
-            label: "After",
-            ariaLabel: `Wait window for email ${index + 1}`,
-            options: CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
-            value: email.engagementWaitDays,
+            label: "Then",
+            ariaLabel: `Then send email ${index + 1}`,
+            options: CAMPAIGN_SEQUENCE_DELAYS,
+            value: getSequenceEngagementThenDays(email),
             onChange: (value) => updateSequenceEmailEngagementWait(index, Number(value))
           }));
         }
@@ -1955,23 +1873,21 @@ function renderSequenceList() {
   });
 }
 
-function refreshCampaignSequenceList(transitionOptions = {}) {
-  updateCampaignSequenceWithTransition(() => {
-    if (campaignReviewValidated) {
-      showCampaignValidationErrors(getCampaignStepErrors(activeCampaignStepIndex));
-      return;
-    }
+function refreshCampaignSequenceList() {
+  if (campaignReviewValidated) {
+    showCampaignValidationErrors(getCampaignStepErrors(activeCampaignStepIndex));
+    return;
+  }
 
-    renderSequenceList();
-    syncCampaignStepHeight();
-  }, transitionOptions);
+  renderSequenceList();
+  syncCampaignStepHeight();
 }
 
 function selectSequenceEmail(index) {
   if (!Number.isInteger(index) || index < 0 || index >= campaignSequenceEmails.length) return;
 
   const sameEmail = index === activeSequenceEmailIndex;
-  if (sameEmail && !emailPanelCollapsed) return;
+  if (sameEmail && !emailPanelUnselected) return;
 
   if (!sameEmail) {
     commitActiveSequenceEmailFields();
@@ -1980,16 +1896,44 @@ function selectSequenceEmail(index) {
     syncCampaignEmailPanelTitle();
   }
 
-  // Reopening the sidebar animates the modal width, so let setEmailPanelCollapsed
-  // patch the cards in place instead of running a view transition over it.
-  if (emailPanelCollapsed) {
-    setEmailPanelCollapsed(false);
+  if (emailPanelUnselected) {
+    setEmailPanelUnselected(false);
     scrollCampaignSequenceEmailToTop(index);
     return;
   }
 
   refreshCampaignSequenceList();
   scrollCampaignSequenceEmailToTop(index);
+}
+
+function openSequenceEmailSubject(index) {
+  if (!Number.isInteger(index) || index < 0 || index >= campaignSequenceEmails.length) return;
+
+  if (index !== activeSequenceEmailIndex) {
+    commitActiveSequenceEmailFields();
+    activeSequenceEmailIndex = index;
+    applySequenceEmailToForm(campaignSequenceEmails[index]);
+    syncCampaignEmailPanelTitle();
+  }
+
+  if (emailPanelUnselected) {
+    setEmailPanelUnselected(false);
+  }
+
+  refreshCampaignSequenceList();
+  scrollCampaignSequenceEmailToTop(index);
+
+  const stepChanging = activeCampaignStepIndex !== CAMPAIGN_SUBJECT_STEP_INDEX;
+  if (stepChanging) {
+    goToCampaignStep(CAMPAIGN_SUBJECT_STEP_INDEX);
+  }
+
+  const focusSubject = () => focusCampaignSubjectLine();
+  if (stepChanging && !document.body.classList.contains("reduce-motion")) {
+    window.setTimeout(focusSubject, CAMPAIGN_STEP_TRANSITION_MS);
+  } else {
+    focusSubject();
+  }
 }
 
 function toggleSequenceEmailExpanded(index) {
@@ -2005,9 +1949,7 @@ function toggleSequenceEmailExpanded(index) {
   }
 
   email.expanded = !(email.expanded !== false);
-  refreshCampaignSequenceList({
-    fadeNames: [getCampaignSequenceViewTransitionName("detail", email.id)]
-  });
+  refreshCampaignSequenceList();
 }
 
 function addSequenceEmail() {
@@ -2022,59 +1964,24 @@ function addSequenceEmail() {
 
   activeSequenceEmailIndex = campaignSequenceEmails.length - 1;
   applySequenceEmailToForm(email);
-
-  // A new email always opens the sidebar. When that means resizing the modal,
-  // skip the view transition so it doesn't snapshot over the resize.
-  const reopening = emailPanelCollapsed;
-  emailPanelCollapsed = false;
-  syncEmailPanelChrome();
-
-  const update = () => {
-    renderSequenceList();
-    syncCampaignStepHeight();
-    revealCampaignSequenceEnd();
-  };
-
-  if (reopening) {
-    update();
-    return;
-  }
-
-  updateCampaignSequenceWithTransition(update, {
-    slideNames: [
-      getCampaignSequenceViewTransitionName("connector", email.id),
-      getCampaignSequenceViewTransitionName("item", email.id),
-      getCampaignSequenceViewTransitionName("detail", email.id)
-    ]
-  });
+  setEmailPanelUnselected(false);
+  renderSequenceList();
+  syncCampaignStepHeight();
+  revealCampaignSequenceEnd();
 }
 
 function deleteSequenceEmail(index) {
   if (index <= 0 || campaignSequenceEmails.length <= 1) return;
 
   commitActiveSequenceEmailFields();
-  const deletedEmailId = campaignSequenceEmails[index].id;
   campaignSequenceEmails.splice(index, 1);
   campaignSequenceEmails[0].delayDays = null;
   campaignSequenceEmails[0].triggerType = CAMPAIGN_SEQUENCE_TRIGGER_TIME;
 
   activeSequenceEmailIndex = Math.min(index, campaignSequenceEmails.length - 1);
   applySequenceEmailToForm(campaignSequenceEmails[activeSequenceEmailIndex]);
-  const blurNames = [
-    getCampaignSequenceViewTransitionName("connector", deletedEmailId),
-    getCampaignSequenceViewTransitionName("item", deletedEmailId),
-    getCampaignSequenceViewTransitionName("detail", deletedEmailId)
-  ];
-  const fadeNames = [
-    getCampaignSequenceViewTransitionName(
-      "detail",
-      campaignSequenceEmails[activeSequenceEmailIndex].id
-    )
-  ];
-  updateCampaignSequenceWithTransition(() => {
-    renderSequenceList();
-    syncCampaignStepHeight();
-  }, { fadeNames, blurNames });
+  renderSequenceList();
+  syncCampaignStepHeight();
 }
 
 function refreshSequenceEmailFields() {
@@ -2105,11 +2012,7 @@ function updateSequenceEmailTrigger(index, triggerType) {
 
   if (email.triggerType === CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT) {
     email.engagementEvent = getSequenceEngagementEvent(email).value;
-    email.engagementWaitDays = getCampaignSequenceOption(
-      CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
-      email.engagementWaitDays,
-      CAMPAIGN_SEQUENCE_DEFAULT_DELAY
-    )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
+    email.engagementWaitDays = getSequenceEngagementThenDays(email);
   } else {
     email.delayDays = getCampaignSequenceOption(
       CAMPAIGN_SEQUENCE_DELAYS,
@@ -2132,11 +2035,7 @@ function updateSequenceEmailEngagement(index, engagementEvent) {
     "opens"
   )?.value || "opens";
   if (getSequenceEngagementEvent(email).negative) {
-    email.engagementWaitDays = getCampaignSequenceOption(
-      CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
-      email.engagementWaitDays,
-      CAMPAIGN_SEQUENCE_DEFAULT_DELAY
-    )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
+    email.engagementWaitDays = getSequenceEngagementThenDays(email);
   }
   refreshSequenceEmailFields();
 }
@@ -2147,7 +2046,7 @@ function updateSequenceEmailEngagementWait(index, waitDays) {
 
   email.triggerType = CAMPAIGN_SEQUENCE_TRIGGER_ENGAGEMENT;
   email.engagementWaitDays = getCampaignSequenceOption(
-    CAMPAIGN_SEQUENCE_WAIT_WINDOWS,
+    CAMPAIGN_SEQUENCE_DELAYS,
     waitDays,
     CAMPAIGN_SEQUENCE_DEFAULT_DELAY
   )?.value ?? CAMPAIGN_SEQUENCE_DEFAULT_DELAY;
@@ -2261,23 +2160,29 @@ function closeCampaignDiscardConfirm() {
 
 function syncCampaignEmailPanelTitle() {
   if (!campaignEmailPanelTitle) return;
-  campaignEmailPanelTitle.textContent = `Email #${activeSequenceEmailIndex + 1}`;
+  campaignEmailPanelTitle.textContent = "Edit email";
 }
 
 function isSequenceEmailSelected(index) {
-  return !emailPanelCollapsed && index === activeSequenceEmailIndex;
+  return !emailPanelUnselected && index === activeSequenceEmailIndex;
 }
 
 function syncEmailPanelChrome() {
-  const collapsed = emailPanelCollapsed && isDripSequenceActive();
-  campaignWizardModal?.classList.toggle("is-email-panel-collapsed", collapsed);
-  if (campaignStepViewport) campaignStepViewport.inert = collapsed;
-  if (campaignStepTabs) campaignStepTabs.inert = collapsed;
+  const unselected = emailPanelUnselected && isDripSequenceActive();
+  campaignWizardModal?.classList.toggle("is-email-unselected", unselected);
+  if (campaignEmailPanelEmpty) campaignEmailPanelEmpty.hidden = !unselected;
+  if (campaignStepViewport) campaignStepViewport.inert = unselected;
+
+  if (campaignStepTabs) {
+    if (isDripSequenceActive()) {
+      campaignStepTabs.hidden = unselected;
+      campaignStepTabs.inert = unselected;
+    } else {
+      campaignStepTabs.inert = false;
+    }
+  }
 }
 
-/* Selection and subject changes are applied to the existing cards rather than
-   re-rendering, so the card's own transitions survive and, when the sidebar is
-   opening or closing, nothing competes with the modal resize. */
 function syncSequenceItemChrome() {
   campaignSequenceList?.querySelectorAll(".campaign-sequence-item").forEach((item) => {
     const index = Number(item.dataset.sequenceIndex);
@@ -2296,15 +2201,15 @@ function syncSequenceItemChrome() {
     if (!hasError) item.classList.remove("is-error");
 
     const subtitle = item.querySelector(".campaign-sequence-item-subtitle");
-    if (subtitle) applySequenceItemSubtitle(subtitle, email);
+    if (subtitle) applySequenceItemSubtitle(subtitle, email, index);
   });
 }
 
-function setEmailPanelCollapsed(collapsed) {
-  if (emailPanelCollapsed === collapsed) return;
+function setEmailPanelUnselected(unselected) {
+  if (emailPanelUnselected === unselected) return;
 
-  if (collapsed) commitActiveSequenceEmailFields();
-  emailPanelCollapsed = collapsed;
+  if (unselected) commitActiveSequenceEmailFields();
+  emailPanelUnselected = unselected;
   syncEmailPanelChrome();
   syncSequenceItemChrome();
   syncCampaignStepHeight();
@@ -2330,11 +2235,8 @@ function syncDripSequenceChrome() {
     if (campaignStepBody) campaignStepBody.style.height = "";
     ensureCampaignSequenceEmails();
     renderSequenceList();
-    syncCampaignSequenceDotParallax();
     return;
   }
-
-  syncCampaignSequenceDotParallax();
 
   if (campaignSequenceList && !isDripCampaign()) {
     campaignSequenceList.replaceChildren();
@@ -2858,9 +2760,12 @@ campaignTypeSwitchLink?.addEventListener("click", (event) => {
   setCampaignType("drip");
 });
 
-campaignSequencePanel?.addEventListener("scroll", syncCampaignSequenceDotParallax, { passive: true });
-
 campaignSequenceAddBtn?.addEventListener("click", (event) => {
+  event.preventDefault();
+  addSequenceEmail();
+});
+
+document.getElementById("campaignEmailPanelAddLink")?.addEventListener("click", (event) => {
   event.preventDefault();
   addSequenceEmail();
 });

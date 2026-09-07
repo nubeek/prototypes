@@ -19,9 +19,11 @@
   const tableWrap = document.getElementById("tableWrap");
   const tableBody = document.getElementById("leadsTableBody");
   const tableEmptyState = document.getElementById("tableEmptyState");
+  const tableEmptyStateCopy = document.getElementById("tableEmptyStateCopy");
   const tableEmptyStateMessage = document.getElementById("tableEmptyStateMessage");
-  const tableEmptyStateAction = document.getElementById("tableEmptyStateAction");
+  const tableEmptyStateActions = document.getElementById("tableEmptyStateActions");
   const tableEmptyStateClear = document.getElementById("tableEmptyStateClear");
+  const tableEmptyStateAddDropdown = document.getElementById("tableEmptyStateAddDropdown");
   const tableHeadingSummary = document.getElementById("tableHeadingSummary");
   const toolbarSearchInput = document.getElementById("toolbarSearchInput");
   const toolbarSearchClear = document.getElementById("toolbarSearchClear");
@@ -398,20 +400,12 @@
     if (!isEmpty) return;
 
     const hasFilters = Boolean(searchQuery) || getAppliedFilterCount() > 0;
-    if (totalCount === 0) {
-      if (tableEmptyStateMessage) {
-        tableEmptyStateMessage.textContent = "No leads yet. Save a contact as a lead from Prospects to see them here.";
-      }
-      if (tableEmptyStateAction) tableEmptyStateAction.hidden = false;
-      if (tableEmptyStateClear) tableEmptyStateClear.hidden = true;
-      return;
-    }
-
-    if (tableEmptyStateMessage) {
-      tableEmptyStateMessage.textContent = "We couldn't find anything matching your search.";
-    }
-    if (tableEmptyStateAction) tableEmptyStateAction.hidden = true;
-    if (tableEmptyStateClear) tableEmptyStateClear.hidden = !hasFilters;
+    const isFreshEmpty = totalCount === 0;
+    if (tableEmptyStateCopy) tableEmptyStateCopy.hidden = !isFreshEmpty;
+    if (tableEmptyStateMessage) tableEmptyStateMessage.hidden = isFreshEmpty;
+    if (tableEmptyStateActions) tableEmptyStateActions.hidden = !isFreshEmpty;
+    if (tableEmptyStateClear) tableEmptyStateClear.hidden = isFreshEmpty || !hasFilters;
+    if (!isFreshEmpty) tableEmptyStateAddDropdown?.removeAttribute("open");
   }
 
   function syncSummaries(visibleCount, totalCount) {
@@ -650,6 +644,88 @@
     return next;
   }
 
+  function normalizeCsvHeader(value) {
+    return String(value || "").trim().toLowerCase().replace(/[\s_-]+/g, " ");
+  }
+
+  function parseCsvRows(text) {
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+
+    for (let index = 0; index < text.length; index += 1) {
+      const char = text[index];
+      const next = text[index + 1];
+      if (char === '"' && inQuotes && next === '"') {
+        field += '"';
+        index += 1;
+        continue;
+      }
+      if (char === '"') {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (char === "," && !inQuotes) {
+        row.push(field);
+        field = "";
+        continue;
+      }
+      if ((char === "\n" || char === "\r") && !inQuotes) {
+        if (char === "\r" && next === "\n") index += 1;
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = "";
+        continue;
+      }
+      field += char;
+    }
+
+    if (field || row.length) {
+      row.push(field);
+      rows.push(row);
+    }
+
+    return rows.filter((cells) => cells.some((cell) => String(cell).trim()));
+  }
+
+  function recordFromCsvRow(headers, cells) {
+    const values = {};
+    headers.forEach((header, index) => {
+      const value = String(cells[index] || "").trim();
+      if (!value) return;
+      if (["name", "full name", "lead name"].includes(header)) values.name = value;
+      else if (["first name", "firstname", "first"].includes(header)) values.firstName = value;
+      else if (["last name", "lastname", "surname", "last"].includes(header)) values.surname = value;
+      else if (["email", "e mail", "e-mail"].includes(header)) values.email = value;
+      else if (["phone", "telephone", "mobile"].includes(header)) values.phone = value;
+      else if (["franchise", "franchises", "brand"].includes(header)) values.franchise = value;
+      else if (header === "list") values.list = value;
+      else if (["stage", "status"].includes(header)) values.stage = value;
+      else if (["location", "city"].includes(header)) values.location = value;
+      else if (["note", "notes"].includes(header)) values.note = value;
+    });
+
+    if (!values.name && (values.firstName || values.surname)) {
+      values.name = [values.firstName, values.surname].filter(Boolean).join(" ");
+    }
+
+    if (!values.name && !values.email) return null;
+    return { ...values, source: "manual" };
+  }
+
+  function importCsv(text) {
+    const rows = parseCsvRows(text);
+    if (rows.length < 2) return 0;
+
+    const headers = rows[0].map(normalizeCsvHeader);
+    const records = rows.slice(1).map((cells) => recordFromCsvRow(headers, cells)).filter(Boolean);
+    records.forEach((record) => store.upsert(record));
+    if (records.length) refresh();
+    return records.length;
+  }
+
   function clearFilters() {
     selectedStages = [];
     selectedLists = [];
@@ -710,6 +786,7 @@
     updateLead,
     removeLead,
     addLead,
+    importCsv,
     clearFilters,
     clearSectionFilters,
     setFilterPanelOpen,

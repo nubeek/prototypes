@@ -191,6 +191,15 @@ body.reduce-motion .target-modal.is-resizing {
   padding-right: var(--proto-modal-padding-right, 32px);
 }
 
+/* Fixed modal chrome shares the body's content edge while the body's native
+   scrollbar remains at the panel edge. max-width keeps feature rows that use
+   width: 100% (tabs, progress, custom headers) inside the right inset. */
+.proto-modal-inset {
+  width: 100%;
+  max-width: calc(100% - var(--proto-modal-padding-right, 32px));
+  margin-right: var(--proto-modal-padding-right, 32px);
+}
+
 .proto-modal-header,
 .target-modal-header {
   display: flex;
@@ -871,7 +880,8 @@ body.reduce-motion .target-modal.is-resizing {
 }
 
 /* Compact confirmation dialog. Overlay color/opacity come from .proto-modal-overlay.
-   Nest with .is-nested so it covers a host panel instead of the viewport. */
+   Nest with .is-nested so it covers a host panel instead of the viewport.
+   Even padding — not the form-modal gutter (padding-right: 0 + child margin-right). */
 .proto-confirm-overlay,
 .proto-confirm-overlay.is-nested {
   backdrop-filter: none;
@@ -879,16 +889,30 @@ body.reduce-motion .target-modal.is-resizing {
 
 .proto-confirm-overlay.is-nested {
   position: absolute;
+  inset: 0;
   z-index: 50;
+  overflow: hidden;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
 }
 
 .proto-confirm {
+  --proto-modal-padding-top: 24px;
+  --proto-modal-padding-right: 24px;
+  --proto-modal-padding-bottom: 24px;
+  --proto-modal-padding-left: 24px;
   width: 360px;
   max-width: 100%;
   max-height: 100%;
   height: auto;
   padding: 24px;
   border-radius: 16px;
+  overflow: hidden;
+}
+
+.proto-confirm > * {
+  flex: 0 0 auto;
+  max-width: 100%;
 }
 
 .proto-confirm-title,
@@ -902,6 +926,7 @@ body.reduce-motion .target-modal.is-resizing {
 
 .proto-confirm-body {
   margin: 0;
+  overflow: visible;
 }
 
 .proto-confirm-body strong {
@@ -909,10 +934,12 @@ body.reduce-motion .target-modal.is-resizing {
 }
 
 .proto-confirm-actions {
+  width: 100%;
   margin-top: 24px;
+  margin-right: 0;
   flex-direction: row;
   align-items: stretch;
-  justify-content: stretch;
+  justify-content: flex-start;
   gap: 8px;
 }
 
@@ -922,4 +949,22 @@ body.reduce-motion .target-modal.is-resizing {
   flex: 1 1 0;
   width: auto;
   min-width: 0;
+}
+
+/* Host scrollbars sit under a nested overlay (no backdrop-filter). Hide them
+   so they cannot paint through the confirm card. */
+.proto-modal:has(> .proto-confirm-overlay.is-open) :is(
+  .proto-modal-body,
+  .target-modal-body,
+  .profile-modal-body,
+  .campaign-sequence-panel,
+  .campaign-design-preview:not(.is-empty),
+  .proto-scrollbar
+),
+.profile-modal:has(> .proto-confirm-overlay.is-open) :is(
+  .proto-modal-body,
+  .profile-modal-body,
+  .proto-scrollbar
+) {
+  overflow: hidden;
 }

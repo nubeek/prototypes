@@ -328,7 +328,7 @@
                 <div class="cst-splash__grid" id="cstSplashPublicGrid" data-splash-grid="public"></div>
               </section>
             </div>
-            <div class="cst-splash__saved-empty" id="cstSplashSavedEmpty" role="status" hidden></div>
+            <div class="empty-state empty-state--fill" id="cstSplashSavedEmpty" role="status" hidden></div>
           </div>
         </section>
       </div>
@@ -746,11 +746,9 @@
           </thead>
           <tbody id="franchiseesTableBody"></tbody>
         </table>
-        <div class="table-empty-state" id="tableEmptyState" role="status" hidden>
-          <div class="table-empty-state__content">
-            <p class="table-empty-state__message">We couldn't find anything matching your search.</p>
-            <button class="ui-control ui-link table-empty-state__action" id="tableEmptyStateClear" type="button">Try different search</button>
-          </div>
+        <div class="empty-state empty-state--overlay" id="tableEmptyState" role="status" hidden>
+          <p class="empty-state__message">We couldn't find anything matching your search.</p>
+          <button class="empty-state__action ui-text-button" id="tableEmptyStateClear" type="button">Try different search</button>
         </div>
           </div>
         </div>
@@ -1008,7 +1006,7 @@
         </div>
       </div>
 
-      <div class="campaign-step-tabs" id="campaignSettingsStepTabs" role="tablist" aria-label="Settings steps">
+      <div class="campaign-step-tabs proto-modal-inset" id="campaignSettingsStepTabs" role="tablist" aria-label="Settings steps">
         <button class="ui-control ui-button-ghost campaign-step-tab is-active" id="campaignStepTabCampaign" type="button" role="tab" aria-selected="true" aria-controls="campaignSettingsModalForm" data-campaign-step="campaign">Campaign</button>
         <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabSender" type="button" role="tab" aria-selected="false" aria-controls="campaignSenderModalForm" data-campaign-step="sender">Sender</button>
@@ -1016,21 +1014,29 @@
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabRecipients" type="button" role="tab" aria-selected="false" aria-controls="startCampaignModalForm" data-campaign-step="recipients">Recipients</button>
       </div>
 
-      <p class="campaign-email-panel-title" id="campaignEmailPanelTitle" hidden>Email</p>
+      <p class="campaign-email-panel-title proto-modal-inset" id="campaignEmailPanelTitle" hidden>Edit email</p>
 
-      <div class="campaign-step-tabs" id="campaignStepTabs" role="tablist" aria-label="Campaign steps" hidden>
+      <div class="campaign-step-tabs proto-modal-inset" id="campaignStepTabs" role="tablist" aria-label="Campaign steps" hidden>
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabSubject" type="button" role="tab" aria-selected="false" aria-controls="campaignSubjectModalForm" data-campaign-step="subject">Subject</button>
         <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabDesign" type="button" role="tab" aria-selected="false" aria-controls="campaignDesignModalForm" data-campaign-step="design">Design</button>
       </div>
 
-      <div class="campaign-step-tabs" id="campaignReviewStepTabs" role="tablist" aria-label="Review steps" hidden>
+      <div class="empty-state empty-state--compact proto-modal-inset" id="campaignEmailPanelEmpty" role="status" hidden>
+        <p class="empty-state__actions">
+          Select an email to edit, or
+          <button class="empty-state__action ui-text-button" id="campaignEmailPanelAddLink" type="button">add another</button>
+          to the sequence.
+        </p>
+      </div>
+
+      <div class="campaign-step-tabs proto-modal-inset" id="campaignReviewStepTabs" role="tablist" aria-label="Review steps" hidden>
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabReview" type="button" role="tab" aria-selected="false" aria-controls="reviewCampaignModalForm" data-campaign-step="review">Review</button>
         <span class="campaign-step-tab-separator" aria-hidden="true">/</span>
         <button class="ui-control ui-button-ghost campaign-step-tab" id="campaignStepTabSchedule" type="button" role="tab" aria-selected="false" aria-controls="scheduleCampaignModalForm" data-campaign-step="schedule">Schedule</button>
       </div>
 
-      <div class="campaign-review-chrome is-collapsed" id="campaignReviewChrome" inert aria-hidden="true">
+      <div class="campaign-review-chrome proto-modal-inset is-collapsed" id="campaignReviewChrome" inert aria-hidden="true">
         <div class="campaign-review-chrome-inner">
         <div class="proto-modal-field">
           <span>Campaign</span>
@@ -1062,11 +1068,13 @@
       </div>
 
       <div class="campaign-step-body" id="campaignStepBody">
-        <aside class="campaign-sequence-panel" id="campaignSequencePanel" hidden>
-          <div class="campaign-sequence-list" id="campaignSequenceList"></div>
-          <button class="campaign-sequence-add" id="campaignSequenceAddBtn" type="button" aria-label="Add email">
-            <img src="../../assets/icons/add.svg" alt="" aria-hidden="true">
-          </button>
+        <aside class="campaign-sequence-panel proto-scrollbar" id="campaignSequencePanel" hidden>
+          <div class="campaign-sequence-stage" id="campaignSequenceStage">
+            <div class="campaign-sequence-list" id="campaignSequenceList"></div>
+            <button class="campaign-sequence-add" id="campaignSequenceAddBtn" type="button" aria-label="Add email">
+              <img src="../../assets/icons/add.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
         </aside>
         <div class="campaign-step-viewport" id="campaignStepViewport">
         <form class="proto-modal-form campaign-step-panel is-active" id="campaignSettingsModalForm" role="tabpanel" aria-labelledby="campaignStepTabCampaign" data-campaign-step="campaign" novalidate>
@@ -1333,6 +1341,7 @@
   <script src="../shared/filter/radius-control.js"></script>
   <script src="../shared/ui/proto-field-captions.js"></script>
   <script src="../shared/ui/proto-field-error.js"></script>
+  <script src="../shared/ui/compact-select.js"></script>
   <script src="../shared/ui/proto-modal.js"></script>
   <script src="../shared/ui/proto-confirm-modal.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>

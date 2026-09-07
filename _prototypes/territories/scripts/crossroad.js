@@ -2417,8 +2417,14 @@ function applyCrossroadPresetVisibility() {
   });
 
   if (emptyState) {
-    emptyState.textContent = CROSSROAD_PRESET_EMPTY_MESSAGES[activeScope]
+    const messageEl = emptyState.querySelector(".empty-state__message");
+    const message = CROSSROAD_PRESET_EMPTY_MESSAGES[activeScope]
       || CROSSROAD_PRESET_EMPTY_MESSAGES.all;
+    if (messageEl) {
+      messageEl.textContent = message;
+    } else {
+      emptyState.textContent = message;
+    }
     emptyState.hidden = totalVisible > 0;
   }
 }

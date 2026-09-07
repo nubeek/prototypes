@@ -213,12 +213,26 @@
                 </thead>
                 <tbody id="leadsTableBody"></tbody>
               </table>
-              <div class="table-empty-state" id="tableEmptyState" role="status" hidden>
-                <div class="table-empty-state__content">
-                  <p class="table-empty-state__message" id="tableEmptyStateMessage">No leads yet. Save a contact as a lead from Prospects to see them here.</p>
-                  <a class="ui-control ui-link table-empty-state__action" id="tableEmptyStateAction" href="../cst/">Open Prospects</a>
-                  <button class="ui-control ui-link table-empty-state__action" id="tableEmptyStateClear" type="button" hidden>Clear filters</button>
+              <div class="empty-state empty-state--overlay" id="tableEmptyState" role="status" hidden>
+                <p class="empty-state__message" id="tableEmptyStateCopy">Add leads from Prospects, enter them manually, or import a CSV.</p>
+                <p class="empty-state__message" id="tableEmptyStateMessage" hidden>We couldn't find anything matching your search.</p>
+                <div class="empty-state__actions" id="tableEmptyStateActions">
+                  <a class="empty-state__action ui-text-button" id="tableEmptyStateAction" href="../cst/">Go to prospects</a>
+                  or
+                  <details class="toolbar-dropdown empty-state__dropdown" id="tableEmptyStateAddDropdown">
+                    <summary class="empty-state__action ui-text-button">add leads manually</summary>
+                    <div class="ui-menu toolbar-dropdown-menu empty-state__menu" role="menu" aria-label="Add leads">
+                      <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="tableEmptyStateAddManual" type="button" role="menuitem">
+                        <span class="toolbar-dropdown-label">Add manually</span>
+                      </button>
+                      <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="tableEmptyStateImportCsv" type="button" role="menuitem">
+                        <span class="toolbar-dropdown-label">Import CSV</span>
+                      </button>
+                    </div>
+                  </details>
                 </div>
+                <button class="empty-state__action ui-text-button" id="tableEmptyStateClear" type="button" hidden>Clear filters</button>
+                <input id="leadImportCsvInput" type="file" accept=".csv,text/csv" hidden>
               </div>
             </div>
           </div>

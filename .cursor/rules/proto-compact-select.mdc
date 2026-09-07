@@ -1,0 +1,17 @@
+---
+description: Use the shared compact 32px dropdown instead of one-off short selects
+globs: _prototypes/**
+alwaysApply: false
+---
+
+# Prototype compact selects
+
+Short native dropdowns (32px, value + chevron) use `_prototypes/shared/ui/compact-select.css`. Import it from the page stylesheet. Create them with `WefranchCompactSelect.create()` when building in JS. Do not copy table-select or sequence-delay select styles into a feature.
+
+- Markup: `.compact-select` + `.compact-select__value` + `select.compact-select__native` + chevron `img`.
+- Stretch a grid or form cell with `.compact-select--fill`.
+- Unique options and labels stay in the feature. Height, padding, hover, and focus chrome do not.
+- Default `.compact-select` uses the large-dropdown gray / hover / white+brand focus treatment.
+- Sequence cards may set a white rest fill and half-white disabled fill on `.campaign-sequence-item .compact-select`. Do not change the shared default.
+- Leads table markup keeps `.table-select-field` / `.table-select` for the ghost/transparent table look. Do not put those table classes on new compact selects.
+- Stage-colored Leads chips stay as `.table-stage-field` in the feature sheet.

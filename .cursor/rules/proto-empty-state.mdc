@@ -1,0 +1,17 @@
+---
+description: Use the shared empty-state for empty screens and no-results copy
+globs: _prototypes/**
+alwaysApply: false
+---
+
+# Prototype empty states
+
+Centered empty-tab, empty-table, and no-results messages use `_prototypes/shared/ui/empty-state.css`. Import it from the page stylesheet. Do not copy splash or table empty styles into a feature.
+
+- Markup: `.empty-state` + `.empty-state__message` + optional `.empty-state__action.ui-text-button`.
+- Two-line copy can use a `<br>` in the message. Inline action sentences use `.empty-state__actions`.
+- Cover a table with `.empty-state--overlay`. Fill a splash/tab flex parent with `.empty-state--fill`.
+- Narrow sidebars use `.empty-state--compact` (16px). Do not override type in a feature sheet.
+- The action is a text button or link (bold brand, no underline). Not `.ui-link`.
+- Unique copy stays in the feature. Shared type, color, gap, and alignment do not.
+- Combobox/dropdown "No results found" rows and missing field dashes stay as they are.

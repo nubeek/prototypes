@@ -1,0 +1,38 @@
+/* Shared brand links (.ui-link). Underline appears on hover/focus; press
+   strengthens it. Import from the page stylesheet. Do not copy these rules
+   into a feature sheet. */
+
+:root {
+  --ui-link-underline-opacity-hover: 30%;
+  --ui-link-underline-opacity-active: 100%;
+}
+
+.ui-link,
+.ui-control.ui-link {
+  color: var(--color-brand);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 160ms ease-in-out;
+}
+
+.ui-link:hover,
+.ui-link:focus-visible,
+.ui-control.ui-link:hover,
+.ui-control.ui-link:focus-visible {
+  text-decoration-color: color-mix(
+    in srgb,
+    currentColor var(--ui-link-underline-opacity-hover),
+    transparent
+  );
+}
+
+.ui-link:active,
+.ui-control.ui-link:active {
+  text-decoration-color: color-mix(
+    in srgb,
+    currentColor var(--ui-link-underline-opacity-active),
+    transparent
+  );
+}

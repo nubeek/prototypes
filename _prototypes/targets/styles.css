@@ -1,5 +1,6 @@
 @import url("../shared/ui/proto-tokens.css");
 @import url("../shared/ui/dropdown-menu.css");
+@import url("../shared/ui/ui-link.css");
 
 * { box-sizing: border-box; }
 
@@ -82,16 +83,6 @@
 
 .ui-button-ghost:active {
   background: var(--color-surface-control-active);
-}
-
-.ui-link {
-  color: var(--color-brand);
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.ui-link:hover {
-  text-decoration: underline;
 }
 
 .ui-ellipsis {

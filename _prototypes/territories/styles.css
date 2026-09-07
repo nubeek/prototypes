@@ -2314,12 +2314,12 @@ a.territory-info-card__action.is-disabled {
   padding-bottom: 32px;
 }
 
-.territory-crossroad__popular-scroll:has(> .territory-crossroad__popular-empty:not([hidden])) {
+.territory-crossroad__popular-scroll:has(> .empty-state:not([hidden])) {
   padding-top: 0;
   padding-bottom: 0;
 }
 
-.territory-crossroad__popular-scroll:has(> .territory-crossroad__popular-empty:not([hidden])) .territory-crossroad__scope-stack {
+.territory-crossroad__popular-scroll:has(> .empty-state:not([hidden])) .territory-crossroad__scope-stack {
   display: none;
 }
 
@@ -2377,23 +2377,6 @@ a.territory-info-card__action.is-disabled {
   background: var(--color-border);
 }
 
-.territory-crossroad__popular-empty {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  max-width: 600px;
-  color: var(--color-text-muted);
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 1.35;
-  text-align: center;
-}
-
-.territory-crossroad__popular-empty[hidden] {
-  display: none;
-}
 
 .territory-crossroad:has(.territory-crossroad__search.is-suggestions-open) {
   overflow: visible;

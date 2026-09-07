@@ -175,6 +175,8 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   const GENERAL_SETTING_ID = "general";
   const SCREENSHOT_SETTING_ID = "screenshot";
   const SCREENSHOT_TAKE_SETTING_ID = "take-screenshot";
+  const SCREENSHOT_SCALE_SETTING_ID = "screenshot-2x";
+  const SCREENSHOT_SCALE_STORAGE_KEY = "wefranch:screenshot-2x";
   const SCREENSHOT_BACKGROUND_SETTING_ID = "screenshot-background";
   const SCREENSHOT_BACKGROUND_STORAGE_KEY = "wefranch:screenshot-background";
   const SCREENSHOT_TRANSPARENT_SETTING_ID = "screenshot-transparent";
@@ -1105,6 +1107,22 @@ iframe[data-proto-nav-shell].is-fading {
     header.setAttribute("aria-hidden", String(!visible));
   };
 
+  const isScreenshot2xEnabled = () => {
+    try {
+      return window.localStorage?.getItem(SCREENSHOT_SCALE_STORAGE_KEY) === "1";
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const writeScreenshot2xEnabled = (enabled) => {
+    try {
+      window.localStorage?.setItem(SCREENSHOT_SCALE_STORAGE_KEY, enabled ? "1" : "0");
+    } catch (error) {
+      // Ignore storage failures in restrictive browsing contexts.
+    }
+  };
+
   const isScreenshotBackgroundEnabled = () => {
     try {
       return window.localStorage?.getItem(SCREENSHOT_BACKGROUND_STORAGE_KEY) === "1";
@@ -1395,6 +1413,7 @@ iframe[data-proto-nav-shell].is-fading {
         targetWindow: getScreenshotTargetWindow(),
         background: isScreenshotBackgroundEnabled(),
         transparent: isScreenshotBackgroundEnabled() && isScreenshotTransparentEnabled(),
+        scale: isScreenshot2xEnabled() ? 2 : 1,
       });
       showScreenshotPreview(result?.dataUrl);
     } catch (error) {
@@ -1856,6 +1875,13 @@ iframe[data-proto-nav-shell].is-fading {
         },
         { type: "divider" },
         {
+          id: SCREENSHOT_SCALE_SETTING_ID,
+          type: "toggle",
+          label: "@2x",
+          checked: isScreenshot2xEnabled(),
+          align: "end",
+        },
+        {
           id: SCREENSHOT_BACKGROUND_SETTING_ID,
           type: "toggle",
           label: "Background",
@@ -1914,6 +1940,12 @@ iframe[data-proto-nav-shell].is-fading {
     if (id === SCREENSHOT_TAKE_SETTING_ID) {
       void takePrototypeScreenshot();
       return { close: true };
+    }
+
+    if (id === SCREENSHOT_SCALE_SETTING_ID) {
+      const next = !isScreenshot2xEnabled();
+      writeScreenshot2xEnabled(next);
+      return { checked: next };
     }
 
     if (id === SCREENSHOT_BACKGROUND_SETTING_ID) {

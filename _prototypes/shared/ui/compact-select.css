@@ -1,0 +1,166 @@
+/* Compact 32px native dropdown. Use in sequence cards or other tight chrome.
+   Do not restyle this in a feature sheet.
+
+   Markup: .compact-select + .compact-select__value + select.compact-select__native
+   + chevron img. Stretch a grid/form cell with .compact-select--fill.
+
+   Default chrome matches the large shared dropdown: gray, darker hover, white
+   + brand border when focused. .table-select-field keeps the ghost/transparent
+   look used in the Leads table. */
+
+.compact-select,
+.filter-select-field.table-select-field {
+  position: relative;
+  margin-top: 0;
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  gap: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.compact-select--fill {
+  display: flex;
+  width: 100%;
+}
+
+.compact-select {
+  border: 2px solid transparent;
+  background: var(--color-surface-control);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.compact-select:hover {
+  background: var(--color-surface-control-hover);
+}
+
+.compact-select:focus-within,
+.compact-select.is-open {
+  background: var(--color-surface);
+  border-color: var(--color-brand);
+}
+
+.compact-select:has(select:disabled) {
+  background: var(--color-surface-control);
+  cursor: not-allowed;
+}
+
+.compact-select:has(select:disabled):hover,
+.compact-select:has(select:disabled):focus-within {
+  background: var(--color-surface-control);
+  border-color: transparent;
+}
+
+.filter-select-field.table-select-field {
+  background: transparent;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.filter-select-field.table-select-field:not(.table-stage-field):hover,
+.filter-select-field.table-select-field:not(.table-stage-field):focus-within {
+  background: var(--color-surface-control-hover);
+}
+
+.filter-select-field.table-select-field:not(.table-stage-field):focus-within {
+  box-shadow: 0 0 0 2px var(--color-brand);
+}
+
+.filter-select-field.table-select-field:has(select:disabled) {
+  cursor: not-allowed;
+}
+
+.filter-select-field.table-select-field:has(select:disabled):hover,
+.filter-select-field.table-select-field:has(select:disabled):focus-within {
+  background: transparent;
+  box-shadow: none;
+}
+
+.compact-select > img,
+.filter-select-field.table-select-field > img {
+  position: relative;
+  inset: auto;
+  top: -1px;
+  flex: 0 0 auto;
+  width: 11px;
+  height: 6px;
+  transform: none;
+}
+
+.compact-select.is-open > img,
+.filter-select-field.table-select-field.is-open > img {
+  transform: rotate(180deg);
+}
+
+.compact-select:has(select:disabled) > img,
+.filter-select-field.table-select-field:has(select:disabled) > img {
+  opacity: 0.4;
+}
+
+.compact-select__value,
+.table-select-value {
+  display: block;
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-base);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.compact-select--fill .compact-select__value,
+.compact-select--fill .table-select-value {
+  flex: 1 1 auto;
+}
+
+.compact-select__value.is-placeholder,
+.table-select-value.is-placeholder {
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.compact-select:has(select:disabled) .compact-select__value,
+.filter-select-field.table-select-field:has(select:disabled) .table-select-value {
+  color: var(--color-text-muted);
+}
+
+.compact-select:hover .compact-select__value.is-placeholder,
+.compact-select:focus-within .compact-select__value.is-placeholder,
+.compact-select.is-open .compact-select__value.is-placeholder,
+.filter-select-field.table-select-field:not(.table-stage-field):hover .table-select-value.is-placeholder,
+.filter-select-field.table-select-field:not(.table-stage-field):focus-within .table-select-value.is-placeholder,
+.filter-select-field.table-select-field:not(.table-stage-field).is-open .table-select-value.is-placeholder {
+  color: var(--color-text);
+}
+
+.compact-select:has(select:disabled) .compact-select__value.is-placeholder {
+  color: var(--color-text-muted);
+}
+
+.compact-select__native,
+.compact-select__native:hover,
+.compact-select__native:focus,
+.table-select,
+.table-select:hover,
+.table-select:focus {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  opacity: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: inherit;
+}

@@ -292,14 +292,14 @@ function renderCstSplashSavedEmptyState(activeScope) {
 
   emptyState.replaceChildren();
   const messageEl = document.createElement("p");
-  messageEl.className = "cst-splash__saved-empty-message";
+  messageEl.className = "empty-state__message";
   messageEl.textContent = message;
   emptyState.append(messageEl);
 
   if (showNewSearchAction) {
     const action = document.createElement("button");
     action.type = "button";
-    action.className = "cst-splash__saved-empty-action ui-text-button";
+    action.className = "empty-state__action ui-text-button";
     action.dataset.cstSplashNewSearch = "true";
     action.textContent = "Start new search";
     emptyState.append(action);
@@ -1633,10 +1633,27 @@ function hideCstSplashImmediately() {
   syncToolbarViewState();
   persistViewSettings();
 
-  if (!splash) return;
+  if (splash) {
+    splash.classList.remove("is-preparing-enter", "is-entering", "is-entering-active", "is-leaving");
+    splash.hidden = true;
+  }
 
-  splash.classList.remove("is-preparing-enter", "is-entering", "is-entering-active", "is-leaving");
-  splash.hidden = true;
+  // applySort skips painting rows while splash covers the workspace. A reload
+  // restores filters first, then lands here, so flush the deferred table and
+  // the sidebar that restoreSavedPanelSettings left closed.
+  revealRestoredCstWorkspace();
+}
+
+function revealRestoredCstWorkspace() {
+  if (lockedToolbarMode && !card?.classList.contains("is-map-open")) {
+    openSidebar(
+      lockedToolbarMode,
+      lockedToolbarMode === "map" ? null : getPrimarySelectedOwnerIndex()
+    );
+    return;
+  }
+
+  renderActiveTable();
 }
 
 /* Search --------------------------------------------------------------- */
@@ -2308,12 +2325,12 @@ function initCstSplash() {
     const urlView = getCstTableViewUrlState();
     if (urlView) {
       clearCstSavedSearchSession({ persist: false });
-      applyCstSplashQuery({}, { view: urlView.view });
       if (isCstSplashOpen()) {
         dismissCstSplash({ refresh: false });
       } else {
         hideCstSplashImmediately();
       }
+      applyCstSplashQuery({}, { view: urlView.view });
       clearCstUrlQueryParams();
       persistViewSettings();
       return;
