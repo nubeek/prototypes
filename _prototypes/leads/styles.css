@@ -109,7 +109,7 @@ body img[src$="/chevron.svg"] {
   height: 12px !important;
   display: block;
   object-fit: none;
-  object-position: 50% calc(50% + 0.25px);
+  object-position: calc(50% + 0.5px) calc(50% + 0.25px);
   transform-origin: center;
 }
 
@@ -531,6 +531,66 @@ body img[src$="/chevron.svg"] {
   padding-top: 20px;
 }
 
+.lead-detail:not(.is-editing):not(.is-adding) .profile-modal-field.is-editable {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+}
+
+.profile-modal-field-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.profile-modal-field-body {
+  min-width: 0;
+}
+
+.profile-modal-field-edit {
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.lead-detail:not(.is-editing):not(.is-adding) .profile-modal-field.is-editable:hover .profile-modal-field-edit,
+.profile-modal-field-edit:focus-visible {
+  opacity: 1;
+}
+
+.profile-modal-field-edit-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  background-color: currentColor;
+  -webkit-mask: url("../../assets/icons/notes.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/notes.svg") center / contain no-repeat;
+}
+
+.profile-modal-field-edit:hover,
+.profile-modal-field-edit:focus-visible {
+  background: var(--color-surface-control);
+  color: var(--color-text);
+}
+
+.profile-modal-field-edit:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
 .profile-modal-fields > .profile-modal-field:first-child {
   padding-top: 0;
 }
@@ -553,7 +613,8 @@ body img[src$="/chevron.svg"] {
   border-bottom: 0;
 }
 
-.profile-modal-field > span {
+.profile-modal-field > span,
+.profile-modal-field-body > span:first-child {
   display: block;
   margin-bottom: 3px;
   color: #000;
@@ -598,11 +659,13 @@ body img[src$="/chevron.svg"] {
 }
 
 .lead-detail.is-editing .filter-location-search-field,
+.lead-detail.is-editing #detailLeadCompanyField,
 .lead-detail.is-editing #detailLeadFranchiseField {
   z-index: 4;
 }
 
 .lead-detail.is-editing .filter-location-search-field.is-open,
+.lead-detail.is-editing #detailLeadCompanyField.is-open,
 .lead-detail.is-editing #detailLeadFranchiseField.is-open {
   z-index: 8;
 }
@@ -683,7 +746,8 @@ body img[src$="/chevron.svg"] {
 }
 
 .profile-modal-field strong,
-.profile-modal-field a {
+.profile-modal-field a,
+.profile-modal-field .contact-email-copy {
   display: block;
   min-width: 0;
   overflow: hidden;
@@ -691,9 +755,12 @@ body img[src$="/chevron.svg"] {
   font-size: var(--font-size-base);
   font-weight: 400;
   line-height: 1.35;
-  text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.profile-modal-field strong {
+  text-decoration: none;
 }
 
 .lead-detail .profile-modal-field strong {
@@ -702,9 +769,11 @@ body img[src$="/chevron.svg"] {
   text-overflow: unset;
 }
 
-.profile-modal-field a.ui-link {
+.profile-modal-field a.ui-link,
+.profile-modal-field .contact-email-copy {
   color: var(--color-brand);
   font-weight: 500;
+  pointer-events: auto;
 }
 
 .profile-modal-actions {
@@ -1895,6 +1964,7 @@ tbody tr.is-checked:hover td:first-child {
   min-width: 0;
 }
 
+#leadsTableBody .lead-company-cell,
 #leadsTableBody .lead-franchise-cell {
   min-width: 0;
 }
@@ -2156,12 +2226,12 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .leads-add-row-button {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   margin: 0 auto;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -275,7 +275,12 @@
       input.setAttribute("aria-expanded", String(open));
       if (menu) menu.setAttribute("aria-hidden", String(!open));
       if (!open) input.removeAttribute("aria-activedescendant");
-      if (open) window.WefranchFilterCombobox?.fitOpenMenus?.();
+      if (open) {
+        window.WefranchFilterCombobox?.revealOpenMenu?.(field);
+        window.WefranchFilterCombobox?.fitOpenMenus?.();
+      } else {
+        window.WefranchFilterCombobox?.clearOpenMenuScrollRoom?.(field);
+      }
     }
 
     function closeSuggestions() {

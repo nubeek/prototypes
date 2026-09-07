@@ -25,12 +25,18 @@
   let detailStageApi = null;
   let detailCategoryApi = null;
   let detailFranchiseApi = null;
+  let detailCompanyApi = null;
   let detailLocationApi = null;
   let detailLocationMap = null;
   let detailLocationMapPoint = null;
   let locationMapRequestId = 0;
   let mapboxGlLoader = null;
   let mapStylePromise = null;
+  let copyEmailTooltip = null;
+  let copyEmailTooltipTarget = null;
+
+  const COPY_EMAIL_TOOLTIP = "Copy email";
+  const COPIED_EMAIL_TOOLTIP = "Copied!";
 
   const MAPBOX_GL_SRC = "https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js";
   const MAPBOX_STYLE = window.CST_ENV?.MAPBOX_STYLE || "mapbox://styles/nubeek/cka7zizn720s71iogpmkvmw5z";
@@ -51,13 +57,14 @@
       location: "",
       locationPlace: null,
       franchise: "",
+      company: "",
+      ownerName: "",
       categoryId: null,
       website: "",
       linkedin: "",
       list: "",
       stage: page.LEAD_STAGES[0],
       note: "",
-      ownerName: "",
       source: "manual"
     };
   }
@@ -70,7 +77,7 @@
     return window.WefranchCategories.getOptions();
   }
 
-  function enhanceSelect(select, options, placeholder, { singleSelect = true, values = [] } = {}) {
+  function enhanceSelect(select, options, placeholder, { singleSelect = true, values = [], creatable = false, menuActions = null } = {}) {
     if (!select || !window.WefranchFilterCombobox) return null;
 
     window.WefranchFilterCombobox.setOptions(select, options, { placeholder });
@@ -84,7 +91,9 @@
     const api = window.WefranchFilterCombobox.enhance(select, {
       singleSelect,
       clearable: true,
-      searchable: true
+      searchable: true,
+      creatable,
+      menuActions
     });
 
     if (!api) return null;
@@ -148,31 +157,130 @@
     `;
   }
 
-  function getFieldMarkup(label, value, { href = "", full = false, external = false } = {}) {
+  function getCopyEmailTooltip() {
+    if (!copyEmailTooltip) {
+      copyEmailTooltip = document.createElement("div");
+      copyEmailTooltip.className = "filter-combobox-floating-tooltip contact-action-floating-tooltip";
+      copyEmailTooltip.setAttribute("role", "tooltip");
+    }
+
+    return copyEmailTooltip;
+  }
+
+  function hideCopyEmailTooltip() {
+    if (copyEmailTooltipTarget) {
+      delete copyEmailTooltipTarget.dataset.tooltipState;
+    }
+    copyEmailTooltipTarget = null;
+    copyEmailTooltip?.classList.remove("is-visible");
+  }
+
+  function getCopyEmailTooltipText(emailElement) {
+    return emailElement.dataset.tooltipState === "copied" ? COPIED_EMAIL_TOOLTIP : COPY_EMAIL_TOOLTIP;
+  }
+
+  function showCopyEmailTooltip(emailElement) {
+    if (!(emailElement instanceof Element)) return;
+
+    const tooltip = getCopyEmailTooltip();
+    tooltip.textContent = getCopyEmailTooltipText(emailElement);
+    copyEmailTooltipTarget = emailElement;
+
+    if (!tooltip.isConnected) {
+      document.body.append(tooltip);
+    }
+
+    tooltip.classList.add("is-visible");
+    window.fitTooltipToContent?.(tooltip);
+
+    const targetRect = window.getElementTextBoundingRect?.(emailElement) ?? emailElement.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportPadding = 8;
+    const left = Math.min(
+      Math.max(viewportPadding, targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2)),
+      window.innerWidth - tooltipRect.width - viewportPadding
+    );
+    const top = Math.max(viewportPadding, targetRect.top - tooltipRect.height - 6);
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+  }
+
+  async function copyLeadEmail(emailElement) {
+    const email = emailElement?.textContent?.trim();
+    if (!email) return;
+
+    try {
+      await navigator.clipboard.writeText(email);
+    } catch (error) {
+      const textarea = document.createElement("textarea");
+      textarea.value = email;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "absolute";
+      textarea.style.left = "-9999px";
+      document.body.append(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+
+    emailElement.dataset.tooltipState = "copied";
+    showCopyEmailTooltip(emailElement);
+  }
+
+  function getEditFieldButton(fieldKey, label) {
+    return `
+      <button
+        class="profile-modal-field-edit"
+        type="button"
+        data-lead-detail-action="edit-field"
+        data-lead-edit-field="${page.escapeHtml(fieldKey)}"
+        aria-label="Edit ${page.escapeHtml(label)}"
+      >
+        <span class="profile-modal-field-edit-icon" aria-hidden="true"></span>
+      </button>
+    `;
+  }
+
+  function getFieldActionButtons(editField, label) {
+    if (!editField) return "";
+
+    return `<div class="profile-modal-field-actions">${getEditFieldButton(editField, label)}</div>`;
+  }
+
+  function getFieldMarkup(label, value, { href = "", full = false, external = false, editField = "", copyEmail = false } = {}) {
     const text = String(value || "").trim();
     const display = href && text && external ? getDisplayUrl(text) : text;
-    const content = href && display
-      ? `<a class="ui-link ui-ellipsis" href="${page.escapeHtml(href)}"${external ? ' target="_blank" rel="noreferrer"' : ""}>${page.escapeHtml(display)}</a>`
-      : `<strong class="${display ? "" : "dataset-empty-value"}">${display ? page.escapeHtml(display) : "–"}</strong>`;
+    const content = copyEmail && text
+      ? `<span class="ui-link ui-ellipsis contact-email-copy" tabindex="0" role="button">${page.escapeHtml(text)}</span>`
+      : href && display
+        ? `<a class="ui-link ui-ellipsis" href="${page.escapeHtml(href)}"${external ? ' target="_blank" rel="noreferrer"' : ""}>${page.escapeHtml(display)}</a>`
+        : `<strong class="${display ? "" : "dataset-empty-value"}">${display ? page.escapeHtml(display) : "–"}</strong>`;
 
     return `
-      <div class="profile-modal-field ${full ? "profile-modal-field-full" : ""}">
-        <span>${page.escapeHtml(label)}</span>
-        ${content}
+      <div class="profile-modal-field ${full ? "profile-modal-field-full" : ""}${editField ? " is-editable" : ""}">
+        <div class="profile-modal-field-body">
+          <span>${page.escapeHtml(label)}</span>
+          ${content}
+        </div>
+        ${getFieldActionButtons(editField, label)}
       </div>
     `;
   }
 
   function getFranchiseViewMarkup(lead) {
     const franchises = page.splitFranchiseValues(lead.franchise);
-    if (!franchises.length) return getFieldMarkup("Franchise", "");
+    if (!franchises.length) return getFieldMarkup("Franchise", "", { editField: "franchise" });
 
     return `
-      <div class="profile-modal-field">
-        <span>Franchise</span>
-        <div class="lead-franchise-view-pills">
-          ${franchises.map((name) => `<span class="lead-franchise-view-pill">${page.escapeHtml(name)}</span>`).join("")}
+      <div class="profile-modal-field is-editable">
+        <div class="profile-modal-field-body">
+          <span>Franchise</span>
+          <div class="lead-franchise-view-pills">
+            ${franchises.map((name) => `<span class="lead-franchise-view-pill">${page.escapeHtml(name)}</span>`).join("")}
+          </div>
         </div>
+        ${getFieldActionButtons("franchise", "Franchise")}
       </div>
     `;
   }
@@ -180,9 +288,12 @@
   function getSelectFieldMarkup(label, field, lead) {
     const options = field === "stage" ? page.LEAD_STAGES : page.LEAD_LISTS;
     return `
-      <div class="profile-modal-field lead-detail-select-field">
-        <span>${page.escapeHtml(label)}</span>
-        ${page.getSelectMarkup(lead.id, field, lead[field], options, "Select")}
+      <div class="profile-modal-field lead-detail-select-field is-editable">
+        <div class="profile-modal-field-body">
+          <span>${page.escapeHtml(label)}</span>
+          ${page.getSelectMarkup(lead.id, field, lead[field], options, "Select")}
+        </div>
+        ${getFieldActionButtons(field, label)}
       </div>
     `;
   }
@@ -420,11 +531,13 @@
     detailStageApi?.close();
     detailCategoryApi?.close();
     detailFranchiseApi?.close();
+    detailCompanyApi?.close();
     detailLocationApi?.destroy();
     detailListApi = null;
     detailStageApi = null;
     detailCategoryApi = null;
     detailFranchiseApi = null;
+    detailCompanyApi = null;
     detailLocationApi = null;
   }
 
@@ -434,12 +547,14 @@
       || document.getElementById("detailLeadStageField")?.classList.contains("is-open")
       || document.getElementById("detailLeadCategoryField")?.classList.contains("is-open")
       || document.getElementById("detailLeadFranchiseField")?.classList.contains("is-open")
+      || document.getElementById("detailLeadCompanyField")?.classList.contains("is-open")
       || document.getElementById("detailLeadLocationField")?.classList.contains("is-open")
     );
   }
 
   function bindFormSelects(lead) {
     const franchiseValues = page.splitFranchiseValues(lead.franchise);
+    const companyName = page.getCompanyName(lead);
     detailListApi = enhanceSelect(
       document.getElementById("detailLeadListSelect"),
       getSelectOptions(page.LEAD_LISTS),
@@ -461,9 +576,28 @@
       "Select",
       { singleSelect: false, values: franchiseValues }
     );
+    detailCompanyApi = enhanceSelect(
+      document.getElementById("detailLeadCompanySelect"),
+      getSelectOptions(page.getCompanyOptions(undefined, [companyName])),
+      "Select",
+      {
+        singleSelect: true,
+        creatable: true,
+        menuActions: [
+          {
+            label: "Add new",
+            icon: "../../assets/icons/add.svg",
+            onClick({ query, create }) {
+              if (query) create(query);
+            }
+          }
+        ]
+      }
+    );
     if (lead.list) detailListApi?.setValue?.(lead.list, { dispatch: false });
     detailStageApi?.setValue?.(lead.stage || page.LEAD_STAGES[0], { dispatch: false });
     if (lead.categoryId) detailCategoryApi?.setValue?.(lead.categoryId, { dispatch: false });
+    if (companyName) detailCompanyApi?.setValue?.(companyName, { dispatch: false });
     detailLocationApi = window.WefranchLocationSearch?.bindField?.(
       document.getElementById("detailLeadLocationField"),
       {
@@ -480,18 +614,19 @@
 
   function getViewFieldsMarkup(lead) {
     const noteMarkup = lead.note
-      ? getFieldMarkup("Note", lead.note, { full: true })
+      ? getFieldMarkup("Note", lead.note, { full: true, editField: "note" })
       : "";
 
     return `
-      ${getFieldMarkup("Email", lead.email, { href: lead.email ? `mailto:${lead.email}` : "" })}
-      ${getFieldMarkup("Phone number", lead.phone)}
-      ${getFieldMarkup("Location", lead.location, { full: true })}
+      ${getFieldMarkup("Email", lead.email, { editField: "email", copyEmail: true })}
+      ${getFieldMarkup("Phone number", lead.phone, { editField: "phone" })}
+      ${getFieldMarkup("Location", lead.location, { full: true, editField: "location" })}
+      ${getFieldMarkup("Company", page.getCompanyName(lead), { editField: "company" })}
       ${getFranchiseViewMarkup(lead)}
-      ${getFieldMarkup("Category", window.WefranchCategories.getRecordLabel(lead))}
-      ${getFieldMarkup("Website", lead.website, { href: getExternalHref(lead.website), external: true })}
-      ${getFieldMarkup("LinkedIn", lead.linkedin, { href: getExternalHref(lead.linkedin), external: true, full: true })}
-      ${getFieldMarkup("List", lead.list)}
+      ${getFieldMarkup("Category", window.WefranchCategories.getRecordLabel(lead), { editField: "category" })}
+      ${getFieldMarkup("Website", lead.website, { href: getExternalHref(lead.website), external: true, editField: "website" })}
+      ${getFieldMarkup("LinkedIn", lead.linkedin, { href: getExternalHref(lead.linkedin), external: true, full: true, editField: "linkedin" })}
+      ${getFieldMarkup("List", lead.list, { editField: "list" })}
       ${getSelectFieldMarkup("Stage", "stage", lead)}
       ${noteMarkup}
     `;
@@ -510,6 +645,7 @@
       ${getInputFieldMarkup("Phone number", "detailLeadPhone", lead.phone, { type: "tel", autocomplete: "tel" })}
       ${getLocationFieldMarkup()}
       <div class="proto-modal-divider" aria-hidden="true"></div>
+      ${getFormSelectFieldMarkup("Company", "company")}
       ${getFormSelectFieldMarkup("Franchise", "franchise")}
       ${getFormSelectFieldMarkup("Category", "category")}
       ${getInputFieldMarkup("Website", "detailLeadWebsite", lead.website)}
@@ -549,7 +685,7 @@
       <div class="profile-modal-hero">
         <span class="profile-avatar" aria-hidden="true">${page.escapeHtml(page.getInitials(lead.name) || "?")}</span>
         <h2 id="leadDetailName">${page.escapeHtml(lead.name)}</h2>
-        <p>${page.escapeHtml(lead.ownerName || lead.list || "Lead")}</p>
+        <p>${page.escapeHtml(page.getCompanyName(lead) || lead.list || "Lead")}</p>
       </div>
     `;
   }
@@ -582,6 +718,7 @@
   function renderLeadDetail(lead) {
     if (!leadDetailContent || !leadDetailActions) return;
 
+    hideCopyEmailTooltip();
     destroyFormSelects();
     syncDetailChrome();
 
@@ -598,7 +735,36 @@
     leadDetailActions.innerHTML = getDetailActionsMarkup(lead);
   }
 
-  function enterLeadEdit() {
+  function getLeadFormFocusTarget(fieldKey) {
+    const focusIds = {
+      email: "detailLeadEmail",
+      phone: "detailLeadPhone",
+      location: "detailLeadLocationInput",
+      company: "detailLeadCompanyInput",
+      franchise: "detailLeadFranchiseInput",
+      category: "detailLeadCategoryInput",
+      website: "detailLeadWebsite",
+      linkedin: "detailLeadLinkedin",
+      list: "detailLeadListInput",
+      stage: "detailLeadStageInput",
+      note: "detailLeadNote"
+    };
+
+    return document.getElementById(focusIds[fieldKey] || "detailLeadFirstName");
+  }
+
+  function focusLeadFormField(fieldKey) {
+    const target = getLeadFormFocusTarget(fieldKey);
+    if (!target) return;
+
+    target.focus({ preventScroll: true });
+    (target.closest(".proto-modal-field") || target).scrollIntoView({
+      block: "center",
+      inline: "nearest"
+    });
+  }
+
+  function enterLeadEdit(fieldKey) {
     if (isFormMode() || !pendingDetailLeadId) return;
 
     const lead = page.getLead(pendingDetailLeadId);
@@ -606,7 +772,7 @@
 
     detailMode = DETAIL_MODE.EDIT;
     renderLeadDetail(lead);
-    document.getElementById("detailLeadFirstName")?.focus({ preventScroll: true });
+    focusLeadFormField(fieldKey);
   }
 
   function getDetailInputValue(id) {
@@ -626,6 +792,8 @@
       location: detailLocationApi?.getValue?.()?.label || "",
       locationPlace: window.WefranchLocationSearch.toStoredPlace(detailLocationApi?.getValue?.()) || null,
       franchise: page.joinFranchiseValues(detailFranchiseApi?.getValues?.() || []),
+      company: detailCompanyApi?.getValue?.() || "",
+      ownerName: detailCompanyApi?.getValue?.() || "",
       categoryId: detailCategoryApi?.getValue?.() || null,
       website: getDetailInputValue("detailLeadWebsite"),
       linkedin: getDetailInputValue("detailLeadLinkedin"),
@@ -729,6 +897,7 @@
   }
 
   function closeLeadDetail({ restoreFocus = true } = {}) {
+    hideCopyEmailTooltip();
     if (!isDetailVisible()) {
       resetDetailState();
       lastDetailTrigger = null;
@@ -814,6 +983,17 @@
       enterLeadEdit();
       return;
     }
+    if (action === "edit-field") {
+      enterLeadEdit(event.target.closest("[data-lead-edit-field]")?.dataset.leadEditField);
+      return;
+    }
+
+    const emailCopy = event.target.closest(".contact-email-copy");
+    if (emailCopy) {
+      event.preventDefault();
+      void copyLeadEmail(emailCopy);
+      return;
+    }
     if (action === "cancel") {
       cancelLeadForm();
       return;
@@ -824,6 +1004,32 @@
     closeLeadDetail({ restoreFocus: false });
     page.removeLead(leadId);
   });
+
+  leadDetailPanel?.addEventListener("pointerover", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const emailCopy = event.target.closest(".contact-email-copy");
+    if (!emailCopy || emailCopy === copyEmailTooltipTarget) return;
+    showCopyEmailTooltip(emailCopy);
+  });
+
+  leadDetailPanel?.addEventListener("pointerout", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const emailCopy = event.target.closest(".contact-email-copy");
+    if (!emailCopy || emailCopy !== copyEmailTooltipTarget) return;
+    if (event.relatedTarget instanceof Node && emailCopy.contains(event.relatedTarget)) return;
+    hideCopyEmailTooltip();
+  });
+
+  leadDetailPanel?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const emailCopy = event.target.closest(".contact-email-copy");
+    if (!emailCopy) return;
+    event.preventDefault();
+    void copyLeadEmail(emailCopy);
+  });
+
+  leadDetailContent?.addEventListener("scroll", hideCopyEmailTooltip, { passive: true });
+  window.addEventListener("resize", hideCopyEmailTooltip);
 
   leadDetailForm?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -837,6 +1043,7 @@
       detailStageApi?.close();
       detailCategoryApi?.close();
       detailFranchiseApi?.close();
+      detailCompanyApi?.close();
       detailLocationApi?.close();
       return;
     }

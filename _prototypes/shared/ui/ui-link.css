@@ -3,7 +3,7 @@
    into a feature sheet. */
 
 :root {
-  --ui-link-underline-opacity-hover: 30%;
+  --ui-link-underline-opacity-hover: 50%;
   --ui-link-underline-opacity-active: 100%;
 }
 

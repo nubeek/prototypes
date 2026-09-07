@@ -2,8 +2,8 @@ const CROSSROAD_STATES_URL = "data/us-states.geojson";
 const CROSSROAD_COUNTIES_URL = "data/us-counties.geojson";
 const CROSSROAD_GEO_FEATURES_URL = "data/real/geometry.geojson";
 
-// Mapbox Static Images API — same style/token the interactive territory map and
-// the targets grid snapshots use, so the tile preview looks like the real map.
+// Mapbox Static Images API — same style/token the interactive territory map
+// uses, so the tile preview looks like the real map.
 const CROSSROAD_MAPBOX_STYLE = "nubeek/cka7zizn720s71iogpmkvmw5z";
 const CROSSROAD_MAPBOX_TOKEN = window.CST_ENV?.MAPBOX_ACCESS_TOKEN || "";
 // Framed to match the interactive map's default view (same center) but zoomed a

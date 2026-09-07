@@ -98,7 +98,7 @@ body img[src$="/chevron.svg"] {
   height: 12px !important;
   display: block;
   object-fit: none;
-  object-position: 50% calc(50% + 0.25px);
+  object-position: calc(50% + 0.5px) calc(50% + 0.25px);
   transform-origin: center;
 }
 
@@ -7412,7 +7412,7 @@ a.franchise-name:focus-visible {
   padding-bottom: 24px;
 }
 
-/* Tile styling mirrors the targets grid (.target-card family). */
+/* Saved-search splash tiles (.target-card family). */
 
 .cst-splash .target-card[hidden] {
   display: none;

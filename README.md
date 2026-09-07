@@ -22,10 +22,9 @@ strips `.html` and that breaks relative asset paths.
 | Prototype | Path |
 | --- | --- |
 | Prospects | `_prototypes/cst/` |
-| Targets | `_prototypes/targets/` |
+| Leads | `_prototypes/leads/` |
 | Territories | `_prototypes/territories/` |
 | Financial Modeling | `_prototypes/financial-modeling/` |
-| Logo Collection | `logos/` |
 
 Shared UI, filter, and map modules live in `_prototypes/shared/`.
 

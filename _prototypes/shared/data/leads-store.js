@@ -1,5 +1,6 @@
 (function () {
   const LEADS_STORAGE_KEY = "wefranch:crm-leads";
+  const COMPANIES_STORAGE_KEY = "wefranch:crm-companies";
   const LEAD_LISTS = [
     "Denver territory prospects",
     "High priority outreach",
@@ -34,6 +35,7 @@
       phone: "",
       franchise: "",
       ownerName: "",
+      company: "",
       location: "",
       website: "",
       linkedin: "",
@@ -63,7 +65,8 @@
     next.email = String(next.email || "").trim();
     next.phone = String(next.phone || "").trim();
     next.franchise = String(next.franchise || "").trim();
-    next.ownerName = String(next.ownerName || "").trim();
+    next.company = String(next.company || next.ownerName || "").trim();
+    next.ownerName = next.company;
     const storedPlace = window.WefranchLocationSearch?.toStoredPlace?.(next.locationPlace)
       || window.WefranchLocationSearch?.toStoredPlace?.(window.WefranchLocationSearch?.fromRecord?.(next));
     if (storedPlace) {
@@ -130,6 +133,66 @@
     }
   }
 
+  function compareNames(left, right) {
+    return String(left || "").localeCompare(String(right || ""), undefined, { sensitivity: "base" });
+  }
+
+  function readCustomCompanies() {
+    try {
+      const savedValue = window.localStorage?.getItem(COMPANIES_STORAGE_KEY);
+      if (!savedValue) return [];
+
+      const parsedValue = JSON.parse(savedValue);
+      if (!Array.isArray(parsedValue)) return [];
+
+      return [...new Set(
+        parsedValue
+          .map((item) => String(item || "").trim())
+          .filter(Boolean)
+      )].sort(compareNames);
+    } catch (error) {
+      console.warn("Unable to read saved companies.", error);
+      return [];
+    }
+  }
+
+  function writeCustomCompanies(names) {
+    try {
+      window.localStorage?.setItem(COMPANIES_STORAGE_KEY, JSON.stringify(names));
+    } catch (error) {
+      console.warn("Unable to save companies.", error);
+    }
+  }
+
+  function rememberCompany(name) {
+    const next = String(name || "").trim();
+    if (!next) return "";
+
+    const names = readCustomCompanies();
+    if (names.some((item) => compareNames(item, next) === 0)) return next;
+
+    names.push(next);
+    names.sort(compareNames);
+    writeCustomCompanies(names);
+    return next;
+  }
+
+  function getFranchiseeCompanyNames() {
+    const names = new Set(readCustomCompanies());
+
+    (window.cstDumpData?.owners || []).forEach((owner) => {
+      const name = String(owner?.name || "").trim();
+      if (name) names.add(name);
+    });
+
+    (window.ownersData || []).forEach((owner) => {
+      const name = String(owner?.ownerName || "").trim();
+      if (name) names.add(name);
+    });
+
+    return [...names].sort(compareNames);
+  }
+
   function writeLeads(leads) {
     try {
       window.localStorage?.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
@@ -163,6 +226,7 @@
     }
 
     writeLeads(leads);
+    rememberCompany(nextRecord.company);
     return nextRecord;
   }
 
@@ -265,6 +329,9 @@
     getSourceDatasetFromId,
     getSourceDatasetKey,
     getSourceLabel,
-    getSourceHref
+    getSourceHref,
+    getCustomCompanies: readCustomCompanies,
+    getFranchiseeCompanyNames,
+    rememberCompany
   };
 })();

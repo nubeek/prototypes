@@ -2404,7 +2404,7 @@ a.territory-info-card__action.is-disabled {
   padding-bottom: 24px;
 }
 
-/* Card styling reused from the targets grid (.target-card family). */
+/* Saved-search splash tiles (.target-card family). */
 
 .territory-crossroad .target-card[hidden] {
   display: none;

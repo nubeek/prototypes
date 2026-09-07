@@ -11,7 +11,7 @@
   const clearAllFilters = document.getElementById("clearAllFilters");
   const stageFilterGroup = document.getElementById("stageFilterGroup");
   const listFilterSelect = document.getElementById("listFilterSelect");
-  const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
+  const companyFilterSelect = document.getElementById("companyFilterSelect");
   const datesAddedFromField = document.getElementById("datesAddedFromField");
   const datesAddedToField = document.getElementById("datesAddedToField");
   const filterDate = window.WefranchFilterDate;
@@ -32,8 +32,8 @@
   let selectedStages = [];
   let selectedLists = [];
   let excludedLists = [];
-  let selectedFranchises = [];
-  let excludedFranchises = [];
+  let selectedCompanies = [];
+  let excludedCompanies = [];
   let datesAddedFrom = "";
   let datesAddedTo = "";
   let sortKey = "addedAt";
@@ -107,6 +107,20 @@
     ));
   }
 
+  function getCompanyName(lead) {
+    return String(lead?.company || lead?.ownerName || "").trim();
+  }
+
+  function getCompanyOptions(leads = getAllLeads(), extraValues = []) {
+    return [...new Set([
+      ...(store?.getFranchiseeCompanyNames?.() || []),
+      ...leads.map((lead) => getCompanyName(lead)),
+      ...(Array.isArray(extraValues) ? extraValues : [extraValues])
+    ].map((item) => String(item || "").trim()).filter(Boolean))].sort((left, right) => (
+      left.localeCompare(right, undefined, { sensitivity: "base" })
+    ));
+  }
+
   function getLeadDateKey(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "";
@@ -125,8 +139,8 @@
     return selectedStages.length
       + selectedLists.length
       + excludedLists.length
-      + selectedFranchises.length
-      + excludedFranchises.length
+      + selectedCompanies.length
+      + excludedCompanies.length
       + (datesAddedFilterIsActive() ? 1 : 0);
   }
 
@@ -136,11 +150,11 @@
     return selectedLists.includes(lead.list);
   }
 
-  function leadMatchesFranchiseFilter(lead) {
-    const franchises = splitFranchiseValues(lead.franchise);
-    if (franchises.some((franchise) => excludedFranchises.includes(franchise))) return false;
-    if (!selectedFranchises.length) return true;
-    return franchises.some((franchise) => selectedFranchises.includes(franchise));
+  function leadMatchesCompanyFilter(lead) {
+    const company = getCompanyName(lead);
+    if (company && excludedCompanies.includes(company)) return false;
+    if (!selectedCompanies.length) return true;
+    return selectedCompanies.includes(company);
   }
 
   function leadMatchesDatesAddedFilter(lead) {
@@ -156,7 +170,7 @@
   function leadMatchesFilters(lead) {
     if (selectedStages.length && !selectedStages.includes(lead.stage)) return false;
     if (!leadMatchesListFilter(lead)) return false;
-    if (!leadMatchesFranchiseFilter(lead)) return false;
+    if (!leadMatchesCompanyFilter(lead)) return false;
     if (!leadMatchesDatesAddedFilter(lead)) return false;
 
     if (!searchQuery) return true;
@@ -168,6 +182,7 @@
       lead.email,
       lead.phone,
       lead.franchise,
+      lead.company,
       lead.ownerName,
       lead.location,
       lead.locationPlace?.label,
@@ -193,8 +208,10 @@
     const direction = sortDirection === "ascending" ? 1 : -1;
 
     return leads.sort((left, right) => {
-      const leftValue = sortKey === "addedAt" ? Date.parse(left.addedAt) || 0 : String(left[sortKey] || "").toLocaleLowerCase();
-      const rightValue = sortKey === "addedAt" ? Date.parse(right.addedAt) || 0 : String(right[sortKey] || "").toLocaleLowerCase();
+      const leftRaw = sortKey === "company" ? getCompanyName(left) : left[sortKey];
+      const rightRaw = sortKey === "company" ? getCompanyName(right) : right[sortKey];
+      const leftValue = sortKey === "addedAt" ? Date.parse(left.addedAt) || 0 : String(leftRaw || "").toLocaleLowerCase();
+      const rightValue = sortKey === "addedAt" ? Date.parse(right.addedAt) || 0 : String(rightRaw || "").toLocaleLowerCase();
 
       if (leftValue < rightValue) return -1 * direction;
       if (leftValue > rightValue) return 1 * direction;
@@ -230,24 +247,6 @@
     const classes = ["lead-cell-text", className].filter(Boolean).join(" ");
     if (text) return `<span class="${classes}" title="${escapeHtml(text)}">${escapeHtml(text)}</span>`;
     return `<span class="${classes} dataset-empty-value">–</span>`;
-  }
-
-  function getFranchiseCellMarkup(value) {
-    const franchises = splitFranchiseValues(value);
-    if (!franchises.length) return getEmptyValueMarkup("");
-
-    const [first, ...rest] = franchises;
-    const title = franchises.join(", ");
-    if (!rest.length) {
-      return `<span class="lead-cell-text" title="${escapeHtml(title)}">${escapeHtml(first)}</span>`;
-    }
-
-    return `
-      <span class="lead-franchise-stack" title="${escapeHtml(title)}">
-        <span class="lead-franchise-label">${escapeHtml(first)}</span>
-        <span class="lead-franchise-more">+${rest.length}</span>
-      </span>
-    `;
   }
 
   function getEmailCellMarkup(value) {
@@ -370,7 +369,7 @@
         </td>
         <td class="lead-email-cell">${getEmailCellMarkup(lead.email)}</td>
         <td>${getEmptyValueMarkup(lead.phone)}</td>
-        <td class="lead-franchise-cell">${getFranchiseCellMarkup(lead.franchise)}</td>
+        <td class="lead-company-cell">${getEmptyValueMarkup(getCompanyName(lead))}</td>
         <td class="lead-select-cell">${getSelectMarkup(lead.id, "list", lead.list, LEAD_LISTS, "Select")}</td>
         <td class="lead-select-cell">${getSelectMarkup(lead.id, "stage", lead.stage, LEAD_STAGES, "Select")}</td>
         <td>${getEmptyValueMarkup(formatLeadDate(lead.addedAt))}</td>
@@ -426,7 +425,7 @@
       const key = section.dataset.filterSection;
       if (key === "stage") return selectedStages.length > 0;
       if (key === "list") return selectedLists.length > 0 || excludedLists.length > 0;
-      if (key === "franchise") return selectedFranchises.length > 0 || excludedFranchises.length > 0;
+      if (key === "company") return selectedCompanies.length > 0 || excludedCompanies.length > 0;
       if (key === "dates") return datesAddedFilterIsActive();
       return false;
     });
@@ -457,8 +456,8 @@
   function readComboboxFilters() {
     selectedLists = filterCombobox?.getIncludedValues?.(listFilterSelect) || [];
     excludedLists = filterCombobox?.getExcludedValues?.(listFilterSelect) || [];
-    selectedFranchises = filterCombobox?.getIncludedValues?.(franchiseFilterSelect) || [];
-    excludedFranchises = filterCombobox?.getExcludedValues?.(franchiseFilterSelect) || [];
+    selectedCompanies = filterCombobox?.getIncludedValues?.(companyFilterSelect) || [];
+    excludedCompanies = filterCombobox?.getExcludedValues?.(companyFilterSelect) || [];
   }
 
   function readDateFilters() {
@@ -506,24 +505,24 @@
     readDateFilters();
   }
 
-  function pruneFranchiseSelections() {
-    const validFranchises = new Set(getFranchiseOptions());
-    selectedFranchises = selectedFranchises.filter((value) => validFranchises.has(value));
-    excludedFranchises = excludedFranchises.filter((value) => validFranchises.has(value));
+  function pruneCompanySelections() {
+    const validCompanies = new Set(getCompanyOptions());
+    selectedCompanies = selectedCompanies.filter((value) => validCompanies.has(value));
+    excludedCompanies = excludedCompanies.filter((value) => validCompanies.has(value));
   }
 
-  function syncFranchiseFilterOptions() {
-    if (!franchiseFilterSelect || !filterCombobox) return;
+  function syncCompanyFilterOptions() {
+    if (!companyFilterSelect || !filterCombobox) return;
 
-    filterCombobox.setOptions(franchiseFilterSelect, toSelectOptions(getFranchiseOptions()), {
-      placeholder: "Select franchise"
+    filterCombobox.setOptions(companyFilterSelect, toSelectOptions(getCompanyOptions()), {
+      placeholder: "Select company"
     });
     filterCombobox.setIncludedExcludedValues(
-      franchiseFilterSelect,
-      selectedFranchises,
-      excludedFranchises
+      companyFilterSelect,
+      selectedCompanies,
+      excludedCompanies
     );
-    filterCombobox.getCombobox(franchiseFilterSelect)?.sync();
+    filterCombobox.getCombobox(companyFilterSelect)?.sync();
   }
 
   function syncListFilterValues() {
@@ -541,7 +540,7 @@
   function renderFilters() {
     renderCheckGroup(stageFilterGroup, LEAD_STAGES, selectedStages);
     syncListFilterValues();
-    syncFranchiseFilterOptions();
+    syncCompanyFilterOptions();
     writeDateFilters();
   }
 
@@ -559,12 +558,12 @@
       });
     }
 
-    if (franchiseFilterSelect) {
-      filterCombobox.setOptions(franchiseFilterSelect, toSelectOptions(getFranchiseOptions()), {
-        placeholder: "Select franchise"
+    if (companyFilterSelect) {
+      filterCombobox.setOptions(companyFilterSelect, toSelectOptions(getCompanyOptions()), {
+        placeholder: "Select company"
       });
-      filterCombobox.enhance(franchiseFilterSelect, { allowExclude: true });
-      franchiseFilterSelect.addEventListener("change", () => {
+      filterCombobox.enhance(companyFilterSelect, { allowExclude: true });
+      companyFilterSelect.addEventListener("change", () => {
         readComboboxFilters();
         renderTable();
       });
@@ -588,7 +587,7 @@
 
   function refresh({ persistFilters = true } = {}) {
     if (persistFilters) syncFilterInputsFromState();
-    pruneFranchiseSelections();
+    pruneCompanySelections();
     renderFilters();
     renderTable();
   }
@@ -606,7 +605,7 @@
       sortDirection = sortDirection === "ascending" ? "descending" : "ascending";
     } else {
       sortKey = key;
-      sortDirection = key === "name" || key === "email" || key === "franchise" || key === "list" || key === "stage" || key === "phone"
+      sortDirection = key === "name" || key === "email" || key === "company" || key === "franchise" || key === "list" || key === "stage" || key === "phone"
         ? "ascending"
         : "descending";
     }
@@ -700,6 +699,7 @@
       else if (["last name", "lastname", "surname", "last"].includes(header)) values.surname = value;
       else if (["email", "e mail", "e-mail"].includes(header)) values.email = value;
       else if (["phone", "telephone", "mobile"].includes(header)) values.phone = value;
+      else if (["company", "organization", "owner", "owner name", "franchisee"].includes(header)) values.company = value;
       else if (["franchise", "franchises", "brand"].includes(header)) values.franchise = value;
       else if (header === "list") values.list = value;
       else if (["stage", "status"].includes(header)) values.stage = value;
@@ -730,10 +730,10 @@
     selectedStages = [];
     selectedLists = [];
     excludedLists = [];
-    selectedFranchises = [];
-    excludedFranchises = [];
+    selectedCompanies = [];
+    excludedCompanies = [];
     clearCombobox(listFilterSelect);
-    clearCombobox(franchiseFilterSelect);
+    clearCombobox(companyFilterSelect);
     clearDateFilters();
     if (toolbarSearchInput) {
       toolbarSearchInput.value = "";
@@ -753,10 +753,10 @@
       excludedLists = [];
       clearCombobox(listFilterSelect);
     }
-    if (key === "franchise") {
-      selectedFranchises = [];
-      excludedFranchises = [];
-      clearCombobox(franchiseFilterSelect);
+    if (key === "company") {
+      selectedCompanies = [];
+      excludedCompanies = [];
+      clearCombobox(companyFilterSelect);
     }
     if (key === "dates") clearDateFilters();
     renderFilters();
@@ -798,7 +798,9 @@
     getSelectMarkup,
     splitFranchiseValues,
     joinFranchiseValues,
-    getFranchiseOptions
+    getFranchiseOptions,
+    getCompanyName,
+    getCompanyOptions
   };
 
   initFilterComboboxes();

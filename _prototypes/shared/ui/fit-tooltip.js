@@ -27,6 +27,43 @@
     return Math.ceil(longest);
   }
 
+  function getElementTextBoundingRect(element) {
+    if (!(element instanceof Element)) return null;
+
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const rects = range.getClientRects();
+    if (typeof range.detach === "function") {
+      range.detach();
+    }
+
+    if (rects.length) {
+      let left = rects[0].left;
+      let top = rects[0].top;
+      let right = rects[0].right;
+      let bottom = rects[0].bottom;
+
+      for (let index = 1; index < rects.length; index += 1) {
+        const rect = rects[index];
+        left = Math.min(left, rect.left);
+        top = Math.min(top, rect.top);
+        right = Math.max(right, rect.right);
+        bottom = Math.max(bottom, rect.bottom);
+      }
+
+      return {
+        left,
+        top,
+        right,
+        bottom,
+        width: right - left,
+        height: bottom - top,
+      };
+    }
+
+    return element.getBoundingClientRect();
+  }
+
   function fitTooltipToContent(tooltip) {
     if (!tooltip) return;
 
@@ -58,4 +95,5 @@
   }
 
   window.fitTooltipToContent = fitTooltipToContent;
+  window.getElementTextBoundingRect = getElementTextBoundingRect;
 })();

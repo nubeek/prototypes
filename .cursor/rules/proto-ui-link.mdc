@@ -10,6 +10,6 @@ Brand text links use `_prototypes/shared/ui/ui-link.css`. Import it from the pag
 
 - Markup: `.ui-link` on `<a>`, `<button>`, or `<span>` (with appropriate role/tabindex when not a native link).
 - Pair with `.ui-control` on `<button>` links so button chrome resets stay in the feature sheet.
-- Underline appears on `:hover` and `:focus-visible` at `--ui-link-underline-opacity-hover` (30% of `currentColor`). `:active` uses `--ui-link-underline-opacity-active` (100%).
+- Underline appears on `:hover` and `:focus-visible` at `--ui-link-underline-opacity-hover` (50% of `currentColor`). `:active` uses `--ui-link-underline-opacity-active` (100%).
 - Bold brand actions without underline use `.ui-text-button`, not `.ui-link`.
 - Unique layout (inline in a subtitle, table cell truncation) stays in the feature. Shared color, weight, and underline behavior do not.

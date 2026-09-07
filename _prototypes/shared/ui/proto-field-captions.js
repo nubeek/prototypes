@@ -24,7 +24,8 @@
     ".target-modal-select-field",
     ".proto-modal-check-group",
     ".proto-modal-check",
-    ".request-info-territory-field"
+    ".request-info-territory-field",
+    ".contact-email-copy"
   ].join(", ");
 
   function isFieldControl(node) {

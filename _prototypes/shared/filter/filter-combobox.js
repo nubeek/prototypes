@@ -249,7 +249,10 @@
     removableChips = null,
     closeOnSelect = null,
     onOpen = null,
-    menuActions = null
+    menuActions = null,
+    creatable = false,
+    createLabel = (query) => `Add “${query}”`,
+    onCreate = null
   } = {}) {
     const field = select.closest(".filter-select-field");
     if (!field) return null;
@@ -355,6 +358,7 @@
     field.append(menu);
 
     const resolvedMenuActions = Array.isArray(menuActions) ? menuActions : [];
+    const menuActionButtons = [];
 
     if (resolvedMenuActions.length) {
       const menuFooter = document.createElement("div");
@@ -365,9 +369,10 @@
       divider.setAttribute("role", "separator");
       menuFooter.append(divider);
 
-      resolvedMenuActions.forEach((action) => {
+      resolvedMenuActions.forEach((action, actionIndex) => {
         const actionButton = document.createElement("button");
         actionButton.type = "button";
+        actionButton.id = `${menuId}-action-${actionIndex}`;
         actionButton.className = "filter-combobox-menu-action";
 
         if (action.icon) {
@@ -378,23 +383,25 @@
 
           const actionLabel = document.createElement("span");
           actionLabel.className = "filter-combobox-menu-action-label";
-          actionLabel.textContent = action.label;
           actionButton.append(actionIcon, actionLabel);
-        } else {
-          actionButton.textContent = action.label;
         }
 
         actionButton.addEventListener("mousedown", (event) => {
           event.preventDefault();
         });
         actionButton.addEventListener("click", () => {
-          action.onClick?.();
+          action.onClick?.({
+            query: searchQuery.trim(),
+            create: (value) => selectComboboxOption(String(value || "").trim())
+          });
           closeCombobox();
         });
         menuFooter.append(actionButton);
+        menuActionButtons.push({ action, button: actionButton });
       });
 
       menu.append(menuFooter);
+      syncMenuActionLabels();
     }
 
     function getOptionTooltip() {
@@ -447,23 +454,60 @@
       return getComboboxOptions(select).filter((option) => selectedValues.has(option.value));
     }
 
+    function getNavigableButtons() {
+      return [
+        ...menuList.querySelectorAll(".filter-combobox-option"),
+        ...menuActionButtons.map(({ button }) => button)
+      ];
+    }
+
+    function clearActiveOption() {
+      getNavigableButtons().forEach((button) => button.classList.remove("is-active"));
+      activeOptionIndex = -1;
+      input.removeAttribute("aria-activedescendant");
+    }
+
     function setActiveOption(index) {
-      const optionButtons = Array.from(menuList.querySelectorAll(".filter-combobox-option"));
-      if (!optionButtons.length) {
-        activeOptionIndex = -1;
-        input.removeAttribute("aria-activedescendant");
+      const navigableButtons = getNavigableButtons();
+      if (!navigableButtons.length) {
+        clearActiveOption();
         return;
       }
 
-      activeOptionIndex = (index + optionButtons.length) % optionButtons.length;
-      optionButtons.forEach((optionButton, optionIndex) => {
+      activeOptionIndex = (index + navigableButtons.length) % navigableButtons.length;
+      navigableButtons.forEach((optionButton, optionIndex) => {
         const isActive = optionIndex === activeOptionIndex;
         optionButton.classList.toggle("is-active", isActive);
         if (isActive) {
-          input.setAttribute("aria-activedescendant", optionButton.id);
+          if (optionButton.id) {
+            input.setAttribute("aria-activedescendant", optionButton.id);
+          }
           optionButton.scrollIntoView({ block: "nearest" });
         }
       });
+    }
+
+    function activateCreateAction() {
+      if (!creatable || !menuActionButtons.length || !searchQuery.trim()) return false;
+
+      setActiveOption(renderedOptions.length);
+      return true;
+    }
+
+    function confirmActiveOption() {
+      if (activeOptionIndex < 0) return false;
+
+      if (activeOptionIndex < renderedOptions.length) {
+        const option = renderedOptions[activeOptionIndex];
+        if (!option) return false;
+        selectComboboxOption(option.value);
+        return true;
+      }
+
+      const action = menuActionButtons[activeOptionIndex - renderedOptions.length];
+      if (!action) return false;
+      action.button.click();
+      return true;
     }
 
     function dispatchComboboxChange() {
@@ -566,30 +610,76 @@
       searchQuery = "";
       input.value = "";
       renderedOptions = [];
-      activeOptionIndex = -1;
+      clearActiveOption();
       field.classList.remove("is-open");
       input.setAttribute("aria-expanded", "false");
-      input.removeAttribute("aria-activedescendant");
       menuList.innerHTML = "";
+      clearOpenMenuScrollRoom(field);
 
       if (restoreDisplay) {
         syncComboboxDisplay();
       }
     }
 
+    function findComboboxOption(value) {
+      const text = String(value || "").trim();
+      if (!text) return null;
+
+      const normalized = normalizeComboboxText(text);
+      return Array.from(select.options).find((option) => (
+        option.value === text
+        || normalizeComboboxText(option.textContent) === normalized
+      )) || null;
+    }
+
+    function ensureComboboxOption(value, label = value) {
+      const text = String(value || "").trim();
+      if (!text) return "";
+
+      const existing = findComboboxOption(text);
+      if (existing) return existing.value;
+
+      const option = document.createElement("option");
+      option.value = text;
+      option.textContent = String(label || text).trim() || text;
+      select.append(option);
+      return text;
+    }
+
+    function resolveMenuActionLabel(action) {
+      const query = searchQuery.trim();
+      if (typeof action.label === "function") return action.label(query);
+      if (creatable && query) return createLabel(query);
+      return action.label;
+    }
+
+    function syncMenuActionLabels() {
+      menuActionButtons.forEach(({ action, button }) => {
+        const label = resolveMenuActionLabel(action);
+        const labelEl = button.querySelector(".filter-combobox-menu-action-label");
+        if (labelEl) labelEl.textContent = label;
+        else button.textContent = label;
+      });
+    }
+
     function selectComboboxOption(value, { excluded = false } = {}) {
+      const existed = Boolean(findComboboxOption(value));
+      const resolvedValue = ensureComboboxOption(value);
+      if (!resolvedValue) return;
+
       const currentValues = getFilterSelectValues(select);
-      if (!singleSelect && currentValues.includes(value)) return;
+      if (!singleSelect && currentValues.includes(resolvedValue)) return;
 
       searchQuery = "";
       input.value = "";
-      setFilterSelectValues(select, singleSelect ? [value] : [...currentValues, value]);
-      setOptionExcluded(value, excluded);
+      setFilterSelectValues(select, singleSelect ? [resolvedValue] : [...currentValues, resolvedValue]);
+      setOptionExcluded(resolvedValue, excluded);
       syncComboboxDisplay();
       if (isOpen) {
         renderComboboxOptions();
       }
       dispatchComboboxChange();
+      if (!existed) onCreate?.(resolvedValue);
 
       if (shouldCloseOnSelect) {
         closeCombobox();
@@ -639,13 +729,17 @@
       });
 
       menuList.innerHTML = "";
+      syncMenuActionLabels();
 
       if (!visibleOptions.length) {
         const emptyState = document.createElement("div");
         emptyState.className = "filter-combobox-empty";
         emptyState.textContent = "No results found";
         menuList.append(emptyState);
-        setActiveOption(-1);
+        if (!activateCreateAction()) {
+          clearActiveOption();
+        }
+        scheduleFitOpenMenus();
         return;
       }
 
@@ -658,24 +752,27 @@
           return;
         }
 
-        const optionButton = document.createElement(allowExclude ? "div" : "button");
+        const optionButton = document.createElement(allowExclude && !option.create ? "div" : "button");
         const optionLabel = document.createElement("span");
         optionButton.className = "filter-combobox-option";
-        if (!allowExclude) {
+        if (option.create) optionButton.classList.add("is-create");
+        if (!allowExclude || option.create) {
           optionButton.type = "button";
         }
         optionButton.id = `${menuId}-${index}`;
         optionButton.dataset.value = option.value;
         optionButton.setAttribute("role", "option");
         const isSelected = selectedValues.has(option.value);
-        optionButton.classList.toggle("is-selected", isSelected);
-        optionButton.setAttribute("aria-selected", String(isSelected));
+        optionButton.classList.toggle("is-selected", isSelected && !option.create);
+        optionButton.setAttribute("aria-selected", String(isSelected && !option.create));
         optionLabel.className = "filter-combobox-option-label";
         optionLabel.textContent = option.label;
 
-        if (singleSelect) {
+        if (singleSelect || option.create) {
           const optionCheck = document.createElement("span");
-          optionCheck.className = "filter-combobox-option-check";
+          optionCheck.className = option.create
+            ? "filter-combobox-option-create-icon"
+            : "filter-combobox-option-check";
           optionCheck.setAttribute("aria-hidden", "true");
           optionButton.append(optionCheck, optionLabel);
         } else {
@@ -739,14 +836,15 @@
         menuList.append(optionButton);
       });
 
-      if (activeOptionIndex >= renderedOptions.length) {
+      const navigableCount = renderedOptions.length + menuActionButtons.length;
+      if (activeOptionIndex >= navigableCount) {
         activeOptionIndex = -1;
       }
 
       if (activeOptionIndex >= 0) {
         setActiveOption(activeOptionIndex);
       } else {
-        input.removeAttribute("aria-activedescendant");
+        clearActiveOption();
       }
 
       scheduleFitOpenMenus();
@@ -762,6 +860,7 @@
       input.setAttribute("aria-expanded", "true");
       syncComboboxDisplay();
       renderComboboxOptions();
+      revealOpenMenu(field);
 
       if (selectInputText) {
         input.focus({ preventScroll: true });
@@ -799,6 +898,7 @@
         isOpen = true;
         field.classList.add("is-open");
         input.setAttribute("aria-expanded", "true");
+        revealOpenMenu(field);
       }
 
       renderComboboxOptions();
@@ -820,8 +920,9 @@
         event.preventDefault();
         if (!isOpen) {
           openCombobox();
-          if (renderedOptions.length) {
-            setActiveOption(event.key === "ArrowDown" ? 0 : renderedOptions.length - 1);
+          const navigableCount = renderedOptions.length + menuActionButtons.length;
+          if (navigableCount) {
+            setActiveOption(event.key === "ArrowDown" ? 0 : navigableCount - 1);
           }
           return;
         }
@@ -830,9 +931,10 @@
       }
 
       if (event.key === "Enter") {
-        if (!isOpen || activeOptionIndex < 0) return;
-        event.preventDefault();
-        selectComboboxOption(renderedOptions[activeOptionIndex].value);
+        if (!isOpen) return;
+        if (confirmActiveOption()) {
+          event.preventDefault();
+        }
         return;
       }
 
@@ -952,7 +1054,91 @@
   }
 
   const DROPDOWN_VIEWPORT_GAP = 8;
+  const OPEN_MENU_SPACER_CLASS = "filter-combobox-scroll-spacer";
   let fitMenusFrame = 0;
+  const openMenuScrollers = new Set();
+
+  function getScrollParent(element) {
+    let node = element?.parentElement;
+
+    while (node && node !== document.documentElement) {
+      const overflowY = getComputedStyle(node).overflowY;
+      if (overflowY === "auto" || overflowY === "scroll") return node;
+      node = node.parentElement;
+    }
+
+    return null;
+  }
+
+  function getDesiredOpenMenuSpace(field) {
+    const menu = field.querySelector(".filter-combobox-menu");
+    const list = field.querySelector(".filter-combobox-options");
+    const footer = menu?.querySelector(".filter-combobox-menu-footer");
+    const rowHeight = readPxToken(list || field, "--control-height", 48);
+    const menuPad = menu
+      ? (parseFloat(getComputedStyle(menu).paddingTop) || 0)
+        + (parseFloat(getComputedStyle(menu).paddingBottom) || 0)
+      : 0;
+
+    return (
+      rowHeight * 5
+      + (footer?.offsetHeight || 0)
+      + menuPad
+      + DROPDOWN_VIEWPORT_GAP
+      + readPxToken(document.documentElement, "--dropdown-offset-closed", 2)
+      + readPxToken(document.documentElement, "--dropdown-reveal-travel", 10)
+    );
+  }
+
+  function clearOpenMenuScrollRoom(field) {
+    const scoped = field ? [getScrollParent(field)].filter(Boolean) : [...openMenuScrollers];
+    scoped.forEach((scroller) => {
+      scroller.querySelectorAll(`:scope > .${OPEN_MENU_SPACER_CLASS}`).forEach((spacer) => spacer.remove());
+      openMenuScrollers.delete(scroller);
+    });
+  }
+
+  function revealOpenMenu(field) {
+    if (!field) return;
+
+    const scroller = getScrollParent(field);
+    if (!scroller) {
+      scheduleFitOpenMenus();
+      return;
+    }
+
+    const desired = getDesiredOpenMenuSpace(field);
+    const overflow = Math.ceil(
+      field.getBoundingClientRect().bottom + desired - scroller.getBoundingClientRect().bottom
+    );
+
+    if (overflow <= 1) {
+      clearOpenMenuScrollRoom(field);
+      scheduleFitOpenMenus();
+      return;
+    }
+
+    const remaining = Math.max(0, scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop);
+    const extra = Math.max(0, overflow - remaining);
+    let spacer = scroller.querySelector(`:scope > .${OPEN_MENU_SPACER_CLASS}`);
+
+    if (extra > 0) {
+      if (!spacer) {
+        spacer = document.createElement("div");
+        spacer.className = OPEN_MENU_SPACER_CLASS;
+        spacer.setAttribute("aria-hidden", "true");
+        scroller.append(spacer);
+      }
+      spacer.style.height = `${extra}px`;
+      openMenuScrollers.add(scroller);
+    } else if (spacer) {
+      spacer.remove();
+      openMenuScrollers.delete(scroller);
+    }
+
+    scroller.scrollTop += overflow;
+    scheduleFitOpenMenus();
+  }
 
   function readPxToken(element, name, fallback) {
     const value = parseFloat(getComputedStyle(element).getPropertyValue(name));
@@ -1066,7 +1252,9 @@
     bindOutsideClick: bindComboboxOutsideClick,
     renderChip: renderFilterChip,
     normalizeText: normalizeComboboxText,
-    fitOpenMenus: scheduleFitOpenMenus
+    fitOpenMenus: scheduleFitOpenMenus,
+    revealOpenMenu,
+    clearOpenMenuScrollRoom
   };
 
   window.normalizeComboboxText = normalizeComboboxText;

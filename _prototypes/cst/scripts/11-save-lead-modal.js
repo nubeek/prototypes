@@ -148,6 +148,7 @@ function persistCrmLead({ ownerIndex = null, nodeId = null, prospectRowKey = nul
     email: saveLeadEmail?.value.trim() || saveLeadContactEmail?.textContent?.trim() || "",
     phone: saveLeadPhone?.value.trim() || "",
     franchise: context.franchise,
+    company: context.ownerName,
     ownerName: context.ownerName,
     location: context.location,
     locationPlace: context.locationPlace,

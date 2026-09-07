@@ -266,11 +266,15 @@
   outline-offset: 2px;
 }
 
-.filter-section-toggle img {
+.filter-section-toggle img,
+.filter-section-title img {
   display: block;
-  width: 11px;
-  height: 6px;
+  width: 12px;
+  height: 12px;
   flex: 0 0 auto;
+  object-fit: none;
+  object-position: calc(50% + 0.5px) calc(50% + 0.25px);
+  transform-origin: center;
   filter: var(--color-chevron-soft);
   transform: rotate(180deg);
   transition: filter var(--transition-fast), transform var(--transition-fast);
@@ -288,13 +292,6 @@
 .filter-section-title.ui-button-ghost:active,
 .filter-section-title.ui-button-ghost.is-active {
   background: transparent;
-}
-
-.filter-section-title img {
-  display: block;
-  filter: var(--color-chevron-soft);
-  transform: rotate(180deg);
-  transition: filter var(--transition-fast), transform var(--transition-fast);
 }
 
 .filter-section:hover .filter-section-title img {
@@ -857,7 +854,8 @@
 }
 
 .filter-combobox-menu-action:hover,
-.filter-combobox-menu-action:focus-visible {
+.filter-combobox-menu-action:focus-visible,
+.filter-combobox-menu-action.is-active {
   background: var(--color-surface-muted);
 }
 
@@ -921,6 +919,17 @@
 
 .filter-combobox-option.is-selected .filter-combobox-option-label {
   font-weight: 500;
+}
+
+.filter-combobox-option-create-icon {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  background: url("../../../assets/icons/add.svg") center / contain no-repeat;
+}
+
+.filter-combobox-option.is-create .filter-combobox-option-label {
+  font-weight: 600;
 }
 
 .filter-combobox-option-actions {

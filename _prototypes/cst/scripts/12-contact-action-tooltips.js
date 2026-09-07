@@ -17,7 +17,7 @@ function getContactActionFloatingTooltip() {
   return contactActionFloatingTooltip;
 }
 
-function positionFloatingTooltip(target, tooltipText) {
+function positionFloatingTooltip(target, tooltipText, { anchorToText = false } = {}) {
   if (!tooltipText) return;
 
   const tooltip = getContactActionFloatingTooltip();
@@ -30,7 +30,9 @@ function positionFloatingTooltip(target, tooltipText) {
   tooltip.classList.add("is-visible");
   window.fitTooltipToContent?.(tooltip);
 
-  const targetRect = target.getBoundingClientRect();
+  const targetRect = anchorToText && window.getElementTextBoundingRect
+    ? window.getElementTextBoundingRect(target)
+    : target.getBoundingClientRect();
   const tooltipRect = tooltip.getBoundingClientRect();
   const viewportPadding = 8;
   const centeredLeft = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
@@ -53,7 +55,7 @@ function getContactEmailTooltipText(emailElement) {
 }
 
 function positionContactEmailFloatingTooltip(emailElement) {
-  positionFloatingTooltip(emailElement, getContactEmailTooltipText(emailElement));
+  positionFloatingTooltip(emailElement, getContactEmailTooltipText(emailElement), { anchorToText: true });
 }
 
 function showContactActionFloatingTooltip(target) {
