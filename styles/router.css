@@ -1,4 +1,6 @@
 /* Router page styles derived from the CST prototype visual system. */
+@import url("../_prototypes/shared/ui/proto-tokens.css");
+
 :root {
   --font-sans: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --color-surface: #fff;
@@ -7,10 +9,11 @@
   --color-border: #e7e7e7;
   --color-text: #111;
   --color-text-soft: #222;
+  --color-text-muted: #666;
   --color-brand: #7a63dd;
   --color-brand-primary: #8065e8;
   --color-brand-soft: #e9ddff;
-  --radius-lg: 12px;
+  --color-chevron-soft: brightness(0) saturate(100%) invert(72%) sepia(0%) saturate(0%) hue-rotate(183deg) brightness(91%) contrast(86%);
   --radius-pill: 999px;
   --transition-fast: 180ms ease;
   --shadow-tile: 0 4px 5px rgba(0, 0, 0, 0.03);
@@ -27,10 +30,10 @@ body {
   height: auto;
   min-height: 100vh;
   overflow: auto;
-  background: var(--color-surface-subtle);
+  background: rgba(233, 233, 233, 0.35);
   color: var(--color-text-soft);
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: var(--font-size-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -72,44 +75,36 @@ h1 {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: clamp(20px, 5vw, 64px);
+  padding: clamp(16px, 4vw, 40px);
 }
 
 .router-card {
-  width: min(900px, 100%);
-  border: 1px solid var(--color-border);
-  border-radius: 24px;
+  width: min(480px, 100%);
+  border-radius: 18px;
   background: var(--color-surface);
-  box-shadow: 0 24px 60px rgba(38, 31, 75, 0.12);
-  padding: clamp(20px, 4vw, 36px);
+  box-shadow: 0 28px 20px rgba(55, 55, 55, 0.05);
+  padding: 28px 20px;
 }
 
 .router-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 28px;
+  gap: 16px;
+  padding: 0 12px;
+  margin-bottom: 20px;
 }
 
 .router-title {
-  margin-bottom: 10px;
-  font-size: clamp(18px, 4vw, 42px);
-  line-height: 0.95;
-  letter-spacing: -0.04em;
-}
-
-.router-copy {
-  max-width: 560px;
-  margin: 0;
-  color: var(--color-text-soft);
-  font-size: 16px;
-  line-height: 1.6;
+  margin-bottom: 0;
+  font-size: clamp(16px, 3vw, 22px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .prototype-list {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -117,15 +112,15 @@ h1 {
 
 .prototype-link {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 16px;
-  min-height: 84px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  min-height: var(--table-row-height);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text);
-  padding: 18px 20px;
+  padding: 10px 14px;
   text-decoration: none;
   transition:
     background-color var(--transition-fast),
@@ -134,53 +129,136 @@ h1 {
     transform var(--transition-fast);
 }
 
+.prototype-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  object-fit: contain;
+  opacity: 0.42;
+  transition: opacity var(--transition-fast);
+}
+
+.prototype-link:hover .prototype-icon,
+.prototype-link:focus-visible .prototype-icon {
+  opacity: 1;
+}
+
+.prototype-content {
+  min-width: 0;
+}
+
 .prototype-link:hover,
 .prototype-link:focus-visible {
-  border-color: #d8d0f6;
-  background: var(--color-surface-subtle);
-  box-shadow: var(--shadow-tile);
+  border-color: transparent;
+  background: var(--color-surface-control);
+  box-shadow: none;
   outline: none;
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .prototype-name {
   display: block;
-  margin-bottom: 6px;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 .prototype-description {
   display: block;
-  color: #666;
-  font-size: 15px;
-  line-height: 1.45;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
-.prototype-path {
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-control);
-  color: var(--color-text-soft);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-  padding: 9px 12px;
+.prototype-trailing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.prototype-chevron {
+  display: block;
+  width: 12px;
+  height: 12px;
+  object-fit: none;
+  object-position: calc(50% + 0.5px) calc(50% + 0.25px);
+  transform: translateX(1px) rotate(-90deg);
+  transform-origin: center;
+  opacity: 0.42;
+  filter: var(--color-chevron-soft);
+  transition: opacity var(--transition-fast), filter var(--transition-fast);
+}
+
+.prototype-link:hover .prototype-chevron,
+.prototype-link:focus-visible .prototype-chevron {
+  opacity: 1;
+  filter: brightness(0) saturate(100%);
+}
+
+.prototype-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  line-height: 0;
+}
+
+.prototype-info::after {
+  content: attr(data-tooltip);
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  width: max-content;
+  max-width: 280px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
   white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 140ms ease, transform 200ms ease;
+}
+
+.prototype-info:hover::after,
+.prototype-info:focus-visible::after {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.prototype-info__icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast);
+}
+
+.prototype-info:hover .prototype-info__icon,
+.prototype-info:focus-visible .prototype-info__icon {
+  filter: brightness(0) saturate(100%);
 }
 
 @media (max-width: 640px) {
-  .router-header,
-  .prototype-link {
-    grid-template-columns: 1fr;
-  }
-
   .router-header {
     display: grid;
-  }
-
-  .prototype-path {
-    width: fit-content;
+    grid-template-columns: 1fr;
   }
 }

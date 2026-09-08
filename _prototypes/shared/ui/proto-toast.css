@@ -1,0 +1,57 @@
+/* Shared prototype toast. Source of truth for success/status notices
+   with optional brand action. Do not copy these rules into a feature. */
+
+.proto-toast-host {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  z-index: 1800;
+  display: flex;
+  justify-content: center;
+  padding: 0 24px;
+  pointer-events: none;
+}
+
+.proto-toast {
+  pointer-events: auto;
+  max-width: min(520px, 100%);
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg, 12px);
+  background: #111;
+  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
+  color: #fff;
+  font-size: var(--font-size-base, 16px);
+  font-weight: 400;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 220ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.proto-toast.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.proto-toast.is-hiding {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.proto-toast__action,
+.proto-toast__action:visited {
+  white-space: nowrap;
+  color: var(--color-brand, #7a63dd);
+}
+
+body.reduce-motion .proto-toast,
+@media (prefers-reduced-motion: reduce) {
+  .proto-toast {
+    transform: none;
+    transition: none;
+  }
+}

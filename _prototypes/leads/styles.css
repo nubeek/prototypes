@@ -1636,6 +1636,10 @@ th {
   text-overflow: ellipsis;
 }
 
+.has-row-select {
+  --lead-select-col-width: 48px;
+}
+
 th:first-child,
 td:first-child,
 #locationNumberColumnHeader[hidden] + #ownerColumnHeader {
@@ -1648,14 +1652,24 @@ td:first-child,
   box-shadow: none;
 }
 
+th:nth-child(2),
+td:nth-child(2) {
+  position: sticky;
+  left: var(--lead-select-col-width, 48px);
+  background: #fff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  z-index: 1;
+}
+
 th:first-child,
+th:nth-child(2),
 #locationNumberColumnHeader[hidden] + #ownerColumnHeader {
   z-index: 3;
 }
 
-.table-wrap.is-name-column-overlap th:first-child,
-.table-wrap.is-name-column-overlap td:first-child,
-.table-wrap.is-name-column-overlap #locationNumberColumnHeader[hidden] + #ownerColumnHeader {
+.table-wrap.is-name-column-overlap th:nth-child(2),
+.table-wrap.is-name-column-overlap td:nth-child(2) {
   box-shadow:
     1px 0 0 #e6e6ea,
     2px 0 0 rgba(230, 230, 234, 0.25),
@@ -1668,8 +1682,7 @@ th:first-child,
     0 3px 0 rgba(230, 230, 234, 0.25);
 }
 
-.table-wrap.is-name-column-overlap.is-header-row-overlap th:first-child,
-.table-wrap.is-name-column-overlap.is-header-row-overlap #locationNumberColumnHeader[hidden] + #ownerColumnHeader {
+.table-wrap.is-name-column-overlap.is-header-row-overlap th:nth-child(2) {
   box-shadow:
     1px 0 0 #e6e6ea,
     2px 0 0 rgba(230, 230, 234, 0.25),
@@ -1808,21 +1821,17 @@ tbody tr:hover {
   background: #f3f3f4;
 }
 
-tbody tr:hover td:first-child {
+tbody tr:hover td:first-child,
+tbody tr:hover td:nth-child(2) {
   background: #f3f3f4;
 }
 
-tbody tr:has(.owner-icons:hover) td,
-tbody tr:has(.owner-icons:focus-within) td,
-tbody tr:not([data-unit-index]):has(.franchise-logo:hover) td,
-tbody tr:not([data-unit-index]):has(.franchise-logo:focus-visible) td {
+tbody tr:has(.owner-icons:hover) td:not(:nth-child(-n + 2)),
+tbody tr:has(.owner-icons:focus-within) td:not(:nth-child(-n + 2)),
+tbody tr:not([data-unit-index]):has(.franchise-logo:hover) td:not(:nth-child(-n + 2)),
+tbody tr:not([data-unit-index]):has(.franchise-logo:focus-visible) td:not(:nth-child(-n + 2)) {
   position: relative;
   z-index: 6;
-}
-
-tbody tr:not(.raw-data-row):has(.contact-cell-action:focus-within) td {
-  position: relative;
-  z-index: 7;
 }
 
 tbody tr.is-selected,
@@ -1835,13 +1844,17 @@ tbody tr.is-checked:hover {
 tbody tr.is-selected td:first-child,
 tbody tr.is-selected:hover td:first-child,
 tbody tr.is-checked td:first-child,
-tbody tr.is-checked:hover td:first-child {
+tbody tr.is-checked:hover td:first-child,
+tbody tr.is-selected td:nth-child(2),
+tbody tr.is-selected:hover td:nth-child(2),
+tbody tr.is-checked td:nth-child(2),
+tbody tr.is-checked:hover td:nth-child(2) {
   background: #f3f3f4;
 }
 
 .has-row-select th:first-child,
 .has-row-select td:first-child {
-  width: 48px !important;
+  width: var(--lead-select-col-width, 48px) !important;
   padding-left: var(--table-select-pad-x);
   padding-right: var(--table-select-pad-x);
   text-align: center;

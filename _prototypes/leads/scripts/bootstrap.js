@@ -208,4 +208,9 @@
   function storeKey() {
     return window.WefranchLeadsStore?.STORAGE_KEY || "wefranch:crm-leads";
   }
+
+  const leadFromQuery = new URLSearchParams(window.location.search).get("lead");
+  if (leadFromQuery) {
+    modals?.openLeadDetail(leadFromQuery);
+  }
 })();

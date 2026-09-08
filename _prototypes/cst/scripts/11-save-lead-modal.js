@@ -363,6 +363,45 @@ function expandSaveLeadContactFields() {
   saveLeadContact.addEventListener("transitionend", finishExpand);
 }
 
+function getSaveLeadDisplayName() {
+  const firstName = saveLeadFirstName?.value.trim() || "";
+  const surname = saveLeadSurname?.value.trim() || "";
+  return [firstName, surname].filter(Boolean).join(" ")
+    || saveLeadContactName?.textContent?.trim()
+    || "Lead";
+}
+
+function getViewLeadHref(leadId) {
+  const url = new URL("../leads/", window.location.href);
+  if (leadId) url.searchParams.set("lead", leadId);
+  const currentParams = new URLSearchParams(window.location.search);
+  if (currentParams.has("presentation")) {
+    url.searchParams.set("presentation", currentParams.get("presentation") || "");
+  }
+  return `${url.pathname}${url.search}`;
+}
+
+function getSaveLeadListName(lead = null) {
+  return String(lead?.list || saveLeadListApi?.getValue?.() || "").trim();
+}
+
+function getSaveLeadToastMessage(lead = null) {
+  const name = lead?.name || getSaveLeadDisplayName();
+  const list = getSaveLeadListName(lead);
+  if (list) return `${name} added to “${list}”.`;
+  return `${name} added to your Leads.`;
+}
+
+function showSaveLeadToast(lead = null) {
+  window.WefranchToast?.show({
+    message: getSaveLeadToastMessage(lead),
+    action: {
+      label: "View lead",
+      href: getViewLeadHref(lead?.id)
+    }
+  });
+}
+
 function resetSaveLeadModalForm() {
   if (!saveLeadModalForm) return;
 
@@ -502,13 +541,16 @@ function handleSaveLeadAction(trigger, ownerIndex, nodeId = null, prospectRowKey
 }
 
 function confirmSaveLeadFromModal() {
+  if (!saveLeadModalApi?.isOpen?.()) return;
+
   if (pendingSaveLeadProspectRowKey) {
     const row = getProspectRowByStateKey(pendingSaveLeadProspectRowKey);
     if (!row) return;
 
     setProspectRowLeadSaved(row, true);
-    persistCrmLead({ prospectRowKey: pendingSaveLeadProspectRowKey });
+    const lead = persistCrmLead({ prospectRowKey: pendingSaveLeadProspectRowKey });
     refreshContactStateViews();
+    showSaveLeadToast(lead);
     closeSaveLeadModal();
     return;
   }
@@ -516,12 +558,13 @@ function confirmSaveLeadFromModal() {
   if (!Number.isFinite(pendingSaveLeadOwnerIndex)) return;
 
   setContactLeadSaved(pendingSaveLeadOwnerIndex, pendingSaveLeadNodeId, true);
-  persistCrmLead({
+  const lead = persistCrmLead({
     ownerIndex: pendingSaveLeadOwnerIndex,
     nodeId: pendingSaveLeadNodeId
   });
   refreshContactStateViews();
   syncOwnerDetailLeadButton(pendingSaveLeadOwnerIndex);
+  showSaveLeadToast(lead);
   closeSaveLeadModal();
 }
 

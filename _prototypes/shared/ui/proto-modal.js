@@ -95,6 +95,24 @@
       panel.style.overflow = "";
     }
 
+    function pause() {
+      active = false;
+      animating = false;
+      clearScheduledSync();
+      clearFinishTimeout();
+      panel.removeEventListener("transitionend", onHeightTransitionEnd);
+    }
+
+    function resume() {
+      if (!overlay?.classList.contains("is-open")) return;
+      active = true;
+      animating = false;
+      clearScheduledSync();
+      clearFinishTimeout();
+      resetPanelHeightStyles();
+      lastKnownHeight = measureModalNaturalHeight(panel);
+    }
+
     function finishHeightAnimation(shouldResync = true) {
       clearFinishTimeout();
       panel.removeEventListener("transitionend", onHeightTransitionEnd);
@@ -198,6 +216,8 @@
       reset() {
         this.stop();
       },
+      pause,
+      resume,
       sync() {
         scheduleHeightSync();
       }
@@ -297,6 +317,12 @@
       },
       getTrigger() {
         return lastTrigger;
+      },
+      pauseHeightAnimation() {
+        heightAnimator?.pause();
+      },
+      resumeHeightAnimation() {
+        heightAnimator?.resume();
       },
       shouldCloseOnEscape(event) {
         if (typeof options.shouldCloseOnEscape === "function") {
