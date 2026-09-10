@@ -315,52 +315,21 @@ function syncSaveLeadNoteHeight() {
 }
 
 function collapseSaveLeadContactFields() {
-  saveLeadContact?.classList.remove("is-editing", "is-expanding");
+  saveLeadContact?.classList.remove("is-editing");
   saveLeadContactFields?.setAttribute("hidden", "");
   saveLeadContactSummary?.removeAttribute("hidden");
   saveLeadEditDetails?.setAttribute("aria-expanded", "false");
-  if (saveLeadContact) {
-    saveLeadContact.style.height = "";
-  }
 }
 
 function expandSaveLeadContactFields() {
   if (!saveLeadContact || !saveLeadContactFields || !saveLeadContactSummary) return;
   if (saveLeadContact.classList.contains("is-editing")) return;
 
-  const skipMotion = document.body.classList.contains("reduce-motion");
-  const startHeight = saveLeadContact.offsetHeight;
   saveLeadContactSummary.setAttribute("hidden", "");
   saveLeadContactFields.removeAttribute("hidden");
   saveLeadContact.classList.add("is-editing");
   saveLeadEditDetails?.setAttribute("aria-expanded", "true");
-
-  if (skipMotion) {
-    saveLeadFirstName?.focus({ preventScroll: true });
-    return;
-  }
-
-  const endHeight = saveLeadContact.scrollHeight;
-  saveLeadContact.classList.add("is-expanding");
-  saveLeadContact.style.height = `${startHeight}px`;
-
-  window.requestAnimationFrame(() => {
-    if (!saveLeadContact.classList.contains("is-editing")) return;
-    saveLeadContact.style.height = `${endHeight}px`;
-  });
-
-  const finishExpand = (event) => {
-    if (event && event.propertyName !== "height") return;
-    saveLeadContact.removeEventListener("transitionend", finishExpand);
-    window.clearTimeout(finishExpand.timeoutId);
-    saveLeadContact.classList.remove("is-expanding");
-    if (saveLeadContact.classList.contains("is-editing")) {
-      saveLeadContact.style.height = "";
-      saveLeadFirstName?.focus({ preventScroll: true });
-    }
-  };
-  finishExpand.timeoutId = window.setTimeout(finishExpand, 280);
-  saveLeadContact.addEventListener("transitionend", finishExpand);
+  saveLeadFirstName?.focus({ preventScroll: true });
 }
 
 function getSaveLeadDisplayName() {

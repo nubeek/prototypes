@@ -650,6 +650,7 @@
 .contact-action-floating-tooltip {
   font-weight: 500;
   line-height: 1.25;
+  text-wrap: nowrap;
   white-space: nowrap;
 }
 
@@ -959,6 +960,50 @@
   opacity: 1;
   pointer-events: auto;
   transform: translate(0, -50%);
+}
+
+.filter-combobox-option-remove {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: background-color var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.filter-combobox-option:hover .filter-combobox-option-remove,
+.filter-combobox-option.is-active .filter-combobox-option-remove,
+.filter-combobox-option:focus-within .filter-combobox-option-remove {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.filter-combobox-option-remove::before {
+  content: "";
+  width: 12px;
+  height: 14px;
+  background-color: currentColor;
+  -webkit-mask: url("../../../assets/icons/delete.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/delete.svg") center / contain no-repeat;
+}
+
+.filter-combobox-option-remove:hover,
+.filter-combobox-option-remove:focus-visible {
+  background: var(--color-surface-control);
+  color: #111;
 }
 
 .filter-combobox-option-action {

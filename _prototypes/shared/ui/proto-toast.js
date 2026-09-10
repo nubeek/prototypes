@@ -15,6 +15,30 @@
   let remainingMs = DEFAULT_DURATION_MS;
   let hideStartedAt = 0;
   let paused = false;
+  let lastPointerX = null;
+  let lastPointerY = null;
+  let pointerTrackingBound = false;
+
+  function bindPointerTracking() {
+    if (pointerTrackingBound) return;
+    pointerTrackingBound = true;
+    document.addEventListener("pointermove", (event) => {
+      lastPointerX = event.clientX;
+      lastPointerY = event.clientY;
+    }, { passive: true });
+  }
+
+  function isPointerOverToast(toast) {
+    if (!toast?.isConnected) return false;
+    if (toast.matches(":hover")) return true;
+    if (lastPointerX == null || lastPointerY == null) return false;
+    const hit = document.elementFromPoint(lastPointerX, lastPointerY);
+    return hit === toast || toast.contains(hit);
+  }
+
+  function syncPointerPause(toast) {
+    if (isPointerOverToast(toast)) pauseHide();
+  }
 
   function shouldReduceMotion() {
     return document.body.classList.contains("reduce-motion")
@@ -82,11 +106,25 @@
   }
 
   function pauseHide() {
-    if (paused || !hideTimer) return;
-    paused = true;
-    remainingMs = Math.max(0, remainingMs - (Date.now() - hideStartedAt));
-    window.clearTimeout(hideTimer);
-    hideTimer = null;
+    if (paused) return;
+
+    if (hideTimer) {
+      paused = true;
+      remainingMs = Math.max(0, remainingMs - (Date.now() - hideStartedAt));
+      window.clearTimeout(hideTimer);
+      hideTimer = null;
+      return;
+    }
+
+    if (hideFinishTimer && toastEl) {
+      paused = true;
+      window.clearTimeout(hideFinishTimer);
+      hideFinishTimer = null;
+      toastEl.removeEventListener("transitionend", toastEl.protoToastHideFinish);
+      toastEl.classList.remove("is-hiding");
+      toastEl.classList.add("is-visible");
+      remainingMs = HIDE_MS;
+    }
   }
 
   function resumeHide() {
@@ -120,6 +158,7 @@
   function show(options = {}) {
     const message = options.message == null ? "" : String(options.message);
     const duration = options.duration == null ? DEFAULT_DURATION_MS : Number(options.duration);
+    bindPointerTracking();
     ensureHost();
     hide(true);
 
@@ -153,6 +192,10 @@
     window.requestAnimationFrame(() => {
       if (toastEl !== toast) return;
       toast.classList.add("is-visible");
+      window.requestAnimationFrame(() => {
+        if (toastEl !== toast) return;
+        syncPointerPause(toast);
+      });
     });
 
     if (remainingMs > 0) scheduleHide();

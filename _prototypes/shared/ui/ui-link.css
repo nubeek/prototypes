@@ -11,6 +11,7 @@
 .ui-control.ui-link {
   color: var(--color-brand);
   font-weight: 500;
+  cursor: pointer;
   text-decoration: underline;
   text-decoration-color: transparent;
   text-underline-offset: 2px;

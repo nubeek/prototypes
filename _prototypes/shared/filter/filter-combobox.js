@@ -250,6 +250,8 @@
     closeOnSelect = null,
     onOpen = null,
     menuActions = null,
+    optionRemove = false,
+    onRemoveOption = null,
     creatable = false,
     createLabel = (query) => `Add “${query}”`,
     onCreate = null
@@ -752,11 +754,16 @@
           return;
         }
 
-        const optionButton = document.createElement(allowExclude && !option.create ? "div" : "button");
+        const canRemoveOption = !option.create && (
+          typeof optionRemove === "function" ? Boolean(optionRemove(option)) : Boolean(optionRemove)
+        );
+        const hasRowActions = (allowExclude || canRemoveOption) && !option.create;
+        const optionButton = document.createElement(hasRowActions ? "div" : "button");
         const optionLabel = document.createElement("span");
         optionButton.className = "filter-combobox-option";
         if (option.create) optionButton.classList.add("is-create");
-        if (!allowExclude || option.create) {
+        if (canRemoveOption) optionButton.classList.add("has-option-remove");
+        if (!hasRowActions) {
           optionButton.type = "button";
         }
         optionButton.id = `${menuId}-${index}`;
@@ -777,6 +784,24 @@
           optionButton.append(optionCheck, optionLabel);
         } else {
           optionButton.append(optionLabel);
+        }
+
+        if (canRemoveOption) {
+          const removeAction = document.createElement("button");
+          removeAction.className = "filter-combobox-option-remove";
+          removeAction.type = "button";
+          removeAction.tabIndex = -1;
+          removeAction.setAttribute("aria-label", `Remove ${option.label}`);
+          removeAction.addEventListener("mousedown", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          });
+          removeAction.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onRemoveOption?.(option.value, option);
+          });
+          optionButton.append(removeAction);
         }
 
         if (allowExclude) {

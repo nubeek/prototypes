@@ -3,19 +3,16 @@
 
 .proto-toast-host {
   position: fixed;
-  left: 0;
-  right: 0;
+  left: 50%;
   bottom: 24px;
   z-index: 1800;
-  display: flex;
-  justify-content: center;
-  padding: 0 24px;
-  pointer-events: none;
+  width: max-content;
+  max-width: min(520px, calc(100% - 48px));
+  transform: translateX(-50%);
 }
 
 .proto-toast {
-  pointer-events: auto;
-  max-width: min(520px, 100%);
+  max-width: 100%;
   margin: 0;
   padding: 14px 18px;
   border-radius: var(--radius-lg, 12px);

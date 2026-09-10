@@ -1022,8 +1022,109 @@ body img[src$="/chevron.svg"] {
   mask: url("../../assets/icons/leads-remove.svg") center / contain no-repeat;
 }
 
-.save-lead-modal-overlay {
+.save-lead-modal-overlay,
+.add-campaign-sender-overlay {
   z-index: 1500;
+}
+
+.add-campaign-sender-modal .add-sender-step-viewport {
+  position: relative;
+  width: 100%;
+  flex: 0 0 auto;
+  overflow: hidden;
+  transition: height 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.add-sender-step-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 50ms ease;
+  will-change: transform, opacity;
+}
+
+.add-sender-step-panel.is-active,
+.add-sender-step-panel.is-entering,
+.add-sender-step-panel.is-leaving {
+  visibility: visible;
+}
+
+.add-sender-step-panel.is-active,
+.add-sender-step-panel.is-entering {
+  pointer-events: auto;
+}
+
+.add-sender-setup-copy .proto-modal-subtitle {
+  margin-bottom: 12px;
+}
+
+.add-sender-setup-copy .proto-modal-subtitle:last-child {
+  margin-bottom: 0;
+}
+
+.add-sender-setup-emphasis {
+  font-weight: 600;
+}
+
+.add-sender-setup-copy .add-sender-setup-inline-link {
+  display: inline;
+  vertical-align: baseline;
+}
+
+.add-sender-setup-copy .add-sender-setup-inline-link:disabled {
+  opacity: 1;
+  color: var(--color-brand);
+  cursor: default;
+  text-decoration-color: transparent;
+}
+
+.add-campaign-sender-modal #addCampaignSenderBack[hidden],
+.add-campaign-sender-modal #addCampaignSenderDns[hidden] {
+  display: none;
+}
+
+.add-campaign-sender-modal #addCampaignSenderDns:not([hidden]) {
+  margin-right: auto;
+}
+
+.add-sender-dns-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.add-sender-inbox-email {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.campaign-sender-auth-email {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.campaign-sender-auth-inline-link {
+  margin-left: 0.25em;
+}
+
+.campaign-sender-auth-inline-link:disabled {
+  opacity: 1;
+  color: var(--color-brand);
+  cursor: default;
+  text-decoration-color: transparent;
+}
+
+body.reduce-motion .add-sender-step-panel,
+body.reduce-motion .add-sender-step-viewport {
+  transition: none;
 }
 
 .proto-modal.campaign-wizard-modal {
@@ -2229,7 +2330,8 @@ body.reduce-motion .start-campaign-progress-over {
   display: none;
 }
 
-#campaignStepContinue {
+#campaignStepContinue,
+#addCampaignSenderContinue {
   position: relative;
   gap: 0;
   overflow: hidden;
@@ -2260,7 +2362,10 @@ body.reduce-motion .start-campaign-progress-over {
 
 #campaignStepContinue.is-loading,
 #campaignStepContinue.is-loading:disabled,
-#campaignStepContinue.is-loading:disabled:hover {
+#campaignStepContinue.is-loading:disabled:hover,
+#addCampaignSenderContinue.is-loading,
+#addCampaignSenderContinue.is-loading:disabled,
+#addCampaignSenderContinue.is-loading:disabled:hover {
   gap: 10px;
   padding-left: 20px;
   padding-right: 20px;
@@ -2268,7 +2373,8 @@ body.reduce-motion .start-campaign-progress-over {
   cursor: default;
 }
 
-#campaignStepContinue.is-loading .campaign-continue-spinner {
+#campaignStepContinue.is-loading .campaign-continue-spinner,
+#addCampaignSenderContinue.is-loading .campaign-continue-spinner {
   flex: 0 0 auto;
   width: 18px;
   opacity: 1;
@@ -2278,6 +2384,7 @@ body.reduce-motion .start-campaign-progress-over {
 }
 
 body.reduce-motion #campaignStepContinue,
+body.reduce-motion #addCampaignSenderContinue,
 body.reduce-motion .campaign-continue-spinner {
   transition: none;
   animation: none;
@@ -2450,14 +2557,8 @@ body.reduce-motion .campaign-continue-spinner {
 
 .save-lead-contact {
   margin-bottom: 22px;
-  transition: height 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.save-lead-contact.is-expanding {
-  overflow: hidden;
-}
-
-body.reduce-motion .save-lead-contact,
 body.reduce-motion .save-lead-contact-fields {
   transition: none;
 }
@@ -5328,11 +5429,6 @@ tbody tr.is-checked:hover td:first-child {
   background: transparent;
 }
 
-.prospect-dataset-row .contact-hide-results-action::after,
-.prospect-dataset-row .contact-add-lead-action::after {
-  content: none;
-}
-
 .prospect-dataset-row .location-prospect-name {
   min-width: 0;
   flex: 1 1 auto;
@@ -5756,6 +5852,7 @@ tbody tr.is-checked:hover td:first-child {
 .contact-hide-results-action,
 .contact-add-lead-action {
   position: relative;
+  z-index: 3;
   width: 32px;
   height: 32px;
   border-radius: 10px;
@@ -5816,32 +5913,6 @@ tbody tr.is-checked:hover td:first-child {
   mask: url("../../assets/icons/leads-remove.svg") center / contain no-repeat;
 }
 
-.contact-hide-results-action::after,
-.contact-add-lead-action::after {
-  content: attr(data-tooltip);
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  z-index: 100;
-  width: max-content;
-  max-width: 220px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
-  color: #17171c;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.25;
-  text-align: center;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -6px);
-  transition: opacity 140ms ease, transform 200ms ease;
-}
-
 .contact-cell-action:hover .contact-row-actions,
 .contact-cell-action:focus-within .contact-row-actions,
 .contact-cell-action.is-lead-saved .contact-row-actions,
@@ -5895,25 +5966,6 @@ tbody tr.is-checked:hover td:first-child {
 .contact-add-lead-action.is-saved:focus-visible {
   background: #d9d9d9;
   color: var(--color-text);
-}
-
-.contact-hide-results-action:hover::after,
-.contact-hide-results-action:focus-visible::after,
-.contact-add-lead-action:hover::after,
-.contact-add-lead-action:focus-visible::after {
-  display: block;
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-@starting-style {
-  .contact-hide-results-action:hover::after,
-  .contact-hide-results-action:focus-visible::after,
-  .contact-add-lead-action:hover::after,
-  .contact-add-lead-action:focus-visible::after {
-    opacity: 0;
-    transform: translate(-50%, -6px);
-  }
 }
 
 .raw-name-cell .raw-name {

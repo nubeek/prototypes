@@ -1115,8 +1115,18 @@
           <div class="proto-modal-notice" id="campaignSenderAuthNotice" role="status" hidden>
             <span class="proto-modal-notice__icon" aria-hidden="true"></span>
             <div class="proto-modal-notice__content">
-              <p class="proto-modal-notice__text">Your domain isn't authenticated for sending.</p>
-              <button class="proto-modal-notice__action ui-text-button" type="button">Set up your domain</button>
+              <p class="proto-modal-notice__text" id="campaignSenderAuthNoticeText">
+                Your domain isn't authenticated for sending.
+                <button class="ui-control ui-link campaign-sender-auth-inline-link" type="button" id="campaignSenderAuthNoticeAction">Set up your domain</button>
+              </p>
+              <p class="proto-modal-notice__text" id="campaignSenderAuthEmailNotice" hidden>
+                Awaiting email verification. Check <span class="campaign-sender-auth-email" id="campaignSenderAuthEmail">name@example.com</span> for a verification email to start sending.
+                <button class="ui-control ui-link campaign-sender-auth-inline-link" type="button" id="campaignSenderAuthResend" aria-live="polite">Resend email</button>
+              </p>
+              <p class="proto-modal-notice__text" id="campaignSenderAuthDnsNotice" hidden>
+                DNS verification in progress. Your changes may take some time to take effect.
+                <button class="ui-control ui-link campaign-sender-auth-inline-link" type="button" id="campaignSenderAuthDnsSetupLink">Review DNS setup</button>
+              </p>
             </div>
           </div>
         </div>
@@ -1323,6 +1333,61 @@
           <span class="campaign-continue-label">Next</span>
         </button>
       </div>
+    </section>
+  </div>
+
+  <div class="proto-modal-overlay add-campaign-sender-overlay" id="addCampaignSenderModal" hidden>
+    <section class="proto-modal proto-modal--form add-campaign-sender-modal" role="dialog" aria-modal="true" aria-labelledby="addCampaignSenderModalTitle">
+      <form class="proto-modal-form" id="addCampaignSenderModalForm" novalidate>
+        <div class="proto-modal-header">
+          <h2 class="proto-modal-title" id="addCampaignSenderModalTitle">Add sender</h2>
+          <div class="proto-modal-header-actions">
+            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close add sender">
+              <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div class="add-sender-step-viewport" id="addCampaignSenderStepViewport">
+          <div class="add-sender-step-panel is-active" id="addCampaignSenderDetailsPanel" data-add-sender-step="details">
+            <div class="proto-modal-body">
+              <p class="proto-modal-subtitle">Add the email and name recipients will see when they receive your campaign.</p>
+
+              <div class="proto-modal-field">
+                <span id="addCampaignSenderEmailLabel">Email address</span>
+                <input class="proto-modal-control proto-modal-input" id="addCampaignSenderEmail" name="senderEmail" type="email" autocomplete="email" spellcheck="false" placeholder="name@email.com" aria-labelledby="addCampaignSenderEmailLabel" required>
+              </div>
+
+              <div class="proto-modal-field">
+                <span id="addCampaignSenderNameLabel">Name</span>
+                <input class="proto-modal-control proto-modal-input" id="addCampaignSenderName" name="senderName" type="text" autocomplete="name" placeholder="Who is sending the campaign?" aria-labelledby="addCampaignSenderNameLabel" required>
+              </div>
+            </div>
+          </div>
+          <div class="add-sender-step-panel" id="addCampaignSenderSetupPanel" data-add-sender-step="setup" aria-hidden="true" inert>
+            <div class="proto-modal-body add-sender-setup-copy">
+              <p class="proto-modal-subtitle">For the best deliverability, you should authenticate your domain by <button class="ui-control ui-link add-sender-setup-inline-link" type="button" id="addCampaignSenderDnsLink">setting up the DNS records</button>.</p>
+              <p class="proto-modal-subtitle"><span class="add-sender-setup-emphasis">Verify your email instead</span> to finish setup without changing your DNS. It’s faster, but deliverability may be lower.</p>
+            </div>
+          </div>
+          <div class="add-sender-step-panel" id="addCampaignSenderInboxPanel" data-add-sender-step="inbox" aria-hidden="true" inert>
+            <div class="proto-modal-body add-sender-setup-copy">
+              <p class="proto-modal-subtitle">We successfully sent a verification email to <span class="add-sender-inbox-email" id="addCampaignSenderInboxEmail">name@email.com</span>.</p>
+              <p class="proto-modal-subtitle">Click the link in the email to verify your address and finish setup. Didn’t get it? <button class="ui-control ui-link campaign-sender-auth-inline-link" type="button" id="addCampaignSenderResend" aria-live="polite">Resend email</button></p>
+            </div>
+          </div>
+        </div>
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button ui-button-secondary proto-modal-save" id="addCampaignSenderDns" type="button" hidden>
+            <img class="add-sender-dns-icon" src="../../assets/icons/settings.svg" alt="" aria-hidden="true">
+            Set up DNS
+          </button>
+          <button class="ui-control ui-button proto-modal-cancel" id="addCampaignSenderBack" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="addCampaignSenderContinue" type="submit">
+            <span class="campaign-continue-spinner" aria-hidden="true"></span>
+            <span class="campaign-continue-label" id="addCampaignSenderContinueLabel">Next</span>
+          </button>
+        </div>
+      </form>
     </section>
   </div>
 

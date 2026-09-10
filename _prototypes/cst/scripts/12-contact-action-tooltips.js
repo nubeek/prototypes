@@ -1,5 +1,5 @@
-const PROSPECT_CONTACT_ACTION_SELECTOR =
-  ".prospect-dataset-row .contact-hide-results-action, .prospect-dataset-row .contact-add-lead-action";
+const CONTACT_ACTION_SELECTOR =
+  ".contact-hide-results-action, .contact-add-lead-action";
 const CONTACT_EMAIL_COPY_SELECTOR = ".contact-email-copy";
 const COPY_EMAIL_TOOLTIP = "Copy email";
 const COPIED_EMAIL_TOOLTIP = "Copied!";
@@ -28,7 +28,7 @@ function positionFloatingTooltip(target, tooltipText, { anchorToText = false } =
   }
 
   tooltip.classList.add("is-visible");
-  window.fitTooltipToContent?.(tooltip);
+  tooltip.style.width = "";
 
   const targetRect = anchorToText && window.getElementTextBoundingRect
     ? window.getElementTextBoundingRect(target)
@@ -75,9 +75,9 @@ function hideContactActionFloatingTooltip() {
   contactActionFloatingTooltip?.classList.remove("is-visible");
 }
 
-function getProspectContactActionButton(element) {
+function getContactActionButton(element) {
   if (!(element instanceof Element)) return null;
-  return element.closest(PROSPECT_CONTACT_ACTION_SELECTOR);
+  return element.closest(CONTACT_ACTION_SELECTOR);
 }
 
 function getContactEmailCopyElement(element) {
@@ -111,17 +111,15 @@ async function copyContactEmail(emailElement) {
   return true;
 }
 
-function initProspectContactActionTooltips() {
-  if (!tableBody) return;
-
-  tableBody.addEventListener("mouseover", (event) => {
-    const button = getProspectContactActionButton(event.target);
+function initContactActionTooltips() {
+  document.addEventListener("mouseover", (event) => {
+    const button = getContactActionButton(event.target);
     if (!button || button === contactActionFloatingTooltipTarget) return;
     showContactActionFloatingTooltip(button);
   });
 
-  tableBody.addEventListener("mouseout", (event) => {
-    const button = getProspectContactActionButton(event.target);
+  document.addEventListener("mouseout", (event) => {
+    const button = getContactActionButton(event.target);
     if (!button || button !== contactActionFloatingTooltipTarget) return;
 
     const relatedTarget = event.relatedTarget;
@@ -130,14 +128,14 @@ function initProspectContactActionTooltips() {
     hideContactActionFloatingTooltip();
   });
 
-  tableBody.addEventListener("focusin", (event) => {
-    const button = getProspectContactActionButton(event.target);
+  document.addEventListener("focusin", (event) => {
+    const button = getContactActionButton(event.target);
     if (!button) return;
     showContactActionFloatingTooltip(button);
   });
 
-  tableBody.addEventListener("focusout", (event) => {
-    const button = getProspectContactActionButton(event.target);
+  document.addEventListener("focusout", (event) => {
+    const button = getContactActionButton(event.target);
     if (!button || button !== contactActionFloatingTooltipTarget) return;
 
     const relatedTarget = event.relatedTarget;
@@ -146,13 +144,13 @@ function initProspectContactActionTooltips() {
     hideContactActionFloatingTooltip();
   });
 
-  tableBody.addEventListener("click", (event) => {
-    if (getProspectContactActionButton(event.target)) {
+  document.addEventListener("click", (event) => {
+    if (getContactActionButton(event.target)) {
       hideContactActionFloatingTooltip();
     }
   });
 
-  tableWrap?.addEventListener("scroll", hideContactActionFloatingTooltip, { passive: true });
+  document.addEventListener("scroll", hideContactActionFloatingTooltip, { passive: true, capture: true });
   window.addEventListener("resize", hideContactActionFloatingTooltip);
 }
 
@@ -209,5 +207,5 @@ function initContactEmailCopyTooltips() {
   window.addEventListener("resize", hideContactActionFloatingTooltip);
 }
 
-initProspectContactActionTooltips();
+initContactActionTooltips();
 initContactEmailCopyTooltips();
