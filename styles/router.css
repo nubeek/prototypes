@@ -38,33 +38,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.ui-control {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  padding: 0;
-}
-
-.ui-button {
-  min-height: 48px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-}
-
-.ui-button-primary {
-  background: var(--color-brand-primary);
-  color: var(--color-surface);
-  font-weight: 600;
-}
-
 h1 {
   margin: 0;
   color: var(--color-text);

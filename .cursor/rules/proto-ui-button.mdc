@@ -1,0 +1,16 @@
+---
+description: Use the shared ui-button family instead of copying button chrome
+globs: _prototypes/**
+alwaysApply: false
+---
+
+# Prototype buttons
+
+Button chrome lives in `_prototypes/shared/ui/ui-button.css`. It loads with `proto-tokens.css`. Do not copy `.ui-control`, `.ui-button`, or variant rules into a feature sheet.
+
+- Markup: `.ui-control.ui-button` plus one variant. Icon-only adds `.ui-icon-button`. Modal X uses `.ui-close-button`. Bold brand text with no fill uses `.ui-text-button`.
+- Variants: `.ui-button-primary`, `.ui-button-secondary`, `.ui-button-muted`, `.ui-button-ghost`.
+- Unique layout (padding, min-width, toolbar borders, full-width rows) stays in the feature. Height, radius, type, fill, and hover do not.
+- Pair icon buttons with a variant (usually ghost) so hover comes from the variant, not a one-off.
+- Brand text links with underline use `.ui-link`, not a new button style.
+- The password gate keeps scoped copies in `styles/gate.css` so it does not depend on page tokens.

@@ -4,7 +4,8 @@
      action: { label: "View lead", href: "../leads/?lead=…" },
      duration: 5000
    });
-   Action href is optional; omit it or pass onClick for a button. */
+   Action href is optional; omit it or pass onClick for a button.
+   Button actions dismiss the toast immediately, then run onClick. */
 (function () {
   const DEFAULT_DURATION_MS = 5000;
   const HIDE_MS = 280;
@@ -142,15 +143,16 @@
 
     const isLink = Boolean(action.href);
     const node = document.createElement(isLink ? "a" : "button");
-    node.className = "ui-link proto-toast__action";
+    node.className = isLink ? "ui-link proto-toast__action" : "ui-control ui-link proto-toast__action";
     node.textContent = action.label;
     if (isLink) {
       node.href = action.href;
     } else {
       node.type = "button";
-      if (typeof action.onClick === "function") {
-        node.addEventListener("click", action.onClick);
-      }
+      node.addEventListener("click", (event) => {
+        hide(true);
+        action.onClick?.(event);
+      });
     }
     return node;
   }

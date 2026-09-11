@@ -45,6 +45,14 @@
   color: var(--color-brand, #7a63dd);
 }
 
+button.proto-toast__action {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
 body.reduce-motion .proto-toast,
 @media (prefers-reduced-motion: reduce) {
   .proto-toast {

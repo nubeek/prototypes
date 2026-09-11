@@ -163,6 +163,85 @@ function persistCrmLead({ ownerIndex = null, nodeId = null, prospectRowKey = nul
   });
 }
 
+function getCrmLeadRecord({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
+  const store = window.WefranchLeadsStore;
+  if (!store) return null;
+
+  const id = getCrmLeadSourceId({ ownerIndex, nodeId, prospectRowKey });
+  return id ? store.getById(id) : null;
+}
+
+function cloneLeadRecord(lead) {
+  if (!lead || typeof lead !== "object") return null;
+
+  try {
+    return structuredClone(lead);
+  } catch {
+    return {
+      ...lead,
+      locationPlace: lead.locationPlace && typeof lead.locationPlace === "object"
+        ? { ...lead.locationPlace }
+        : lead.locationPlace
+    };
+  }
+}
+
+function snapshotCrmLead({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
+  const existing = cloneLeadRecord(getCrmLeadRecord({ ownerIndex, nodeId, prospectRowKey }));
+  if (existing) {
+    return { lead: existing, ownerIndex, nodeId, prospectRowKey };
+  }
+
+  const contact = getSaveLeadContact(ownerIndex, nodeId, prospectRowKey) || {};
+  const { firstName, surname } = splitSaveLeadName(contact.name);
+  const context = getCrmLeadContext({ ownerIndex, nodeId, prospectRowKey });
+
+  return {
+    lead: {
+      id: getCrmLeadSourceId({ ownerIndex, nodeId, prospectRowKey }),
+      name: contact.name || "Lead",
+      firstName,
+      surname,
+      email: contact.email || "",
+      phone: contact.phone || "",
+      franchise: context.franchise,
+      company: context.ownerName,
+      ownerName: context.ownerName,
+      location: context.location,
+      locationPlace: context.locationPlace,
+      website: context.website,
+      linkedin: context.linkedin,
+      categoryId: context.categoryId,
+      sourceDataset: context.sourceDataset,
+      sourceView: context.sourceView,
+      list: "",
+      note: "",
+      source: "cst"
+    },
+    ownerIndex,
+    nodeId,
+    prospectRowKey
+  };
+}
+
+function restoreCrmLeadSnapshot(snapshot) {
+  if (!snapshot?.lead) return null;
+
+  const store = window.WefranchLeadsStore;
+  const restored = store ? store.upsert(snapshot.lead) : snapshot.lead;
+
+  if (snapshot.prospectRowKey) {
+    const row = getProspectRowByStateKey(snapshot.prospectRowKey);
+    if (row) setProspectRowLeadSaved(row, true);
+  } else if (Number.isFinite(snapshot.ownerIndex)) {
+    setContactLeadSaved(snapshot.ownerIndex, snapshot.nodeId, true);
+    syncOwnerDetailLeadButton(snapshot.ownerIndex);
+  }
+
+  refreshContactStateViews();
+  return restored;
+}
+
 function removeCrmLead({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
   const store = window.WefranchLeadsStore;
   if (!store) return false;
@@ -354,11 +433,25 @@ function getSaveLeadListName(lead = null) {
   return String(lead?.list || saveLeadListApi?.getValue?.() || "").trim();
 }
 
+function getLeadToastName(lead = null, source = {}) {
+  return lead?.name
+    || getSaveLeadContact(source.ownerIndex, source.nodeId, source.prospectRowKey)?.name
+    || getSaveLeadDisplayName()
+    || "Lead";
+}
+
 function getSaveLeadToastMessage(lead = null) {
-  const name = lead?.name || getSaveLeadDisplayName();
+  const name = getLeadToastName(lead);
   const list = getSaveLeadListName(lead);
   if (list) return `${name} added to “${list}”.`;
   return `${name} added to your Leads.`;
+}
+
+function getRemoveLeadToastMessage(lead = null, source = {}) {
+  const name = getLeadToastName(lead, source);
+  const list = String(lead?.list || "").trim();
+  if (list) return `${name} removed from “${list}”.`;
+  return `${name} removed from your Leads.`;
 }
 
 function showSaveLeadToast(lead = null) {
@@ -369,6 +462,39 @@ function showSaveLeadToast(lead = null) {
       href: getViewLeadHref(lead?.id)
     }
   });
+}
+
+function showRemoveLeadToast(snapshot) {
+  const lead = snapshot?.lead || null;
+  window.WefranchToast?.show({
+    message: getRemoveLeadToastMessage(lead, snapshot || {}),
+    action: {
+      label: "Undo",
+      onClick() {
+        restoreCrmLeadSnapshot(snapshot);
+      }
+    }
+  });
+}
+
+function removeSavedLeadFromCst({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
+  const snapshot = snapshotCrmLead({ ownerIndex, nodeId, prospectRowKey });
+
+  if (prospectRowKey) {
+    const row = getProspectRowByStateKey(prospectRowKey);
+    if (row) setProspectRowLeadSaved(row, false);
+    removeCrmLead({ prospectRowKey });
+  } else if (Number.isFinite(ownerIndex)) {
+    setContactLeadSaved(ownerIndex, nodeId, false);
+    removeCrmLead({ ownerIndex, nodeId });
+    syncOwnerDetailLeadButton(ownerIndex);
+  } else {
+    return snapshot;
+  }
+
+  refreshContactStateViews();
+  showRemoveLeadToast(snapshot);
+  return snapshot;
 }
 
 function resetSaveLeadModalForm() {
@@ -486,9 +612,7 @@ function handleSaveLeadAction(trigger, ownerIndex, nodeId = null, prospectRowKey
     if (!row) return;
 
     if (trigger?.classList.contains("is-saved") || isProspectRowLeadSaved(row)) {
-      setProspectRowLeadSaved(row, false);
-      removeCrmLead({ prospectRowKey });
-      refreshContactStateViews();
+      removeSavedLeadFromCst({ prospectRowKey });
       return;
     }
 
@@ -499,10 +623,7 @@ function handleSaveLeadAction(trigger, ownerIndex, nodeId = null, prospectRowKey
   if (!Number.isFinite(ownerIndex)) return;
 
   if (trigger?.classList.contains("is-saved") || isContactLeadSaved(ownerIndex, nodeId)) {
-    setContactLeadSaved(ownerIndex, nodeId, false);
-    removeCrmLead({ ownerIndex, nodeId });
-    refreshContactStateViews();
-    syncOwnerDetailLeadButton(ownerIndex);
+    removeSavedLeadFromCst({ ownerIndex, nodeId });
     return;
   }
 

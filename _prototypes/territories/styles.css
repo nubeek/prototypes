@@ -66,7 +66,7 @@ body {
   height: var(--control-height);
   padding: 0 16px;
   border: 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text);
   font-weight: 500;
@@ -2134,7 +2134,7 @@ a.territory-info-card__action.is-disabled {
   padding-bottom: 14px;
   overflow: auto;
   border: 1px solid #f1f1f2;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   box-shadow: 0 10px 26px rgba(17, 17, 26, 0.08);
   opacity: 0;

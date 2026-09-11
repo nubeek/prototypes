@@ -15,6 +15,8 @@ const PUBLIC_PATH_REWRITES = new Map([
   ["../../assets/", "../assets/"],
 ]);
 const LOCAL_REDIRECT_SCRIPT_PATTERN = /\n?  <script data-local-prototypes-redirect>[\s\S]*?<\/script>\n?/;
+const LOCAL_SHARED_PATH = "../_prototypes/shared/";
+const PUBLIC_SHARED_PATH = "../shared/";
 
 const args = process.argv.slice(2);
 const outputIndex = args.indexOf("--out");
@@ -110,6 +112,24 @@ const rewritePublicPaths = async (directory) => {
   }
 };
 
+const rewriteLocalSharedPaths = async (directory) => {
+  const files = await walkFiles(directory);
+  const rewritableExtensions = new Set([".html", ".js", ".css"]);
+
+  for (const file of files) {
+    if (!rewritableExtensions.has(path.extname(file))) {
+      continue;
+    }
+
+    const source = await readFile(file, "utf8");
+    if (!source.includes(LOCAL_SHARED_PATH)) {
+      continue;
+    }
+
+    await writeFile(file, source.split(LOCAL_SHARED_PATH).join(PUBLIC_SHARED_PATH));
+  }
+};
+
 const copySiteShell = async () => {
   await mkdir(outputDir, { recursive: true });
   const indexSource = await readFile(path.join(REPO_ROOT, "index.html"), "utf8");
@@ -120,9 +140,8 @@ const copySiteShell = async () => {
   await copyDirectory(path.join(REPO_ROOT, "styles"), path.join(outputDir, "styles"));
   await copyDirectory(path.join(REPO_ROOT, "scripts"), path.join(outputDir, "scripts"));
   await copyDirectory(path.join(REPO_ROOT, "logos"), path.join(outputDir, "logos"));
-  const logosIndex = path.join(outputDir, "logos", "index.html");
-  const logosHtml = await readFile(logosIndex, "utf8");
-  await writeFile(logosIndex, logosHtml.split("../_prototypes/shared/").join("../shared/"));
+  await rewriteLocalSharedPaths(path.join(outputDir, "styles"));
+  await rewriteLocalSharedPaths(path.join(outputDir, "logos"));
   await writeFile(path.join(outputDir, ".nojekyll"), "");
 };
 

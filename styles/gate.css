@@ -308,6 +308,7 @@ html.access-resolving .access-gate::after {
   margin-top: -2px;
 }
 
+/* Isolated from shared ui-button.css so the gate does not depend on page tokens. */
 .access-gate .ui-control {
   border: 0;
   background: transparent;

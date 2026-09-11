@@ -1217,11 +1217,8 @@ if (profileModal) {
       if (Number.isFinite(ownerIndex)) {
         const nodeId = profileModal.dataset.nodeId ?? null;
         if (saveLeadButton.classList.contains("is-saved")) {
-          setContactLeadSaved(ownerIndex, nodeId, false);
-          removeCrmLead({ ownerIndex, nodeId });
           closePersonProfile();
-          refreshContactStateViews();
-          syncOwnerDetailLeadButton(ownerIndex);
+          removeSavedLeadFromCst({ ownerIndex, nodeId });
         } else {
           const trigger = profileModalApi.getTrigger();
           closePersonProfile();

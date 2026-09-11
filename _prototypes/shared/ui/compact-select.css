@@ -20,7 +20,8 @@
   height: 32px;
   padding: 0 8px;
   gap: 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
+  corner-shape: squircle;
   overflow: hidden;
   cursor: pointer;
 }
