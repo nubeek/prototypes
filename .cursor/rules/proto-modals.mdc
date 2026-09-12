@@ -15,7 +15,7 @@ When adding or changing a form dialog (title + inline close, body, Cancel/Save),
 - Unique body content stays in the feature. Shared chrome (overlay, card, header, fields, check groups, notices, footer) does not.
 - Custom fixed chrome outside `.proto-modal-body` (tabs, progress rows, secondary headers) uses `.proto-modal-inset`. This preserves the modal's right content edge without moving the styled body scrollbar away from the panel edge.
 - Info callouts use `.proto-modal-notice` (optional `.proto-modal-divider` above). Do not copy CST sender-notice styles into a feature.
-- Radio and checkbox stacks in dialogs use `.proto-modal-check-group` / `.proto-modal-check`. Do not reuse `.filter-check-group` / `.filter-check` inside proto-modals.
+- Radio and checkbox stacks in dialogs use `.proto-modal-check-group` / `.proto-modal-check`. Checkboxes on white surfaces use the shared `.ui-check` / `.ui-checkbox` from `ui-checkbox.css` (`.proto-modal-check` is an alias). Do not reuse `.filter-check-group` / `.filter-check` inside proto-modals.
 - Profile-style cards (centered hero, no title row) still use `createProtoModal()` for open/close; keep `.profile-modal-close` in the corner.
 - Existing pages may still use `profile-modal-*` / `target-modal-*` aliases. New dialogs should use `proto-modal-*`.
 - Field captions never focus or blur a control. Clicking "Phone number", "Location", or any other label must do nothing. Load `_prototypes/shared/ui/proto-field-captions.js` on every page that renders `.proto-modal-field`, `.profile-modal-field`, or `.target-modal-field`.

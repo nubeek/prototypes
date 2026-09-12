@@ -24,6 +24,7 @@
     ".target-modal-select-field",
     ".proto-modal-check-group",
     ".proto-modal-check",
+    ".ui-check",
     ".request-info-territory-field",
     ".contact-email-copy"
   ].join(", ");
@@ -35,7 +36,7 @@
   function shouldIgnoreFieldCaptionPointer(event) {
     const target = event.target;
     if (!(target instanceof Element)) return false;
-    if (target.closest(".access-gate, .proto-modal-check, .filter-check")) return false;
+    if (target.closest(".access-gate, .proto-modal-check, .ui-check, .filter-check")) return false;
     if (isFieldControl(target)) return false;
 
     const field = target.closest(FIELD_SELECTOR);

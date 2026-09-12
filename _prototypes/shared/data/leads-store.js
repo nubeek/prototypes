@@ -1,7 +1,9 @@
 (function () {
   const LEADS_STORAGE_KEY = "wefranch:crm-leads";
   const COMPANIES_STORAGE_KEY = "wefranch:crm-companies";
-  const LEAD_LISTS = [
+  const LISTS_STORAGE_KEY = "wefranch:crm-lead-lists";
+  const LISTS_STORAGE_VERSION = 2;
+  const DEFAULT_LEAD_LISTS = [
     "Denver territory prospects",
     "High priority outreach",
     "Multi-unit operators",
@@ -241,6 +243,138 @@
     return true;
   }
 
+  function remapList(fromName, toName) {
+    const from = String(fromName || "").trim();
+    if (!from) return 0;
+
+    const to = String(toName || "").trim();
+    const leads = readLeads();
+    let changed = 0;
+    const nextLeads = leads.map((lead) => {
+      if (lead.list !== from) return lead;
+      changed += 1;
+      return normalizeRecord({ ...lead, list: to }, lead);
+    });
+
+    if (changed) writeLeads(nextLeads);
+    return changed;
+  }
+
+  function normalizeListName(value) {
+    return String(value || "").trim();
+  }
+
+  function readLists() {
+    try {
+      const savedValue = window.localStorage?.getItem(LISTS_STORAGE_KEY);
+      if (!savedValue) return [...DEFAULT_LEAD_LISTS];
+
+      const parsedValue = JSON.parse(savedValue);
+      if (parsedValue?.version === LISTS_STORAGE_VERSION && Array.isArray(parsedValue.lists)) {
+        const lists = parsedValue.lists.map(normalizeListName).filter(Boolean);
+        return lists.length ? lists : [...DEFAULT_LEAD_LISTS];
+      }
+
+      if (Array.isArray(parsedValue)) {
+        const extras = parsedValue.map(normalizeListName).filter(Boolean);
+        const seen = new Set(DEFAULT_LEAD_LISTS);
+        return [
+          ...DEFAULT_LEAD_LISTS,
+          ...extras.filter((name) => {
+            if (seen.has(name)) return false;
+            seen.add(name);
+            return true;
+          })
+        ];
+      }
+    } catch (error) {
+      console.warn("Unable to read saved lead lists.", error);
+    }
+
+    return [...DEFAULT_LEAD_LISTS];
+  }
+
+  function writeLists(lists) {
+    try {
+      window.localStorage?.setItem(LISTS_STORAGE_KEY, JSON.stringify({
+        version: LISTS_STORAGE_VERSION,
+        lists: lists.map(normalizeListName).filter(Boolean)
+      }));
+    } catch (error) {
+      console.warn("Unable to save lead lists.", error);
+    }
+  }
+
+  function getLists() {
+    return readLists();
+  }
+
+  function rememberList(name) {
+    const nextName = normalizeListName(name);
+    if (!nextName) return nextName;
+
+    const lists = readLists();
+    if (lists.includes(nextName)) return nextName;
+
+    lists.push(nextName);
+    writeLists(lists);
+    return nextName;
+  }
+
+  function listNameExists(name, exceptName = "") {
+    const needle = normalizeListName(name).toLocaleLowerCase();
+    const except = normalizeListName(exceptName).toLocaleLowerCase();
+    return getKnownLists().some((item) => {
+      const value = item.toLocaleLowerCase();
+      return value === needle && value !== except;
+    });
+  }
+
+  function renameList(fromName, toName) {
+    const from = normalizeListName(fromName);
+    const to = normalizeListName(toName);
+    if (!from || !to) return null;
+    if (from === to) return to;
+    if (listNameExists(to, from)) return null;
+
+    const lists = readLists();
+    const index = lists.indexOf(from);
+    if (index >= 0) lists[index] = to;
+    else lists.push(to);
+    writeLists(lists);
+    remapList(from, to);
+    return to;
+  }
+
+  function removeList(name) {
+    const listName = normalizeListName(name);
+    if (!listName) return false;
+
+    const lists = readLists();
+    const index = lists.indexOf(listName);
+    if (index < 0 && !getKnownLists().includes(listName)) return false;
+
+    if (index >= 0) {
+      lists.splice(index, 1);
+      writeLists(lists);
+    }
+    remapList(listName, "");
+    return true;
+  }
+
+  function getKnownLists() {
+    const seen = new Set();
+    const lists = [];
+
+    [...getLists(), ...getAll().map((lead) => normalizeListName(lead.list))].forEach((name) => {
+      if (!name || seen.has(name)) return;
+      seen.add(name);
+      lists.push(name);
+    });
+
+    return lists;
+  }
+
   function buildSourceId({ ownerIndex, nodeId, prospectRowKey } = {}) {
     if (prospectRowKey) {
       return `prospect:${prospectRowKey}`;
@@ -317,13 +451,24 @@
 
   window.WefranchLeadsStore = {
     STORAGE_KEY: LEADS_STORAGE_KEY,
-    LEAD_LISTS,
+    LISTS_STORAGE_KEY,
+    DEFAULT_LEAD_LISTS,
+    get LEAD_LISTS() {
+      return getLists();
+    },
     LEAD_STAGES,
     SOURCE_DATASET_LABELS,
     getAll,
     getById,
     upsert,
     remove,
+    remapList,
+    getLists,
+    getKnownLists,
+    rememberList,
+    renameList,
+    removeList,
+    listNameExists,
     buildSourceId,
     parseSourceId,
     getSourceDatasetFromId,

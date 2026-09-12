@@ -14,7 +14,8 @@
            </div>
          </div>
          <div class="proto-modal-body">
-           <!-- unique body; radio/checkbox stacks use .proto-modal-check-group -->
+           <!-- unique body; checkbox/radio stacks use .proto-modal-check-group -->
+           <!-- white-surface checkboxes: .ui-check / .ui-checkbox (or .proto-modal-check alias) -->
            <!-- info callouts use .proto-modal-notice (optional .proto-modal-divider above) -->
          </div>
          <div class="proto-modal-actions">

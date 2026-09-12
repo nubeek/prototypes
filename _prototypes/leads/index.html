@@ -21,6 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="../shared/ui/proto-modal.css">
+  <link rel="stylesheet" href="../shared/ui/action-tooltip.css">
   <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="../../styles/site-header.css">
@@ -65,9 +66,40 @@
           <button class="ui-control ui-button ui-button-ghost ui-icon-button filter-toggle-btn toolbar-btn" id="exportBtn" type="button" aria-label="Export" title="Export">
             <img class="toolbar-asset-icon toolbar-export-icon" src="../../assets/icons/export-csv.svg" alt="" aria-hidden="true">
           </button>
+          <div class="toolbar-selection" id="leadSelectionActions" hidden>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="deleteSelectedLeadsBtn" type="button">
+              <img class="toolbar-asset-icon toolbar-delete-icon" src="../../assets/icons/delete.svg" alt="" aria-hidden="true">
+              Delete
+            </button>
+            <details class="toolbar-dropdown" id="moveSelectedLeadsDropdown">
+              <summary class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="moveSelectedLeadsBtn">
+                <img class="toolbar-asset-icon toolbar-move-icon" src="../../assets/icons/folder-move.svg" alt="" aria-hidden="true">
+                Move to
+              </summary>
+              <div class="ui-menu toolbar-dropdown-menu" id="moveSelectedLeadsMenu" role="menu" aria-label="Move to list"></div>
+            </details>
+          </div>
         </div>
 
         <div class="toolbar-group toolbar-actions">
+          <details class="toolbar-dropdown" id="leadsToolbarMenuDropdown">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+              <img class="toolbar-asset-icon" src="../../assets/icons/menu.svg" alt="" aria-hidden="true">
+              <img class="toolbar-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="manageColumnsOption" type="button" role="menuitem">
+                <span class="toolbar-dropdown-label">Manage columns</span>
+              </button>
+            </div>
+          </details>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <button class="ui-control ui-button ui-button-primary filter-toggle-btn" id="addLeadBtn" type="button" aria-controls="leadDetailPanel" aria-expanded="false">
+            <img class="toolbar-asset-icon toolbar-add-lead-icon" src="../../assets/icons/leads-add.svg" alt="" aria-hidden="true">
+            Add lead
+          </button>
+          <span class="toolbar-divider" aria-hidden="true"></span>
           <label class="toolbar-search-btn toolbar-btn" for="toolbarSearchInput" role="search">
             <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
             <input
@@ -81,9 +113,6 @@
             >
             <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
           </label>
-          <button class="ui-control ui-button ui-button-primary filter-toggle-btn" id="addLeadBtn" type="button" aria-controls="leadDetailPanel" aria-expanded="false">
-            Add lead
-          </button>
         </div>
       </div>
 
@@ -102,14 +131,40 @@
               <div class="filter-check-group" id="stageFilterGroup"></div>
             </section>
 
-            <section class="filter-section filter-section-collapsed" data-filter-section="list">
+            <section class="filter-section filter-section-collapsed" data-filter-section="location">
               <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
-                <span>List</span>
+                <span>Location</span>
                 <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
               </button>
               <div class="filter-select-field">
-                <select class="ui-select filter-field-select" id="listFilterSelect" aria-label="Select list" required>
-                  <option value="">Select list...</option>
+                <select class="ui-select filter-field-select" id="locationFilterSelect" aria-label="Select location" required>
+                  <option value="">Select location...</option>
+                </select>
+                <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </div>
+            </section>
+
+            <section class="filter-section filter-section-collapsed" data-filter-section="category">
+              <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+                <span>Category</span>
+                <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </button>
+              <div class="filter-select-field">
+                <select class="ui-select filter-field-select" id="categoryFilterSelect" aria-label="Select category" required>
+                  <option value="">Select category...</option>
+                </select>
+                <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </div>
+            </section>
+
+            <section class="filter-section filter-section-collapsed" data-filter-section="franchise">
+              <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+                <span>Franchise</span>
+                <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </button>
+              <div class="filter-select-field">
+                <select class="ui-select filter-field-select" id="franchiseFilterSelect" aria-label="Select franchise" required>
+                  <option value="">Select franchise...</option>
                 </select>
                 <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
               </div>
@@ -130,7 +185,7 @@
 
             <section class="filter-section filter-section-collapsed" data-filter-section="dates">
               <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
-                <span>Dates added</span>
+                <span>Date added</span>
                 <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
               </button>
               <div class="filter-range-labels filter-range-labels--fields">
@@ -168,20 +223,15 @@
 
         <div class="workspace-main">
           <div class="table-column">
-            <header class="table-heading">
-              <div class="table-heading__row">
-                <div class="table-heading__title-group">
-                  <div class="table-heading__title">
-                    <h2 id="tableHeadingTitle">Leads</h2>
-                  </div>
-                </div>
-              </div>
-              <p id="tableHeadingSummary" aria-live="polite">Showing 0 leads.</p>
+            <header class="table-heading table-heading--list-tabs">
+              <h2 id="tableHeadingTitle" class="sr-only">Leads</h2>
+              <div class="list-tabs" id="leadListTabs" role="tablist" aria-label="Lead lists"></div>
+              <p id="tableHeadingSummary" class="sr-only" aria-live="polite">Showing 0 leads.</p>
             </header>
             <div class="table-wrap" id="tableWrap">
               <table class="has-row-select proto-table">
                 <thead>
-                  <tr>
+                  <tr id="leadsTableHeaderRow">
                     <th id="leadSelectColumnHeader" class="location-number-header" style="width: 48px">
                       <label class="location-row-select location-select-all" aria-label="Select all lead rows">
                         <input class="location-row-checkbox location-select-all-checkbox" type="checkbox">
@@ -197,11 +247,11 @@
                     <th class="sortable-header" data-sort-key="phone" aria-sort="none" style="width: 13%">
                       <span class="th-content">Phone <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
                     </th>
+                    <th class="sortable-header" data-sort-key="location" aria-sort="none" style="width: 16%">
+                      <span class="th-content">Location <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+                    </th>
                     <th class="sortable-header" data-sort-key="company" aria-sort="none" style="width: 15%">
                       <span class="th-content">Company <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
-                    </th>
-                    <th class="sortable-header" data-sort-key="list" aria-sort="none" style="width: 14%">
-                      <span class="th-content">List <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
                     </th>
                     <th class="sortable-header" data-sort-key="stage" aria-sort="none" style="width: 12%">
                       <span class="th-content">Stage <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
@@ -223,9 +273,11 @@
                     <summary class="empty-state__action ui-text-button">add leads manually</summary>
                     <div class="ui-menu toolbar-dropdown-menu empty-state__menu" role="menu" aria-label="Add leads">
                       <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="tableEmptyStateAddManual" type="button" role="menuitem">
+                        <img class="toolbar-dropdown-icon" src="../../assets/icons/leads-add.svg" alt="" aria-hidden="true">
                         <span class="toolbar-dropdown-label">Add manually</span>
                       </button>
                       <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="tableEmptyStateImportCsv" type="button" role="menuitem">
+                        <img class="toolbar-dropdown-icon" src="../../assets/icons/export-csv.svg" alt="" aria-hidden="true">
                         <span class="toolbar-dropdown-label">Import CSV</span>
                       </button>
                     </div>
@@ -256,14 +308,152 @@
     </div>
   </main>
 
+  <div class="proto-modal-overlay" id="editListModal" hidden>
+    <section class="proto-modal proto-modal--form" role="dialog" aria-modal="true" aria-labelledby="editListModalTitle">
+      <form class="proto-modal-form" id="editListModalForm" novalidate>
+        <div class="proto-modal-header">
+          <h2 class="proto-modal-title" id="editListModalTitle">Edit list</h2>
+          <div class="proto-modal-header-actions">
+            <button class="ui-control ui-button-ghost proto-modal-delete" id="deleteLeadList" type="button">
+              <img class="proto-modal-delete__icon" src="../../assets/icons/delete.svg" alt="" aria-hidden="true" width="12" height="14">
+              Delete
+            </button>
+            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close edit list">
+              <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div class="proto-modal-body">
+          <div class="proto-modal-field">
+            <span id="editListNameLabel">Name</span>
+            <input
+              class="proto-modal-control proto-modal-input"
+              id="editListName"
+              name="name"
+              type="text"
+              autocomplete="off"
+              maxlength="48"
+              spellcheck="false"
+              placeholder=" "
+              aria-labelledby="editListNameLabel"
+            >
+          </div>
+        </div>
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" type="submit">Save</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="proto-modal-overlay" id="manageColumnsModal" hidden>
+    <section class="proto-modal proto-modal--form manage-columns-modal" role="dialog" aria-modal="true" aria-labelledby="manageColumnsModalTitle" aria-describedby="manageColumnsModalDescription">
+      <form class="proto-modal-form" id="manageColumnsModalForm" novalidate>
+        <div class="proto-modal-header">
+          <h2 class="proto-modal-title" id="manageColumnsModalTitle">Manage columns</h2>
+          <div class="proto-modal-header-actions">
+            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close manage columns">
+              <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div class="proto-modal-body">
+          <p class="proto-modal-subtitle" id="manageColumnsModalDescription">Selected columns will appear in the table</p>
+          <div class="manage-columns-grid">
+            <div class="proto-modal-check-group" role="group" aria-label="Default columns">
+              <label class="proto-modal-check is-checked" data-tooltip="This column is required">
+                <input type="checkbox" name="columns" value="name" checked disabled>
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Name</span>
+              </label>
+              <label class="proto-modal-check is-checked" data-tooltip="This column is required">
+                <input type="checkbox" name="columns" value="email" checked disabled>
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Email</span>
+              </label>
+              <label class="proto-modal-check is-checked">
+                <input type="checkbox" name="columns" value="phone" checked>
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Phone</span>
+              </label>
+              <label class="proto-modal-check is-checked">
+                <input type="checkbox" name="columns" value="location" checked>
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Location</span>
+              </label>
+              <label class="proto-modal-check is-checked">
+                <input type="checkbox" name="columns" value="company" checked>
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Company</span>
+              </label>
+              <label class="proto-modal-check is-checked">
+                <input type="checkbox" name="columns" value="stage" checked>
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Stage</span>
+              </label>
+              <label class="proto-modal-check is-checked">
+                <input type="checkbox" name="columns" value="addedAt" checked>
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Date added</span>
+              </label>
+            </div>
+            <div class="proto-modal-check-group" role="group" aria-label="Additional columns">
+              <label class="proto-modal-check">
+                <input type="checkbox" name="columns" value="list">
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>List</span>
+              </label>
+              <label class="proto-modal-check">
+                <input type="checkbox" name="columns" value="category">
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Category</span>
+              </label>
+              <label class="proto-modal-check">
+                <input type="checkbox" name="columns" value="website">
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Website</span>
+              </label>
+              <label class="proto-modal-check">
+                <input type="checkbox" name="columns" value="linkedin">
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>LinkedIn</span>
+              </label>
+              <label class="proto-modal-check">
+                <input type="checkbox" name="columns" value="notes">
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Notes</span>
+              </label>
+              <label class="proto-modal-check">
+                <input type="checkbox" name="columns" value="source">
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Source</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="proto-modal-actions manage-columns-actions">
+          <button class="ui-control ui-text-button" id="resetDefaultColumns" type="button">Reset default columns</button>
+          <div class="manage-columns-actions__end">
+            <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
+            <button class="ui-control ui-button ui-button-primary proto-modal-save" type="submit">Save</button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </div>
+
   <script src="../../scripts/cst-env.js"></script>
   <script src="../shared/data/categories.js"></script>
   <script src="../shared/filter/location-search.js"></script>
   <script src="../cst/data/real/owners.js"></script>
   <script src="../shared/data/leads-store.js"></script>
+  <script src="../shared/ui/proto-modal.js"></script>
+  <script src="../shared/ui/proto-confirm-modal.js"></script>
   <script src="../shared/ui/proto-field-captions.js"></script>
   <script src="../shared/ui/proto-field-error.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
+  <script src="../shared/ui/action-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>
   <script src="../shared/filter/filter-date.js"></script>
   <script src="../shared/filter/filter-sections.js"></script>

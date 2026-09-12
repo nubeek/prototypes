@@ -1,0 +1,15 @@
+---
+description: Use the shared ui-checkbox for default checkboxes on white surfaces
+globs: _prototypes/**
+alwaysApply: false
+---
+
+# Prototype ui-checkbox
+
+Default checkboxes on white surfaces use `_prototypes/shared/ui/ui-checkbox.css`. `proto-modal.css` already imports it. Import it from the page stylesheet when using checkboxes outside a proto-modal. Do not copy checkbox fill, border, or hover rules into a feature.
+
+- Markup: `.ui-check` on the `<label>`, native `<input type="checkbox">`, then `.ui-checkbox` for the visual box.
+- Dialogs may keep `.proto-modal-check` / `.proto-modal-checkbox` as aliases of the same chrome.
+- States: default fill `--ui-checkbox-fill`, hover `--ui-checkbox-fill-hover`, checked white + `--ui-checkbox-border-checked`, checked hover darkens the border. Unchecked labels use font-weight 400; checked labels use 600. Disabled (checked or unchecked) keeps the same box/tick/text and sets the row to `--ui-checkbox-disabled-opacity` (40%).
+- Do not use this on gray rails (filter sidebar). Those stay `.filter-check` / `.filter-checkbox`.
+- Unique layout (two-column grids, group spacing) stays in the feature. Box size, radius, fill, and hover do not.

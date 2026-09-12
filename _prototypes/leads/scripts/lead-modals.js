@@ -1037,7 +1037,7 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || !isDetailVisible()) return;
+    if (event.key !== "Escape" || event.defaultPrevented || !isDetailVisible()) return;
     if (isFormSelectOpen()) {
       detailListApi?.close();
       detailStageApi?.close();

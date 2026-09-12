@@ -16,8 +16,14 @@
   const leadImportCsvInput = document.getElementById("leadImportCsvInput");
   const toolbarSearchInput = document.getElementById("toolbarSearchInput");
   const toolbarSearchClear = document.getElementById("toolbarSearchClear");
+  const leadsToolbarMenuDropdown = document.getElementById("leadsToolbarMenuDropdown");
+  const manageColumnsOption = document.getElementById("manageColumnsOption");
+  const deleteSelectedLeadsBtn = document.getElementById("deleteSelectedLeadsBtn");
+  const moveSelectedLeadsDropdown = document.getElementById("moveSelectedLeadsDropdown");
+  const moveSelectedLeadsMenu = document.getElementById("moveSelectedLeadsMenu");
   const addLeadBtn = document.getElementById("addLeadBtn");
   const leadDetailPanel = document.getElementById("leadDetailPanel");
+  const deleteSelectedLeadsConfirmApi = window.createProtoConfirmModal?.();
 
   window.WefranchFilterCombobox?.bindOutsideClick?.();
 
@@ -42,6 +48,23 @@
 
   function closeEmptyStateAddDropdown() {
     tableEmptyStateAddDropdown?.removeAttribute("open");
+  }
+
+  function closeLeadsToolbarMenuDropdown() {
+    leadsToolbarMenuDropdown?.removeAttribute("open");
+  }
+
+  function closeMoveSelectedLeadsDropdown() {
+    moveSelectedLeadsDropdown?.removeAttribute("open");
+  }
+
+  function getDeleteSelectedLeadsCopy(leads) {
+    const count = leads.length;
+    const noun = count === 1 ? "lead" : "leads";
+    return {
+      title: "Delete selected leads?",
+      messageHtml: `Are you sure you want to delete<br><span class="lead-delete-confirm-count">the ${count} selected ${noun}?</span>`
+    };
   }
 
   tableEmptyStateAddManual?.addEventListener("click", (event) => {
@@ -72,10 +95,75 @@
     leadImportCsvInput.value = "";
   });
 
+  manageColumnsOption?.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeLeadsToolbarMenuDropdown();
+    page.openManageColumns?.(manageColumnsOption);
+  });
+
+  deleteSelectedLeadsBtn?.addEventListener("click", () => {
+    const leads = page.getSelectedLeads?.() || [];
+    if (!leads.length) return;
+
+    closeMoveSelectedLeadsDropdown();
+    const copy = getDeleteSelectedLeadsCopy(leads);
+    deleteSelectedLeadsConfirmApi?.open({
+      title: copy.title,
+      messageHtml: copy.messageHtml,
+      cancelLabel: "Cancel",
+      confirmLabel: "Delete",
+      trigger: deleteSelectedLeadsBtn,
+      onConfirm() {
+        page.removeSelectedLeads?.();
+      }
+    });
+  });
+
+  moveSelectedLeadsDropdown?.addEventListener("toggle", () => {
+    if (!moveSelectedLeadsDropdown.open) return;
+    closeLeadsToolbarMenuDropdown();
+    page.renderMoveToMenu?.();
+  });
+
+  moveSelectedLeadsMenu?.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const moveTo = event.target.closest("[data-move-to-list]");
+    if (moveTo) {
+      event.preventDefault();
+      closeMoveSelectedLeadsDropdown();
+      page.moveSelectedLeadsToList?.(moveTo.dataset.moveToList);
+      return;
+    }
+
+    const removeFromLists = event.target.closest("[data-remove-from-lists]");
+    if (removeFromLists) {
+      event.preventDefault();
+      closeMoveSelectedLeadsDropdown();
+      page.removeSelectedLeadsFromAssignedLists?.();
+      return;
+    }
+
+    const removeFrom = event.target.closest("[data-remove-from-list]");
+    if (!removeFrom) return;
+
+    event.preventDefault();
+    closeMoveSelectedLeadsDropdown();
+    page.removeSelectedLeadsFromList?.(removeFrom.dataset.removeFromList);
+  });
+
   document.addEventListener("click", (event) => {
-    if (!tableEmptyStateAddDropdown?.open) return;
-    if (tableEmptyStateAddDropdown.contains(event.target)) return;
-    closeEmptyStateAddDropdown();
+    if (tableEmptyStateAddDropdown?.open && !tableEmptyStateAddDropdown.contains(event.target)) {
+      closeEmptyStateAddDropdown();
+    }
+
+    if (leadsToolbarMenuDropdown?.open && !leadsToolbarMenuDropdown.contains(event.target)) {
+      closeLeadsToolbarMenuDropdown();
+    }
+
+    if (moveSelectedLeadsDropdown?.open && !moveSelectedLeadsDropdown.contains(event.target)) {
+      closeMoveSelectedLeadsDropdown();
+    }
   });
 
   if (toolbarSearchInput) {
@@ -95,11 +183,10 @@
     modals?.openAddLead(addLeadBtn);
   });
 
-  document.querySelectorAll(".sortable-header").forEach((header) => {
-    header.addEventListener("click", () => {
-      const key = header.dataset.sortKey;
-      if (key) page.setSort(key);
-    });
+  document.querySelector("#tableWrap thead")?.addEventListener("click", (event) => {
+    const header = event.target instanceof Element ? event.target.closest(".sortable-header") : null;
+    const key = header?.dataset.sortKey;
+    if (key) page.setSort(key);
   });
 
   filterPanel?.addEventListener("change", (event) => {
@@ -151,7 +238,7 @@
       return;
     }
 
-    if (event.target.closest("select, .filter-select-field")) return;
+    if (event.target.closest("select, .filter-select-field, a")) return;
 
     const profileAction = event.target.closest(".contact-profile-action");
     const row = event.target.closest("tr[data-lead-id]");
@@ -185,8 +272,9 @@
     applyLeadSelectChange(event.target);
   });
 
-  document.querySelector("#leadSelectColumnHeader .location-select-all-checkbox")?.addEventListener("change", (event) => {
+  document.querySelector("#tableWrap thead")?.addEventListener("change", (event) => {
     if (!(event.target instanceof HTMLInputElement)) return;
+    if (!event.target.classList.contains("location-select-all-checkbox")) return;
     page.setVisibleLeadsChecked(event.target.checked);
   });
 

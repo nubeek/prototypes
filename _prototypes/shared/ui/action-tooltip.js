@@ -97,6 +97,10 @@
 
     const scheduleHideTooltip = () => {
       clearHideTimeout();
+      if (hideDelayMs <= 0) {
+        hideTooltip();
+        return;
+      }
       hideTimeoutId = window.setTimeout(hideTooltip, hideDelayMs);
     };
 

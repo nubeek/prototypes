@@ -1,0 +1,119 @@
+/**
+ * Shared default checkbox for white surfaces.
+ * Do not use on gray rails (filter sidebar). Those stay .filter-check.
+ *
+ * Markup:
+ * <label class="ui-check">
+ *   <input type="checkbox">
+ *   <span class="ui-checkbox" aria-hidden="true"></span>
+ *   <span>Label</span>
+ * </label>
+ *
+ * Dialogs may keep .proto-modal-check / .proto-modal-checkbox as aliases.
+ * Checked styling also honors .is-checked for existing JS sync.
+ */
+
+:root {
+  --ui-checkbox-size: 26px;
+  --ui-checkbox-fill: var(--color-surface-muted, #f4f4f4);
+  --ui-checkbox-fill-hover: var(--color-surface-control, #e9e9e9);
+  --ui-checkbox-fill-checked: var(--color-surface, #fff);
+  --ui-checkbox-border-checked: #d9d9d9;
+  --ui-checkbox-border-checked-hover: #c8c8c8;
+  --ui-checkbox-disabled-opacity: 0.4;
+}
+
+.ui-check,
+.proto-modal-check {
+  position: relative;
+  min-height: var(--ui-checkbox-size);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text, #111);
+}
+
+.ui-check input,
+.proto-modal-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ui-checkbox,
+.proto-modal-checkbox {
+  width: var(--ui-checkbox-size);
+  height: var(--ui-checkbox-size);
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--ui-checkbox-fill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--color-text, #111);
+  transition:
+    background-color var(--transition-fast, 180ms ease),
+    border-color var(--transition-fast, 180ms ease);
+}
+
+.ui-checkbox::before,
+.proto-modal-checkbox:not(.proto-modal-checkbox--radio)::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: url("../../../assets/icons/check.svg") center / contain no-repeat;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.ui-check:hover:not(:has(input:disabled)):not(.is-checked):not(:has(input:checked)) .ui-checkbox,
+.proto-modal-check:hover:not(:has(input:disabled)):not(.is-checked):not(:has(input:checked)) .proto-modal-checkbox:not(.proto-modal-checkbox--radio) {
+  background: var(--ui-checkbox-fill-hover);
+}
+
+.ui-check.is-checked .ui-checkbox,
+.ui-check:has(input:checked) .ui-checkbox,
+.proto-modal-check.is-checked .proto-modal-checkbox:not(.proto-modal-checkbox--radio),
+.proto-modal-check:has(input:checked) .proto-modal-checkbox:not(.proto-modal-checkbox--radio) {
+  background: var(--ui-checkbox-fill-checked);
+  border-color: var(--ui-checkbox-border-checked);
+}
+
+.ui-check.is-checked:hover:not(:has(input:disabled)) .ui-checkbox,
+.ui-check:has(input:checked):hover:not(:has(input:disabled)) .ui-checkbox,
+.proto-modal-check.is-checked:hover:not(:has(input:disabled)) .proto-modal-checkbox:not(.proto-modal-checkbox--radio),
+.proto-modal-check:has(input:checked):hover:not(:has(input:disabled)) .proto-modal-checkbox:not(.proto-modal-checkbox--radio) {
+  border-color: var(--ui-checkbox-border-checked-hover);
+}
+
+.ui-check.is-checked,
+.ui-check:has(input:checked),
+.proto-modal-check.is-checked,
+.proto-modal-check:has(input:checked) {
+  font-weight: 600;
+}
+
+.ui-check.is-checked .ui-checkbox::before,
+.ui-check:has(input:checked) .ui-checkbox::before,
+.proto-modal-check.is-checked .proto-modal-checkbox:not(.proto-modal-checkbox--radio)::before,
+.proto-modal-check:has(input:checked) .proto-modal-checkbox:not(.proto-modal-checkbox--radio)::before {
+  opacity: 1;
+}
+
+.ui-check:has(input:disabled),
+.proto-modal-check:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: var(--ui-checkbox-disabled-opacity);
+}
+
+.ui-check:has(input:focus-visible) .ui-checkbox,
+.proto-modal-check:has(input:focus-visible) .proto-modal-checkbox:not(.proto-modal-checkbox--radio) {
+  outline: 2px solid var(--color-brand, #7a63dd);
+  outline-offset: 2px;
+}

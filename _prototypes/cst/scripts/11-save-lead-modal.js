@@ -1,18 +1,31 @@
 const SAVE_LEAD_NOTE_LINE_HEIGHT = 24;
-const CRM_LEAD_LISTS = window.WefranchLeadsStore?.LEAD_LISTS || [
-  "Denver territory prospects",
-  "High priority outreach",
-  "Multi-unit operators",
-  "Q2 pipeline",
-  "West coast expansion"
-];
 
 let pendingSaveLeadOwnerIndex = null;
 let pendingSaveLeadNodeId = null;
 let pendingSaveLeadProspectRowKey = null;
 
+function getSaveLeadLists() {
+  const store = window.WefranchLeadsStore;
+  return store?.getLists?.() || store?.LEAD_LISTS || [];
+}
+
 function getSaveLeadListOptions() {
-  return CRM_LEAD_LISTS.map((label) => ({ label, value: label }));
+  return getSaveLeadLists().map((label) => ({ label, value: label }));
+}
+
+function refreshSaveLeadListOptions() {
+  if (!saveLeadListSelect) return;
+  saveLeadListApi?.setOptions?.(getSaveLeadListOptions(), { placeholder: "Select" })
+    || window.WefranchFilterCombobox?.setOptions?.(saveLeadListSelect, getSaveLeadListOptions(), {
+      placeholder: "Select"
+    });
+}
+
+function rememberSaveLeadList(name) {
+  const next = window.WefranchLeadsStore?.rememberList?.(name) || String(name || "").trim();
+  if (!next) return "";
+  refreshSaveLeadListOptions();
+  return next;
 }
 
 function getCrmLeadSourceId({ ownerIndex = null, nodeId = null, prospectRowKey = null } = {}) {
@@ -321,11 +334,18 @@ function initSaveLeadListSelect() {
     singleSelect: true,
     clearable: true,
     searchable: true,
+    creatable: true,
+    onCreate(value) {
+      rememberSaveLeadList(value);
+    },
     menuActions: [
       {
         label: "Create new list",
         icon: "../../assets/icons/add.svg",
-        onClick() {}
+        onClick({ query, create }) {
+          const name = rememberSaveLeadList(query);
+          if (name) create(name);
+        }
       }
     ]
   });
@@ -569,6 +589,7 @@ function openSaveLeadModal(ownerIndex, nodeId = null, trigger = null, prospectRo
     pendingSaveLeadNodeId = null;
     pendingSaveLeadProspectRowKey = prospectRowKey;
     resetSaveLeadModalForm();
+    refreshSaveLeadListOptions();
     renderSaveLeadContact(contact);
     revealSaveLeadModal(trigger);
     return;
@@ -584,6 +605,7 @@ function openSaveLeadModal(ownerIndex, nodeId = null, trigger = null, prospectRo
   pendingSaveLeadNodeId = nodeId;
   pendingSaveLeadProspectRowKey = null;
   resetSaveLeadModalForm();
+  refreshSaveLeadListOptions();
   renderSaveLeadContact(contact);
   revealSaveLeadModal(trigger);
 }
