@@ -1275,9 +1275,9 @@ body img[src$="/chevron.svg"] {
   width: var(--list-tab-width);
   min-width: var(--list-tab-width);
   max-width: var(--list-tab-width);
-  height: 66px;
+  height: 64px;
   margin: 0;
-  padding: 4px var(--list-tab-pad-x);
+  padding: 4px 6px 4px var(--list-tab-pad-x);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1293,7 +1293,8 @@ body img[src$="/chevron.svg"] {
 
 .list-tab__name {
   max-width: 100%;
-  height: 28px;
+  height: 30px;
+  padding-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1305,7 +1306,8 @@ body img[src$="/chevron.svg"] {
   gap: 4px;
   width: 100%;
   min-width: 0;
-  height: 28px;
+  height: 30px;
+  padding-bottom: 2px;
 }
 
 .list-tab__count {
@@ -2570,14 +2572,16 @@ tbody tr.is-checked:hover td:nth-child(2) {
 }
 
 .filter-select-field.table-stage-field[data-stage]:hover,
-.filter-select-field.table-stage-field[data-stage]:focus-within {
+.filter-select-field.table-stage-field[data-stage]:has(select:open),
+.filter-select-field.table-stage-field[data-stage]:has(select:focus-visible) {
   z-index: 3;
   background: color-mix(in srgb, var(--lead-stage-swatch) 25%, transparent);
   box-shadow: inset 0 0 0 2px var(--lead-stage-swatch);
 }
 
 .filter-select-field.table-stage-field:hover > .table-stage-chevron,
-.filter-select-field.table-stage-field:focus-within > .table-stage-chevron {
+.filter-select-field.table-stage-field:has(select:open) > .table-stage-chevron,
+.filter-select-field.table-stage-field:has(select:focus-visible) > .table-stage-chevron {
   background-color: #000;
   opacity: 1;
 }
