@@ -49,6 +49,7 @@
       sourceDataset: "",
       sourceView: "",
       addedAt: existing?.addedAt || new Date().toISOString(),
+      updatedAt: existing?.updatedAt || existing?.addedAt || new Date().toISOString(),
       ...(existing || {}),
       ...(record || {})
     };
@@ -113,6 +114,10 @@
 
     if (!next.name) {
       next.name = [next.firstName, next.surname].filter(Boolean).join(" ");
+    }
+
+    if (!next.updatedAt) {
+      next.updatedAt = next.addedAt || new Date().toISOString();
     }
 
     return next;
@@ -220,6 +225,11 @@
     const index = nextId ? leads.findIndex((lead) => lead.id === nextId) : -1;
     const existing = index >= 0 ? leads[index] : null;
     const nextRecord = normalizeRecord(record, existing);
+    if (existing) {
+      nextRecord.updatedAt = new Date().toISOString();
+    } else if (!nextRecord.updatedAt) {
+      nextRecord.updatedAt = nextRecord.addedAt;
+    }
 
     if (index >= 0) {
       leads[index] = nextRecord;
@@ -253,7 +263,7 @@
     const nextLeads = leads.map((lead) => {
       if (lead.list !== from) return lead;
       changed += 1;
-      return normalizeRecord({ ...lead, list: to }, lead);
+      return normalizeRecord({ ...lead, list: to, updatedAt: new Date().toISOString() }, lead);
     });
 
     if (changed) writeLeads(nextLeads);

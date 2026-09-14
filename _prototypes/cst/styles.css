@@ -6885,6 +6885,29 @@ a.franchise-name:focus-visible {
   display: none;
 }
 
+[data-splash-only] {
+  display: none;
+}
+
+.card:has(#cstSplash:not([hidden])) [data-splash-only],
+.card.is-splash-open [data-splash-only] {
+  display: inline-flex;
+}
+
+.card:has(#cstSplash:not([hidden])) [data-splash-hide],
+.card.is-splash-open [data-splash-hide] {
+  display: none;
+}
+
+#cstSplashNewSearchBtn {
+  white-space: nowrap;
+}
+
+.cst-splash-new-search-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* Filters have no context on the splash screen. Keep the panel closed even if
    bootstrap opens it before splash init runs. */
 .card:has(#cstSplash:not([hidden])) .filter-panel,

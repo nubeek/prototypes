@@ -9,6 +9,7 @@
   const clearAllFilters = document.getElementById("clearAllFilters");
   const tableWrap = document.getElementById("tableWrap");
   const tableBody = document.getElementById("leadsTableBody");
+  const leadListTabs = document.getElementById("leadListTabs");
   const tableEmptyStateClear = document.getElementById("tableEmptyStateClear");
   const tableEmptyStateAddDropdown = document.getElementById("tableEmptyStateAddDropdown");
   const tableEmptyStateAddManual = document.getElementById("tableEmptyStateAddManual");
@@ -214,7 +215,56 @@
     }
   }
 
+  const ROW_DRAG_HOLD_MS = 25;
+  let draggedLeadIds = [];
+  let rowDragHoldTimer = 0;
+  let rowDragPointerDownAt = 0;
+  let rowDragDidMove = false;
+
+  function isRowDragIgnoredTarget(target) {
+    return target instanceof Element && target.closest("select, .filter-select-field, a, .location-row-select, .contact-email-copy");
+  }
+
+  function clearRowDragHold() {
+    if (!rowDragHoldTimer) return;
+    window.clearTimeout(rowDragHoldTimer);
+    rowDragHoldTimer = 0;
+  }
+
+  function clearRowDragReady() {
+    tableBody?.querySelectorAll("tr.is-drag-ready").forEach((row) => row.classList.remove("is-drag-ready"));
+  }
+
+  tableBody?.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || !(event.target instanceof Element)) return;
+    if (isRowDragIgnoredTarget(event.target)) return;
+    const row = event.target.closest("tr[data-lead-id]");
+    if (!row) return;
+
+    rowDragPointerDownAt = Date.now();
+    rowDragDidMove = false;
+    clearRowDragHold();
+    rowDragHoldTimer = window.setTimeout(() => {
+      rowDragHoldTimer = 0;
+      row.classList.add("is-drag-ready");
+    }, ROW_DRAG_HOLD_MS);
+  });
+
+  function endRowDragHold() {
+    clearRowDragHold();
+    if (!rowDragDidMove) clearRowDragReady();
+  }
+
+  document.addEventListener("pointerup", endRowDragHold);
+  document.addEventListener("pointercancel", endRowDragHold);
+
   tableBody?.addEventListener("click", (event) => {
+    if (rowDragDidMove) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     if (!(event.target instanceof Element)) return;
 
     const addRow = event.target.closest(".leads-add-row");
@@ -246,6 +296,70 @@
     if (!leadId) return;
 
     modals?.openLeadDetail(leadId, profileAction || row);
+  });
+
+  tableBody?.addEventListener("dragstart", (event) => {
+    const row = event.target instanceof Element ? event.target.closest("tr[data-lead-id]") : null;
+    if (!row) return;
+    if (isRowDragIgnoredTarget(event.target) || Date.now() - rowDragPointerDownAt < ROW_DRAG_HOLD_MS) {
+      event.preventDefault();
+      return;
+    }
+
+    const leadId = row.dataset.leadId;
+    const isPartOfSelection = page.isLeadSelected?.(leadId);
+    draggedLeadIds = isPartOfSelection ? page.getSelectedLeadIds?.() ?? [leadId] : [leadId];
+    rowDragDidMove = true;
+    clearRowDragHold();
+
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedLeadIds.join(","));
+
+    tableBody.querySelectorAll("tr[data-lead-id]").forEach((nextRow) => {
+      nextRow.classList.toggle("is-dragging", draggedLeadIds.includes(nextRow.dataset.leadId));
+    });
+  });
+
+  tableBody?.addEventListener("dragend", () => {
+    tableBody.querySelectorAll(".is-dragging").forEach((row) => row.classList.remove("is-dragging"));
+    clearRowDragReady();
+    draggedLeadIds = [];
+    window.setTimeout(() => {
+      rowDragDidMove = false;
+    }, 0);
+  });
+
+  function clearListTabDropTargets() {
+    leadListTabs?.querySelectorAll(".list-tab.is-drop-target").forEach((tab) => tab.classList.remove("is-drop-target"));
+  }
+
+  leadListTabs?.addEventListener("dragover", (event) => {
+    const tab = event.target instanceof Element ? event.target.closest(".list-tab[data-list-tab]") : null;
+    if (!draggedLeadIds.length) return;
+    if (!tab) {
+      clearListTabDropTargets();
+      return;
+    }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    clearListTabDropTargets();
+    tab.classList.add("is-drop-target");
+  });
+
+  leadListTabs?.addEventListener("dragleave", (event) => {
+    const tab = event.target instanceof Element ? event.target.closest(".list-tab[data-list-tab]") : null;
+    const related = event.relatedTarget instanceof Node ? event.relatedTarget : null;
+    if (tab && !tab.contains(related)) tab.classList.remove("is-drop-target");
+  });
+
+  leadListTabs?.addEventListener("drop", (event) => {
+    const tab = event.target instanceof Element ? event.target.closest(".list-tab[data-list-tab]") : null;
+    clearListTabDropTargets();
+    if (!tab || !draggedLeadIds.length) return;
+    event.preventDefault();
+
+    const listName = tab.dataset.listTab === "all" ? "" : tab.dataset.listTab;
+    page.moveLeadsToList?.(draggedLeadIds, listName);
   });
 
   tableBody?.addEventListener("change", (event) => {

@@ -1325,9 +1325,15 @@ body img[src$="/chevron.svg"] {
   line-height: 28px;
 }
 
-.list-tab:hover {
+.list-tab:hover,
+.list-tab.is-drop-target {
   background: var(--color-surface-toolbar-hover);
   border-radius: var(--radius-md);
+}
+
+.list-tab.is-drop-target {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
 }
 
 .list-tab.is-active .list-tab__name {
@@ -2520,24 +2526,115 @@ tbody tr.is-checked:hover td:nth-child(2) {
   min-width: 0;
 }
 
-.filter-select-field.table-stage-field[data-stage="New"] {
+.filter-select-field.table-stage-field[data-stage="New"],
+.filter-stage-option[data-stage="New"] {
   --lead-stage-swatch: var(--lead-stage-new);
 }
 
-.filter-select-field.table-stage-field[data-stage="Contacted"] {
+.filter-select-field.table-stage-field[data-stage="Contacted"],
+.filter-stage-option[data-stage="Contacted"] {
   --lead-stage-swatch: var(--lead-stage-contacted);
 }
 
-.filter-select-field.table-stage-field[data-stage="Qualified"] {
+.filter-select-field.table-stage-field[data-stage="Qualified"],
+.filter-stage-option[data-stage="Qualified"] {
   --lead-stage-swatch: var(--lead-stage-qualified);
 }
 
-.filter-select-field.table-stage-field[data-stage="Unqualified"] {
+.filter-select-field.table-stage-field[data-stage="Unqualified"],
+.filter-stage-option[data-stage="Unqualified"] {
   --lead-stage-swatch: var(--lead-stage-unqualified);
 }
 
-.filter-select-field.table-stage-field[data-stage="Converted"] {
+.filter-select-field.table-stage-field[data-stage="Converted"],
+.filter-stage-option[data-stage="Converted"] {
   --lead-stage-swatch: var(--lead-stage-converted);
+}
+
+.filter-stage-option {
+  min-height: 28px;
+}
+
+.filter-stage-pill {
+  min-width: 0;
+  max-width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--lead-stage-swatch, #111) 25%, transparent);
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-empty-values-group {
+  margin-top: 12px;
+}
+
+.filter-empty-values {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  min-height: 28px;
+}
+
+.filter-empty-values-info {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+}
+
+.filter-section:hover .filter-empty-values-info,
+.filter-empty-values:hover .filter-empty-values-info,
+.filter-empty-values-info:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.filter-empty-values-info:hover,
+.filter-empty-values-info:focus-visible {
+  background: var(--color-surface-control);
+}
+
+.filter-empty-values-info:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.filter-empty-values-info img {
+  display: block;
+  width: 16px;
+  height: 16px;
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast);
+}
+
+.filter-empty-values-info:hover img,
+.filter-empty-values-info:focus-visible img {
+  filter: brightness(0) saturate(100%);
+}
+
+.filter-combobox-floating-tooltip.filter-empty-values-tooltip {
+  max-width: 280px;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: normal;
 }
 
 .filter-select-field.table-select-field.table-stage-field {
@@ -2584,6 +2681,24 @@ tbody tr.is-checked:hover td:nth-child(2) {
 .filter-select-field.table-stage-field:has(select:focus-visible) > .table-stage-chevron {
   background-color: #000;
   opacity: 1;
+}
+
+#leadsTableBody tr[data-lead-id] {
+  cursor: pointer;
+}
+
+#leadsTableBody tr.is-drag-ready,
+#leadsTableBody tr.is-drag-ready .contact-profile-action {
+  cursor: grab;
+}
+
+#leadsTableBody tr.is-dragging,
+#leadsTableBody tr.is-dragging .contact-profile-action {
+  cursor: grabbing;
+}
+
+#leadsTableBody tr.is-dragging {
+  opacity: 0.5;
 }
 
 .location-number-cell {

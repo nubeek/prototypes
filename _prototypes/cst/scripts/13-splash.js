@@ -2270,6 +2270,10 @@ function bindCstSplashEntryPoints() {
     showCstSplash({ animate: true });
   });
 
+  cstSplashNewSearchBtn?.addEventListener("click", () => {
+    openCstSplashNewFranchiseesQuery();
+  });
+
   // Reaching for a workspace control in the toolbar means the user is done with
   // the splash, so it steps aside instead of hiding whatever they just opened.
   toolbarSearchInput?.addEventListener("input", dismissOpenCstSplash);

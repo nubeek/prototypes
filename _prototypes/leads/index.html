@@ -129,7 +129,7 @@
                 <span>Stage</span>
                 <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
               </button>
-              <div class="filter-check-group" id="stageFilterGroup"></div>
+              <div class="filter-check-group filter-stage-group" id="stageFilterGroup"></div>
             </section>
 
             <section class="filter-section filter-section-collapsed" data-filter-section="location">
@@ -142,6 +142,23 @@
                   <option value="">Select location...</option>
                 </select>
                 <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </div>
+              <div class="filter-check-group filter-empty-values-group">
+                <div class="filter-empty-values">
+                  <label class="filter-check">
+                    <input type="checkbox" data-empty-filter="location">
+                    <span class="filter-checkbox" aria-hidden="true"></span>
+                    <span>Empty values only</span>
+                  </label>
+                  <button
+                    class="filter-empty-values-info"
+                    type="button"
+                    aria-label="About empty values only"
+                    data-tooltip="Filter to records with no value in this field."
+                  >
+                    <img src="../../assets/icons/info.svg" alt="" aria-hidden="true">
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -156,6 +173,23 @@
                 </select>
                 <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
               </div>
+              <div class="filter-check-group filter-empty-values-group">
+                <div class="filter-empty-values">
+                  <label class="filter-check">
+                    <input type="checkbox" data-empty-filter="category">
+                    <span class="filter-checkbox" aria-hidden="true"></span>
+                    <span>Empty values only</span>
+                  </label>
+                  <button
+                    class="filter-empty-values-info"
+                    type="button"
+                    aria-label="About empty values only"
+                    data-tooltip="Filter to records with no value in this field."
+                  >
+                    <img src="../../assets/icons/info.svg" alt="" aria-hidden="true">
+                  </button>
+                </div>
+              </div>
             </section>
 
             <section class="filter-section filter-section-collapsed" data-filter-section="franchise">
@@ -169,6 +203,23 @@
                 </select>
                 <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
               </div>
+              <div class="filter-check-group filter-empty-values-group">
+                <div class="filter-empty-values">
+                  <label class="filter-check">
+                    <input type="checkbox" data-empty-filter="franchise">
+                    <span class="filter-checkbox" aria-hidden="true"></span>
+                    <span>Empty values only</span>
+                  </label>
+                  <button
+                    class="filter-empty-values-info"
+                    type="button"
+                    aria-label="About empty values only"
+                    data-tooltip="Filter to records with no value in this field."
+                  >
+                    <img src="../../assets/icons/info.svg" alt="" aria-hidden="true">
+                  </button>
+                </div>
+              </div>
             </section>
 
             <section class="filter-section filter-section-collapsed" data-filter-section="company">
@@ -181,6 +232,23 @@
                   <option value="">Select company...</option>
                 </select>
                 <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </div>
+              <div class="filter-check-group filter-empty-values-group">
+                <div class="filter-empty-values">
+                  <label class="filter-check">
+                    <input type="checkbox" data-empty-filter="company">
+                    <span class="filter-checkbox" aria-hidden="true"></span>
+                    <span>Empty values only</span>
+                  </label>
+                  <button
+                    class="filter-empty-values-info"
+                    type="button"
+                    aria-label="About empty values only"
+                    data-tooltip="Filter to records with no value in this field."
+                  >
+                    <img src="../../assets/icons/info.svg" alt="" aria-hidden="true">
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -400,6 +468,11 @@
               </label>
             </div>
             <div class="proto-modal-check-group" role="group" aria-label="Additional columns">
+              <label class="proto-modal-check">
+                <input type="checkbox" name="columns" value="updatedAt">
+                <span class="proto-modal-checkbox" aria-hidden="true"></span>
+                <span>Date updated</span>
+              </label>
               <label class="proto-modal-check">
                 <input type="checkbox" name="columns" value="list">
                 <span class="proto-modal-checkbox" aria-hidden="true"></span>

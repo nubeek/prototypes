@@ -11,6 +11,7 @@
     { key: "company", label: "Company", header: "Company", width: "15%" },
     { key: "stage", label: "Stage", header: "Stage", width: "12%" },
     { key: "addedAt", label: "Date added", header: "Added", width: "8%" },
+    { key: "updatedAt", label: "Date updated", header: "Updated", width: "8%" },
     { key: "list", label: "List", header: "List", width: "14%" },
     { key: "category", label: "Category", header: "Category", width: "14%" },
     { key: "website", label: "Website", header: "Website", width: "16%" },
@@ -65,6 +66,13 @@
   let excludedFranchises = [];
   let selectedCompanies = [];
   let excludedCompanies = [];
+  const EMPTY_VALUE_FILTER_KEYS = ["location", "category", "franchise", "company"];
+  const emptyValueFilters = {
+    location: false,
+    category: false,
+    franchise: false,
+    company: false
+  };
   let datesAddedFrom = "";
   let datesAddedTo = "";
   let visibleColumnKeys = readSavedColumns();
@@ -162,8 +170,12 @@
     return visibleColumnKeys.includes(key);
   }
 
+  function isDateColumnKey(key) {
+    return key === "addedAt" || key === "updatedAt";
+  }
+
   function getColumnSortValue(lead, key) {
-    if (key === "addedAt") return Date.parse(lead.addedAt) || 0;
+    if (isDateColumnKey(key)) return Date.parse(lead[key] || lead.addedAt) || 0;
     if (key === "company") return getCompanyName(lead);
     if (key === "category") return window.WefranchCategories?.getRecordLabel?.(lead) || "";
     if (key === "notes") return lead?.note || "";
@@ -359,6 +371,10 @@
     return Boolean(datesAddedFrom || datesAddedTo);
   }
 
+  function getAppliedEmptyValueFilterCount() {
+    return EMPTY_VALUE_FILTER_KEYS.reduce((count, key) => count + (emptyValueFilters[key] ? 1 : 0), 0);
+  }
+
   function getAppliedFilterCount() {
     return selectedStages.length
       + selectedLocations.length
@@ -369,7 +385,24 @@
       + excludedFranchises.length
       + selectedCompanies.length
       + excludedCompanies.length
+      + getAppliedEmptyValueFilterCount()
       + (datesAddedFilterIsActive() ? 1 : 0);
+  }
+
+  function leadHasEmptyLocation(lead) {
+    return !getLocationLabel(lead);
+  }
+
+  function leadHasEmptyCategory(lead) {
+    return !String(window.WefranchCategories?.getRecordLabel?.(lead) || "").trim();
+  }
+
+  function leadHasEmptyFranchise(lead) {
+    return splitFranchiseValues(lead.franchise).length === 0;
+  }
+
+  function leadHasEmptyCompany(lead) {
+    return !getCompanyName(lead);
   }
 
   function leadMatchesListFilter(lead) {
@@ -379,6 +412,7 @@
   }
 
   function leadMatchesLocationFilter(lead) {
+    if (emptyValueFilters.location) return leadHasEmptyLocation(lead);
     const location = getLocationLabel(lead);
     if (location && excludedLocations.includes(location)) return false;
     if (!selectedLocations.length) return true;
@@ -386,6 +420,7 @@
   }
 
   function leadMatchesCategoryFilter(lead) {
+    if (emptyValueFilters.category) return leadHasEmptyCategory(lead);
     const categoryId = getLeadCategoryId(lead);
     if (categoryId && excludedCategories.includes(categoryId)) return false;
     if (!selectedCategories.length) return true;
@@ -393,6 +428,7 @@
   }
 
   function leadMatchesFranchiseFilter(lead) {
+    if (emptyValueFilters.franchise) return leadHasEmptyFranchise(lead);
     const franchises = splitFranchiseValues(lead.franchise);
     if (franchises.some((name) => excludedFranchises.includes(name))) return false;
     if (!selectedFranchises.length) return true;
@@ -400,6 +436,7 @@
   }
 
   function leadMatchesCompanyFilter(lead) {
+    if (emptyValueFilters.company) return leadHasEmptyCompany(lead);
     const company = getCompanyName(lead);
     if (company && excludedCompanies.includes(company)) return false;
     if (!selectedCompanies.length) return true;
@@ -466,8 +503,8 @@
     return leads.sort((left, right) => {
       const leftRaw = getColumnSortValue(left, sortKey);
       const rightRaw = getColumnSortValue(right, sortKey);
-      const leftValue = sortKey === "addedAt" ? leftRaw : String(leftRaw || "").toLocaleLowerCase();
-      const rightValue = sortKey === "addedAt" ? rightRaw : String(rightRaw || "").toLocaleLowerCase();
+      const leftValue = isDateColumnKey(sortKey) ? leftRaw : String(leftRaw || "").toLocaleLowerCase();
+      const rightValue = isDateColumnKey(sortKey) ? rightRaw : String(rightRaw || "").toLocaleLowerCase();
 
       if (leftValue < rightValue) return -1 * direction;
       if (leftValue > rightValue) return 1 * direction;
@@ -554,6 +591,8 @@
         return `<td class="lead-select-cell">${getSelectMarkup(lead.id, "stage", lead.stage, LEAD_STAGES, "Select")}</td>`;
       case "addedAt":
         return `<td>${getEmptyValueMarkup(formatLeadDate(lead.addedAt))}</td>`;
+      case "updatedAt":
+        return `<td>${getEmptyValueMarkup(formatLeadDate(lead.updatedAt || lead.addedAt))}</td>`;
       case "location":
         return `<td>${getEmptyValueMarkup(lead.location)}</td>`;
       case "category":
@@ -664,7 +703,7 @@
     const rowNumber = rowIndex + 1;
 
     return `
-      <tr class="${[isSelected ? "is-selected" : "", isChecked ? "is-checked" : ""].filter(Boolean).join(" ")}" data-lead-id="${escapeHtml(lead.id)}">
+      <tr class="${[isSelected ? "is-selected" : "", isChecked ? "is-checked" : ""].filter(Boolean).join(" ")}" data-lead-id="${escapeHtml(lead.id)}" draggable="true">
         ${getRowSelectCellMarkup(lead, rowNumber, isChecked)}
         ${getVisibleColumnDefs().map((column) => getColumnCellMarkup(lead, column)).join("")}
       </tr>
@@ -762,7 +801,7 @@
   }
 
   function getListTabMarkup(name, count, isActive) {
-    const label = name === "all" ? "All" : name;
+    const label = name === "all" ? "All leads" : name;
     const settingsMarkup = name === "all" ? "" : `
           <button
             class="ui-control list-tab__settings"
@@ -987,10 +1026,10 @@
     window.WefranchFilterSections?.updateClearButtons?.(filterPanel, (section) => {
       const key = section.dataset.filterSection;
       if (key === "stage") return selectedStages.length > 0;
-      if (key === "location") return selectedLocations.length > 0 || excludedLocations.length > 0;
-      if (key === "category") return selectedCategories.length > 0 || excludedCategories.length > 0;
-      if (key === "franchise") return selectedFranchises.length > 0 || excludedFranchises.length > 0;
-      if (key === "company") return selectedCompanies.length > 0 || excludedCompanies.length > 0;
+      if (key === "location") return emptyValueFilters.location || selectedLocations.length > 0 || excludedLocations.length > 0;
+      if (key === "category") return emptyValueFilters.category || selectedCategories.length > 0 || excludedCategories.length > 0;
+      if (key === "franchise") return emptyValueFilters.franchise || selectedFranchises.length > 0 || excludedFranchises.length > 0;
+      if (key === "company") return emptyValueFilters.company || selectedCompanies.length > 0 || excludedCompanies.length > 0;
       if (key === "dates") return datesAddedFilterIsActive();
       return false;
     });
@@ -1010,10 +1049,10 @@
     if (!group) return;
 
     group.innerHTML = options.map((option) => `
-      <label class="filter-check ${selectedValues.includes(option) ? "is-checked" : ""}">
+      <label class="filter-check filter-stage-option ${selectedValues.includes(option) ? "is-checked" : ""}" data-stage="${escapeHtml(option)}">
         <input type="checkbox" value="${escapeHtml(option)}" ${selectedValues.includes(option) ? "checked" : ""}>
         <span class="filter-checkbox" aria-hidden="true"></span>
-        <span>${escapeHtml(option)}</span>
+        <span class="filter-stage-pill">${escapeHtml(option)}</span>
       </label>
     `).join("");
   }
@@ -1068,9 +1107,75 @@
     });
   }
 
+  function readEmptyValueFilters() {
+    EMPTY_VALUE_FILTER_KEYS.forEach((key) => {
+      emptyValueFilters[key] = Boolean(document.querySelector(`[data-empty-filter="${key}"]`)?.checked);
+    });
+  }
+
+  function getEmptyValueFilterSelect(key) {
+    if (key === "location") return locationFilterSelect;
+    if (key === "category") return categoryFilterSelect;
+    if (key === "franchise") return franchiseFilterSelect;
+    if (key === "company") return companyFilterSelect;
+    return null;
+  }
+
+  function applyEmptyValueFilterOverrides() {
+    if (emptyValueFilters.location) {
+      selectedLocations = [];
+      excludedLocations = [];
+    }
+    if (emptyValueFilters.category) {
+      selectedCategories = [];
+      excludedCategories = [];
+    }
+    if (emptyValueFilters.franchise) {
+      selectedFranchises = [];
+      excludedFranchises = [];
+    }
+    if (emptyValueFilters.company) {
+      selectedCompanies = [];
+      excludedCompanies = [];
+    }
+  }
+
+  function writeEmptyValueFilters() {
+    EMPTY_VALUE_FILTER_KEYS.forEach((key) => {
+      const checked = Boolean(emptyValueFilters[key]);
+      const input = document.querySelector(`[data-empty-filter="${key}"]`);
+      if (input) {
+        input.checked = checked;
+        input.closest(".filter-check")?.classList.toggle("is-checked", checked);
+      }
+
+      const select = getEmptyValueFilterSelect(key);
+      if (!select) return;
+      select.disabled = checked;
+      filterCombobox?.getCombobox?.(select)?.sync();
+    });
+  }
+
+  function initEmptyValueFilterInfo() {
+    document.querySelectorAll(".filter-empty-values-info").forEach((button) => {
+      window.bindActionTooltip?.(button, {
+        tooltipClass: "filter-empty-values-tooltip",
+        hideDelayMs: 0
+      });
+    });
+  }
+
+  function clearEmptyValueFilters(keys = EMPTY_VALUE_FILTER_KEYS) {
+    keys.forEach((key) => {
+      emptyValueFilters[key] = false;
+    });
+  }
+
   function syncFilterInputsFromState() {
     selectedStages = getCheckedValues(stageFilterGroup);
     readComboboxFilters();
+    readEmptyValueFilters();
+    applyEmptyValueFilterOverrides();
     readDateFilters();
   }
 
@@ -1161,6 +1266,7 @@
     syncCategoryFilterOptions();
     syncFranchiseFilterOptions();
     syncCompanyFilterOptions();
+    writeEmptyValueFilters();
     writeDateFilters();
   }
 
@@ -1224,7 +1330,7 @@
       sortDirection = sortDirection === "ascending" ? "descending" : "ascending";
     } else {
       sortKey = key;
-      sortDirection = key === "addedAt" ? "descending" : "ascending";
+      sortDirection = isDateColumnKey(key) ? "descending" : "ascending";
     }
     renderTable();
   }
@@ -1265,6 +1371,14 @@
   function getSelectedLeads() {
     const selected = new Set(selectedLeadIds);
     return getAllLeads().filter((lead) => selected.has(lead.id));
+  }
+
+  function isLeadSelected(id) {
+    return Boolean(id) && selectedLeadIds.has(id);
+  }
+
+  function getSelectedLeadIds() {
+    return [...selectedLeadIds];
   }
 
   function getSelectedAssignedLists() {
@@ -1364,19 +1478,25 @@
     return ids.length;
   }
 
-  function moveSelectedLeadsToList(listName) {
+  function moveLeadsToList(ids, listName) {
     const name = normalizeListName(listName);
-    if (!name) return 0;
+    const targetIds = [...new Set(ids)].filter(Boolean);
+    if (!targetIds.length) return 0;
 
-    rememberList(name);
+    if (name) rememberList(name);
     let changed = 0;
-    getSelectedLeads().forEach((lead) => {
-      if (lead.list === name) return;
+    targetIds.forEach((id) => {
+      const lead = getLead(id);
+      if (!lead || lead.list === name) return;
       store.upsert({ ...lead, list: name });
       changed += 1;
     });
     if (changed) refresh();
     return changed;
+  }
+
+  function moveSelectedLeadsToList(listName) {
+    return moveLeadsToList(getSelectedLeads().map((lead) => lead.id), listName);
   }
 
   function removeSelectedLeadsFromList(listName) {
@@ -1505,6 +1625,7 @@
     excludedFranchises = [];
     selectedCompanies = [];
     excludedCompanies = [];
+    clearEmptyValueFilters();
     clearCombobox(locationFilterSelect);
     clearCombobox(categoryFilterSelect);
     clearCombobox(franchiseFilterSelect);
@@ -1526,21 +1647,25 @@
     if (key === "location") {
       selectedLocations = [];
       excludedLocations = [];
+      emptyValueFilters.location = false;
       clearCombobox(locationFilterSelect);
     }
     if (key === "category") {
       selectedCategories = [];
       excludedCategories = [];
+      emptyValueFilters.category = false;
       clearCombobox(categoryFilterSelect);
     }
     if (key === "franchise") {
       selectedFranchises = [];
       excludedFranchises = [];
+      emptyValueFilters.franchise = false;
       clearCombobox(franchiseFilterSelect);
     }
     if (key === "company") {
       selectedCompanies = [];
       excludedCompanies = [];
+      emptyValueFilters.company = false;
       clearCombobox(companyFilterSelect);
     }
     if (key === "dates") clearDateFilters();
@@ -1743,7 +1868,10 @@
     setLeadChecked,
     setVisibleLeadsChecked,
     getSelectedLeads,
+    isLeadSelected,
+    getSelectedLeadIds,
     renderMoveToMenu,
+    moveLeadsToList,
     moveSelectedLeadsToList,
     removeSelectedLeadsFromList,
     removeSelectedLeadsFromAssignedLists,
@@ -1883,6 +2011,7 @@
 
   initFilterComboboxes();
   initDateFilters();
+  initEmptyValueFilterInfo();
   renderFilters();
   renderTable();
 })();

@@ -98,6 +98,7 @@ const saveLeadNoteField = document.getElementById("saveLeadNoteField");
 let saveLeadListApi = null;
 const toolbarDropdowns = Array.from(document.querySelectorAll(".toolbar-dropdown"));
 const toolbarDropdown = document.getElementById("toolbarMenuDropdown") || toolbarDropdowns[0];
+const cstSplashNewSearchBtn = document.getElementById("cstSplashNewSearchBtn");
 const datasetSelector = document.getElementById("datasetSelector");
 const datasetSelectorTrigger = document.getElementById("datasetSelectorTrigger");
 const datasetSelectorLabel = document.getElementById("datasetSelectorLabel");
