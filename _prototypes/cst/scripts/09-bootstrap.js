@@ -15,18 +15,6 @@ sortHeaders.forEach((header) => {
 
 initDatasetSelector();
 
-if (toolbarView) {
-  toolbarView.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element)) return;
-
-    const button = event.target.closest(".toolbar-view-btn[data-table-view]");
-    if (!button) return;
-
-    event.preventDefault();
-    setMainTableView(button.dataset.tableView);
-  });
-}
-
 syncColumnWidths();
 syncReduceMotionToggleOption();
 syncReduceMotionStateClass();

@@ -65,17 +65,46 @@
     <div class="content-shell">
       <div class="header" aria-label="Franchisees toolbar">
         <div class="toolbar-group toolbar-primary">
-          <div class="view" id="toolbarView" aria-label="Table view" data-reader-hide>
-            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="franchisees" aria-pressed="false">
-              <img class="toolbar-asset-icon view-btn-icon" src="../../assets/icons/owners.svg" alt="" aria-hidden="true">
-              <span class="view-btn-label">Franchisees</span>
-            </button>
-            <span class="view-divider" aria-hidden="true"></span>
-            <button class="ui-control ui-button ui-button-ghost view-btn segmented-control-btn toolbar-view-btn" type="button" data-table-view="candidates" aria-pressed="false">
-              <img class="toolbar-asset-icon view-btn-icon" src="../../assets/icons/prospects.svg" alt="" aria-hidden="true">
-              <span class="view-btn-label">Candidates</span>
-            </button>
-          </div>
+          <details class="toolbar-dropdown cst-splash-new-search" id="cstSplashNewSearch" data-reader-hide>
+            <summary class="cst-splash-new-search__trigger" aria-haspopup="menu" aria-controls="cstSplashNewSearchMenu" aria-label="Start new search">
+              <img class="cst-splash-new-search__icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+              <span class="cst-splash-new-search__label">
+                <span class="cst-splash-new-search__label-idle">Search <span class="cst-splash-new-search__label-dataset">Franchisees</span></span>
+                <span class="cst-splash-new-search__label-open">Select dataset...</span>
+                <span class="cst-splash-new-search__label-selected"></span>
+              </span>
+              <span class="cst-splash-new-search__chevron-zone" data-cst-splash-open-menu aria-hidden="true">
+                <img class="cst-splash-new-search__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </span>
+            </summary>
+            <div class="ui-menu toolbar-dropdown-menu cst-splash-new-search__menu" id="cstSplashNewSearchMenu" role="menu" aria-label="Datasets">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem" data-table-view="franchisees">
+                <img class="toolbar-dropdown-icon" src="../../assets/icons/owners.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Franchisees</span>
+              </button>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem" data-table-view="candidates">
+                <img class="toolbar-dropdown-icon" src="../../assets/icons/prospects.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Operators</span>
+              </button>
+              <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true" data-cst-splash-more-top-divider></div>
+              <div class="cst-splash-new-search__toggle-panel">
+                <div class="cst-splash-new-search__panel-clip">
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action cst-splash-new-search__toggle" type="button" role="menuitem" id="cstSplashShowMoreDatasets" data-cst-splash-show-more aria-expanded="false" aria-controls="cstSplashNewSearchMorePanel">
+                    <span class="toolbar-dropdown-label">Show more datasets</span>
+                  </button>
+                </div>
+              </div>
+              <div class="cst-splash-new-search__more-panel" id="cstSplashNewSearchMorePanel" inert>
+                <div class="cst-splash-new-search__panel-clip">
+                  <div class="cst-splash-new-search__more" id="cstSplashNewSearchMore"></div>
+                  <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true" id="cstSplashNewSearchMoreDivider"></div>
+                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action cst-splash-new-search__toggle" type="button" role="menuitem" id="cstSplashShowLessDatasets" data-cst-splash-show-less>
+                    <span class="toolbar-dropdown-label">Show less datasets</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
           <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn reader-back-btn" id="readerBackBtn" type="button" data-reader-only aria-label="Back to saved searches" title="Back to saved searches">
             <img class="toolbar-asset-icon reader-back-btn__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
@@ -122,10 +151,6 @@
         </div>
 
         <div class="toolbar-group toolbar-actions">
-          <button class="ui-control ui-button ui-button-primary filter-toggle-btn" id="cstSplashNewSearchBtn" type="button" data-splash-only>
-            <img class="toolbar-asset-icon cst-splash-new-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
-            Start new search
-          </button>
           <details class="toolbar-dropdown" id="toolbarMenuDropdown" data-reader-hide data-splash-hide>
             <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
               <img class="toolbar-asset-icon" src="../../assets/icons/menu.svg" alt="" aria-hidden="true">

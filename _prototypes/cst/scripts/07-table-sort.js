@@ -420,11 +420,9 @@ function syncFranchiseesTableView() {
 }
 
 function syncToolbarViewState() {
-  toolbarViewButtons.forEach((button) => {
-    const isActive = button.dataset.tableView === currentTableView;
-    button.classList.toggle("is-active", isActive);
-    button.setAttribute("aria-pressed", String(isActive));
-  });
+  if (typeof syncCstSplashNewSearchTrigger === "function") {
+    syncCstSplashNewSearchTrigger();
+  }
 }
 
 function syncDatasetSelectorState() {

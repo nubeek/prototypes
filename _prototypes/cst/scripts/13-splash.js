@@ -306,10 +306,163 @@ function renderCstSplashSavedEmptyState(activeScope) {
   }
 }
 
-function openCstSplashNewFranchiseesQuery() {
+function getCstSplashMoreDatasetOptions() {
+  if (typeof DATASET_SELECTOR_VIEWS === "undefined") return [];
+
+  return [...DATASET_SELECTOR_VIEWS].map((viewKey) => ({
+    viewKey,
+    label: TABLE_VIEW_OPTIONS?.[viewKey]?.label || viewKey,
+    icon: TABLE_VIEW_OPTIONS?.[viewKey]?.icon || "../../assets/icons/dataset.svg?v=2"
+  }));
+}
+
+function getCstSplashNewSearchMoreChrome() {
+  return {
+    showMore: document.getElementById("cstSplashShowMoreDatasets"),
+    showLess: document.getElementById("cstSplashShowLessDatasets"),
+    more: document.getElementById("cstSplashNewSearchMore"),
+    morePanel: document.getElementById("cstSplashNewSearchMorePanel"),
+    togglePanel: cstSplashNewSearch?.querySelector(".cst-splash-new-search__toggle-panel"),
+    topDivider: cstSplashNewSearch?.querySelector("[data-cst-splash-more-top-divider]")
+  };
+}
+
+function resetCstSplashNewSearchMore() {
+  setCstSplashNewSearchMoreOpen(false, { focus: false });
+}
+
+function setCstSplashNewSearchMoreOpen(isOpen, { focus = true } = {}) {
+  const { showMore, showLess, more, morePanel, togglePanel } = getCstSplashNewSearchMoreChrome();
+  if (!showMore || !more) return;
+
+  cstSplashNewSearch?.classList.toggle("is-more-open", Boolean(isOpen));
+  showMore.setAttribute("aria-expanded", String(Boolean(isOpen)));
+  showMore.setAttribute("aria-hidden", String(Boolean(isOpen)));
+  if (showLess) showLess.setAttribute("aria-hidden", String(!isOpen));
+  if (togglePanel) togglePanel.inert = Boolean(isOpen);
+  if (morePanel) morePanel.inert = !isOpen;
+
+  if (!focus) return;
+
+  window.clearTimeout(setCstSplashNewSearchMoreOpen.focusTimer);
+  setCstSplashNewSearchMoreOpen.focusTimer = window.setTimeout(() => {
+    if (isOpen) {
+      more.querySelector("[data-table-view]")?.focus();
+      return;
+    }
+    showMore.focus();
+  }, 320);
+}
+
+function renderCstSplashNewSearchMore() {
+  const { showMore, more, morePanel, togglePanel, topDivider } = getCstSplashNewSearchMoreChrome();
+  if (!more) return;
+
+  const options = getCstSplashMoreDatasetOptions();
+  const hasMore = options.length > 0;
+  more.replaceChildren();
+
+  if (showMore) showMore.hidden = !hasMore;
+  if (topDivider) topDivider.hidden = !hasMore;
+  if (togglePanel) togglePanel.hidden = !hasMore;
+  if (morePanel) morePanel.hidden = !hasMore;
+  if (!hasMore) return;
+
+  options.forEach((option) => {
+    const button = document.createElement("button");
+    const icon = document.createElement("img");
+    const label = document.createElement("span");
+
+    button.type = "button";
+    button.className = "ui-menu-item toolbar-dropdown-option toolbar-dropdown-action";
+    button.setAttribute("role", "menuitem");
+    button.dataset.tableView = option.viewKey;
+
+    icon.className = "toolbar-dropdown-icon";
+    icon.src = option.icon;
+    icon.alt = "";
+    icon.setAttribute("aria-hidden", "true");
+
+    label.className = "toolbar-dropdown-label";
+    label.textContent = option.label;
+
+    button.append(icon, label);
+    more.append(button);
+  });
+
+  syncCstSplashNewSearchTrigger();
+}
+
+const CST_SPLASH_NEW_SEARCH_ICON = "../../assets/icons/search.svg";
+
+function getCstSplashNewSearchOption(viewKey) {
+  const optionView = typeof normalizeTableView === "function"
+    ? normalizeTableView(viewKey)
+    : viewKey;
+  const button = cstSplashNewSearch?.querySelector(`[data-table-view="${optionView}"]`);
+  const optionConfig = typeof TABLE_VIEW_OPTIONS === "object" ? TABLE_VIEW_OPTIONS[optionView] : null;
+
+  return {
+    viewKey: optionView,
+    label: button?.querySelector(".toolbar-dropdown-label")?.textContent?.trim()
+      || optionConfig?.label
+      || optionView,
+    icon: button?.querySelector(".toolbar-dropdown-icon")?.getAttribute("src")
+      || optionConfig?.icon
+      || CST_SPLASH_NEW_SEARCH_ICON
+  };
+}
+
+function syncCstSplashNewSearchTrigger() {
+  if (!cstSplashNewSearch) return;
+
+  const isQuery = typeof isCstSplashOpen === "function" ? !isCstSplashOpen() : false;
+  const trigger = cstSplashNewSearch.querySelector(".cst-splash-new-search__trigger");
+  const icon = cstSplashNewSearch.querySelector(".cst-splash-new-search__icon");
+  const selectedLabel = cstSplashNewSearch.querySelector(".cst-splash-new-search__label-selected");
+  const idleDataset = cstSplashNewSearch.querySelector(".cst-splash-new-search__label-dataset");
+  const option = getCstSplashNewSearchOption(currentTableView);
+
+  cstSplashNewSearch.classList.toggle("is-query", isQuery);
+
+  if (idleDataset) idleDataset.textContent = option.label;
+
+  if (isQuery) {
+    if (icon) icon.src = option.icon;
+    if (selectedLabel) selectedLabel.textContent = option.label;
+    trigger?.setAttribute("aria-label", option.label);
+  } else {
+    if (icon) icon.src = CST_SPLASH_NEW_SEARCH_ICON;
+    trigger?.setAttribute("aria-label", `Search ${option.label}`);
+  }
+
+  cstSplashNewSearch.querySelectorAll("[data-table-view]").forEach((button) => {
+    const isSelected = isQuery && button.dataset.tableView === currentTableView;
+    button.classList.toggle("is-selected", isSelected);
+    if (isSelected) {
+      button.setAttribute("aria-checked", "true");
+    } else {
+      button.removeAttribute("aria-checked");
+    }
+  });
+}
+
+function selectCstQueryDataset(view) {
+  view = typeof normalizeTableView === "function" ? normalizeTableView(view) : view;
+  cstSplashNewSearch?.removeAttribute("open");
+  resetCstSplashNewSearchMore();
+  if (!view || view === currentTableView) return;
+
+  clearCstSavedSearchSession({ persist: false });
+  applyCstSplashQuery({}, { view });
+}
+
+function openCstSplashNewQuery(view = "franchisees") {
+  cstSplashNewSearch?.removeAttribute("open");
+  resetCstSplashNewSearchMore();
   clearCstSavedSearchSession({ persist: false });
   dismissCstSplash({ refresh: false });
-  applyCstSplashQuery({}, { view: "franchisees" });
+  applyCstSplashQuery({}, { view });
 }
 
 function applyCstSplashSavedVisibility() {
@@ -1508,17 +1661,7 @@ function playCstSplashEnterAnimation(splash) {
 }
 
 function syncCstSplashToolbarViewState() {
-  if (!isCstSplashOpen()) return;
-
-  toolbarViewButtons.forEach((button) => {
-    button.classList.remove("is-active");
-    button.setAttribute("aria-pressed", "false");
-  });
-}
-
-function openCstSplashToolbarView(viewKey) {
-  setMainTableView(viewKey);
-  dismissCstSplash();
+  syncCstSplashNewSearchTrigger();
 }
 
 function syncCstSplashMapPanelForSplash(isSplashOpen) {
@@ -1547,6 +1690,8 @@ function showCstSplash({ animate = false } = {}) {
   if (!splash) return;
 
   cstSplashSearchController?.reset();
+  cstSplashNewSearch?.removeAttribute("open");
+  resetCstSplashNewSearchMore();
   hideCstTableLoading?.({ immediate: true });
   cancelCstTableEnterAnimation?.();
   card?.classList.remove("is-splash-hiding-workspace");
@@ -2228,7 +2373,7 @@ function bindCstSplashSavedEmptyActions() {
   emptyState.addEventListener("click", (event) => {
     if (!event.target.closest("[data-cst-splash-new-search]")) return;
     event.preventDefault();
-    openCstSplashNewFranchiseesQuery();
+    openCstSplashNewQuery();
   });
 }
 
@@ -2270,8 +2415,57 @@ function bindCstSplashEntryPoints() {
     showCstSplash({ animate: true });
   });
 
-  cstSplashNewSearchBtn?.addEventListener("click", () => {
-    openCstSplashNewFranchiseesQuery();
+  renderCstSplashNewSearchMore();
+  syncCstSplashNewSearchTrigger();
+
+  cstSplashNewSearch?.addEventListener("click", (event) => {
+    const trigger = event.target.closest(".cst-splash-new-search__trigger");
+    if (trigger) {
+      // Split button on the splash: clicking the label region starts the search
+      // for the preselected dataset, while the chevron zone opens the dropdown so
+      // a different dataset can be picked.
+      if (isCstSplashOpen() && !event.target.closest("[data-cst-splash-open-menu]")) {
+        event.preventDefault();
+        openCstSplashNewQuery(currentTableView);
+      }
+      return;
+    }
+
+    if (event.target.closest("[data-cst-splash-show-more]")) {
+      event.preventDefault();
+      event.stopPropagation();
+      setCstSplashNewSearchMoreOpen(true);
+      return;
+    }
+
+    if (event.target.closest("[data-cst-splash-show-less]")) {
+      event.preventDefault();
+      event.stopPropagation();
+      setCstSplashNewSearchMoreOpen(false);
+      return;
+    }
+
+    const viewButton = event.target.closest("[data-table-view]");
+    if (!viewButton) return;
+    event.preventDefault();
+
+    if (isCstSplashOpen()) {
+      openCstSplashNewQuery(viewButton.dataset.tableView);
+      return;
+    }
+
+    selectCstQueryDataset(viewButton.dataset.tableView);
+  });
+
+  cstSplashNewSearch?.addEventListener("toggle", () => {
+    if (!cstSplashNewSearch.open) {
+      resetCstSplashNewSearchMore();
+      return;
+    }
+
+    if (!isCstSplashOpen() && typeof isDatasetSelectorView === "function" && isDatasetSelectorView()) {
+      setCstSplashNewSearchMoreOpen(true, { focus: false });
+    }
   });
 
   // Reaching for a workspace control in the toolbar means the user is done with
@@ -2283,19 +2477,6 @@ function bindCstSplashEntryPoints() {
     contactsToggle,
     searchWithinLocation
   ].forEach((control) => control?.addEventListener("click", dismissOpenCstSplash));
-
-  toolbarViewButtons.forEach((button) => {
-    button.addEventListener("click", (event) => {
-      if (!isCstSplashOpen()) return;
-
-      const viewKey = button.dataset.tableView;
-      if (viewKey !== "franchisees" && viewKey !== "candidates") return;
-
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      openCstSplashToolbarView(viewKey);
-    }, true);
-  });
 }
 
 function dismissOpenCstSplash() {
