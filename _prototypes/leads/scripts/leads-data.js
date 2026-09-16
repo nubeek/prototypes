@@ -48,8 +48,6 @@
   const tableEmptyStateAddDropdown = document.getElementById("tableEmptyStateAddDropdown");
   const tableHeadingSummary = document.getElementById("tableHeadingSummary");
   const leadListTabs = document.getElementById("leadListTabs");
-  const toolbarSearchInput = document.getElementById("toolbarSearchInput");
-  const toolbarSearchClear = document.getElementById("toolbarSearchClear");
   const leadSelectionActions = document.getElementById("leadSelectionActions");
   const moveSelectedLeadsDropdown = document.getElementById("moveSelectedLeadsDropdown");
   const moveSelectedLeadsMenu = document.getElementById("moveSelectedLeadsMenu");
@@ -1288,6 +1286,94 @@
     enhanceSelectFilter(companyFilterSelect, toSelectOptions(getCompanyOptions()), "Select company");
   }
 
+  const LEAD_QUICK_SEARCH_GROUP_LIMIT = 3;
+
+  function matchLeadQuickSearchLabel(label, query) {
+    return String(label || "").toLocaleLowerCase().includes(query);
+  }
+
+  function getLeadQuickSearchSelectSuggestions(select, type, group, query) {
+    return (filterCombobox?.getOptions?.(select) || [])
+      .filter((option) => option.value && !option.divider && matchLeadQuickSearchLabel(option.label, query))
+      .slice(0, LEAD_QUICK_SEARCH_GROUP_LIMIT)
+      .map((option) => ({
+        type,
+        group,
+        label: option.label,
+        value: option.value
+      }));
+  }
+
+  function getLeadQuickSearchSuggestions(query) {
+    const normalizedQuery = String(query || "").trim().toLocaleLowerCase();
+    if (normalizedQuery.length < 2) return [];
+
+    const stageSuggestions = LEAD_STAGES
+      .filter((stage) => matchLeadQuickSearchLabel(stage, normalizedQuery))
+      .slice(0, LEAD_QUICK_SEARCH_GROUP_LIMIT)
+      .map((stage) => ({
+        type: "stage",
+        group: "Stages",
+        label: stage,
+        value: stage
+      }));
+
+    return [
+      ...stageSuggestions,
+      ...getLeadQuickSearchSelectSuggestions(locationFilterSelect, "location", "Locations", normalizedQuery),
+      ...getLeadQuickSearchSelectSuggestions(categoryFilterSelect, "category", "Categories", normalizedQuery),
+      ...getLeadQuickSearchSelectSuggestions(franchiseFilterSelect, "franchise", "Franchises", normalizedQuery),
+      ...getLeadQuickSearchSelectSuggestions(companyFilterSelect, "company", "Companies", normalizedQuery)
+    ];
+  }
+
+  function applyLeadQuickSearchSuggestion(item) {
+    const quickSearch = window.WefranchFilterQuickSearch;
+    if (!item || !quickSearch) return;
+
+    if (item.type === "stage") {
+      const checkbox = stageFilterGroup?.querySelector(`input[value="${CSS.escape(item.value)}"]`);
+      if (checkbox && !checkbox.checked) {
+        checkbox.checked = true;
+        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      quickSearch.expandSection(stageFilterGroup);
+      return;
+    }
+
+    const select = {
+      location: locationFilterSelect,
+      category: categoryFilterSelect,
+      franchise: franchiseFilterSelect,
+      company: companyFilterSelect
+    }[item.type];
+    if (!select) return;
+
+    if (emptyValueFilters[item.type]) {
+      emptyValueFilters[item.type] = false;
+      writeEmptyValueFilters();
+    }
+
+    quickSearch.addSelectValues(select, [item.value]);
+    quickSearch.expandSection(select);
+  }
+
+  function bindLeadFilterQuickSearch() {
+    const quickSearch = window.WefranchFilterQuickSearch;
+    if (!quickSearch) return;
+
+    quickSearch.create({
+      root: document.getElementById("filterQuickSearch"),
+      input: document.getElementById("filterQuickSearchInput"),
+      clearButton: document.getElementById("filterQuickSearchClear"),
+      menu: document.getElementById("filterQuickSearchMenu"),
+      menuList: document.getElementById("filterQuickSearchSuggestions"),
+      emptyMessage: "No stages, locations, categories, franchises, or companies match.",
+      getSuggestions: getLeadQuickSearchSuggestions,
+      onSelect: applyLeadQuickSearchSuggestion
+    });
+  }
+
   function renderTable() {
     const allLeads = getAllLeads();
     const visibleLeads = getVisibleLeads();
@@ -1319,9 +1405,6 @@
 
   function setSearchQuery(value) {
     searchQuery = String(value || "").trim().toLocaleLowerCase();
-    const searchField = toolbarSearchInput?.closest(".toolbar-search-btn");
-    searchField?.classList.toggle("is-active-search", Boolean(searchQuery));
-    if (toolbarSearchClear) toolbarSearchClear.hidden = !searchQuery;
     renderTable();
   }
 
@@ -1631,12 +1714,7 @@
     clearCombobox(franchiseFilterSelect);
     clearCombobox(companyFilterSelect);
     clearDateFilters();
-    if (toolbarSearchInput) {
-      toolbarSearchInput.value = "";
-    }
     searchQuery = "";
-    toolbarSearchInput?.closest(".toolbar-search-btn")?.classList.remove("is-active-search");
-    if (toolbarSearchClear) toolbarSearchClear.hidden = true;
     renderFilters();
     renderTable();
   }
@@ -2012,6 +2090,7 @@
   initFilterComboboxes();
   initDateFilters();
   initEmptyValueFilterInfo();
+  bindLeadFilterQuickSearch();
   renderFilters();
   renderTable();
 })();

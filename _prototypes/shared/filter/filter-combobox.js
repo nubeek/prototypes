@@ -1228,6 +1228,9 @@
     document.querySelectorAll(".territory-crossroad__search.is-suggestions-open .territory-crossroad__search-suggestions").forEach((list) => {
       fitDropdownList(list.closest(".territory-crossroad__search"), list, { capPx: 310, menuIsList: true });
     });
+    document.querySelectorAll(".filter-search.is-suggestions-open .filter-search-options").forEach((list) => {
+      fitDropdownList(list.closest(".filter-search"), list, { capPx: 280 });
+    });
   }
 
   function scheduleFitOpenMenus() {

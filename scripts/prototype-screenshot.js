@@ -173,6 +173,238 @@
     return () => style.remove();
   };
 
+  const CSS_MASK_URL_PATTERN = /url\(\s*(['"]?)(.*?)\1\s*\)/i;
+  const CSS_MASK_ATTR = {
+    "": "data-proto-ss-mask",
+    "::before": "data-proto-ss-mask-before",
+    "::after": "data-proto-ss-mask-after",
+  };
+
+  const parseCssMaskUrl = (value) => {
+    const match = String(value || "").match(CSS_MASK_URL_PATTERN);
+    const url = match?.[2]?.trim();
+    return url || null;
+  };
+
+  const decodeSvgDataUri = (url) => {
+    const comma = url.indexOf(",");
+    if (comma === -1) return "";
+    const data = url.slice(comma + 1);
+    return /;base64/i.test(url.slice(0, comma))
+      ? window.atob(data)
+      : decodeURIComponent(data);
+  };
+
+  const colorizeSvgMarkup = (markup, color) => {
+    let svg = String(markup || "").replace(/<\?xml[\s\S]*?\?>/i, "").trim();
+    if (!svg) return "";
+
+    svg = svg.replace(/fill:\s*(?!none\b)(?!transparent\b)[^;}]+/gi, `fill: ${color}`);
+    svg = svg.replace(/\bfill=(['"])(?!none\b)(?!transparent\b)[^'"]*\1/gi, `fill="${color}"`);
+    svg = svg.replace(/currentColor/g, color);
+
+    if (!/\bfill=/i.test(svg) && !/fill\s*:/i.test(svg)) {
+      svg = svg.replace(/<svg\b([^>]*)>/i, `<svg$1 fill="${color}">`);
+    }
+
+    if (!/\sxmlns=/i.test(svg)) {
+      svg = svg.replace(/<svg\b/i, `<svg xmlns="http://www.w3.org/2000/svg"`);
+    }
+
+    return svg;
+  };
+
+  const svgToDataUri = (markup) => {
+    const base64 = window.btoa(unescape(encodeURIComponent(markup)));
+    return `data:image/svg+xml;base64,${base64}`;
+  };
+
+  const rasterizeMaskImage = (source, color) => new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const width = Math.max(1, image.naturalWidth || image.width || 64);
+      const height = Math.max(1, image.naturalHeight || image.height || 64);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Unable to rasterize a CSS mask."));
+        return;
+      }
+
+      context.drawImage(image, 0, 0, width, height);
+      context.globalCompositeOperation = "source-in";
+      context.fillStyle = color;
+      context.fillRect(0, 0, width, height);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    image.onerror = () => reject(new Error("Unable to load a CSS mask image."));
+    image.src = source;
+  });
+
+  const colorizeMaskSource = async (url, color, cache) => {
+    const cacheKey = `${url}\n${color}`;
+    if (cache.has(cacheKey)) {
+      return cache.get(cacheKey);
+    }
+
+    const pending = (async () => {
+      if (url.startsWith("data:image/svg+xml")) {
+        const colored = colorizeSvgMarkup(decodeSvgDataUri(url), color);
+        return colored ? svgToDataUri(colored) : rasterizeMaskImage(url, color);
+      }
+
+      if (url.startsWith("data:")) {
+        return rasterizeMaskImage(url, color);
+      }
+
+      const response = await fetch(url, { cache: "force-cache" });
+      if (!response.ok) {
+        throw new Error(`Unable to fetch CSS mask (${response.status}).`);
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      const body = await response.text();
+      const isSvg = contentType.includes("svg")
+        || /\.svg(?:\?|#|$)/i.test(url)
+        || /^\s*<svg/i.test(body);
+
+      if (isSvg) {
+        const colored = colorizeSvgMarkup(body, color);
+        if (colored) return svgToDataUri(colored);
+      }
+
+      return rasterizeMaskImage(url, color);
+    })().catch(() => null);
+
+    cache.set(cacheKey, pending);
+    return pending;
+  };
+
+  const materializeCssMasks = async (targetWindow) => {
+    const { document: targetDocument } = targetWindow;
+    const assigned = [];
+    const inserted = [];
+    const rules = [];
+    const cache = new Map();
+    let nextId = 0;
+
+    const isIgnored = (element) => element.closest(
+      "[data-proto-nav], [data-proto-screenshot-toast], [data-proto-screenshot-preview], [data-proto-recorder]"
+    );
+
+    const process = async (element, pseudo = null) => {
+      try {
+        const style = pseudo
+          ? targetWindow.getComputedStyle(element, pseudo)
+          : targetWindow.getComputedStyle(element);
+
+        if (pseudo) {
+          const content = style.content;
+          if (!content || content === "none") return;
+        }
+
+        const maskImage = style.webkitMaskImage || style.maskImage;
+        if (!maskImage || maskImage === "none" || !/url\(/i.test(maskImage)) return;
+
+        const rawUrl = parseCssMaskUrl(maskImage);
+        if (!rawUrl) return;
+
+        const color = style.backgroundColor;
+        if (!color || color === "transparent" || color === "rgba(0, 0, 0, 0)") return;
+
+        const absoluteUrl = rawUrl.startsWith("data:")
+          ? rawUrl
+          : new URL(rawUrl, targetDocument.baseURI).href;
+        const dataUri = await colorizeMaskSource(absoluteUrl, color, cache);
+        if (!dataUri) return;
+
+        const attr = CSS_MASK_ATTR[pseudo || ""];
+        const id = String(++nextId);
+        assigned.push({ element, attr, previous: element.getAttribute(attr) });
+        element.setAttribute(attr, id);
+
+        const image = targetDocument.createElement("img");
+        image.src = dataUri;
+        image.alt = "";
+        image.setAttribute("aria-hidden", "true");
+        image.setAttribute("data-proto-ss-mask-img", id);
+        const width = Number.parseFloat(style.width) || 16;
+        const height = Number.parseFloat(style.height) || 16;
+        image.width = Math.max(1, Math.round(width));
+        image.height = Math.max(1, Math.round(height));
+        image.style.cssText = [
+          "display:block",
+          "flex:0 0 auto",
+          "border:0",
+          "pointer-events:none",
+          `width:${width}px`,
+          `height:${height}px`,
+          style.transform && style.transform !== "none" ? `transform:${style.transform}` : ""
+        ].filter(Boolean).join(";");
+
+        if (pseudo === "::before") {
+          element.insertBefore(image, element.firstChild);
+        } else {
+          element.append(image);
+        }
+        inserted.push(image);
+
+        if (pseudo) {
+          rules.push(
+            `[${attr}="${id}"]${pseudo}{content:none!important;display:none!important;}`
+          );
+        } else {
+          rules.push(
+            `[${attr}="${id}"]{-webkit-mask:none!important;mask:none!important;` +
+            `-webkit-mask-image:none!important;mask-image:none!important;}`
+          );
+        }
+      } catch (error) {
+        // Leave this mask as-is rather than failing the whole capture.
+      }
+    };
+
+    for (const element of targetDocument.querySelectorAll("body *")) {
+      if (isIgnored(element)) continue;
+
+      const style = targetWindow.getComputedStyle(element);
+      if (style.display === "none" || style.visibility === "hidden") continue;
+
+      await process(element);
+      await process(element, "::before");
+      await process(element, "::after");
+    }
+
+    if (!inserted.length && !rules.length) {
+      return () => undefined;
+    }
+
+    const style = targetDocument.createElement("style");
+    style.setAttribute("data-proto-ss-mask-style", "");
+    style.textContent = rules.join("\n");
+    (targetDocument.head || targetDocument.documentElement).appendChild(style);
+
+    await Promise.all(inserted.map((image) => (
+      typeof image.decode === "function"
+        ? image.decode().catch(() => undefined)
+        : Promise.resolve()
+    )));
+
+    return () => {
+      style.remove();
+      inserted.forEach((image) => image.remove());
+      assigned.reverse().forEach(({ element, attr, previous }) => {
+        if (previous === null) {
+          element.removeAttribute(attr);
+        } else {
+          element.setAttribute(attr, previous);
+        }
+      });
+    };
+  };
+
   const normalizeAssetUrls = (targetDocument) => {
     const attributes = [];
 
@@ -363,6 +595,12 @@
     const restorePlaceholders = normalizeEmptyPlaceholders(targetWindow);
     const removeCaptureStyles = installCaptureStyles(targetDocument);
     const restoreAssetUrls = normalizeAssetUrls(targetDocument);
+    let restoreCssMasks = () => undefined;
+    try {
+      restoreCssMasks = await materializeCssMasks(targetWindow);
+    } catch (error) {
+      console.warn("CSS masks could not be prepared for screenshot.", error);
+    }
     const pinnedElements = preparePinnedElements(targetWindow);
     const replacedFrames = [];
     const ignoredFrames = [];
@@ -451,6 +689,7 @@
         frame.removeAttribute("data-proto-screenshot-ignore-frame");
       });
       pinnedElements.restore();
+      restoreCssMasks();
       restoreAssetUrls();
       removeCaptureStyles();
       restorePlaceholders();

@@ -15,8 +15,7 @@
   const tableEmptyStateAddManual = document.getElementById("tableEmptyStateAddManual");
   const tableEmptyStateImportCsv = document.getElementById("tableEmptyStateImportCsv");
   const leadImportCsvInput = document.getElementById("leadImportCsvInput");
-  const toolbarSearchInput = document.getElementById("toolbarSearchInput");
-  const toolbarSearchClear = document.getElementById("toolbarSearchClear");
+  const toolbarSearchBtn = document.getElementById("toolbarSearchBtn");
   const leadsToolbarMenuDropdown = document.getElementById("leadsToolbarMenuDropdown");
   const manageColumnsOption = document.getElementById("manageColumnsOption");
   const deleteSelectedLeadsBtn = document.getElementById("deleteSelectedLeadsBtn");
@@ -167,17 +166,10 @@
     }
   });
 
-  if (toolbarSearchInput) {
-    toolbarSearchInput.addEventListener("input", () => {
-      page.setSearchQuery(toolbarSearchInput.value);
-    });
-  }
-
-  toolbarSearchClear?.addEventListener("click", () => {
-    if (!toolbarSearchInput) return;
-    toolbarSearchInput.value = "";
-    toolbarSearchInput.dispatchEvent(new Event("input", { bubbles: true }));
-    toolbarSearchInput.focus();
+  window.WefranchFilterQuickSearch?.bindToolbarQuickSearchLauncher({
+    trigger: toolbarSearchBtn,
+    isPanelOpen: () => Boolean(card?.classList.contains("is-filter-open")),
+    setPanelOpen: (isOpen) => page.setFilterPanelOpen(isOpen)
   });
 
   addLeadBtn?.addEventListener("click", () => {

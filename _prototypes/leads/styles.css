@@ -1100,6 +1100,14 @@ body img[src$="/chevron.svg"] {
   transition: width 180ms ease, border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
+.toolbar-search-btn:not(:has(.toolbar-search-input)) {
+  justify-content: center;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
 .toolbar-search-icon {
   width: 16px;
   height: 16px;
@@ -1160,24 +1168,24 @@ body img[src$="/chevron.svg"] {
   background: var(--color-surface-control-active);
 }
 
-.toolbar-search-btn:focus-within,
-.toolbar-search-btn.is-active-search {
+.toolbar-search-btn:has(.toolbar-search-input):focus-within,
+.toolbar-search-btn:has(.toolbar-search-input).is-active-search {
   width: 360px;
   border-width: 2px;
   background: var(--color-surface);
   border-color: var(--color-brand);
 }
 
-.toolbar-search-btn:focus-within .toolbar-search-input,
-.toolbar-search-btn.is-active-search .toolbar-search-input {
+.toolbar-search-btn:has(.toolbar-search-input):focus-within .toolbar-search-input,
+.toolbar-search-btn:has(.toolbar-search-input).is-active-search .toolbar-search-input {
   width: 100%;
   opacity: 1;
   pointer-events: auto;
   padding-right: 40px;
 }
 
-.toolbar-search-btn:focus-within .toolbar-search-icon,
-.toolbar-search-btn.is-active-search .toolbar-search-icon {
+.toolbar-search-btn:has(.toolbar-search-input):focus-within .toolbar-search-icon,
+.toolbar-search-btn:has(.toolbar-search-input).is-active-search .toolbar-search-icon {
   filter: brightness(0) saturate(100%) invert(45%) sepia(26%) saturate(1666%) hue-rotate(213deg) brightness(91%) contrast(91%);
 }
 

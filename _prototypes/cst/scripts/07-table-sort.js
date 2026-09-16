@@ -722,8 +722,8 @@ function getAllLocationRows() {
     return getProspectDatasetRows(currentTableView);
   }
 
-  // Unfiltered, so it only changes with the roster. `updateFilterSummary` asks
-  // for this on every render just to show the "of N" total.
+  // Unfiltered roster of location rows. Cache it by owner count so dataset
+  // swaps rebuild it and filter renders can reuse it.
   if (allLocationRowsCache?.ownerCount === owners.length) {
     return allLocationRowsCache.rows;
   }
@@ -1921,7 +1921,7 @@ function buildHeadingSummaryRatingConcept() {
 }
 
 function buildHeadingSummarySearchConcept() {
-  const query = toolbarSearchInput?.value.trim() || searchQuery;
+  const query = searchQuery;
   if (!query) return null;
   return { id: "search", phrase: `matching “${query}”`, highlight: query };
 }
@@ -2174,15 +2174,6 @@ function updateTableHeading() {
 }
 
 function updateFilterSummary() {
-  if (!filterSummary) return;
-
-  const visibleCount = isDatasetTableView()
-    ? getLocationVisibleCount(displayedLocations.length)
-    : displayedFranchisees.length;
-  const visibleRange = visibleCount > 0 ? `1-${visibleCount}` : "0";
-  const totalCount = isDatasetTableView() ? getAllLocationRows().length : owners.length;
-  const sortLabel = getActiveTableHeadingSortLabel().toLocaleLowerCase();
-  filterSummary.innerHTML = `Showing ${visibleRange} of ${totalCount} records <span class="filter-summary-sort">sorted by ${sortLabel}</span>`;
   updateTableHeading();
   updateClearFiltersButton();
 }

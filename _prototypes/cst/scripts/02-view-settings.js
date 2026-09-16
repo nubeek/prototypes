@@ -190,24 +190,10 @@ function restoreSavedOptionSettings(settings) {
   refreshOwnersMapPointData();
 }
 
-function syncToolbarSearchInput() {
-  if (!toolbarSearchInput) return;
-
-  toolbarSearchInput.value = searchQuery;
-  toolbarSearchInput
-    .closest(".toolbar-search-btn")
-    ?.classList.toggle("is-active-search", Boolean(searchQuery));
-
-  if (toolbarSearchClear) {
-    toolbarSearchClear.hidden = !searchQuery;
-  }
-}
-
 function restoreSavedFilterSelections(settings) {
   const filters = settings?.filters || {};
 
   searchQuery = String(filters.search || "").trim().toLocaleLowerCase();
-  syncToolbarSearchInput();
 
   setLocationFilterSelections(
     filters.locations?.included,

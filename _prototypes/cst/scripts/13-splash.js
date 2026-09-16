@@ -1437,7 +1437,6 @@ function applyCstSplashQuery(filters = {}, { view = "franchisees" } = {}) {
   syncNetWorthFilterControls();
   setFranchiseeRatingMin(selectedFranchiseeRatingMin);
   syncRadiusFilterControls();
-  syncToolbarSearchInput();
   expandCstSplashFilterSections();
 
   if (view !== currentTableView) {
@@ -2047,6 +2046,53 @@ function bindCstSplashSearchFloatingTooltip(button) {
   button.addEventListener("click", hideCstSplashSearchFloatingTooltip);
 }
 
+function applyCstQuickSearchSuggestion(item) {
+  const quickSearch = window.WefranchFilterQuickSearch;
+  if (!item || !quickSearch) return;
+
+  if (item.type === "franchisee") {
+    quickSearch.addSelectValues(ownerFilterSelect, item.filters?.franchisees || []);
+    quickSearch.expandSection(ownerFilterSelect);
+    return;
+  }
+
+  if (item.type === "brand") {
+    quickSearch.addSelectValues(franchiseFilterSelect, item.filters?.franchises || []);
+    quickSearch.expandSection(franchiseFilterSelect);
+    return;
+  }
+
+  if (item.type === "category") {
+    quickSearch.addSelectValues(categoryFilterSelect, item.filters?.categories || []);
+    quickSearch.expandSection(categoryFilterSelect);
+    return;
+  }
+
+  if (item.type === "location") {
+    const locationResult = item.locationResult || item.filters?.locationSearches?.[0];
+    if (locationResult) {
+      applyLocationInclude(locationResult);
+    }
+    quickSearch.expandSection(locationFilterSearchField);
+  }
+}
+
+function bindCstFilterQuickSearch() {
+  const quickSearch = window.WefranchFilterQuickSearch;
+  if (!quickSearch) return;
+
+  quickSearch.create({
+    root: document.getElementById("filterQuickSearch"),
+    input: document.getElementById("filterQuickSearchInput"),
+    clearButton: document.getElementById("filterQuickSearchClear"),
+    menu: document.getElementById("filterQuickSearchMenu"),
+    menuList: document.getElementById("filterQuickSearchSuggestions"),
+    emptyMessage: "No franchisees, brands, categories, or locations match.",
+    getSuggestions: getCstSplashSuggestions,
+    onSelect: applyCstQuickSearchSuggestion
+  });
+}
+
 function bindCstSplashSearch() {
   const form = document.getElementById("cstSplashSearch");
   const input = document.getElementById("cstSplashSearchInput");
@@ -2470,8 +2516,8 @@ function bindCstSplashEntryPoints() {
 
   // Reaching for a workspace control in the toolbar means the user is done with
   // the splash, so it steps aside instead of hiding whatever they just opened.
-  toolbarSearchInput?.addEventListener("input", dismissOpenCstSplash);
   [
+    toolbarSearchBtn,
     mapToggle,
     orgChartToggle,
     contactsToggle,
@@ -2493,6 +2539,7 @@ function initCstSplash() {
 
   try {
     bindCstSplashSearch();
+    bindCstFilterQuickSearch();
     bindCstSplashSavedTabs();
     bindCstSplashSavedEmptyActions();
     bindCstSplashEntryPoints();

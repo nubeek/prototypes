@@ -2794,6 +2794,22 @@ function revealTerritorySavedSearch(savedSearch) {
   }
 }
 
+function bindTerritoryFilterQuickSearch() {
+  const quickSearch = window.WefranchFilterQuickSearch;
+  if (!quickSearch) return;
+
+  quickSearch.create({
+    root: document.getElementById("filterQuickSearch"),
+    input: document.getElementById("filterQuickSearchInput"),
+    clearButton: document.getElementById("filterQuickSearchClear"),
+    menu: document.getElementById("filterQuickSearchMenu"),
+    menuList: document.getElementById("filterQuickSearchSuggestions"),
+    emptyMessage: "No franchises, categories, or locations match.",
+    getSuggestions: getCrossroadSearchSuggestions,
+    onSelect: (item) => window.territoryFilters?.applyQuickSearchSuggestion?.(item)
+  });
+}
+
 window.territoryCrossroad = {
   deleteSavedSearch: deleteTerritorySavedSearch,
   revealSavedSearch: revealTerritorySavedSearch,
@@ -2817,6 +2833,7 @@ async function initTerritoryCrossroad() {
 
   try {
     bindCrossroadLocationSearch();
+    bindTerritoryFilterQuickSearch();
     bindCrossroadPresetTabs();
     bindTerritoryCrossroadToolbar();
 

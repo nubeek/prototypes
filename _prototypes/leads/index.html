@@ -101,27 +101,43 @@
             Add lead
           </button>
           <span class="toolbar-divider" aria-hidden="true"></span>
-          <label class="toolbar-search-btn toolbar-btn" for="toolbarSearchInput" role="search">
+          <button class="toolbar-search-btn toolbar-btn" id="toolbarSearchBtn" type="button" aria-label="Quick search" title="Quick search">
             <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
-            <input
-              class="toolbar-search-input"
-              id="toolbarSearchInput"
-              type="search"
-              inputmode="search"
-              autocomplete="off"
-              placeholder="Search by name, email or company..."
-              aria-label="Search leads"
-            >
-            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
-          </label>
+          </button>
         </div>
       </div>
 
       <div class="workspace">
         <aside class="filter-panel" id="filterPanel" aria-label="Filters">
           <div class="filter-header">
-            <h2>Filter</h2>
-            <p id="filterSummary">Showing 0 of 0 records</p>
+            <h2>Filters</h2>
+            <form class="filter-search" id="filterQuickSearch" role="search" autocomplete="off" novalidate>
+              <img class="filter-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+              <input
+                class="filter-search-input"
+                id="filterQuickSearchInput"
+                type="search"
+                inputmode="search"
+                autocomplete="off"
+                spellcheck="false"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="filterQuickSearchSuggestions"
+                placeholder="Quick search"
+                aria-label="Quick search"
+              >
+              <button class="filter-search-clear" id="filterQuickSearchClear" type="button" aria-label="Clear search" hidden></button>
+              <div class="filter-search-menu" id="filterQuickSearchMenu" aria-hidden="true">
+                <div
+                  class="filter-search-options proto-scrollbar"
+                  id="filterQuickSearchSuggestions"
+                  role="listbox"
+                  aria-label="Quick search suggestions"
+                ></div>
+              </div>
+            </form>
           </div>
           <div class="filter-scroll">
             <section class="filter-section" data-filter-section="stage">
@@ -529,6 +545,7 @@
   <script src="../shared/ui/fit-tooltip.js"></script>
   <script src="../shared/ui/action-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>
+  <script src="../shared/filter/filter-quick-search.js"></script>
   <script src="../shared/filter/filter-date.js"></script>
   <script src="../shared/filter/filter-sections.js"></script>
   <script src="scripts/leads-data.js"></script>

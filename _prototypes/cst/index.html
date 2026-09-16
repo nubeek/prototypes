@@ -84,7 +84,7 @@
               </button>
               <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem" data-table-view="candidates">
                 <img class="toolbar-dropdown-icon" src="../../assets/icons/prospects.svg" alt="" aria-hidden="true">
-                <span class="toolbar-dropdown-label">Operators</span>
+                <span class="toolbar-dropdown-label">Candidates</span>
               </button>
               <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true" data-cst-splash-more-top-divider></div>
               <div class="cst-splash-new-search__toggle-panel">
@@ -108,11 +108,11 @@
           <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn reader-back-btn" id="readerBackBtn" type="button" data-reader-only aria-label="Back to saved searches" title="Back to saved searches">
             <img class="toolbar-asset-icon reader-back-btn__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
+          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
           <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" data-splash-workspace-control data-reader-hide aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
             <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
             <span id="filterToggleLabel">Filters</span>
           </button>
-          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
           <details class="toolbar-dropdown" id="outreachBtn" data-splash-workspace-control>
             <summary class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" aria-label="Email" title="Email">
               <img class="toolbar-asset-icon toolbar-outreach-icon" src="../../assets/icons/mail.svg" alt="" aria-hidden="true">
@@ -263,19 +263,9 @@
             </div>
           </div>
           <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
-          <label class="toolbar-search-btn toolbar-btn" data-splash-workspace-control for="toolbarSearchInput" role="search">
+          <button class="toolbar-search-btn toolbar-btn" id="toolbarSearchBtn" type="button" data-splash-workspace-control aria-label="Quick search" title="Quick search">
             <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
-            <input
-              class="toolbar-search-input"
-              id="toolbarSearchInput"
-              type="search"
-              inputmode="search"
-              autocomplete="off"
-              placeholder="Search by name, brand or location..."
-              aria-label="Search franchisees, contacts, locations, and franchises"
-            >
-            <button class="toolbar-search-clear" id="toolbarSearchClear" type="button" aria-label="Clear search" hidden></button>
-          </label>
+          </button>
         </div>
       </div>
 
@@ -364,8 +354,34 @@
     </div>
     <aside class="filter-panel" id="filterPanel" aria-label="Filters">
       <div class="filter-header">
-        <h2>Filter</h2>
-        <p id="filterSummary">Showing 0 of 0 records <span class="filter-summary-sort">sorted by relevancy</span></p>
+        <h2>Filters</h2>
+        <form class="filter-search" id="filterQuickSearch" role="search" autocomplete="off" novalidate>
+          <img class="filter-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+          <input
+            class="filter-search-input"
+            id="filterQuickSearchInput"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            spellcheck="false"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-controls="filterQuickSearchSuggestions"
+            placeholder="Quick search"
+            aria-label="Quick search"
+          >
+          <button class="filter-search-clear" id="filterQuickSearchClear" type="button" aria-label="Clear search" hidden></button>
+          <div class="filter-search-menu" id="filterQuickSearchMenu" aria-hidden="true">
+            <div
+              class="filter-search-options proto-scrollbar"
+              id="filterQuickSearchSuggestions"
+              role="listbox"
+              aria-label="Quick search suggestions"
+            ></div>
+          </div>
+        </form>
       </div>
       <div class="filter-scroll">
 
@@ -1442,6 +1458,7 @@
   <script src="../shared/ui/fit-tooltip.js"></script>
   <script src="../shared/ui/action-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>
+  <script src="../shared/filter/filter-quick-search.js"></script>
   <script src="../shared/filter/filter-sections.js"></script>
   <script src="../shared/filter/filter-range.js"></script>
   <script src="../shared/map/map-pills.js"></script>

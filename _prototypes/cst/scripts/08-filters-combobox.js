@@ -574,13 +574,6 @@ function resetCstFilterSelections({ refresh = true } = {}) {
   setFilterSelectValues(categoryFilterSelect, []);
   setFilterSelectValues(ownerFilterSelect, []);
   setFilterSelectValues(franchiseFilterSelect, []);
-  if (toolbarSearchInput) {
-    toolbarSearchInput.value = "";
-    toolbarSearchInput.closest(".toolbar-search-btn")?.classList.remove("is-active-search");
-    if (toolbarSearchClear) {
-      toolbarSearchClear.hidden = true;
-    }
-  }
   syncFilterComboboxes();
   syncFilterLocationSearchUI();
 

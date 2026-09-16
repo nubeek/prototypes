@@ -150,6 +150,7 @@
   function enhanceHeaders(panel, {
     iconSrc = window.resolvePublicAssetUrl?.("../../assets/icons/remove.svg") || "../../assets/icons/remove.svg",
     onClear,
+    onToggle,
     selectionSectionKeys = []
   } = {}) {
     if (!panel) return;
@@ -203,6 +204,8 @@
       clearButton.addEventListener("click", (event) => {
         event.stopPropagation();
         onClear?.(section);
+        setSectionExpanded(section, false);
+        onToggle?.(section, { isCollapsed: true, isExpanded: false });
       });
     });
   }
@@ -233,6 +236,7 @@
   }
 
   // Shared rule: changing filter values must never collapse a section.
+  // Clearing a section with the header X is the exception and always collapses.
   // `preserve` only opens matching sections. `reset` is for explicit defaults
   // such as Clear all or returning to the splash/crossroad.
   function applyExpansion(panel, { shouldExpand, mode = "preserve" } = {}) {

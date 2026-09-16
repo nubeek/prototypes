@@ -1450,7 +1450,8 @@ function initTerritoryFilters() {
 
   window.WefranchFilterSections.enhanceHeaders(filterPanel, {
     iconSrc: resolvePublicAssetUrl("../../assets/icons/remove.svg"),
-    onClear: clearFilterSection
+    onClear: clearFilterSection,
+    onToggle: () => persistTerritorySettings()
   });
   restoreSavedTerritorySettings();
   window.WefranchFilterSections.bindCollapseToggle(filterPanel, {
@@ -1546,7 +1547,7 @@ function initTerritoryFilters() {
 
   initRadiusFilterControls();
 
-  initTerritorySearch();
+  initTerritorySearchLauncher();
   initTerritoryToolbarMenu();
 
   if (savedTerritorySettings) {
@@ -1835,42 +1836,14 @@ function initTerritoryToolbarMenu() {
   window.territoryMapControls?.setTerritoryBorderColorMode?.(territoryMenuBorderColor);
 }
 
-function initTerritorySearch() {
-  const searchInput = document.getElementById("territorySearchInput");
-  const searchClear = document.getElementById("territorySearchClear");
-  if (!searchInput) return;
+function initTerritorySearchLauncher() {
+  const shell = document.querySelector(".territory-shell");
 
-  const searchField = searchInput.closest(".toolbar-search-btn");
-
-  const syncSearchState = () => {
-    const hasQuery = searchInput.value.trim().length > 0;
-    searchField?.classList.toggle("is-active-search", hasQuery);
-    if (searchClear) searchClear.hidden = !hasQuery;
-  };
-
-  searchInput.addEventListener("input", () => {
-    syncSearchState();
-    refreshTerritoryFilters();
-    persistTerritorySettings();
+  window.WefranchFilterQuickSearch?.bindToolbarQuickSearchLauncher({
+    trigger: document.getElementById("territorySearchBtn"),
+    isPanelOpen: () => Boolean(shell?.classList.contains("is-filter-open")),
+    setPanelOpen: setFilterPanelOpen
   });
-
-  searchClear?.addEventListener("mousedown", (event) => {
-    event.preventDefault();
-  });
-
-  searchClear?.addEventListener("click", () => {
-    searchInput.value = "";
-    syncSearchState();
-    refreshTerritoryFilters();
-    persistTerritorySettings();
-    searchInput.focus();
-  });
-
-  if (typeof savedTerritorySettings?.filters?.search === "string") {
-    searchInput.value = savedTerritorySettings.filters.search;
-  }
-
-  syncSearchState();
 }
 
 function getTerritoryFilterRangeValues(section) {
@@ -2671,6 +2644,44 @@ function setTerritoryLocationSearch(result) {
   return true;
 }
 
+function addTerritoryCategoryFilters(categoryIds) {
+  const categoryFilterSelect = document.getElementById("categoryFilterSelect");
+  if (!categoryFilterSelect) return false;
+
+  const validCategoryIds = getValidSavedSelectValues(categoryFilterSelect, categoryIds);
+  if (!validCategoryIds.length) return false;
+
+  return Boolean(window.WefranchFilterQuickSearch?.addSelectValues?.(categoryFilterSelect, validCategoryIds));
+}
+
+function expandTerritoryFilterFor(selector) {
+  const target = document.querySelector(selector);
+  window.WefranchFilterQuickSearch?.expandSection?.(target);
+}
+
+function applyTerritoryQuickSearchSuggestion(item) {
+  if (!item) return;
+
+  if (item.type === "brand") {
+    addTerritoryFranchiseFilter(item.brandId || item.filters?.franchises?.[0]);
+    expandTerritoryFilterFor("#franchiseFilterSelect");
+    return;
+  }
+
+  if (item.type === "category") {
+    addTerritoryCategoryFilters(item.filters?.categories || item.values || []);
+    expandTerritoryFilterFor("#categoryFilterSelect");
+    return;
+  }
+
+  if (item.type === "location") {
+    if (item.locationResult) {
+      applyLocationInclude(item.locationResult);
+    }
+    expandTerritoryFilterFor("#locationFilterSearchField");
+  }
+}
+
 function addTerritoryFranchiseFilter(brandId) {
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   if (!franchiseFilterSelect) return false;
@@ -2758,6 +2769,7 @@ window.territoryFilters = {
   captureViewportFromMap,
   applyLocationInclude,
   applyLocationExclude,
+  applyQuickSearchSuggestion: applyTerritoryQuickSearchSuggestion,
   isFilterDataReady: () => territorySettingsReadyToPersist,
   shouldAutoEnableRadiusForLocation,
   setLocation: setTerritoryLocationFilter,

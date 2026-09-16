@@ -242,7 +242,8 @@ if (franchiseesTable) {
 if (filterPanel) {
   window.WefranchFilterSections.enhanceHeaders(filterPanel, {
     iconSrc: "../../assets/icons/remove.svg",
-    onClear: clearFilterSection
+    onClear: clearFilterSection,
+    onToggle: () => persistViewSettings()
   });
   window.WefranchFilterSections.bindCollapseToggle(filterPanel, {
     onToggle: () => persistViewSettings()
@@ -399,6 +400,17 @@ if (filterToggle && card) {
   });
 }
 
+window.WefranchFilterQuickSearch?.bindToolbarQuickSearchLauncher({
+  trigger: toolbarSearchBtn,
+  isPanelOpen: () => Boolean(card?.classList.contains("is-filter-open")),
+  setPanelOpen: setFilterPanelOpen,
+  onBeforeOpen() {
+    if (readerModeActive) {
+      exitReaderMode();
+    }
+  }
+});
+
 if (readerEditQueryBtn) {
   readerEditQueryBtn.addEventListener("click", () => {
     exitReaderMode();
@@ -501,45 +513,6 @@ if (tableHeadingSummary) {
     event.preventDefault();
     openSummaryFilter(filterTrigger);
   });
-}
-
-if (toolbarSearchInput) {
-  const searchField = toolbarSearchInput.closest(".toolbar-search-btn");
-  let searchRefreshTimer = null;
-
-  const runSearchRefresh = () => {
-    searchRefreshTimer = null;
-    activeMapOwnerIndex = null;
-    activeOrgOwnerIndex = null;
-    refreshFilteredViews();
-    syncOpenOrgPanelWithSelection();
-    tableWrap?.scrollTo({ top: 0, behavior: "auto" });
-  };
-
-  toolbarSearchInput.addEventListener("input", () => {
-    searchQuery = toolbarSearchInput.value.trim().toLocaleLowerCase();
-    searchField?.classList.toggle("is-active-search", Boolean(searchQuery));
-    if (toolbarSearchClear) {
-      toolbarSearchClear.hidden = !searchQuery;
-    }
-
-    // Filtering the whole roster per keystroke is wasted while the user is still
-    // typing. Clearing the field stays immediate so the full list snaps back.
-    window.clearTimeout(searchRefreshTimer);
-    if (!searchQuery) {
-      runSearchRefresh();
-      return;
-    }
-    searchRefreshTimer = window.setTimeout(runSearchRefresh, CST_SEARCH_DEBOUNCE_MS);
-  });
-
-  if (toolbarSearchClear) {
-    toolbarSearchClear.addEventListener("click", () => {
-      toolbarSearchInput.value = "";
-      toolbarSearchInput.dispatchEvent(new Event("input", { bubbles: true }));
-      toolbarSearchInput.focus();
-    });
-  }
 }
 
 if (mapToggle && card) {
