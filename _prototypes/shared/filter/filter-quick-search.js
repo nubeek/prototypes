@@ -358,6 +358,77 @@
     return { reset };
   }
 
+  function isApplePlatform() {
+    return /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent || "");
+  }
+
+  function isQuickSearchShortcut(event) {
+    if (event.repeat || event.altKey || event.shiftKey) return false;
+    const isK = event.key === "k" || event.key === "K" || event.code === "KeyK";
+    if (!isK) return false;
+    return event.metaKey || event.ctrlKey;
+  }
+
+  function isQuickSearchShortcutBlocked() {
+    return Boolean(document.querySelector(
+      ".proto-modal-overlay:not([hidden]), .profile-modal-overlay:not([hidden])"
+    ));
+  }
+
+  function appendShortcutKey(shortcut, label, className) {
+    const key = document.createElement("span");
+    key.className = className
+      ? `filter-search-shortcut-key ${className}`
+      : "filter-search-shortcut-key";
+    key.textContent = label;
+    shortcut.append(key);
+  }
+
+  function ensureQuickSearchShortcut(input) {
+    const root = input?.closest(".filter-search");
+    if (!root || root.querySelector(".filter-search-shortcut")) return;
+
+    const shortcut = document.createElement("span");
+    shortcut.className = "filter-search-shortcut";
+    shortcut.setAttribute("aria-hidden", "true");
+
+    if (isApplePlatform()) {
+      appendShortcutKey(shortcut, "⌘", "filter-search-shortcut-command");
+    } else {
+      appendShortcutKey(shortcut, "Ctrl", "filter-search-shortcut-key--text");
+    }
+    appendShortcutKey(shortcut, "K");
+
+    const clearButton = root.querySelector(".filter-search-clear");
+    if (clearButton) {
+      clearButton.before(shortcut);
+    } else {
+      input.after(shortcut);
+    }
+
+    shortcut.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+      input.focus({ preventScroll: true });
+    });
+  }
+
+  function annotateQuickSearchShortcut(options = {}) {
+    const shortcutLabel = isApplePlatform() ? "⌘K" : "Ctrl+K";
+    const keyshortcuts = isApplePlatform() ? "Meta+K" : "Control+K";
+    const input = options.input || document.getElementById("filterQuickSearchInput");
+
+    if (input) {
+      input.setAttribute("aria-keyshortcuts", keyshortcuts);
+      input.title = `Quick search (${shortcutLabel})`;
+      ensureQuickSearchShortcut(input);
+    }
+
+    if (options.trigger) {
+      options.trigger.setAttribute("aria-keyshortcuts", keyshortcuts);
+      options.trigger.title = `Quick search (${shortcutLabel})`;
+    }
+  }
+
   function openFilterQuickSearch(options = {}) {
     const input = options.input || document.getElementById("filterQuickSearchInput");
     if (!input) return;
@@ -377,8 +448,22 @@
     });
   }
 
+  function bindQuickSearchShortcut(options = {}) {
+    annotateQuickSearchShortcut(options);
+
+    document.addEventListener("keydown", (event) => {
+      if (!isQuickSearchShortcut(event)) return;
+      event.preventDefault();
+      if (isQuickSearchShortcutBlocked()) return;
+      openFilterQuickSearch(options);
+    }, true);
+  }
+
   function bindToolbarQuickSearchLauncher(options = {}) {
     const trigger = options.trigger;
+
+    bindQuickSearchShortcut(options);
+
     if (!trigger) return { focus: () => openFilterQuickSearch(options) };
 
     trigger.addEventListener("click", (event) => {
