@@ -1344,6 +1344,19 @@ body img[src$="/chevron.svg"] {
   outline-offset: -2px;
 }
 
+.list-tab.is-drop-disabled,
+.list-tab.is-drop-disabled:hover {
+  background: transparent;
+  border-radius: 0;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.list-tab.is-drop-disabled:hover .list-tab__settings {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .list-tab.is-active .list-tab__name {
   font-weight: 600;
 }

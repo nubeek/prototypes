@@ -7352,6 +7352,7 @@ window.territoryMapFilters = {
   hideTerritoryRecords,
   scheduleFilteredReveal: scheduleTerritoryMapFilteredReveal,
   getTerritoryRegistry: () => territoryRegistry,
+  getMatchingRecords: () => territoryLastMatchingRecords || territoryRegistry,
   resolveLocationTarget: resolveLocationMatchTarget,
   recordMatchesLocationTarget,
   createRadiusMatchContext,

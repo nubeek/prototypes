@@ -22,7 +22,7 @@
   <link rel="manifest" href="../../assets/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
   <link rel="stylesheet" href="../cst/styles.css">
   <link rel="stylesheet" href="../shared/ui/proto-modal.css">
@@ -90,6 +90,10 @@
       </div>
 
       <div class="toolbar-group toolbar-actions">
+        <button class="ui-control ui-button ui-button-ghost toolbar-btn territory-share-btn" id="territoryShareBtn" type="button" data-crossroad-workspace-control>
+          <img class="toolbar-asset-icon" src="../../assets/icons/share.svg" alt="" aria-hidden="true">
+          <span>Share</span>
+        </button>
         <details class="toolbar-dropdown" id="territoryMenuDropdown">
           <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
             <img class="toolbar-asset-icon" src="../../assets/icons/menu.svg" alt="" aria-hidden="true">
@@ -109,6 +113,11 @@
                 <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-radio-option" id="territoryColorMonochromeOption" type="button" role="menuitemradio" aria-checked="false" data-color-mode="density">
                   <span class="filter-checkbox filter-checkbox--radio" aria-hidden="true"></span>
                   <span class="toolbar-dropdown-label">Monochrome</span>
+                </button>
+                <div class="toolbar-dropdown-divider" role="separator" aria-hidden="true"></div>
+                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-toggle-option" id="territorySingleBrandToggleOption" type="button" role="menuitemcheckbox" aria-checked="false">
+                  <span class="toolbar-dropdown-label">Single brand</span>
+                  <span class="toolbar-switch" aria-hidden="true"></span>
                 </button>
               </div>
             </div>
@@ -903,6 +912,46 @@
     </section>
   </div>
 
+  <div class="proto-modal-overlay territory-share-modal-overlay" id="territoryShareModal" hidden>
+    <section class="proto-modal proto-modal--form territory-share-modal" role="dialog" aria-modal="true" aria-labelledby="territoryShareModalTitle">
+      <div class="proto-modal-form">
+        <div class="proto-modal-header">
+          <h2 class="proto-modal-title" id="territoryShareModalTitle">Share territories</h2>
+          <div class="proto-modal-header-actions">
+            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close share territories">
+              <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+
+        <div class="proto-modal-body">
+          <p class="proto-modal-subtitle">Share this territory search with anyone or on social media.</p>
+
+          <figure class="territory-share-image" id="territoryShareImage">
+            <canvas class="territory-share-image__canvas" id="territoryShareCanvas" width="1200" height="630" role="img" aria-label="Preview of the share image for this territory search"></canvas>
+            <figcaption class="territory-share-image__overlay">
+              <span class="territory-share-image__size">1200 × 630</span>
+              <button class="ui-control ui-button ui-button-secondary territory-share-image__download" id="territoryShareDownload" type="button">Download image</button>
+            </figcaption>
+          </figure>
+
+          <div class="territory-share-link" id="territoryShareLink">
+            <input class="proto-modal-control proto-modal-input territory-share-link__input" id="territoryShareUrl" type="text" readonly aria-label="Public link to this territory search">
+            <button class="ui-control ui-button ui-button-secondary territory-share-link__copy" id="territoryShareCopyInline" type="button" data-copy-label="Copy link" data-copied-label="Copied">
+              <img src="../../assets/icons/copy.svg" alt="" aria-hidden="true">
+              <span>Copy link</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save territory-share-submit" id="territoryShareCopy" type="button" data-copy-label="Copy link" data-copied-label="Copied">Copy link</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
   <script src="../../scripts/cst-env.js"></script>
@@ -927,5 +976,6 @@
   <script src="scripts/crossroad.js"></script>
   <script src="scripts/save-search-modal.js"></script>
   <script src="scripts/request-info-modal.js"></script>
+  <script src="scripts/share-modal.js"></script>
 </body>
 </html>

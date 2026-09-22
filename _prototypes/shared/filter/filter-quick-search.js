@@ -1,4 +1,5 @@
 (function () {
+  const suggestionClosers = new WeakMap();
   const DEFAULT_MIN_CHARS = 2;
   const DEFAULT_DEBOUNCE_MS = 250;
   const LOCATION_ICON = `<svg viewBox="0 0 16 20" focusable="false"><path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/></svg>`;
@@ -254,7 +255,7 @@
 
       try {
         const items = await getSuggestions(trimmedQuery, { signal: fetchController.signal }) || [];
-        if (input.value.trim() !== trimmedQuery) return;
+        if (input.value.trim() !== trimmedQuery || document.activeElement !== input) return;
         renderSuggestions(items);
       } catch (error) {
         if (error?.name === "AbortError") return;
@@ -321,13 +322,16 @@
       }
 
       if (event.key === "Escape") {
+        event.preventDefault();
         closeSuggestions();
+        input.blur();
       }
     });
 
     input.addEventListener("blur", () => {
       window.setTimeout(() => {
         if (!root.contains(document.activeElement)) {
+          fetchController?.abort();
           closeSuggestions();
         }
       }, 0);
@@ -354,6 +358,7 @@
     });
 
     syncClearButton();
+    suggestionClosers.set(input, closeSuggestions);
 
     return { reset };
   }
@@ -429,31 +434,67 @@
     }
   }
 
+  let focusRequest = 0;
+
+  function getQuickSearchInput(options = {}) {
+    return options.input || document.getElementById("filterQuickSearchInput");
+  }
+
+  function isQuickSearchFocused(options = {}) {
+    const input = getQuickSearchInput(options);
+    const root = input?.closest(".filter-search");
+    return Boolean(root?.contains(document.activeElement));
+  }
+
   function openFilterQuickSearch(options = {}) {
-    const input = options.input || document.getElementById("filterQuickSearchInput");
+    const input = getQuickSearchInput(options);
     if (!input) return;
 
+    const request = ++focusRequest;
     options.onBeforeOpen?.();
 
     if (!options.isPanelOpen?.()) {
       options.setPanelOpen?.(true);
     }
 
-    const focusInput = () => {
-      input.focus({ preventScroll: true });
-    };
-
     window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(focusInput);
+      window.requestAnimationFrame(() => {
+        if (request !== focusRequest) return;
+        input.focus({ preventScroll: true });
+      });
     });
+  }
+
+  function closeFilterQuickSearch(options = {}) {
+    focusRequest += 1;
+    const input = getQuickSearchInput(options);
+    suggestionClosers.get(input)?.();
+    const root = input?.closest(".filter-search");
+    const active = document.activeElement;
+    if (root?.contains(active) && typeof active.blur === "function") {
+      active.blur();
+      return;
+    }
+    input?.blur();
   }
 
   function bindQuickSearchShortcut(options = {}) {
     annotateQuickSearchShortcut(options);
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && isQuickSearchFocused(options)) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeFilterQuickSearch(options);
+        return;
+      }
+
       if (!isQuickSearchShortcut(event)) return;
       event.preventDefault();
+      if (isQuickSearchFocused(options)) {
+        closeFilterQuickSearch(options);
+        return;
+      }
       if (isQuickSearchShortcutBlocked()) return;
       openFilterQuickSearch(options);
     }, true);

@@ -13,6 +13,7 @@ const TERRITORY_GEO_LEVEL_FILTER_VALUES = new Set([
 let territoryMenuBrandLogosEnabled = false;
 let territoryMenuBordersEnabled = true;
 let territoryMenuColorMode = "pastel";
+let territoryMenuSingleBrandEnabled = false;
 let territoryMenuBorderColor = "default";
 
 const RADIUS_FILTER_DEFAULTS = {
@@ -221,6 +222,26 @@ function getTerritoryMenuColorMode() {
   return "pastel";
 }
 
+function isSingleBrandFilterQuery() {
+  const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
+  return getFilterSelectIncludedValues(franchiseFilterSelect).length === 1;
+}
+
+// Pastel and monochrome stay the chosen palette. Single brand only steps in
+// for a one-franchise query, and then the map and list use that brand's accent.
+function getEffectiveTerritoryColorMode() {
+  if (territoryMenuSingleBrandEnabled && isSingleBrandFilterQuery()) {
+    return "accent";
+  }
+  return getTerritoryMenuColorMode();
+}
+
+function applyEffectiveTerritoryColorMode({ reapplyFilters = true } = {}) {
+  const colorMode = getEffectiveTerritoryColorMode();
+  if (window.territoryMapControls?.getTerritoryColorMode?.() === colorMode) return;
+  window.territoryMapControls?.setTerritoryColorMode?.(colorMode, { reapplyFilters });
+}
+
 function getTerritoryMenuBorderColor() {
   return TERRITORY_BORDER_COLORS.has(territoryMenuBorderColor) ? territoryMenuBorderColor : "default";
 }
@@ -293,6 +314,7 @@ function getCurrentTerritorySettings() {
       brandLogos: territoryMenuBrandLogosEnabled,
       borders: territoryMenuBordersEnabled,
       borderColor: getTerritoryMenuBorderColor(),
+      singleBrand: territoryMenuSingleBrandEnabled,
       colorMode,
       density: colorMode === "density",
       pastelColors: colorMode === "pastel"
@@ -1158,13 +1180,10 @@ function restoreSelectFiltersFromSaved(settings) {
 
 function applySavedMapSettings() {
   const mapSettings = getCurrentTerritorySettings().settings;
-  const colorMode = getTerritoryMenuColorMode();
 
   window.territoryMapControls?.setTerritoryBrandLogosVisible?.(Boolean(mapSettings.brandLogos));
   window.territoryMapControls?.setTerritoryBordersVisible?.(mapSettings.borders !== false);
-  window.territoryMapControls?.setTerritoryColorMode?.(colorMode, {
-    reapplyFilters: false
-  });
+  applyEffectiveTerritoryColorMode({ reapplyFilters: false });
   window.territoryMapControls?.setTerritoryBorderColorMode?.(
     TERRITORY_BORDER_COLORS.has(mapSettings.borderColor) ? mapSettings.borderColor : "default"
   );
@@ -1570,6 +1589,7 @@ function initTerritoryFilters() {
 function initTerritoryToolbarMenu() {
   const toolbarDropdown = document.getElementById("territoryMenuDropdown");
   const territoryBordersToggle = document.getElementById("territoryBordersToggleOption");
+  const territorySingleBrandToggle = document.getElementById("territorySingleBrandToggleOption");
   const colorModeOptions = Array.from(document.querySelectorAll("#territoryColorsSubmenu [data-color-mode]"));
   const borderColorOptions = Array.from(document.querySelectorAll("#territoryBordersSubmenu [data-border-color]"));
   const toolbarSubmenus = Array.from(document.querySelectorAll("#territoryMenuDropdown [data-toolbar-submenu]"))
@@ -1586,6 +1606,7 @@ function initTerritoryToolbarMenu() {
     : window.territoryMapControls?.getTerritoryBrandLogosVisible?.() ?? false;
   territoryMenuBordersEnabled = savedSettings?.borders ?? window.territoryMapControls?.getTerritoryBordersVisible?.() ?? true;
   territoryMenuColorMode = resolveTerritoryColorMode(savedTerritorySettings);
+  territoryMenuSingleBrandEnabled = Boolean(savedSettings?.singleBrand);
   territoryMenuBorderColor = resolveTerritoryBorderColor(savedTerritorySettings);
 
   const applyTerritoryVisualization = (apply) => {
@@ -1728,6 +1749,10 @@ function initTerritoryToolbarMenu() {
     });
   };
 
+  const syncTerritorySingleBrandToggle = () => {
+    territorySingleBrandToggle?.setAttribute("aria-checked", String(territoryMenuSingleBrandEnabled));
+  };
+
   const syncTerritoryBorderColorOptions = () => {
     borderColorOptions.forEach((option) => {
       option.setAttribute("aria-checked", String(option.dataset.borderColor === territoryMenuBorderColor));
@@ -1760,6 +1785,17 @@ function initTerritoryToolbarMenu() {
     });
   });
 
+  territorySingleBrandToggle?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    territoryMenuSingleBrandEnabled = !territoryMenuSingleBrandEnabled;
+    syncTerritorySingleBrandToggle();
+    persistTerritorySettings();
+    notifyTerritoryThemeChanged();
+    applyTerritoryVisualization(() => {
+      applyEffectiveTerritoryColorMode();
+    });
+  });
+
   colorModeOptions.forEach((option) => {
     option.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -1770,7 +1806,7 @@ function initTerritoryToolbarMenu() {
       persistTerritorySettings();
       notifyTerritoryThemeChanged();
       applyTerritoryVisualization(() => {
-        window.territoryMapControls?.setTerritoryColorMode?.(territoryMenuColorMode);
+        applyEffectiveTerritoryColorMode();
       });
     });
   });
@@ -1829,10 +1865,11 @@ function initTerritoryToolbarMenu() {
 
   syncTerritoryBordersToggle();
   syncTerritoryColorModeOptions();
+  syncTerritorySingleBrandToggle();
   syncTerritoryBorderColorOptions();
   window.territoryMapControls?.setTerritoryBrandLogosVisible?.(territoryMenuBrandLogosEnabled);
   window.territoryMapControls?.setTerritoryBordersVisible?.(territoryMenuBordersEnabled);
-  window.territoryMapControls?.setTerritoryColorMode?.(territoryMenuColorMode, { reapplyFilters: false });
+  applyEffectiveTerritoryColorMode({ reapplyFilters: false });
   window.territoryMapControls?.setTerritoryBorderColorMode?.(territoryMenuBorderColor);
 }
 
@@ -2250,6 +2287,7 @@ async function runTerritoryFilterPipeline(token) {
     const matchingRecords = await collectFilteredTerritoryRecords(registry, isCancelled);
     if (matchingRecords === null || isCancelled()) return;
 
+    applyEffectiveTerritoryColorMode({ reapplyFilters: false });
     await window.territoryMapFilters?.applyTerritoryFilters?.(matchingRecords, {
       isCancelled
     });
@@ -2286,6 +2324,7 @@ function refreshTerritoryFilters({ immediate = false } = {}) {
   updateClearFiltersButton();
   updateFilterSectionClearButtons();
   syncTerritorySavedSearchDirtyState();
+  window.territoryShareModal?.syncAvailability?.();
   persistTerritorySettings();
 
   return scheduleTerritoryFilterRun({ immediate });

@@ -12,9 +12,15 @@ const CROSSROAD_DEFAULT_VIEW = {
   center: [-97.5795, 38.8283],
   zoom: 2.45
 };
-const CROSSROAD_SNAPSHOT_WIDTH = 640;
-const CROSSROAD_SNAPSHOT_HEIGHT = 320;
-const CROSSROAD_SNAPSHOT_SCALE = 2;
+// Tiles always use this frame. Callers that need another one (share imagery)
+// pass their own through the preview pipeline so the view, base map, and
+// overlays are all computed for the same aspect ratio. `attribution: false`
+// drops the Mapbox logo and credit from the base map.
+const CROSSROAD_SNAPSHOT_SIZE = {
+  width: 640,
+  height: 320,
+  scale: 2
+};
 const CROSSROAD_REGIONAL_PADDING = 0.22;
 const CROSSROAD_REGIONAL_ZOOM_OUT = 0.2;
 const CROSSROAD_MAX_REGIONAL_LOCATION_COUNT = 35;
@@ -70,10 +76,10 @@ function mercatorNormalizedY(lat) {
   return 0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI);
 }
 
-function createSnapshotProjection(view = CROSSROAD_DEFAULT_VIEW) {
-  const canvasWidth = CROSSROAD_SNAPSHOT_WIDTH * CROSSROAD_SNAPSHOT_SCALE;
-  const canvasHeight = CROSSROAD_SNAPSHOT_HEIGHT * CROSSROAD_SNAPSHOT_SCALE;
-  const worldSize = 512 * Math.pow(2, view.zoom) * CROSSROAD_SNAPSHOT_SCALE;
+function createSnapshotProjection(view = CROSSROAD_DEFAULT_VIEW, size = CROSSROAD_SNAPSHOT_SIZE) {
+  const canvasWidth = size.width * size.scale;
+  const canvasHeight = size.height * size.scale;
+  const worldSize = 512 * Math.pow(2, view.zoom) * size.scale;
   const centerX = mercatorNormalizedX(view.center[0]) * worldSize;
   const centerY = mercatorNormalizedY(view.center[1]) * worldSize;
 
@@ -87,7 +93,8 @@ function createSnapshotProjection(view = CROSSROAD_DEFAULT_VIEW) {
     canvasWidth,
     canvasHeight,
     pixelsPerDegree: worldSize / 360,
-    view
+    view,
+    size
   };
 }
 
@@ -207,10 +214,16 @@ function latRad(lat) {
   return Math.max(Math.min(radX2, Math.PI), -Math.PI) / 2;
 }
 
-function computeZoomForBounds(west, south, east, north) {
+function latFromRad(rad) {
+  // latRad clamps, then divides by 2, so the inverse doubles before undoing atanh.
+  const doubled = Math.max(Math.min(rad * 2, Math.PI / 2), -Math.PI / 2);
+  return (Math.asin(Math.tanh(doubled)) * 180) / Math.PI;
+}
+
+function computeZoomForBounds(west, south, east, north, size = CROSSROAD_SNAPSHOT_SIZE, minZoom = CROSSROAD_MIN_REGIONAL_ZOOM) {
   const WORLD_SIZE = 512;
-  const width = CROSSROAD_SNAPSHOT_WIDTH;
-  const height = CROSSROAD_SNAPSHOT_HEIGHT;
+  const width = size.width;
+  const height = size.height;
   const lngFraction = Math.max((east - west) / 360, 0.0001);
   const latFraction = Math.max((latRad(north) - latRad(south)) / Math.PI, 0.0001);
   const lngZoom = Math.log2(width / WORLD_SIZE / lngFraction);
@@ -218,12 +231,18 @@ function computeZoomForBounds(west, south, east, north) {
   const zoom = Math.min(lngZoom, latZoom);
 
   return Math.max(
-    CROSSROAD_MIN_REGIONAL_ZOOM,
+    minZoom,
     Math.min(CROSSROAD_MAX_REGIONAL_ZOOM, zoom)
   );
 }
 
-function computeRegionalSnapshotView(bounds, padding = CROSSROAD_REGIONAL_PADDING, { maxZoom = CROSSROAD_MAX_REGIONAL_ZOOM } = {}) {
+function computeRegionalSnapshotView(bounds, padding = CROSSROAD_REGIONAL_PADDING, {
+  maxZoom = CROSSROAD_MAX_REGIONAL_ZOOM,
+  minZoom = CROSSROAD_MIN_REGIONAL_ZOOM,
+  zoomOut = CROSSROAD_REGIONAL_ZOOM_OUT,
+  size = CROSSROAD_SNAPSHOT_SIZE,
+  insets = null
+} = {}) {
   const lngSpan = Math.max(bounds.east - bounds.west, 0.5);
   const latSpan = Math.max(bounds.north - bounds.south, 0.5);
   const padLng = lngSpan * padding;
@@ -233,13 +252,33 @@ function computeRegionalSnapshotView(bounds, padding = CROSSROAD_REGIONAL_PADDIN
   const east = bounds.east + padLng;
   const south = bounds.south - padLat;
   const north = bounds.north + padLat;
+  const frame = insets
+    ? {
+        width: Math.max(1, size.width - insets.left - insets.right),
+        height: Math.max(1, size.height - insets.top - insets.bottom)
+      }
+    : size;
+  const zoom = Math.max(
+    minZoom,
+    Math.min(maxZoom, computeZoomForBounds(west, south, east, north, frame, minZoom) - zoomOut)
+  );
+  let centerLng = (west + east) / 2;
+  let centerLat = latFromRad((latRad(south) + latRad(north)) / 2);
+
+  // Insets mark the part of the bitmap that stays visible. The static image
+  // pins `center` on the bitmap midpoint, so shift it until the territories
+  // land in that visible rect.
+  if (insets) {
+    const world = 512 * 2 ** zoom;
+    const offsetX = (insets.left - insets.right) / 2;
+    const offsetY = (insets.top - insets.bottom) / 2;
+    centerLng -= (offsetX * 360) / world;
+    centerLat = latFromRad(latRad(centerLat) + (offsetY * Math.PI) / world);
+  }
 
   return {
-    center: [(west + east) / 2, (south + north) / 2],
-    zoom: Math.max(
-      CROSSROAD_MIN_REGIONAL_ZOOM,
-      Math.min(maxZoom, computeZoomForBounds(west, south, east, north) - CROSSROAD_REGIONAL_ZOOM_OUT)
-    )
+    center: [centerLng, centerLat],
+    zoom
   };
 }
 
@@ -283,11 +322,28 @@ function hasRegionalLocationFilter(filters = {}) {
   return locations.length > 0 && locations.length <= CROSSROAD_MAX_REGIONAL_LOCATION_COUNT;
 }
 
-function resolveCrossroadSnapshotView(filters = {}, matchedFeatures, geoIndex) {
+function resolveCrossroadSnapshotView(filters = {}, matchedFeatures, geoIndex, size = CROSSROAD_SNAPSHOT_SIZE) {
+  // A full-bleed share image frames every matched territory, with enough
+  // padding that a zoomed-out country still clears the edges of the picture.
+  if (size.fitFeatures) {
+    const bounds = getMatchedFeaturesBounds(matchedFeatures)
+      || getLocationFilterBounds(filters.locations || [], geoIndex);
+    if (!bounds) return { ...CROSSROAD_DEFAULT_VIEW };
+
+    return computeRegionalSnapshotView(bounds, size.boundsPadding ?? 0.42, {
+      maxZoom: size.maxZoom ?? CROSSROAD_MAX_REGIONAL_ZOOM,
+      minZoom: size.minZoom ?? 2.1,
+      zoomOut: size.zoomOut ?? 0.35,
+      size,
+      insets: size.insets || null
+    });
+  }
+
   const localBounds = getCrossroadViewportBounds(filters) || getCrossroadRadiusBounds(filters);
   if (localBounds) {
     return computeRegionalSnapshotView(localBounds, CROSSROAD_REGIONAL_PADDING, {
-      maxZoom: CROSSROAD_MAX_LOCAL_ZOOM
+      maxZoom: CROSSROAD_MAX_LOCAL_ZOOM,
+      size
     });
   }
 
@@ -302,7 +358,7 @@ function resolveCrossroadSnapshotView(filters = {}, matchedFeatures, geoIndex) {
     return CROSSROAD_DEFAULT_VIEW;
   }
 
-  return computeRegionalSnapshotView(bounds);
+  return computeRegionalSnapshotView(bounds, CROSSROAD_REGIONAL_PADDING, { size });
 }
 
 function traceGeometry(context, geometry, project) {
@@ -318,12 +374,17 @@ function traceGeometry(context, geometry, project) {
 
 /* Base map + territory overlay ----------------------------------------- */
 
-function buildBaseMapUrl(view = CROSSROAD_DEFAULT_VIEW) {
+function buildBaseMapUrl(view = CROSSROAD_DEFAULT_VIEW, size = CROSSROAD_SNAPSHOT_SIZE) {
   if (!CROSSROAD_MAPBOX_TOKEN) return "";
 
   const [lng, lat] = view.center;
-  const dimensions = `${CROSSROAD_SNAPSHOT_WIDTH}x${CROSSROAD_SNAPSHOT_HEIGHT}@${CROSSROAD_SNAPSHOT_SCALE}x`;
+  const dimensions = `${size.width}x${size.height}@${size.scale}x`;
   const params = new URLSearchParams({ access_token: CROSSROAD_MAPBOX_TOKEN });
+
+  if (size.attribution === false) {
+    params.set("attribution", "false");
+    params.set("logo", "false");
+  }
 
   return `https://api.mapbox.com/styles/v1/${CROSSROAD_MAPBOX_STYLE}/static/`
     + `${lng},${lat},${view.zoom},0/${dimensions}?${params.toString()}`;
@@ -458,9 +519,10 @@ function buildFillDataUrl(
   matchedFeatures,
   previewLevel = "state",
   view = CROSSROAD_DEFAULT_VIEW,
-  theme = CROSSROAD_DEFAULT_THEME
+  theme = CROSSROAD_DEFAULT_THEME,
+  size = CROSSROAD_SNAPSHOT_SIZE
 ) {
-  const projection = createSnapshotProjection(view);
+  const projection = createSnapshotProjection(view, size);
   const { project, canvasWidth, canvasHeight } = projection;
   const colorMode = theme.colorMode || "density";
 
@@ -537,11 +599,12 @@ function buildBordersDataUrl(
   matchedFeatures,
   previewLevel = "state",
   view = CROSSROAD_DEFAULT_VIEW,
-  theme = CROSSROAD_DEFAULT_THEME
+  theme = CROSSROAD_DEFAULT_THEME,
+  size = CROSSROAD_SNAPSHOT_SIZE
 ) {
   if (theme.borders === false) return "";
 
-  const { project, canvasWidth, canvasHeight } = createSnapshotProjection(view);
+  const { project, canvasWidth, canvasHeight } = createSnapshotProjection(view, size);
   const colorMode = theme.colorMode || "density";
   const borderColor = theme.borderColor || "default";
 
@@ -572,7 +635,9 @@ function buildBordersDataUrl(
       strokeOpacity = getCrossroadPreviewLineOpacity(colorMode, borderColor);
     }
 
-    context.lineWidth = getCrossroadPreviewStyle(entryLevel).borderWidth;
+    // The snapshot canvas is `scale` times the displayed image, so a 2px border
+    // has to be 4px here or it disappears when the image is shown.
+    context.lineWidth = getCrossroadPreviewStyle(entryLevel).borderWidth * (size.scale || 1);
     context.globalAlpha = strokeOpacity;
     context.beginPath();
     traceGeometry(context, feature.geometry, project);
@@ -614,6 +679,16 @@ function withCrossroadRecordGeometry(record, geoIndex) {
   return record;
 }
 
+function resolveCrossroadCategoryIds(values) {
+  const list = Array.isArray(values) ? values.filter(Boolean) : [];
+  if (!list.length) return [];
+
+  // Saved searches from before category ids were standardized store the
+  // label ("Youth Enrichment", "Home & Services") rather than the id.
+  const resolved = window.WefranchCategories?.resolveFilterValues?.(list, { source: "territories" });
+  return Array.isArray(resolved) && resolved.length ? resolved : list;
+}
+
 function createCrossroadMatchContext(filters = {}, geoIndex = null) {
   const searches = getCrossroadLocationSearches(filters);
   const includedSearches = searches.filter((location) => !location.excluded);
@@ -640,6 +715,7 @@ function createCrossroadMatchContext(filters = {}, geoIndex = null) {
 
   return {
     geoIndex,
+    categories: resolveCrossroadCategoryIds(filters.categories),
     excludedTargets,
     locationTargets,
     locationCache: new Map(),
@@ -671,7 +747,6 @@ function recordMatchesCrossroadLocation(record, target, context) {
 }
 
 function presetMatchesRecord(record, filters = {}, context = null) {
-  const categories = filters.categories || [];
   const statuses = filters.statuses || [];
   const franchises = filters.franchises || [];
   const locations = filters.locations || [];
@@ -683,6 +758,7 @@ function presetMatchesRecord(record, filters = {}, context = null) {
       : [];
   const investment = filters.investment;
   const matchContext = context || createCrossroadMatchContext(filters, null);
+  const categories = matchContext.categories || [];
 
   if (categories.length && !categories.includes(record.categoryId)) return false;
   if (statuses.length && !statuses.includes(record.status)) return false;
@@ -853,6 +929,7 @@ function isCrossroadStateLevelRecord(record) {
 
 function getCrossroadRecordShapeLevel(record) {
   const geoType = String(record?.geoType || "").toLowerCase();
+  if (geoType === "region" || geoType === "state") return "state";
   if (record?.brandLevel === "county" || geoType === "district" || geoType === "county") {
     return "county";
   }
@@ -868,9 +945,11 @@ function buildPresetMatchedFeatures(records, filters, geoIndex, previewLevel, { 
     if (!presetMatchesRecord(record, filters, context)) return;
     if (excludeStateLevel && isCrossroadStateLevelRecord(record)) return;
 
-    const shapeLevel = excludeStateLevel
-      ? getCrossroadRecordShapeLevel(record)
-      : previewLevel;
+    // A state-level preview collapses every match into one polygon per state.
+    // Otherwise each territory keeps its own outline: a state, a county, or a place.
+    const shapeLevel = !excludeStateLevel && previewLevel === "state"
+      ? "state"
+      : getCrossroadRecordShapeLevel(record);
     const feature = excludeStateLevel
       ? resolveCrossroadFeature(record, geoIndex)
       : resolveCrossroadPreviewFeature(record, geoIndex, previewLevel);
@@ -1060,24 +1139,27 @@ function cacheCrossroadTilePreview(entry, kind, preview) {
   crossroadTilePreviewCache.set(getCrossroadTileCacheKey(entry, kind), preview);
 }
 
-function buildCrossroadTilePreview(entry, records, geoIndex) {
+function buildCrossroadTilePreview(entry, records, geoIndex, size = CROSSROAD_SNAPSHOT_SIZE, options = {}) {
   const filters = entry.filters || {};
   const previewLevel = resolveCrossroadPreviewLevel(filters, records, geoIndex);
   const matchedFeatures = buildPresetMatchedFeatures(records, filters, geoIndex, previewLevel);
+  // Splash tiles skip state shapes so a card stays readable. A share image is
+  // the query itself, so a state territory has to appear next to its counties.
   const brandMatchedFeatures = buildPresetMatchedFeatures(
     records,
     filters,
     geoIndex,
     previewLevel,
-    { excludeStateLevel: true }
+    { excludeStateLevel: !options.includeStateShapes }
   );
-  const snapshotView = resolveCrossroadSnapshotView(filters, matchedFeatures, geoIndex);
+  const snapshotView = resolveCrossroadSnapshotView(filters, matchedFeatures, geoIndex, size);
 
   return {
     previewLevel,
     matchedFeatures,
     brandMatchedFeatures,
     snapshotView,
+    snapshotSize: size,
     counts: computePresetStatusCounts(records, filters, geoIndex)
   };
 }
@@ -1090,16 +1172,26 @@ function getCrossroadThemeMatchedFeatures(preview, theme) {
     };
   }
 
+  // Sub-state shapes carry the brand color. Territories stored as states
+  // (geoType "region") never land in that set, and an empty Map is still
+  // truthy, so use the state shapes when they are all the brand has.
+  if (preview.brandMatchedFeatures?.size) {
+    return {
+      features: preview.brandMatchedFeatures,
+      previewLevel: "geo"
+    };
+  }
+
   return {
-    features: preview.brandMatchedFeatures || preview.matchedFeatures,
-    previewLevel: "geo"
+    features: preview.matchedFeatures,
+    previewLevel: preview.previewLevel
   };
 }
 
-function buildCrossroadPreviewOverlayUrls(preview, geoIndex = lastCrossroadGeoIndex) {
-  const theme = getCrossroadTheme();
+function buildCrossroadPreviewOverlayUrls(preview, geoIndex = lastCrossroadGeoIndex, theme = getCrossroadTheme()) {
   const { features, previewLevel } = getCrossroadThemeMatchedFeatures(preview, theme);
-  const baseMapUrl = buildBaseMapUrl(preview.snapshotView);
+  const size = preview.snapshotSize || CROSSROAD_SNAPSHOT_SIZE;
+  const baseMapUrl = buildBaseMapUrl(preview.snapshotView, size);
   let fillUrl = "";
   let bordersUrl = "";
 
@@ -1109,13 +1201,15 @@ function buildCrossroadPreviewOverlayUrls(preview, geoIndex = lastCrossroadGeoIn
       features,
       previewLevel,
       preview.snapshotView,
-      theme
+      theme,
+      size
     );
     bordersUrl = buildBordersDataUrl(
       features,
       previewLevel,
       preview.snapshotView,
-      theme
+      theme,
+      size
     );
   } catch (error) {
     console.warn("Unable to render territory preview.", error);
@@ -1184,6 +1278,29 @@ function buildCrossroadTile(entry, records, geoIndex, kind = "preset") {
     counts: preview.counts,
     kind
   });
+}
+
+// Share imagery runs the live filters through the same pipeline as the splash
+// tiles, so a shared search carries the simplified map the tiles already show.
+// A theme override is share-only: splash tiles keep the live visualization theme.
+function buildCrossroadQueryPreview(filters = {}, size = CROSSROAD_SNAPSHOT_SIZE, themeOverride = null) {
+  if (!lastCrossroadRecords || !lastCrossroadGeoIndex) return null;
+
+  const preview = buildCrossroadTilePreview(
+    { filters },
+    lastCrossroadRecords,
+    lastCrossroadGeoIndex,
+    size,
+    { includeStateShapes: true }
+  );
+  const theme = themeOverride
+    ? { ...getCrossroadTheme(), ...themeOverride }
+    : getCrossroadTheme();
+
+  return {
+    ...buildCrossroadPreviewOverlayUrls(preview, lastCrossroadGeoIndex, theme),
+    counts: preview.counts
+  };
 }
 
 function buildCrossroadTileFromCache(entry, kind) {
@@ -2814,7 +2931,8 @@ window.territoryCrossroad = {
   deleteSavedSearch: deleteTerritorySavedSearch,
   revealSavedSearch: revealTerritorySavedSearch,
   revealDeletedSearch: revealDeletedTerritorySavedSearch,
-  refreshThemePreviews: refreshCrossroadThemePreviews
+  refreshThemePreviews: refreshCrossroadThemePreviews,
+  buildQueryPreview: buildCrossroadQueryPreview
 };
 
 function consumeTerritorySkipCrossroad() {

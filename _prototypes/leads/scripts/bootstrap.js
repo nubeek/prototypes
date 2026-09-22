@@ -310,10 +310,12 @@
     tableBody.querySelectorAll("tr[data-lead-id]").forEach((nextRow) => {
       nextRow.classList.toggle("is-dragging", draggedLeadIds.includes(nextRow.dataset.leadId));
     });
+    syncDisabledListTabs();
   });
 
   tableBody?.addEventListener("dragend", () => {
     tableBody.querySelectorAll(".is-dragging").forEach((row) => row.classList.remove("is-dragging"));
+    clearListTabDropState();
     clearRowDragReady();
     draggedLeadIds = [];
     window.setTimeout(() => {
@@ -321,15 +323,42 @@
     }, 0);
   });
 
+  function listNameForTab(tab) {
+    return tab?.dataset.listTab === "all" ? "" : tab?.dataset.listTab || "";
+  }
+
+  function draggedLeadsAlreadyInList(listName) {
+    if (!draggedLeadIds.length) return false;
+    return draggedLeadIds.every((id) => (page.getLead?.(id)?.list || "") === listName);
+  }
+
+  function syncDisabledListTabs() {
+    leadListTabs?.querySelectorAll(".list-tab[data-list-tab]").forEach((tab) => {
+      const disabled = tab.dataset.listTab === "all" || draggedLeadsAlreadyInList(listNameForTab(tab));
+      tab.classList.toggle("is-drop-disabled", disabled);
+      if (disabled) tab.setAttribute("aria-disabled", "true");
+      else tab.removeAttribute("aria-disabled");
+    });
+  }
+
   function clearListTabDropTargets() {
     leadListTabs?.querySelectorAll(".list-tab.is-drop-target").forEach((tab) => tab.classList.remove("is-drop-target"));
+  }
+
+  function clearListTabDropState() {
+    clearListTabDropTargets();
+    leadListTabs?.querySelectorAll(".list-tab.is-drop-disabled").forEach((tab) => {
+      tab.classList.remove("is-drop-disabled");
+      tab.removeAttribute("aria-disabled");
+    });
   }
 
   leadListTabs?.addEventListener("dragover", (event) => {
     const tab = event.target instanceof Element ? event.target.closest(".list-tab[data-list-tab]") : null;
     if (!draggedLeadIds.length) return;
-    if (!tab) {
+    if (!tab || tab.classList.contains("is-drop-disabled")) {
       clearListTabDropTargets();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
       return;
     }
     event.preventDefault();
@@ -347,11 +376,10 @@
   leadListTabs?.addEventListener("drop", (event) => {
     const tab = event.target instanceof Element ? event.target.closest(".list-tab[data-list-tab]") : null;
     clearListTabDropTargets();
-    if (!tab || !draggedLeadIds.length) return;
+    if (!tab || tab.classList.contains("is-drop-disabled") || !draggedLeadIds.length) return;
     event.preventDefault();
 
-    const listName = tab.dataset.listTab === "all" ? "" : tab.dataset.listTab;
-    page.moveLeadsToList?.(draggedLeadIds, listName);
+    page.moveLeadsToList?.(draggedLeadIds, listNameForTab(tab));
   });
 
   tableBody?.addEventListener("change", (event) => {

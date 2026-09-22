@@ -19,6 +19,23 @@ body {
   overflow: hidden;
 }
 
+.territory-toolbar .territory-share-btn {
+  height: var(--control-height);
+  padding: 0 14px;
+  gap: 8px;
+  font-weight: 400;
+}
+
+.territory-toolbar .territory-share-btn:hover:not(:disabled) {
+  border-color: transparent;
+}
+
+.territory-toolbar .territory-share-btn .toolbar-asset-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
 .territory-toolbar .toolbar-btn:disabled .toolbar-asset-icon {
   /* Match .toolbar-btn:disabled text color (#d5d5d8) for black SVG icons */
   filter: brightness(0) saturate(100%) invert(93%) sepia(0%) saturate(0%) hue-rotate(155deg) brightness(95%) contrast(89%);
@@ -620,6 +637,125 @@ body {
 .save-search-success__done {
   min-width: 120px;
   font-weight: 600;
+}
+
+.territory-share-modal-overlay {
+  z-index: 1500;
+}
+
+.territory-share-modal {
+  width: min(620px, calc(100vw - 48px));
+}
+
+.territory-share-image {
+  position: relative;
+  display: block;
+  margin: 0 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.territory-share-image__canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Actions hug the right edge so they never cover the image's own copy. */
+.territory-share-image__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 45%);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.territory-share-image:hover .territory-share-image__overlay,
+.territory-share-image:focus-within .territory-share-image__overlay {
+  opacity: 1;
+}
+
+.territory-share-image__size {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(9, 9, 9, 0.62);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.territory-share-image__download {
+  min-height: 36px;
+  height: 36px;
+  padding: 0 14px;
+  border-color: transparent;
+  font-size: 14px;
+}
+
+.territory-share-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.territory-share-link__input {
+  overflow-x: auto;
+  color: var(--color-text);
+  text-overflow: clip;
+  cursor: pointer;
+}
+
+.territory-share-link__copy {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  z-index: 1;
+  transform: translateY(-50%);
+  gap: 8px;
+  min-height: 36px;
+  height: 36px;
+  padding: 0 12px;
+  border-color: transparent;
+  background: var(--color-surface-control);
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+}
+
+.territory-share-link:hover .territory-share-link__copy,
+.territory-share-link:focus-within .territory-share-link__copy,
+.territory-share-link__copy.is-copied {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.territory-share-link__copy:hover {
+  background: var(--color-surface-control-hover);
+}
+
+.territory-share-link__copy img {
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
+.territory-share-link__copy.is-copied img {
+  display: none;
+}
+
+/* Fixed width so the label swap to "Copied" does not resize the button. */
+.territory-share-submit {
+  min-width: 116px;
 }
 
 .request-info-modal {
