@@ -436,6 +436,13 @@
   transform: translateX(0);
 }
 
+/* The last filter's menu opens into the footer. Lift the list above that bar
+   so the menu paints over the divider and Clear all button. */
+.filter-panel:has(.filter-section:last-of-type .filter-select-field.is-open) .filter-scroll {
+  position: relative;
+  z-index: 4;
+}
+
 .filter-actions::before {
   content: "";
   position: absolute;
@@ -1369,7 +1376,7 @@
 }
 
 .filter-panel .filter-check-group {
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .filter-check-group .filter-check {

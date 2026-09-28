@@ -58,10 +58,15 @@
     <div class="content-shell">
       <div class="header" aria-label="Leads toolbar">
         <div class="toolbar-group toolbar-primary">
-          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
-            <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
-            <span id="filterToggleLabel">Filters</span>
-          </button>
+          <div class="toolbar-split">
+            <button class="toolbar-split__search" id="toolbarSearchBtn" type="button" aria-label="Quick search" title="Quick search">
+              <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+            </button>
+            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn toolbar-split__action" id="filterToggle" type="button" aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+              <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
+              <span id="filterToggleLabel">Filters</span>
+            </button>
+          </div>
           <span class="toolbar-divider" aria-hidden="true"></span>
           <button class="ui-control ui-button ui-button-ghost ui-icon-button filter-toggle-btn toolbar-btn" id="exportBtn" type="button" aria-label="Export" title="Export">
             <img class="toolbar-asset-icon toolbar-export-icon" src="../../assets/icons/export-csv.svg" alt="" aria-hidden="true">
@@ -99,10 +104,6 @@
           <button class="ui-control ui-button ui-button-primary filter-toggle-btn" id="addLeadBtn" type="button" aria-controls="leadDetailPanel" aria-expanded="false">
             <img class="toolbar-asset-icon toolbar-add-lead-icon" src="../../assets/icons/leads-add.svg" alt="" aria-hidden="true">
             Add lead
-          </button>
-          <span class="toolbar-divider" aria-hidden="true"></span>
-          <button class="toolbar-search-btn toolbar-btn" id="toolbarSearchBtn" type="button" aria-label="Quick search" title="Quick search">
-            <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
           </button>
         </div>
       </div>
@@ -297,6 +298,37 @@
                     <span class="filter-date-sep" aria-hidden="true">/</span>
                     <input class="filter-date-part" data-date-part="year" type="text" inputmode="numeric" maxlength="2" placeholder="yy" aria-label="To year" autocomplete="off" spellcheck="false">
                   </span>
+                </div>
+              </div>
+            </section>
+
+            <section class="filter-section filter-section-collapsed" data-filter-section="savedSearch">
+              <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+                <span>Prospects search</span>
+                <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </button>
+              <p class="filter-section-note">Filter leads that belong to a specific saved search in Prospects.</p>
+              <div class="filter-select-field">
+                <select class="ui-select filter-field-select" id="savedSearchFilterSelect" aria-label="Select Prospects search" required>
+                  <option value="">Select Prospects search...</option>
+                </select>
+                <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+              </div>
+              <div class="filter-check-group filter-empty-values-group">
+                <div class="filter-empty-values">
+                  <label class="filter-check">
+                    <input type="checkbox" data-empty-filter="savedSearch">
+                    <span class="filter-checkbox" aria-hidden="true"></span>
+                    <span>Empty values only</span>
+                  </label>
+                  <button
+                    class="filter-empty-values-info"
+                    type="button"
+                    aria-label="About empty values only"
+                    data-tooltip="Filter to records with no value in this field."
+                  >
+                    <img src="../../assets/icons/info.svg" alt="" aria-hidden="true">
+                  </button>
                 </div>
               </div>
             </section>
@@ -537,6 +569,10 @@
   <script src="../shared/data/categories.js"></script>
   <script src="../shared/filter/location-search.js"></script>
   <script src="../cst/data/real/owners.js"></script>
+  <script src="../cst/data/real/place-labels.js"></script>
+  <script src="../cst/data/real/overlay.js"></script>
+  <script src="../cst/data/saved-searches.js"></script>
+  <script src="../cst/data/prospect-datasets.js"></script>
   <script src="../shared/data/leads-store.js"></script>
   <script src="../shared/ui/proto-modal.js"></script>
   <script src="../shared/ui/proto-confirm-modal.js"></script>
@@ -548,6 +584,7 @@
   <script src="../shared/filter/filter-quick-search.js"></script>
   <script src="../shared/filter/filter-date.js"></script>
   <script src="../shared/filter/filter-sections.js"></script>
+  <script src="scripts/saved-search-membership.js"></script>
   <script src="scripts/leads-data.js"></script>
   <script src="scripts/lead-modals.js"></script>
   <script src="scripts/bootstrap.js"></script>

@@ -79,10 +79,15 @@
             </button>
           </div>
         </div>
-        <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="territoryFilterToggle" type="button" data-crossroad-workspace-control aria-label="Toggle filters" aria-controls="territoryFilterPanel" aria-expanded="false" disabled>
-          <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
-          <span>Filters</span>
-        </button>
+        <div class="toolbar-split" data-crossroad-workspace-control>
+          <button class="toolbar-split__search" id="territorySearchBtn" type="button" aria-label="Quick search" title="Quick search">
+            <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+          </button>
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn toolbar-split__action" id="territoryFilterToggle" type="button" aria-label="Toggle filters" aria-controls="territoryFilterPanel" aria-expanded="false" disabled>
+            <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
+            <span>Filters</span>
+          </button>
+        </div>
         <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="territoryMapToggle" type="button" data-crossroad-workspace-control aria-label="Toggle map" aria-controls="territoryMapPanel" aria-expanded="false" disabled>
           <img class="toolbar-asset-icon" src="../../assets/icons/map.svg" alt="" aria-hidden="true">
           <span>Map</span>
@@ -144,10 +149,6 @@
             </div>
           </div>
         </details>
-        <span class="toolbar-divider" data-crossroad-workspace-control aria-hidden="true"></span>
-        <button class="toolbar-search-btn toolbar-btn" id="territorySearchBtn" type="button" data-crossroad-workspace-control aria-label="Quick search" title="Quick search">
-          <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
-        </button>
       </div>
     </div>
 

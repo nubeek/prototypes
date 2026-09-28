@@ -109,10 +109,15 @@
             <img class="toolbar-asset-icon reader-back-btn__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
-          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" data-splash-workspace-control data-reader-hide aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
-            <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
-            <span id="filterToggleLabel">Filters</span>
-          </button>
+          <div class="toolbar-split" data-splash-workspace-control>
+            <button class="toolbar-split__search" id="toolbarSearchBtn" type="button" aria-label="Quick search" title="Quick search">
+              <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+            </button>
+            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn toolbar-split__action" id="filterToggle" type="button" data-reader-hide aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+              <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
+              <span id="filterToggleLabel">Filters</span>
+            </button>
+          </div>
           <details class="toolbar-dropdown" id="outreachBtn" data-splash-workspace-control>
             <summary class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" aria-label="Email" title="Email">
               <img class="toolbar-asset-icon toolbar-outreach-icon" src="../../assets/icons/mail.svg" alt="" aria-hidden="true">
@@ -262,10 +267,6 @@
               </div>
             </div>
           </div>
-          <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
-          <button class="toolbar-search-btn toolbar-btn" id="toolbarSearchBtn" type="button" data-splash-workspace-control aria-label="Quick search" title="Quick search">
-            <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
-          </button>
         </div>
       </div>
 

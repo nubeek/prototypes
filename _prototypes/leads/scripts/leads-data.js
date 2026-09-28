@@ -33,6 +33,7 @@
   const categoryFilterSelect = document.getElementById("categoryFilterSelect");
   const franchiseFilterSelect = document.getElementById("franchiseFilterSelect");
   const companyFilterSelect = document.getElementById("companyFilterSelect");
+  const savedSearchFilterSelect = document.getElementById("savedSearchFilterSelect");
   const datesAddedFromField = document.getElementById("datesAddedFromField");
   const datesAddedToField = document.getElementById("datesAddedToField");
   const filterDate = window.WefranchFilterDate;
@@ -64,12 +65,15 @@
   let excludedFranchises = [];
   let selectedCompanies = [];
   let excludedCompanies = [];
-  const EMPTY_VALUE_FILTER_KEYS = ["location", "category", "franchise", "company"];
+  let selectedSavedSearches = [];
+  let excludedSavedSearches = [];
+  const EMPTY_VALUE_FILTER_KEYS = ["location", "category", "franchise", "company", "savedSearch"];
   const emptyValueFilters = {
     location: false,
     category: false,
     franchise: false,
-    company: false
+    company: false,
+    savedSearch: false
   };
   let datesAddedFrom = "";
   let datesAddedTo = "";
@@ -383,6 +387,8 @@
       + excludedFranchises.length
       + selectedCompanies.length
       + excludedCompanies.length
+      + selectedSavedSearches.length
+      + excludedSavedSearches.length
       + getAppliedEmptyValueFilterCount()
       + (datesAddedFilterIsActive() ? 1 : 0);
   }
@@ -441,6 +447,18 @@
     return selectedCompanies.includes(company);
   }
 
+  function getLeadSavedSearchIds(lead) {
+    return window.WefranchLeadSavedSearches?.getIdsForLead?.(lead) || [];
+  }
+
+  function leadMatchesSavedSearchFilter(lead) {
+    const searchIds = getLeadSavedSearchIds(lead);
+    if (emptyValueFilters.savedSearch) return searchIds.length === 0;
+    if (searchIds.some((id) => excludedSavedSearches.includes(id))) return false;
+    if (!selectedSavedSearches.length) return true;
+    return searchIds.some((id) => selectedSavedSearches.includes(id));
+  }
+
   function leadMatchesDatesAddedFilter(lead) {
     if (!datesAddedFilterIsActive()) return true;
 
@@ -457,6 +475,7 @@
     if (!leadMatchesCategoryFilter(lead)) return false;
     if (!leadMatchesFranchiseFilter(lead)) return false;
     if (!leadMatchesCompanyFilter(lead)) return false;
+    if (!leadMatchesSavedSearchFilter(lead)) return false;
     if (!leadMatchesDatesAddedFilter(lead)) return false;
 
     if (!searchQuery) return true;
@@ -1028,6 +1047,7 @@
       if (key === "category") return emptyValueFilters.category || selectedCategories.length > 0 || excludedCategories.length > 0;
       if (key === "franchise") return emptyValueFilters.franchise || selectedFranchises.length > 0 || excludedFranchises.length > 0;
       if (key === "company") return emptyValueFilters.company || selectedCompanies.length > 0 || excludedCompanies.length > 0;
+      if (key === "savedSearch") return emptyValueFilters.savedSearch || selectedSavedSearches.length > 0 || excludedSavedSearches.length > 0;
       if (key === "dates") return datesAddedFilterIsActive();
       return false;
     });
@@ -1064,6 +1084,8 @@
     excludedFranchises = filterCombobox?.getExcludedValues?.(franchiseFilterSelect) || [];
     selectedCompanies = filterCombobox?.getIncludedValues?.(companyFilterSelect) || [];
     excludedCompanies = filterCombobox?.getExcludedValues?.(companyFilterSelect) || [];
+    selectedSavedSearches = filterCombobox?.getIncludedValues?.(savedSearchFilterSelect) || [];
+    excludedSavedSearches = filterCombobox?.getExcludedValues?.(savedSearchFilterSelect) || [];
   }
 
   function readDateFilters() {
@@ -1116,6 +1138,7 @@
     if (key === "category") return categoryFilterSelect;
     if (key === "franchise") return franchiseFilterSelect;
     if (key === "company") return companyFilterSelect;
+    if (key === "savedSearch") return savedSearchFilterSelect;
     return null;
   }
 
@@ -1135,6 +1158,10 @@
     if (emptyValueFilters.company) {
       selectedCompanies = [];
       excludedCompanies = [];
+    }
+    if (emptyValueFilters.savedSearch) {
+      selectedSavedSearches = [];
+      excludedSavedSearches = [];
     }
   }
 
@@ -1205,6 +1232,19 @@
     excludedFranchises = pruneSelectedValues(excludedFranchises, validFranchises);
   }
 
+  function getSavedSearchFilterOptions() {
+    return (window.WefranchLeadSavedSearches?.list?.() || []).map((search) => ({
+      label: search.title,
+      value: search.id
+    }));
+  }
+
+  function pruneSavedSearchSelections() {
+    const validSearches = new Set(getSavedSearchFilterOptions().map((option) => option.value));
+    selectedSavedSearches = pruneSelectedValues(selectedSavedSearches, validSearches);
+    excludedSavedSearches = pruneSelectedValues(excludedSavedSearches, validSearches);
+  }
+
   function syncSelectFilterOptions(select, options, included, excluded, placeholder) {
     if (!select || !filterCombobox) return;
 
@@ -1253,6 +1293,16 @@
     );
   }
 
+  function syncSavedSearchFilterOptions() {
+    syncSelectFilterOptions(
+      savedSearchFilterSelect,
+      getSavedSearchFilterOptions(),
+      selectedSavedSearches,
+      excludedSavedSearches,
+      "Select Prospects search"
+    );
+  }
+
   function clearCombobox(select) {
     filterCombobox?.setValues?.(select, []);
     filterCombobox?.getCombobox?.(select)?.sync();
@@ -1264,6 +1314,7 @@
     syncCategoryFilterOptions();
     syncFranchiseFilterOptions();
     syncCompanyFilterOptions();
+    syncSavedSearchFilterOptions();
     writeEmptyValueFilters();
     writeDateFilters();
   }
@@ -1284,6 +1335,7 @@
     enhanceSelectFilter(categoryFilterSelect, getCategoryFilterOptions(), "Select category");
     enhanceSelectFilter(franchiseFilterSelect, toSelectOptions(getFranchiseOptions()), "Select franchise");
     enhanceSelectFilter(companyFilterSelect, toSelectOptions(getCompanyOptions()), "Select company");
+    enhanceSelectFilter(savedSearchFilterSelect, getSavedSearchFilterOptions(), "Select Prospects search");
   }
 
   const LEAD_QUICK_SEARCH_GROUP_LIMIT = 3;
@@ -1323,7 +1375,8 @@
       ...getLeadQuickSearchSelectSuggestions(locationFilterSelect, "location", "Locations", normalizedQuery),
       ...getLeadQuickSearchSelectSuggestions(categoryFilterSelect, "category", "Categories", normalizedQuery),
       ...getLeadQuickSearchSelectSuggestions(franchiseFilterSelect, "franchise", "Franchises", normalizedQuery),
-      ...getLeadQuickSearchSelectSuggestions(companyFilterSelect, "company", "Companies", normalizedQuery)
+      ...getLeadQuickSearchSelectSuggestions(companyFilterSelect, "company", "Companies", normalizedQuery),
+      ...getLeadQuickSearchSelectSuggestions(savedSearchFilterSelect, "savedSearch", "Prospects searches", normalizedQuery)
     ];
   }
 
@@ -1345,7 +1398,8 @@
       location: locationFilterSelect,
       category: categoryFilterSelect,
       franchise: franchiseFilterSelect,
-      company: companyFilterSelect
+      company: companyFilterSelect,
+      savedSearch: savedSearchFilterSelect
     }[item.type];
     if (!select) return;
 
@@ -1368,7 +1422,7 @@
       clearButton: document.getElementById("filterQuickSearchClear"),
       menu: document.getElementById("filterQuickSearchMenu"),
       menuList: document.getElementById("filterQuickSearchSuggestions"),
-      emptyMessage: "No stages, locations, categories, franchises, or companies match.",
+      emptyMessage: "No stages, locations, categories, franchises, companies, or Prospects searches match.",
       getSuggestions: getLeadQuickSearchSuggestions,
       onSelect: applyLeadQuickSearchSuggestion
     });
@@ -1399,6 +1453,7 @@
     pruneCategorySelections();
     pruneFranchiseSelections();
     pruneCompanySelections();
+    pruneSavedSearchSelections();
     renderFilters();
     renderTable();
   }
@@ -1708,11 +1763,14 @@
     excludedFranchises = [];
     selectedCompanies = [];
     excludedCompanies = [];
+    selectedSavedSearches = [];
+    excludedSavedSearches = [];
     clearEmptyValueFilters();
     clearCombobox(locationFilterSelect);
     clearCombobox(categoryFilterSelect);
     clearCombobox(franchiseFilterSelect);
     clearCombobox(companyFilterSelect);
+    clearCombobox(savedSearchFilterSelect);
     clearDateFilters();
     searchQuery = "";
     renderFilters();
@@ -1745,6 +1803,12 @@
       excludedCompanies = [];
       emptyValueFilters.company = false;
       clearCombobox(companyFilterSelect);
+    }
+    if (key === "savedSearch") {
+      selectedSavedSearches = [];
+      excludedSavedSearches = [];
+      emptyValueFilters.savedSearch = false;
+      clearCombobox(savedSearchFilterSelect);
     }
     if (key === "dates") clearDateFilters();
     renderFilters();
@@ -2093,4 +2157,11 @@
   bindLeadFilterQuickSearch();
   renderFilters();
   renderTable();
+
+  window.addEventListener("cst:saved-searches-changed", () => {
+    pruneSavedSearchSelections();
+    syncSavedSearchFilterOptions();
+    writeEmptyValueFilters();
+    renderTable();
+  });
 })();
