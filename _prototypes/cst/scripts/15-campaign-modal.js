@@ -319,6 +319,9 @@ const campaignSequenceList = document.getElementById("campaignSequenceList");
 const campaignSequenceAddBtn = document.getElementById("campaignSequenceAddBtn");
 const campaignReviewSequenceField = document.getElementById("campaignReviewSequenceField");
 const campaignReviewSequence = document.getElementById("campaignReviewSequence");
+const campaignStepHelp = document.getElementById("campaignStepHelp");
+const CAMPAIGN_HELP_HREF = "../docs/data/email-campaigns/";
+const CAMPAIGN_SENDER_HELP_HREF = "../docs/data/setup-domain/";
 const campaignStepBack = document.getElementById("campaignStepBack");
 const campaignStepContinue = document.getElementById("campaignStepContinue");
 const campaignStepContinueLabel = campaignStepContinue?.querySelector(".campaign-continue-label");
@@ -1683,6 +1686,11 @@ function getCampaignStepContinueLabel(index = activeCampaignStepIndex) {
 
 function syncCampaignStepFooter(index = activeCampaignStepIndex) {
   const panel = getCampaignStepPanel(index);
+  const stepId = CAMPAIGN_STEPS[index]?.id;
+
+  if (campaignStepHelp) {
+    campaignStepHelp.href = stepId === "sender" ? CAMPAIGN_SENDER_HELP_HREF : CAMPAIGN_HELP_HREF;
+  }
 
   if (campaignStepContinue && panel?.id) {
     campaignStepContinue.setAttribute("form", panel.id);

@@ -448,7 +448,7 @@ let sidebarHoveredTerritoryState = null;
 const TERRITORY_STATUS_LABELS = {
   available: "Available",
   established: "For Sale",
-  sold: "Sold"
+  sold: "Established"
 };
 
 function formatTerritoryGeoTypeLabel(geoType) {
@@ -501,7 +501,7 @@ function formatTerritoryStatusSummary(records) {
     counts.set(label, (counts.get(label) || 0) + 1);
   });
 
-  const order = ["Available", "For Sale", "Sold"];
+  const order = ["Available", "For Sale", "Established"];
 
   return [...counts.entries()]
     .sort((a, b) => {

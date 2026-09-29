@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "images/..."). If it's ever opened
+    // without a trailing slash, the browser resolves those relative paths
+    // against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>How to create and send email campaigns</title>
+  <link rel="icon" href="../../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../../assets/x192.png" />
+  <link rel="manifest" href="../../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="../../../../styles/site-header.css" />
+  <script src="../../../../scripts/gate.js"></script>
+  <script src="../../../../scripts/site-header.js"></script>
+  <script src="../../../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../../../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="page">
+    <header class="site-header" aria-label="Application header">
+      <div class="site-header-start">
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../../../assets/icons/menu.svg" alt="" width="14" height="12" />
+        </button>
+        <a class="brand-lockup" href="../../../" aria-label="Wefranch home">
+          <img class="brand-mark" src="../../../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
+        </a>
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../../">Docs</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Creating &amp; sending campaign</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-layout">
+      <aside class="doc-sidebar proto-scrollbar" data-doc-sidebar data-doc-current="email-campaigns"></aside>
+      <script src="../../scripts/sidebar.js"></script>
+      <article class="doc">
+        <header>
+          <h1 class="doc-title">How to create and send email campaigns</h1>
+          <p class="doc-updated">Updated <time datetime="2026-09-25">Sep 25, 2026</time></p>
+        </header>
+        <hr class="doc-divider" />
+
+        <div class="doc-body">
+          <h2>Open the wizard</h2>
+          <p>Start by clicking the <strong>email icon</strong> in the toolbar on <a class="ui-link" href="../../../cst/">Prospects</a> or <a class="ui-link" href="../../../leads/">Leads</a>.</p>
+          <p>The wizard opens on Settings. The title dropdown has three stages: <strong>Settings → Email → Review &amp; Send</strong>. Move between steps with Next and Back, or with the step tabs. If you close the wizard after the first step, it asks you to confirm before discarding your changes.</p>
+          <figure class="doc-figure">
+            <img src="images/01-open-wizard.jpg" alt="Email icon menu on the Prospects toolbar, with Start new campaign and Browse campaigns." />
+          </figure>
+
+          <h2>Name the campaign</h2>
+          <p>On the <strong>Campaign</strong> step, you can enter an internal name. It can be up to 64 characters. Leave it blank and the campaign stays <em>Untitled campaign</em>.</p>
+          <figure class="doc-figure">
+            <img src="images/02-campaign-name.jpg" alt="Campaign step, with an optional internal campaign name." />
+          </figure>
+
+          <h2>Choose a sender</h2>
+          <p>On the <strong>Sender</strong> step, open the email dropdown and choose <strong>Add new sender</strong>. Enter the email address and name, then either authenticate the domain with DNS or verify the address with the link we send.</p>
+          <figure class="doc-figure">
+            <img src="images/03-sender.jpg" alt="Sender step, with the email dropdown and Add new sender." />
+          </figure>
+
+          <h2>Choose recipients</h2>
+          <p>On the <strong>Recipients</strong> step:</p>
+          <ul>
+            <li><strong>Send to</strong> starts as <strong>Current search</strong>, the contacts in your current filters.</li>
+            <li>You can switch to a saved search. The recipient count and the remaining-capacity bar update as you change the audience. Each campaign can send up to 1,000 emails a day.</li>
+          </ul>
+          <figure class="doc-figure">
+            <img src="images/04-recipients.jpg" alt="Recipients step, with Current search selected and the remaining-capacity bar." />
+          </figure>
+          <figure class="doc-figure">
+            <img src="images/05-saved-searches.jpg" alt="Recipients step, with the saved-search list open." />
+          </figure>
+
+          <h2>Write the subject</h2>
+          <p>On the <strong>Subject</strong> step, enter a <strong>subject line</strong>. It is required and can be up to 150 characters. You can also add preview text, the short line inboxes show next to the subject.</p>
+          <figure class="doc-figure">
+            <img src="images/06-subject.jpg" alt="Subject step, with the subject line and preview text fields." />
+          </figure>
+
+          <h2>Design the email</h2>
+          <p>On the <strong>Design</strong> step, <strong>start from scratch</strong> or pick a saved template. Then click <strong>Review</strong>. If something required is missing, the wizard jumps back and highlights it.</p>
+          <figure class="doc-figure">
+            <img src="images/07-design.jpg" alt="Design step, with Start from scratch and the template menu." />
+          </figure>
+
+          <h2>Review and send</h2>
+          <p>On the <strong>Review &amp; Send</strong> step:</p>
+          <ol>
+            <li>Check the subject, design, and recipients.</li>
+            <li>Rename the campaign from the Campaign row if you want.</li>
+            <li>Send a test email if you want one. It needs a valid address.</li>
+            <li>Click <strong>Schedule</strong>.</li>
+          </ol>
+          <figure class="doc-figure">
+            <img src="images/08-review.jpg" alt="Review and Send step, with the campaign summary and a test email field." />
+          </figure>
+
+          <h2>Schedule the campaign</h2>
+          <p>Choose <strong>Send now</strong>, or <strong>Schedule for later</strong> and pick a date and time.</p>
+
+          <h2>Need help</h2>
+          <p>Email <a class="ui-link" href="mailto:mariyam@wefranch.com">mariyam@wefranch.com</a>.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

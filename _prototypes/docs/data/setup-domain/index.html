@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "images/..."). If it's ever opened
+    // without a trailing slash, the browser resolves those relative paths
+    // against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>How to set up your sending domain</title>
+  <link rel="icon" href="../../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../../assets/x192.png" />
+  <link rel="manifest" href="../../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="../../../../styles/site-header.css" />
+  <script src="../../../../scripts/gate.js"></script>
+  <script src="../../../../scripts/site-header.js"></script>
+  <script src="../../../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../../../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="page">
+    <header class="site-header" aria-label="Application header">
+      <div class="site-header-start">
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../../../assets/icons/menu.svg" alt="" width="14" height="12" />
+        </button>
+        <a class="brand-lockup" href="../../../" aria-label="Wefranch home">
+          <img class="brand-mark" src="../../../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
+        </a>
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../../">Docs</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Sending domain setup</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-layout">
+      <aside class="doc-sidebar proto-scrollbar" data-doc-sidebar data-doc-current="setup-domain"></aside>
+      <script src="../../scripts/sidebar.js"></script>
+      <article class="doc">
+        <header>
+          <h1 class="doc-title">How to set up your sending domain</h1>
+          <p class="doc-updated">Updated <time datetime="2026-09-25">Sep 25, 2026</time></p>
+        </header>
+        <hr class="doc-divider" />
+
+        <div class="doc-body">
+          <h2>Add a sender</h2>
+          <p>On <strong>Sender</strong>, open the email dropdown and click <strong>Add new sender</strong>.</p>
+          <ol>
+            <li>Enter the <strong>email address</strong> and <strong>name</strong>. Click <strong>Next</strong>.</li>
+            <li>If the domain is already trusted, the sender is saved as authenticated and the dialog closes.</li>
+            <li>Otherwise you land on <strong>Finish domain setup</strong>.</li>
+          </ol>
+          <figure class="doc-figure">
+            <img src="images/01-finish-setup.jpg" alt="Finish domain setup dialog, with Set up DNS and Verify by email." />
+          </figure>
+
+          <h2>Authenticate the domain</h2>
+          <p>This path gives you the <strong>best deliverability</strong>.</p>
+          <ol>
+            <li>On Finish domain setup, click <strong>Set up DNS</strong>.</li>
+            <li>Wefranch generates <strong>DNS records for your email domain</strong>.</li>
+            <li>Copy those values into your domain's DNS settings, such as <a class="ui-link" href="https://godaddy.com/">GoDaddy</a>, and click <strong>Verify</strong> in the Update your DNS records dialog.</li>
+            <li>Back on the <strong>Sender</strong> step, the status reads DNS verification in progress. DNS changes can take up to 24 hours to verify.</li>
+            <li>Click <strong>Review DNS setup</strong> at any time to reopen the records.</li>
+          </ol>
+          <figure class="doc-figure">
+            <img src="images/02-dns-records.jpg" alt="Update your DNS records dialog, with records to copy into your domain settings." />
+          </figure>
+
+          <h2>Verify the email instead</h2>
+          <p>This path is faster. You confirm the sender by email instead of adding DNS records. Deliverability can be lower than with DNS.</p>
+          <ol>
+            <li>On Finish domain setup, click <strong>Verify by email</strong>.</li>
+            <li>Wefranch sends a verification email to that inbox.</li>
+            <li>Open the email and click <strong>Confirm Sender Signature</strong>.</li>
+            <li>Return to Wefranch and click <strong>Done</strong>.</li>
+          </ol>
+          <p>If the Sender step still says <strong>Awaiting email verification</strong>, check the inbox and use the link in that email.</p>
+          <figure class="doc-figure">
+            <img src="images/03-verify-email.jpg" alt="Verification email with a Confirm Sender Signature button." />
+          </figure>
+
+          <h2>Need help</h2>
+          <p>Email <a class="ui-link" href="mailto:mariyam@wefranch.com">mariyam@wefranch.com</a>.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

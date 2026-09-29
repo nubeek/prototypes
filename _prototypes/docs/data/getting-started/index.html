@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "images/..."). If it's ever opened
+    // without a trailing slash, the browser resolves those relative paths
+    // against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>Getting started with the MUMBO tool</title>
+  <link rel="icon" href="../../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../../assets/x192.png" />
+  <link rel="manifest" href="../../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="../../../../styles/site-header.css" />
+  <script src="../../../../scripts/gate.js"></script>
+  <script src="../../../../scripts/site-header.js"></script>
+  <script src="../../../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../../../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="page">
+    <header class="site-header" aria-label="Application header">
+      <div class="site-header-start">
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../../../assets/icons/menu.svg" alt="" width="14" height="12" />
+        </button>
+        <a class="brand-lockup" href="../../../" aria-label="Wefranch home">
+          <img class="brand-mark" src="../../../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
+        </a>
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../../">Docs</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Getting started</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-layout">
+      <aside class="doc-sidebar proto-scrollbar" data-doc-sidebar data-doc-current="getting-started"></aside>
+      <script src="../../scripts/doc-groups.js"></script>
+      <script src="../../scripts/breadcrumb.js"></script>
+      <script src="../../scripts/sidebar.js"></script>
+      <article class="doc">
+        <header>
+          <h1 class="doc-title">Getting started with the MUMBO tool</h1>
+          <p class="doc-updated">Updated <time datetime="2026-09-29">Sep 29, 2026</time></p>
+        </header>
+        <hr class="doc-divider" />
+
+        <div class="doc-body">
+          <h2>Create your account</h2>
+          <p>Start at the <a class="ui-link" href="https://wefranch.com/accounts/signup">Wefranch sign-up page</a>. Sign up with Google, or enter your details and follow the prompts.</p>
+          <ol>
+            <li>Open the <strong>sign-up page</strong> and <strong>create your account</strong>.</li>
+            <li>When you are signed in, open <a class="ui-link" href="../../../cst/">Prospects</a> from the dashboard menu and start exploring franchisees.</li>
+          </ol>
+          <figure class="doc-figure">
+            <img src="images/01-signup.jpg" alt="Create Account page, with Google sign-up and fields for name and email." />
+          </figure>
+          <figure class="doc-figure">
+            <img src="images/02-dashboard.jpg" alt="Dashboard menu, with Prospects highlighted under Tools." />
+          </figure>
+
+          <h2>Find prospects</h2>
+          <p>The <a class="ui-link" href="../../../cst/">Prospects</a> workspace brings operator records, contact details, filters, and the map into one view.</p>
+          <ol>
+            <li>Open <strong>Prospects</strong> and use the <strong>filters</strong> to narrow the list by location, franchise, number of units, or another criterion.</li>
+            <li>Open a record to review the contacts. One franchisee organization can have several people in its org chart.</li>
+            <li><strong>Export up to 100 leads a week</strong> to build a focused outreach list.</li>
+          </ol>
+          <figure class="doc-figure">
+            <img src="images/03-prospects.jpg" alt="Default view of the Prospects workspace." />
+          </figure>
+
+          <h2>Explore shared targets</h2>
+          <p>Targets work like <strong>saved searches</strong> in Prospects. They let you return to the same prospects without rebuilding your filters. Browse targets from Wefranch or from your teammates, then open one that fits your market.</p>
+          <ol>
+            <li>Open the <strong>Targets</strong> browse page.</li>
+            <li>Use <strong>All</strong>, <strong>Private</strong>, or <strong>Team</strong> to find the board you need.</li>
+            <li>Open a board and review its prospects before you start outreach.</li>
+          </ol>
+          <figure class="doc-figure">
+            <img src="images/04-targets.jpg" alt="Targets browse page, with All, Private, and Team filters." />
+          </figure>
+
+          <h2>Make your outreach personal</h2>
+          <p>MUMBO can show contact details for several people in one franchisee organization. Use that context to choose the right person and write a one-to-one message.</p>
+          <ol>
+            <li>Use <a class="ui-link" href="https://writing.wefranch.com/gx1q/org-charts">franchisee org charts</a> to see the team behind a location.</li>
+            <li>Use <a class="ui-link" href="https://writing.wefranch.com/e17m/account-based-marketing-mumbo">account-based marketing</a> to see how custom targets support focused outreach.</li>
+          </ol>
+          <figure class="doc-figure">
+            <img src="images/05-outreach.jpg" alt="Prospects list with an org chart open for one franchisee organization." />
+          </figure>
+
+          <h2>Need help</h2>
+          <p>Email <a class="ui-link" href="mailto:mariyam@wefranch.com">mariyam@wefranch.com</a>.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

@@ -201,6 +201,7 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
     { id: "leads", label: "Leads", href: "/_prototypes/leads/" },
     { id: "territories", label: "Territories", href: "/_prototypes/territories/" },
     { id: "financial-modeling", label: "Financial Modeling", href: "/_prototypes/financial-modeling/" },
+    { id: "docs", label: "Docs", href: "/_prototypes/docs/" },
   ];
   const STYLES = `
 .proto-nav,
@@ -897,6 +898,7 @@ iframe[data-proto-nav-shell].is-fading {
     if (/\/territories(?:\/|$)/.test(pathname)) return "territories";
     if (/\/leads(?:\/|$)/.test(pathname)) return "leads";
     if (/\/cst(?:\/|$)/.test(pathname)) return "prospects";
+    if (/\/docs(?:\/|$)/.test(pathname)) return "docs";
     if (
       /\/_prototypes\/?(?:index\.html)?$/.test(pathname) ||
       normalizePath(pathname) === normalizePath(getSiteRoot())

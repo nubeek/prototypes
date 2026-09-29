@@ -25,6 +25,7 @@ strips `.html` and that breaks relative asset paths.
 | Leads | `_prototypes/leads/` |
 | Territories | `_prototypes/territories/` |
 | Financial Modeling | `_prototypes/financial-modeling/` |
+| Docs | `_prototypes/docs/` |
 
 Shared UI, filter, and map modules live in `_prototypes/shared/`.
 

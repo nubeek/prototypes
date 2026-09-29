@@ -159,8 +159,15 @@ function getTerritoryCompare(sort, center) {
   return compareTerritoriesByStatusThenName;
 }
 
+const TERRITORY_PANEL_STATUS_LABELS = {
+  available: "Available",
+  established: "For Sale",
+  sold: "Established"
+};
+
 function formatTerritoryPanelStatus(status) {
-  return String(status || "").replace(/^\w/, (character) => character.toUpperCase());
+  return TERRITORY_PANEL_STATUS_LABELS[status]
+    || String(status || "").replace(/^\w/, (character) => character.toUpperCase());
 }
 
 const TERRITORY_PANEL_GEO_LEVEL_LABELS = {
@@ -1208,7 +1215,7 @@ const TERRITORY_BRAND_SUMMARY_NAMED_LIMIT = 2;
 const TERRITORY_BRAND_SUMMARY_STATUS_LABELS = {
   available: "available",
   established: "for sale",
-  sold: "sold"
+  sold: "established"
 };
 const TERRITORY_BRAND_SUMMARY_PRIORITY = [
   "status",

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "images/..."). If it's ever opened
+    // without a trailing slash, the browser resolves those relative paths
+    // against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>How to add territories to a concept page</title>
+  <link rel="icon" href="../../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../../assets/x192.png" />
+  <link rel="manifest" href="../../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="../../../../styles/site-header.css" />
+  <script src="../../../../scripts/gate.js"></script>
+  <script src="../../../../scripts/site-header.js"></script>
+  <script src="../../../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../../../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="page">
+    <header class="site-header" aria-label="Application header">
+      <div class="site-header-start">
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../../../assets/icons/menu.svg" alt="" width="14" height="12" />
+        </button>
+        <a class="brand-lockup" href="../../../" aria-label="Wefranch home">
+          <img class="brand-mark" src="../../../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
+        </a>
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../../">Docs</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Adding territories</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-layout">
+      <aside class="doc-sidebar proto-scrollbar" data-doc-sidebar data-doc-current="add-territories"></aside>
+      <script src="../../scripts/sidebar.js"></script>
+      <article class="doc">
+        <header>
+          <h1 class="doc-title">How to add territories to a concept page</h1>
+          <p class="doc-updated">Updated <time datetime="2026-09-29">Sep 29, 2026</time></p>
+        </header>
+        <hr class="doc-divider" />
+
+        <div class="doc-body">
+          <h2>Open Configure</h2>
+          <p>Open your franchise concept page. You need to be signed in to an account with admin access to the edit page.</p>
+          <ol>
+            <li>Find the <strong>Tools</strong> dropdown to the right of the brand name.</li>
+            <li>Open Tools and choose <strong>Edit</strong> to reach <strong>Configure Franchise Concept</strong>.</li>
+          </ol>
+          <p>You can also open Configure from the dashboard. Use the Tools dropdown on that concept's actions row.</p>
+          <figure class="doc-figure">
+            <img src="images/01-tools-edit.jpg" alt="Tools menu on a concept page, with Edit highlighted." />
+          </figure>
+
+          <h2>Open the Territories tab</h2>
+          <p>In Configure, open the <strong>Territories</strong> tab in the horizontal menu.</p>
+          <figure class="doc-figure">
+            <img src="images/02-territories-tab.jpg" alt="Configure page with the Territories tab selected." />
+          </figure>
+
+          <h2>Add a territory</h2>
+          <p>On the Territories tab, click <strong>Add</strong> at the top right of the table. That opens the <strong>Add a territory</strong> dialog.</p>
+          <figure class="doc-figure">
+            <img src="images/03-add-button.jpg" alt="Territories table with the Add button in the top right." />
+          </figure>
+          <p>In the dialog you can:</p>
+          <ul>
+            <li>Choose a geographic level, such as State, CBSA, County, City, or DMA.</li>
+            <li>Mark the territory <strong>Available</strong>, <strong>Sold</strong>, or <strong>For Sale</strong>.</li>
+            <li>Enter a custom territory name.</li>
+          </ul>
+          <p>The <strong>Location</strong> has to match the <strong>Geographic level</strong>. If you type “Montana” and the level is DMA, it will not match.</p>
+          <figure class="doc-figure">
+            <img src="images/04-add-modal.jpg" alt="Add a territory dialog, with geographic level, location, status, and an optional name." />
+          </figure>
+
+          <h2>Turn on SEO pages</h2>
+          <p>If you <strong>Enable SEO Pages</strong>, Wefranch creates a separate SEO page for each territory.</p>
+          <figure class="doc-figure">
+            <img src="images/05-seo-pages.jpg" alt="Enable SEO Pages checkbox on the Territories tab." />
+          </figure>
+          <p>Someone searching for a category in a city, such as Health &amp; Beauty in Columbus, can then land on an SEO page for that territory.</p>
+          <figure class="doc-figure">
+            <img src="images/06-seo-example.jpg" alt="Example SEO page for a territory search, such as Health and Beauty in Columbus." />
+          </figure>
+
+          <h2>Need help</h2>
+          <p>Email <a class="ui-link" href="mailto:mariyam@wefranch.com">mariyam@wefranch.com</a>.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

@@ -109,7 +109,7 @@ body img[src$="/chevron.svg"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   font-size: var(--font-size-base);
   line-height: 1;
   cursor: pointer;
@@ -2324,6 +2324,32 @@ body.reduce-motion .start-campaign-progress-over {
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
+}
+
+.campaign-step-help {
+  margin-right: auto;
+  height: var(--control-height);
+  min-height: var(--control-height);
+  padding: 0 15px;
+  border-radius: var(--radius-md);
+  color: #050505;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.campaign-step-help:hover {
+  background: var(--color-surface-toolbar-hover);
+}
+
+.campaign-step-help-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.campaign-wizard-modal:not(.is-settings-level) .campaign-step-help {
+  display: none;
 }
 
 #campaignStepBack[hidden] {

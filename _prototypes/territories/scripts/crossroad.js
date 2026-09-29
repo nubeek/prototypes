@@ -1009,7 +1009,7 @@ function formatPresetStatusBreakdown(counts = {}) {
   return [
     `${formatPresetCount(counts.available)} Available`,
     `${formatPresetCount(counts.established)} For Sale`,
-    `${formatPresetCount(counts.sold)} Sold`
+    `${formatPresetCount(counts.sold)} Established`
   ].join(" · ");
 }
 
