@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "../../styles.css"). If it's ever opened
+    // without a trailing slash, the browser resolves those relative paths
+    // against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>Email Campaigns</title>
+  <link rel="icon" href="../../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../../assets/x192.png" />
+  <link rel="manifest" href="../../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="../../../../styles/site-header.css" />
+  <script src="../../../../scripts/gate.js"></script>
+  <script src="../../../../scripts/site-header.js"></script>
+  <script src="../../../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../../../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="page">
+    <header class="site-header" aria-label="Application header">
+      <div class="site-header-start">
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../../../assets/icons/menu.svg" alt="" width="14" height="12" />
+        </button>
+        <a class="brand-lockup" href="../../../" aria-label="Wefranch home">
+          <img class="brand-mark" src="../../../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
+        </a>
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../../">Docs</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Email Campaigns</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-index">
+      <h1 class="doc-title">Email Campaigns</h1>
+      <p class="doc-lead">Guides for creating campaigns and setting up a sending domain.</p>
+      <ul class="doc-list">
+        <li>
+          <a class="doc-card" href="creating-campaign/">
+            <span class="doc-card-title">How to create and send email campaigns</span>
+            <span class="doc-card-summary">Name a campaign, choose a sender and recipients, then schedule it from Prospects or Leads.</span>
+            <time class="doc-card-date" datetime="2026-09-25">Updated Sep 25, 2026</time>
+          </a>
+        </li>
+        <li>
+          <a class="doc-card" href="setup-domain/">
+            <span class="doc-card-title">How to set up your sending domain</span>
+            <span class="doc-card-summary">Authenticate your domain with DNS, or verify the sender address by email.</span>
+            <time class="doc-card-date" datetime="2026-09-25">Updated Sep 25, 2026</time>
+          </a>
+        </li>
+      </ul>
+    </main>
+  </div>
+</body>
+</html>

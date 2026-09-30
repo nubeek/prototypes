@@ -24,8 +24,8 @@
   }
 
   window.wefranchSiteHeader?.setBreadcrumb([
-    { label: "Docs", href: "../../" },
-    { label: categoryLabel },
+    { label: "Docs", href: "../../../" },
+    { label: categoryLabel, href: "../" },
     { label: pageLabel },
   ]);
 })();
