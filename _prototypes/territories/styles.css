@@ -1721,7 +1721,7 @@ a.territory-info-card__action.is-disabled {
   align-items: baseline;
   gap: 16px;
   margin: 0;
-  font-size: 15px;
+  font-size: var(--font-size-base);
   line-height: 1.3;
 }
 
@@ -1757,6 +1757,68 @@ a.territory-info-card__action.is-disabled {
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+}
+
+.territory-info-card__section[hidden],
+.territory-info-card__rows[hidden] {
+  display: none;
+}
+
+.territory-info-card__section--owner.is-empty .empty-state {
+  margin-top: 16px;
+  max-width: none;
+  font-size: var(--font-size-base);
+  line-height: 1.3;
+}
+
+.territory-info-card__section--owner .territory-info-card__row {
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+
+.territory-info-card__owner-value {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.territory-info-card__owner-name {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.territory-info-card__owner-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: calc(var(--radius-sm) * 18 / 30);
+}
+
+.territory-info-card__owner-mark[hidden] {
+  display: none;
+}
+
+.territory-info-card__owner-mark img {
+  object-fit: contain;
+}
+
+.territory-info-card__owner-line {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.territory-info-card__owner-contact {
+  font-weight: 600;
+}
+
+.territory-info-card__owner-email {
+  font-weight: 500;
 }
 
 .territory-area-card {

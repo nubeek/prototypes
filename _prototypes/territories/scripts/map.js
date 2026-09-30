@@ -1820,6 +1820,80 @@ function syncTerritoryInfoCardScrollOverflow(card) {
   });
 }
 
+function getTerritoryOwner(record) {
+  if (record?.status !== "sold") return null;
+  return window.territoryOwnersByTerritoryKey?.get(territoryRecordKey(record)) || null;
+}
+
+function setTerritoryInfoOwnerText(element, value) {
+  const text = String(value || "").trim();
+  element.textContent = text || "–";
+  element.classList.toggle("dataset-empty-value", !text);
+}
+
+function populateTerritoryInfoOwner(record, { compare = false } = {}) {
+  const field = (baseId) => document.getElementById(getTerritoryInfoFieldId(baseId, { compare }));
+  const marketSection = field("territoryInfoMarketSection");
+  const ownerSection = field("territoryInfoOwnerSection");
+  if (!marketSection || !ownerSection) return;
+
+  const isEstablished = record?.status === "sold";
+  const owner = getTerritoryOwner(record);
+  const showEmptyOwner = isEstablished && !owner;
+  marketSection.hidden = isEstablished;
+  ownerSection.hidden = !isEstablished;
+  ownerSection.classList.toggle("is-empty", showEmptyOwner);
+
+  const ownerRows = ownerSection.querySelector(".territory-info-card__rows");
+  const ownerEmpty = field("territoryInfoOwnerEmpty");
+  if (ownerRows) ownerRows.hidden = showEmptyOwner;
+  if (ownerEmpty) ownerEmpty.hidden = !showEmptyOwner;
+  if (!owner) return;
+
+  const ownerLink = field("territoryInfoOwnerName");
+  ownerLink.textContent = owner.name;
+  ownerLink.title = owner.name;
+  ownerLink.href = `../cst/?owner=${encodeURIComponent(owner.publicId)}&panel=org`;
+
+  const ownerMark = field("territoryInfoOwnerMark");
+  const ownerMarkImage = field("territoryInfoOwnerMarkImage");
+  const logoSrc = window.resolveFranchiseeLogoSrc?.(owner.name) || "";
+  if (ownerMark && ownerMarkImage) {
+    ownerMark.hidden = !logoSrc;
+    ownerMarkImage.alt = "";
+    ownerMarkImage.src = logoSrc ? resolvePublicAssetUrl(logoSrc) : "";
+    ownerMarkImage.onerror = () => {
+      ownerMark.hidden = true;
+    };
+  }
+
+  const name = String(owner.contact?.name || "").trim();
+  const email = String(owner.contact?.email || "").trim();
+  const contactName = field("territoryInfoOwnerContact");
+  setTerritoryInfoOwnerText(contactName, name);
+  contactName.title = name;
+
+  const contactEmail = field("territoryInfoOwnerEmail");
+  setTerritoryInfoOwnerEmail(contactEmail, email);
+}
+
+function setTerritoryInfoOwnerEmail(element, value) {
+  const text = String(value || "").trim();
+  element.textContent = text || "–";
+  element.classList.toggle("dataset-empty-value", !text);
+  element.classList.toggle("ui-link", Boolean(text));
+  element.classList.toggle("contact-email-copy", Boolean(text));
+  delete element.dataset.tooltipState;
+  element.removeAttribute("title");
+  if (text) {
+    element.tabIndex = 0;
+    element.setAttribute("role", "button");
+  } else {
+    element.removeAttribute("tabindex");
+    element.removeAttribute("role");
+  }
+}
+
 function populateTerritoryInfoCard(record, { compare = false } = {}) {
   if (!record) return;
 
@@ -1837,8 +1911,6 @@ function populateTerritoryInfoCard(record, { compare = false } = {}) {
 
   document.getElementById(getTerritoryInfoFieldId("territoryInfoBrand", { compare })).textContent = brandName;
   document.getElementById(getTerritoryInfoFieldId("territoryInfoState", { compare })).textContent = stateName;
-  document.getElementById(getTerritoryInfoFieldId("territoryInfoStatus", { compare })).textContent =
-    formatTerritoryStatus(record.status);
   document.getElementById(getTerritoryInfoFieldId("territoryInfoGeoLevel", { compare })).textContent =
     formatTerritoryGeoTypeLabel(record.geoType);
   document.getElementById(getTerritoryInfoFieldId("territoryInfoInvestment", { compare })).textContent =
@@ -1849,6 +1921,7 @@ function populateTerritoryInfoCard(record, { compare = false } = {}) {
     formatTerritoryInfoValue(macrodata?.medianHouseholdIncome, territoryCurrencyFormatter);
   document.getElementById(getTerritoryInfoFieldId("territoryInfoMarketGrowth", { compare })).textContent =
     formatTerritoryMarketGrowth(macrodata?.marketGrowthPercent);
+  populateTerritoryInfoOwner(record, { compare });
 
   const requestButton = document.getElementById(getTerritoryInfoFieldId("territoryInfoRequest", { compare }));
   if (requestButton) {

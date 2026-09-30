@@ -2554,6 +2554,26 @@ function initCstSplash() {
 
     renderCstSplashTiles();
 
+    const urlOwnerIndex = getCstOwnerUrlIndex();
+    if (urlOwnerIndex !== null) {
+      clearCstSavedSearchSession({ persist: false });
+      if (isCstSplashOpen()) {
+        dismissCstSplash({ refresh: false });
+      } else {
+        hideCstSplashImmediately();
+      }
+      applyCstSplashQuery({ franchisees: [String(urlOwnerIndex)] });
+      if (getCstOwnerPanelUrlMode() === "org") {
+        lockedToolbarMode = null;
+        openSidebar("org", urlOwnerIndex);
+      } else {
+        openOwnerDetailsFromHeader(urlOwnerIndex);
+      }
+      clearCstUrlQueryParams();
+      persistViewSettings();
+      return;
+    }
+
     const urlView = getCstTableViewUrlState();
     if (urlView) {
       clearCstSavedSearchSession({ persist: false });

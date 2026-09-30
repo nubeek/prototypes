@@ -649,17 +649,13 @@
                         <dd id="territoryInfoGeoLevel"></dd>
                       </div>
                       <div class="territory-info-card__row">
-                        <dt>Status</dt>
-                        <dd id="territoryInfoStatus"></dd>
-                      </div>
-                      <div class="territory-info-card__row">
                         <dt>Initial Investment</dt>
                         <dd id="territoryInfoInvestment"></dd>
                       </div>
                     </dl>
                   </section>
 
-                  <section class="territory-info-card__section" aria-labelledby="territoryInfoMarket">
+                  <section class="territory-info-card__section" id="territoryInfoMarketSection" aria-labelledby="territoryInfoMarket">
                     <h4 class="territory-info-card__section-title" id="territoryInfoMarket">Market</h4>
                     <dl class="territory-info-card__rows">
                       <div class="territory-info-card__row">
@@ -676,11 +672,43 @@
                       </div>
                     </dl>
                   </section>
+
+                  <section class="territory-info-card__section territory-info-card__section--owner" id="territoryInfoOwnerSection" aria-labelledby="territoryInfoOwner" hidden>
+                    <h4 class="territory-info-card__section-title" id="territoryInfoOwner">Owner</h4>
+                    <div class="empty-state empty-state--fill empty-state--compact" id="territoryInfoOwnerEmpty" role="status" hidden>
+                      <p class="empty-state__message">Owner data are currently<br>not available.</p>
+                    </div>
+                    <dl class="territory-info-card__rows">
+                      <div class="territory-info-card__row">
+                        <dt>Owner</dt>
+                        <dd class="territory-info-card__owner-value">
+                          <span class="territory-info-card__owner-name">
+                            <span class="ui-tile territory-info-card__owner-mark" id="territoryInfoOwnerMark" hidden>
+                              <img id="territoryInfoOwnerMarkImage" alt="">
+                            </span>
+                            <a class="ui-link territory-info-card__owner-line" id="territoryInfoOwnerName" href="#" target="_blank" rel="noopener noreferrer"></a>
+                          </span>
+                        </dd>
+                      </div>
+                      <div class="territory-info-card__row">
+                        <dt>Contact</dt>
+                        <dd class="territory-info-card__owner-value">
+                          <span class="territory-info-card__owner-line territory-info-card__owner-contact" id="territoryInfoOwnerContact"></span>
+                        </dd>
+                      </div>
+                      <div class="territory-info-card__row">
+                        <dt>Email</dt>
+                        <dd class="territory-info-card__owner-value">
+                          <span class="territory-info-card__owner-line territory-info-card__owner-email" id="territoryInfoOwnerEmail"></span>
+                        </dd>
+                      </div>
+                    </dl>
+                  </section>
                 </div>
 
                 <div class="territory-info-card__actions">
-                  <a class="ui-control ui-button ui-button-secondary territory-info-card__action" id="territoryInfoProfile" href="#" target="_blank" rel="noopener noreferrer">Franchise Profile</a>
                   <button class="ui-control ui-button ui-button-primary territory-info-card__action" id="territoryInfoRequest" type="button">Request Information</button>
+                  <a class="ui-control ui-button ui-button-secondary territory-info-card__action" id="territoryInfoProfile" href="#" target="_blank" rel="noopener noreferrer">Franchise Profile</a>
                 </div>
               </section>
             </div>
@@ -706,17 +734,13 @@
                   <dd id="territoryInfoGeoLevelCompare"></dd>
                 </div>
                 <div class="territory-info-card__row">
-                  <dt>Status</dt>
-                  <dd id="territoryInfoStatusCompare"></dd>
-                </div>
-                <div class="territory-info-card__row">
                   <dt>Initial Investment</dt>
                   <dd id="territoryInfoInvestmentCompare"></dd>
                 </div>
               </dl>
             </section>
 
-            <section class="territory-info-card__section" aria-labelledby="territoryInfoMarketCompare">
+            <section class="territory-info-card__section" id="territoryInfoMarketSectionCompare" aria-labelledby="territoryInfoMarketCompare">
               <h4 class="territory-info-card__section-title" id="territoryInfoMarketCompare">Market</h4>
               <dl class="territory-info-card__rows">
                 <div class="territory-info-card__row">
@@ -733,11 +757,43 @@
                 </div>
               </dl>
             </section>
+
+            <section class="territory-info-card__section territory-info-card__section--owner" id="territoryInfoOwnerSectionCompare" aria-labelledby="territoryInfoOwnerCompare" hidden>
+              <h4 class="territory-info-card__section-title" id="territoryInfoOwnerCompare">Owner</h4>
+              <div class="empty-state empty-state--fill empty-state--compact" id="territoryInfoOwnerEmptyCompare" role="status" hidden>
+                <p class="empty-state__message">Owner data are currently<br>not available.</p>
+              </div>
+              <dl class="territory-info-card__rows">
+                <div class="territory-info-card__row">
+                  <dt>Owner</dt>
+                  <dd class="territory-info-card__owner-value">
+                    <span class="territory-info-card__owner-name">
+                      <span class="ui-tile territory-info-card__owner-mark" id="territoryInfoOwnerMarkCompare" hidden>
+                        <img id="territoryInfoOwnerMarkImageCompare" alt="">
+                      </span>
+                      <a class="ui-link territory-info-card__owner-line" id="territoryInfoOwnerNameCompare" href="#" target="_blank" rel="noopener noreferrer"></a>
+                    </span>
+                  </dd>
+                </div>
+                <div class="territory-info-card__row">
+                  <dt>Contact</dt>
+                  <dd class="territory-info-card__owner-value">
+                    <span class="territory-info-card__owner-line territory-info-card__owner-contact" id="territoryInfoOwnerContactCompare"></span>
+                  </dd>
+                </div>
+                <div class="territory-info-card__row">
+                  <dt>Email</dt>
+                  <dd class="territory-info-card__owner-value">
+                    <span class="territory-info-card__owner-line territory-info-card__owner-email" id="territoryInfoOwnerEmailCompare"></span>
+                  </dd>
+                </div>
+              </dl>
+            </section>
           </div>
 
           <div class="territory-info-card__actions">
-            <a class="ui-control ui-button ui-button-secondary territory-info-card__action" id="territoryInfoProfileCompare" href="#" target="_blank" rel="noopener noreferrer">Franchise Profile</a>
             <button class="ui-control ui-button ui-button-primary territory-info-card__action" id="territoryInfoRequestCompare" type="button">Request Information</button>
+            <a class="ui-control ui-button ui-button-secondary territory-info-card__action" id="territoryInfoProfileCompare" href="#" target="_blank" rel="noopener noreferrer">Franchise Profile</a>
           </div>
         </article>
 
@@ -968,12 +1024,15 @@
   <script src="../shared/filter/filter-range.js"></script>
   <script src="../shared/map/map-pills.js"></script>
   <script src="../shared/data/categories.js"></script>
+  <script src="../cst/data/real/territory-owners.js"></script>
+  <script src="../cst/data/real/owner-logos.js"></script>
   <script src="scripts/datasets.js"></script>
   <script src="data/saved-searches.js"></script>
   <script src="scripts/location-search.js"></script>
   <script src="scripts/filters.js"></script>
   <script src="scripts/brand-panel.js"></script>
   <script src="scripts/map.js"></script>
+  <script src="scripts/owner-email-copy.js"></script>
   <script src="scripts/crossroad.js"></script>
   <script src="scripts/save-search-modal.js"></script>
   <script src="scripts/request-info-modal.js"></script>

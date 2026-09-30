@@ -278,9 +278,33 @@ function clearCstUrlQueryParams() {
     url.searchParams.delete("search");
     url.searchParams.delete("mode");
     url.searchParams.delete("view");
+    url.searchParams.delete("owner");
+    url.searchParams.delete("panel");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   } catch (error) {
     console.warn("Unable to clear saved search URL.", error);
+  }
+}
+
+// ?owner=<cstPublicId> opens that owner's details, e.g. from a Territories card.
+// &panel=org opens the organization chart instead.
+function getCstOwnerUrlIndex() {
+  try {
+    const publicId = new URLSearchParams(window.location.search).get("owner");
+    if (!publicId) return null;
+
+    const owner = owners.find((item) => item.cstPublicId === publicId);
+    return owner ? owner.originalIndex : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function getCstOwnerPanelUrlMode() {
+  try {
+    return new URLSearchParams(window.location.search).get("panel") === "org" ? "org" : "details";
+  } catch (_error) {
+    return "details";
   }
 }
 
@@ -436,7 +460,7 @@ function restoreSavedPanelSettings(settings) {
 }
 
 function restoreSavedViewSettings() {
-  if (getCstTableViewUrlState()) {
+  if (getCstTableViewUrlState() || getCstOwnerUrlIndex() !== null) {
     viewSettingsReadyToPersist = true;
     return;
   }

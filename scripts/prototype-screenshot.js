@@ -569,6 +569,38 @@
     };
   };
 
+  // Detail cards slide between two panes with translate3d(-50%). Capture drops
+  // the off-screen pane because it is inert, which leaves the visible pane
+  // shifted out of the clipped viewport. Pin the visible pane in place.
+  const flattenTerritoryDetailCard = (card) => {
+    const track = card.querySelector(":scope > .territory-info-card__viewport > .territory-info-card__track");
+    if (!track) return;
+
+    track.style.setProperty("width", "100%", "important");
+    track.style.setProperty("transform", "none", "important");
+
+    card.querySelectorAll(":scope .territory-area-card").forEach((pane) => {
+      pane.style.setProperty("display", "none", "important");
+    });
+
+    card.querySelectorAll(":scope .territory-info-card__pane:not(.territory-area-card)").forEach((pane) => {
+      pane.style.setProperty("flex-basis", "100%", "important");
+      pane.style.setProperty("width", "100%", "important");
+      pane.style.setProperty("height", "100%", "important");
+      pane.style.setProperty("visibility", "visible", "important");
+    });
+  };
+
+  const flattenTerritoryDetailCards = (root) => {
+    if (!root?.querySelectorAll && !root?.matches) return;
+
+    if (root.matches?.(".territory-info-card.is-detail")) {
+      flattenTerritoryDetailCard(root);
+    }
+
+    root.querySelectorAll?.(".territory-info-card.is-detail").forEach(flattenTerritoryDetailCard);
+  };
+
   const shouldIncludeNode = (node) => {
     if (node.nodeType !== Node.ELEMENT_NODE) {
       return true;
@@ -670,7 +702,10 @@
           return false;
         },
         filter: shouldIncludeNode,
-        onCloneNode: pinnedElements.apply,
+        onCloneNode: (node) => {
+          pinnedElements.apply(node);
+          flattenTerritoryDetailCards(node);
+        },
       };
 
       if (format === "png") {

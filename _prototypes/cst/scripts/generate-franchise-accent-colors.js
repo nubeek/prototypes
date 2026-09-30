@@ -67,7 +67,8 @@ const FRANCHISE_LOGO_FILE_OVERRIDES = {
   "Panera Bread": "panera-bread.png",
   "Phenix Salon Suites": "phenix-salon-suites.png",
   "Slim Chicken's": "slim-chickens.png",
-  "Tim Hortons": "tim-hortons.png"
+  "Tim Hortons": "tim-hortons.png",
+  "Snapology": "snapology.png"
 };
 
 function getFranchiseSlug(franchiseName) {

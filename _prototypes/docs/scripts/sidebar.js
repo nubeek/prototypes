@@ -81,6 +81,7 @@
       link.className = "doc-sidebar-link";
       link.href = `../../${group.slug}/${page.slug}/`;
       link.textContent = page.label;
+      link.dataset.docSlug = page.slug;
       if (page.slug === current) {
         link.setAttribute("aria-current", "page");
       }
@@ -98,6 +99,104 @@
     section.append(heading, list);
     nav.append(section);
   });
+
+  const articlePath = (value) => {
+    const url = new URL(value, window.location.href);
+    return url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
+  };
+
+  const markCurrent = (slug) => {
+    host.setAttribute("data-doc-current", slug);
+    nav.querySelectorAll(".doc-sidebar-link").forEach((link) => {
+      if (link.dataset.docSlug === slug) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+    window.WefranchDocBreadcrumb?.sync(slug);
+  };
+
+  let requestSerial = 0;
+
+  const showArticle = async (url, { historyMode }) => {
+    const nextUrl = new URL(url, window.location.href);
+    const serial = ++requestSerial;
+    const article = document.querySelector("article.doc");
+    if (!article) {
+      window.location.assign(nextUrl);
+      return;
+    }
+
+    article.setAttribute("aria-busy", "true");
+
+    let response;
+    try {
+      response = await fetch(nextUrl, { credentials: "same-origin" });
+    } catch (error) {
+      window.location.assign(nextUrl);
+      return;
+    }
+
+    if (serial !== requestSerial) {
+      return;
+    }
+
+    if (!response.ok) {
+      window.location.assign(nextUrl);
+      return;
+    }
+
+    const parsed = new DOMParser().parseFromString(await response.text(), "text/html");
+    const nextArticle = parsed.querySelector("article.doc");
+    const slug = nextUrl.pathname.split("/").filter(Boolean).pop();
+
+    if (!nextArticle || !slug) {
+      window.location.assign(nextUrl);
+      return;
+    }
+
+    if (serial !== requestSerial) {
+      return;
+    }
+
+    if (historyMode === "push") {
+      history.pushState({ docArticle: true }, "", nextUrl);
+    }
+
+    article.innerHTML = nextArticle.innerHTML;
+    article.removeAttribute("aria-busy");
+    if (parsed.title) {
+      document.title = parsed.title;
+    }
+    markCurrent(slug);
+    window.scrollTo(0, 0);
+  };
+
+  nav.addEventListener("click", (event) => {
+    const link = event.target.closest(".doc-sidebar-link");
+    if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
+    const nextPath = articlePath(link.href);
+    event.preventDefault();
+    if (nextPath === articlePath(window.location.href)) {
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    showArticle(link.href, { historyMode: "push" });
+  });
+
+  window.addEventListener("popstate", () => {
+    if (articlePath(window.location.href) === articlePath(document.querySelector(".doc-sidebar-link[aria-current='page']")?.href || "")) {
+      return;
+    }
+    showArticle(window.location.href, { historyMode: "none" });
+  });
+
+  history.replaceState({ docArticle: true }, "", window.location.href);
 
   host.replaceChildren(search, divider, nav);
 })();

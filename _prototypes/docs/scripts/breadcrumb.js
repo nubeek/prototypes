@@ -1,31 +1,39 @@
 (() => {
   const groups = window.WefranchDocGroups;
-  const current = document.querySelector("[data-doc-current]")?.getAttribute("data-doc-current");
-  if (!Array.isArray(groups) || !current) {
+  if (!Array.isArray(groups)) {
     return;
   }
 
-  let categoryLabel = "";
-  let pageLabel = "";
+  const sync = (current) => {
+    let categoryLabel = "";
+    let pageLabel = "";
 
-  groups.some((group) => {
-    const page = group.pages.find((entry) => entry.slug === current);
-    if (!page) {
-      return false;
+    groups.some((group) => {
+      const page = group.pages.find((entry) => entry.slug === current);
+      if (!page) {
+        return false;
+      }
+
+      categoryLabel = group.label;
+      pageLabel = page.label;
+      return true;
+    });
+
+    if (!categoryLabel || !pageLabel) {
+      return;
     }
 
-    categoryLabel = group.label;
-    pageLabel = page.label;
-    return true;
-  });
+    window.wefranchSiteHeader?.setBreadcrumb([
+      { label: "Docs", href: "../../../" },
+      { label: categoryLabel, href: "../" },
+      { label: pageLabel },
+    ]);
+  };
 
-  if (!categoryLabel || !pageLabel) {
-    return;
+  window.WefranchDocBreadcrumb = { sync };
+
+  const current = document.querySelector("[data-doc-current]")?.getAttribute("data-doc-current");
+  if (current) {
+    sync(current);
   }
-
-  window.wefranchSiteHeader?.setBreadcrumb([
-    { label: "Docs", href: "../../../" },
-    { label: categoryLabel, href: "../" },
-    { label: pageLabel },
-  ]);
 })();
