@@ -1531,6 +1531,12 @@ function getTerritoryInfoCardMaxHeight(card) {
   return viewportMax;
 }
 
+function getTerritoryInfoCardMinHeight(card) {
+  const minHeight = parseFloat(getComputedStyle(card).minHeight);
+  if (Number.isFinite(minHeight) && minHeight > 0) return minHeight;
+  return 0;
+}
+
 function getVisibleTerritoryInfoPane(card) {
   if (!card || card.id === "territoryInfoCardCompare") return card;
   return card.classList.contains("is-detail")
@@ -1584,7 +1590,8 @@ function measureTerritoryInfoCardHeight(card) {
     measureTarget.style.visibility = previousPaneVisibility;
   }
 
-  return Math.min(Math.ceil(contentHeight + borders), maxHeight);
+  const minHeight = getTerritoryInfoCardMinHeight(card);
+  return Math.max(minHeight, Math.min(Math.ceil(contentHeight + borders), maxHeight));
 }
 
 function syncTerritoryInfoCardHeight(card, { fromHeight = null, animate = false } = {}) {
@@ -1831,23 +1838,31 @@ function setTerritoryInfoOwnerText(element, value) {
   element.classList.toggle("dataset-empty-value", !text);
 }
 
+function isTerritoryViewerSignedIn() {
+  return window.wefranchAuth?.isSignedIn?.() !== false;
+}
+
 function populateTerritoryInfoOwner(record, { compare = false } = {}) {
   const field = (baseId) => document.getElementById(getTerritoryInfoFieldId(baseId, { compare }));
   const marketSection = field("territoryInfoMarketSection");
   const ownerSection = field("territoryInfoOwnerSection");
   if (!marketSection || !ownerSection) return;
 
+  const signedIn = isTerritoryViewerSignedIn();
   const isEstablished = record?.status === "sold";
-  const owner = getTerritoryOwner(record);
-  const showEmptyOwner = isEstablished && !owner;
+  const owner = signedIn ? getTerritoryOwner(record) : null;
+  const showSignedOutGate = isEstablished && !signedIn;
+  const showEmptyOwner = isEstablished && signedIn && !owner;
   marketSection.hidden = isEstablished;
   ownerSection.hidden = !isEstablished;
-  ownerSection.classList.toggle("is-empty", showEmptyOwner);
+  ownerSection.classList.toggle("is-empty", showEmptyOwner || showSignedOutGate);
 
   const ownerRows = ownerSection.querySelector(".territory-info-card__rows");
   const ownerEmpty = field("territoryInfoOwnerEmpty");
-  if (ownerRows) ownerRows.hidden = showEmptyOwner;
+  const ownerGate = field("territoryInfoOwnerGate");
+  if (ownerRows) ownerRows.hidden = showEmptyOwner || showSignedOutGate;
   if (ownerEmpty) ownerEmpty.hidden = !showEmptyOwner;
+  if (ownerGate) ownerGate.hidden = !showSignedOutGate;
   if (!owner) return;
 
   const ownerLink = field("territoryInfoOwnerName");
@@ -2248,6 +2263,14 @@ function hideTerritoryAreaCard({ immediate = false } = {}) {
 }
 
 function bindTerritoryInfoCard() {
+  document.querySelectorAll("[data-territory-owner-sign-in]").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      window.wefranchAuth?.setSignedIn(true);
+    });
+  });
+
   const primaryClose = document.getElementById("territoryInfoClose");
   const primaryBack = document.getElementById("territoryInfoBack");
   const compareClose = document.getElementById("territoryInfoCloseCompare");

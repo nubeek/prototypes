@@ -108,7 +108,75 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
     }
   };
 
+  const SIGNED_IN_STORAGE_KEY = "wefranch:signed-in";
+  const SIGNED_IN_STYLE_ID = "wefranch-signed-in-style";
+  const SIGNED_IN_STYLES = `
+html.is-signed-out [data-signed-in-only] {
+  display: none !important;
+}
+html:not(.is-signed-out) [data-signed-out-only] {
+  display: none !important;
+}
+`;
+
+  const readSignedIn = () => {
+    try {
+      return window.localStorage?.getItem(SIGNED_IN_STORAGE_KEY) !== "0";
+    } catch (error) {
+      return true;
+    }
+  };
+
+  const writeSignedIn = (signedIn) => {
+    try {
+      window.localStorage?.setItem(SIGNED_IN_STORAGE_KEY, signedIn ? "1" : "0");
+    } catch (error) {
+      // Ignore storage failures in restrictive browsing contexts.
+    }
+  };
+
+  const installSignedInStyles = (doc) => {
+    if (!doc || doc.getElementById(SIGNED_IN_STYLE_ID)) {
+      return;
+    }
+
+    const style = doc.createElement("style");
+    style.id = SIGNED_IN_STYLE_ID;
+    style.textContent = SIGNED_IN_STYLES;
+    (doc.head || doc.documentElement).appendChild(style);
+  };
+
+  const applySignedInToDocument = (doc, signedIn) => {
+    if (!doc) {
+      return;
+    }
+
+    installSignedInStyles(doc);
+    doc.documentElement.classList.toggle("is-signed-out", !signedIn);
+  };
+
+  const bootSignedIn = () => {
+    applySignedInToDocument(document, readSignedIn());
+    window.wefranchAuth = {
+      isSignedIn: readSignedIn,
+      setSignedIn: (signedIn) => {
+        const next = Boolean(signedIn);
+        writeSignedIn(next);
+        applySignedInToDocument(document, next);
+        window.location.reload();
+        return next;
+      },
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
+        applySignedInToDocument(document, readSignedIn());
+      }, { once: true });
+    }
+  };
+
   bootReduceMotion();
+  bootSignedIn();
 
   if (isPresentationEmbed) {
     return;
@@ -172,6 +240,7 @@ html.is-reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
   const SITE_HEADER_STORAGE_KEY = "wefranch:site-header-visible";
   const SITE_HEADER_SETTING_ID = "site-header";
   const REDUCE_MOTION_SETTING_ID = "reduce-motion";
+  const SIGNED_IN_SETTING_ID = "signed-in";
   const GENERAL_SETTING_ID = "general";
   const SCREENSHOT_SETTING_ID = "screenshot";
   const SCREENSHOT_TAKE_SETTING_ID = "take-screenshot";
@@ -1857,6 +1926,12 @@ iframe[data-proto-nav-shell].is-fading {
           label: "Reduce motion",
           checked: readReduceMotionEnabled(),
         },
+        {
+          id: SIGNED_IN_SETTING_ID,
+          type: "toggle",
+          label: "Signed in",
+          checked: readSignedIn(),
+        },
       ],
     },
     { type: "divider" },
@@ -1923,6 +1998,48 @@ iframe[data-proto-nav-shell].is-fading {
     return [...getGlobalSettingsItems(), { type: "divider" }, ...pageItems];
   };
 
+  const reloadCurrentPrototype = async () => {
+    if (!shellFrame?.contentWindow) {
+      window.location.reload();
+      return;
+    }
+
+    if (isNavigating) {
+      return;
+    }
+
+    isNavigating = true;
+
+    try {
+      setShellLoaderVisible(true);
+      await fadeTo(shellFrame, true);
+      const ready = whenShellFrameDocumentReady(shellFrame);
+      shellFrame.contentWindow.location.reload();
+      await ready;
+      shellDismissBound = false;
+      syncShellMenuDismiss();
+      applySiteHeaderVisible(isSiteHeaderVisible());
+      applyReduceMotion(readReduceMotionEnabled());
+      applySignedInToDocument(document, readSignedIn());
+      applySignedInToDocument(shellFrame.contentDocument, readSignedIn());
+      syncHeaderMenuButtons();
+      syncDocumentTitle();
+      await fadeTo(shellFrame, false);
+    } finally {
+      if (!pendingUrl) {
+        setShellLoaderVisible(false);
+      }
+
+      isNavigating = false;
+
+      if (pendingUrl) {
+        const next = pendingUrl;
+        pendingUrl = null;
+        showInShell(next.url, { push: next.push });
+      }
+    }
+  };
+
   const performSetting = (id) => {
     if (id === SITE_HEADER_SETTING_ID) {
       const next = !isSiteHeaderVisible();
@@ -1933,6 +2050,14 @@ iframe[data-proto-nav-shell].is-fading {
     if (id === REDUCE_MOTION_SETTING_ID) {
       const next = !readReduceMotionEnabled();
       applyReduceMotion(next);
+      return { checked: next };
+    }
+
+    if (id === SIGNED_IN_SETTING_ID) {
+      const next = !readSignedIn();
+      writeSignedIn(next);
+      applySignedInToDocument(document, next);
+      void reloadCurrentPrototype();
       return { checked: next };
     }
 
@@ -2441,6 +2566,8 @@ iframe[data-proto-nav-shell].is-fading {
 
       applySiteHeaderVisible(isSiteHeaderVisible());
       applyReduceMotion(readReduceMotionEnabled());
+      applySignedInToDocument(document, readSignedIn());
+      applySignedInToDocument(shellFrame.contentDocument, readSignedIn());
       syncHeaderMenuButtons();
       syncDocumentTitle();
 

@@ -1,0 +1,15 @@
+---
+description: Gate prototype features with the shared signed-in setting
+globs: _prototypes/**
+alwaysApply: false
+---
+
+# Prototype signed-in state
+
+Settings > General > Signed in is a shared prototype setting. It is on by default. Toggling it reloads the open prototype, so the page always starts in one mode.
+
+- Read the state with `window.wefranchAuth.isSignedIn()`. Never read the `wefranch:signed-in` storage key directly.
+- Read the state once when rendering or bootstrapping. No change listener is needed.
+- Use `data-signed-in-only` and `data-signed-out-only` for simple show/hide in markup (for example a Sign in button). Use `html.is-signed-out` for other styling.
+- Build sign-in prompts and blocking modals with `createProtoModal()`, following the proto-modals rule. A prompt's Sign in action calls `wefranchAuth.setSignedIn(true)`.
+- To gate a whole prototype, check `isSignedIn()` during bootstrap and show the prompt instead of the main view.

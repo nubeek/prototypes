@@ -1453,6 +1453,11 @@ body {
   transition: opacity 180ms ease, transform 240ms ease;
 }
 
+.territory-info-card.is-detail,
+#territoryInfoCardCompare {
+  min-height: 420px;
+}
+
 .territory-info-card.is-resizing {
   transition:
     opacity 180ms ease,
@@ -2919,6 +2924,11 @@ a.territory-info-card__action.is-disabled {
     --territory-info-padding-x: 18px;
   }
 
+  .territory-info-card.is-detail,
+  #territoryInfoCardCompare {
+    min-height: 380px;
+  }
+
   .territory-info-card__header {
     padding: 18px var(--territory-info-padding-x) 0;
     margin-bottom: 12px;
@@ -2931,6 +2941,13 @@ a.territory-info-card__action.is-disabled {
   .territory-info-card > .territory-info-card__controls {
     top: 24px;
     right: 12px;
+  }
+}
+
+@media (max-height: 719px) {
+  .territory-info-card.is-detail,
+  #territoryInfoCardCompare {
+    min-height: 300px;
   }
 }
 
