@@ -1655,8 +1655,7 @@ function setTerritoryCardPane(pane, { animate = false } = {}) {
   if (!card) return;
 
   const showDetail = pane === "detail";
-  const paneChanges = card.classList.contains("is-detail") !== showDetail;
-  const fromHeight = paneChanges ? beginTerritoryInfoCardResize(card) : null;
+  const fromHeight = beginTerritoryInfoCardResize(card);
   const reduceMotion = prefersTerritoryReducedMotion();
   const shouldAnimate = Boolean(animate && !reduceMotion && track);
   const isCardVisible = !card.hidden;
@@ -1702,7 +1701,7 @@ function setTerritoryCardPane(pane, { animate = false } = {}) {
   if (card.classList.contains("is-visible")) {
     syncTerritoryInfoCardHeight(card, {
       fromHeight,
-      animate: paneChanges && fromHeight != null
+      animate: fromHeight != null
     });
   }
 
@@ -1850,20 +1849,17 @@ function populateTerritoryInfoOwner(record, { compare = false } = {}) {
 
   const signedIn = isTerritoryViewerSignedIn();
   const isEstablished = record?.status === "sold";
-  const owner = signedIn ? getTerritoryOwner(record) : null;
-  const showSignedOutGate = isEstablished && !signedIn;
-  const showEmptyOwner = isEstablished && signedIn && !owner;
+  const owner = getTerritoryOwner(record);
+  const showSignedOutGate = Boolean(owner) && !signedIn;
   marketSection.hidden = isEstablished;
-  ownerSection.hidden = !isEstablished;
-  ownerSection.classList.toggle("is-empty", showEmptyOwner || showSignedOutGate);
+  ownerSection.hidden = !owner;
+  ownerSection.classList.toggle("is-empty", showSignedOutGate);
 
   const ownerRows = ownerSection.querySelector(".territory-info-card__rows");
-  const ownerEmpty = field("territoryInfoOwnerEmpty");
   const ownerGate = field("territoryInfoOwnerGate");
-  if (ownerRows) ownerRows.hidden = showEmptyOwner || showSignedOutGate;
-  if (ownerEmpty) ownerEmpty.hidden = !showEmptyOwner;
+  if (ownerRows) ownerRows.hidden = showSignedOutGate;
   if (ownerGate) ownerGate.hidden = !showSignedOutGate;
-  if (!owner) return;
+  if (!owner || showSignedOutGate) return;
 
   const ownerLink = field("territoryInfoOwnerName");
   ownerLink.textContent = owner.name;
@@ -2024,8 +2020,12 @@ function showTerritoryInfoCards(primaryRecord, compareRecord = null) {
     }
     syncTerritoryInfoCardScrollOverflow(detailPane || primaryCard);
     if (isCompare && compareCard) {
+      const compareFromHeight = captureTerritoryInfoCardHeight(compareCard);
       compareCard.classList.add("is-visible");
-      syncTerritoryInfoCardHeight(compareCard);
+      syncTerritoryInfoCardHeight(compareCard, {
+        fromHeight: compareFromHeight,
+        animate: compareFromHeight != null
+      });
       syncTerritoryInfoCardScrollOverflow(compareCard);
     }
   });
@@ -2160,12 +2160,7 @@ function showTerritoryAreaCard(geoKey, properties = {}, { animate = false } = {}
   if (!stack || !primaryCard || !areaCard) return false;
 
   const wasVisible = primaryCard.classList.contains("is-visible");
-  const switchingPane = primaryCard.classList.contains("is-detail");
-  const fromHeight = switchingPane ? null : beginTerritoryInfoCardResize(primaryCard);
-  if (!populateTerritoryAreaCard(geoKey, properties)) {
-    if (fromHeight != null) primaryCard.style.height = "";
-    return false;
-  }
+  if (!populateTerritoryAreaCard(geoKey, properties)) return false;
 
   if (territoryInfoHideTimer) {
     window.clearTimeout(territoryInfoHideTimer);
@@ -2177,16 +2172,11 @@ function showTerritoryAreaCard(geoKey, properties = {}, { animate = false } = {}
   if (compareCard) compareCard.hidden = true;
 
   territoryAreaCardGeoKey = geoKey;
+  clearTerritoryDetailReturn();
   stack.classList.remove("is-compare");
   stack.hidden = false;
   primaryCard.hidden = false;
   setTerritoryCardPane("area", { animate });
-  if (!switchingPane) {
-    syncTerritoryInfoCardHeight(primaryCard, {
-      fromHeight,
-      animate: wasVisible
-    });
-  }
   updateTerritoryMapResetVisibility();
   window.requestAnimationFrame(() => {
     stack.classList.add("is-visible");
@@ -3223,10 +3213,12 @@ function bindTerritoryHoverInteractions(territoryMap, interactiveLayerIds, click
       return;
     }
 
-    if (selectedTerritoryKey || compareTerritoryKey) {
-      clearSelectedTerritory({ refreshMapView: false });
+    const hadSelection = Boolean(selectedTerritoryKey || compareTerritoryKey);
+    if (hadSelection) {
+      clearSelectedTerritory({ refreshMapView: false, keepInfoCard: true });
     }
     if (!showTerritoryAreaCard(geoKey, feature.properties || {})) {
+      if (hadSelection) hideTerritoryInfoCard();
       focusTerritoryMapOnState(territoryMap, geoKey);
       return;
     }
@@ -7236,12 +7228,12 @@ function clearCompareTerritory() {
   }
 }
 
-function clearSelectedTerritory({ refreshMapView = true, closeMapPanel = false } = {}) {
+function clearSelectedTerritory({ refreshMapView = true, closeMapPanel = false, keepInfoCard = false } = {}) {
   if (!selectedTerritoryKey && !compareTerritoryKey) return;
   selectedTerritoryKey = null;
   compareTerritoryKey = null;
   territoryInfoDismissedKey = null;
-  syncSelectedTerritoryMap({ refreshMapView });
+  syncSelectedTerritoryMap({ refreshMapView, skipInfoCard: keepInfoCard });
 
   if (closeMapPanel) {
     hideTerritoryInfoCard({ immediate: true });

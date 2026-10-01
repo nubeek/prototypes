@@ -276,6 +276,7 @@ const addCampaignSenderStepPanels = [
 const addCampaignSenderBack = document.getElementById("addCampaignSenderBack");
 const addCampaignSenderDns = document.getElementById("addCampaignSenderDns");
 const addCampaignSenderDnsLink = document.getElementById("addCampaignSenderDnsLink");
+const addCampaignSenderVerifyLink = document.getElementById("addCampaignSenderVerifyLink");
 const addCampaignSenderContinue = document.getElementById("addCampaignSenderContinue");
 const addCampaignSenderContinueLabel = document.getElementById("addCampaignSenderContinueLabel");
 const addCampaignSenderInboxEmail = document.getElementById("addCampaignSenderInboxEmail");
@@ -466,6 +467,7 @@ function syncAddSenderStepChrome(index = activeAddSenderStepIndex) {
   const isSetup = index === ADD_SENDER_STEP_SETUP;
   const isInbox = index === ADD_SENDER_STEP_INBOX;
 
+  addCampaignSenderModal?.classList.toggle("is-sender-setup", isSetup);
   if (addCampaignSenderModalTitle) {
     addCampaignSenderModalTitle.textContent = ADD_SENDER_STEP_TITLES[index] || ADD_SENDER_STEP_TITLES[0];
   }
@@ -481,7 +483,12 @@ function syncAddSenderStepChrome(index = activeAddSenderStepIndex) {
   if (addCampaignSenderDnsLink) {
     addCampaignSenderDnsLink.disabled = addSenderVerifyPending;
   }
+  if (addCampaignSenderVerifyLink) {
+    addCampaignSenderVerifyLink.disabled = addSenderVerifyPending;
+  }
   if (addCampaignSenderContinue) {
+    addCampaignSenderContinue.classList.toggle("ui-button-primary", !isSetup);
+    addCampaignSenderContinue.classList.toggle("ui-button-secondary", isSetup);
     addCampaignSenderContinue.classList.toggle("is-loading", addSenderVerifyPending);
     addCampaignSenderContinue.disabled = addSenderVerifyPending;
     addCampaignSenderContinue.setAttribute("aria-busy", String(addSenderVerifyPending));
@@ -3318,6 +3325,11 @@ addCampaignSenderDns?.addEventListener("click", (event) => {
 addCampaignSenderDnsLink?.addEventListener("click", (event) => {
   event.preventDefault();
   handleAddCampaignSenderDnsSetup();
+});
+
+addCampaignSenderVerifyLink?.addEventListener("click", (event) => {
+  event.preventDefault();
+  startAddSenderEmailVerification();
 });
 
 addCampaignSenderResend?.addEventListener("click", (event) => {

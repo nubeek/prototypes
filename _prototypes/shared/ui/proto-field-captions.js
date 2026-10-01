@@ -7,11 +7,16 @@
   if (window.__wefranchFieldCaptions) return;
   window.__wefranchFieldCaptions = true;
 
-  const FIELD_SELECTOR = ".proto-modal-field, .profile-modal-field, .target-modal-field";
+  const FIELD_SELECTORS = [".proto-modal-field", ".profile-modal-field", ".target-modal-field"];
+  const FIELD_SELECTOR = FIELD_SELECTORS.join(", ");
+  const CAPTION_SELECTOR = FIELD_SELECTORS
+    .flatMap((selector) => [`${selector} > label`, `${selector} > span`])
+    .join(", ");
   const CONTROL_SELECTOR = [
     "input",
     "textarea",
     "select",
+    "[contenteditable]:not([contenteditable=\"false\"])",
     "button",
     "a",
     ".filter-select-field",
@@ -44,7 +49,7 @@
 
     return target === field
       || field.matches("label")
-      || Boolean(target.closest(`${FIELD_SELECTOR} > label, ${FIELD_SELECTOR} > span`));
+      || Boolean(target.closest(CAPTION_SELECTOR));
   }
 
   let restoreNode = null;

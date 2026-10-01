@@ -22,6 +22,7 @@
       .map((option) => ({
         label: option.textContent.trim(),
         value: option.value,
+        meta: option.dataset.meta || "",
         divider: option.dataset.comboboxDivider === "true"
       }));
   }
@@ -221,10 +222,11 @@
         return;
       }
 
-      const { label, value } = item;
+      const { label, value, meta } = item;
       const option = document.createElement("option");
       option.value = value;
       option.textContent = label;
+      if (meta) option.dataset.meta = meta;
       option.selected = selectedValues.has(value);
       select.append(option);
     });
@@ -254,7 +256,8 @@
     onRemoveOption = null,
     creatable = false,
     createLabel = (query) => `Add “${query}”`,
-    onCreate = null
+    onCreate = null,
+    openOnQuery = false
   } = {}) {
     const field = select.closest(".filter-select-field");
     if (!field) return null;
@@ -677,7 +680,9 @@
       setFilterSelectValues(select, singleSelect ? [resolvedValue] : [...currentValues, resolvedValue]);
       setOptionExcluded(resolvedValue, excluded);
       syncComboboxDisplay();
-      if (isOpen) {
+      if (isOpen && openOnQuery && !String(searchQuery || "").trim()) {
+        closeCombobox();
+      } else if (isOpen) {
         renderComboboxOptions();
       }
       dispatchComboboxChange();
@@ -695,7 +700,8 @@
     function shouldRenderComboboxOption(option, selectedValues, normalizedQuery) {
       if (option.divider) return false;
 
-      const matchesQuery = normalizeComboboxText(option.label).includes(normalizedQuery);
+      const matchesQuery = normalizeComboboxText(option.label).includes(normalizedQuery)
+        || Boolean(option.meta && normalizeComboboxText(option.meta).includes(normalizedQuery));
       if (singleSelect) return matchesQuery;
       return !selectedValues.has(option.value) && matchesQuery;
     }
@@ -775,15 +781,26 @@
         optionLabel.className = "filter-combobox-option-label";
         optionLabel.textContent = option.label;
 
+        let optionText = optionLabel;
+        if (option.meta) {
+          const optionMeta = document.createElement("span");
+          optionMeta.className = "filter-combobox-option-meta";
+          optionMeta.textContent = option.meta;
+          optionText = document.createElement("span");
+          optionText.className = "filter-combobox-option-text";
+          optionText.append(optionLabel, optionMeta);
+          optionButton.classList.add("has-meta");
+        }
+
         if (singleSelect || option.create) {
           const optionCheck = document.createElement("span");
           optionCheck.className = option.create
             ? "filter-combobox-option-create-icon"
             : "filter-combobox-option-check";
           optionCheck.setAttribute("aria-hidden", "true");
-          optionButton.append(optionCheck, optionLabel);
+          optionButton.append(optionCheck, optionText);
         } else {
-          optionButton.append(optionLabel);
+          optionButton.append(optionText);
         }
 
         if (canRemoveOption) {
@@ -902,14 +919,18 @@
       }
     }
 
+    function shouldHoldMenuUntilQuery() {
+      return openOnQuery && !String(input.value || "").trim();
+    }
+
     input.addEventListener("mousedown", () => {
-      if (singleSelect || isOpen || select.disabled) return;
+      if (singleSelect || isOpen || select.disabled || shouldHoldMenuUntilQuery()) return;
 
       openCombobox({ selectInputText: searchable });
     });
 
     input.addEventListener("focus", () => {
-      if (singleSelect || suppressOpenOnFocus || isOpen) return;
+      if (singleSelect || suppressOpenOnFocus || isOpen || shouldHoldMenuUntilQuery()) return;
 
       openCombobox({ selectInputText: searchable });
     });
@@ -918,6 +939,11 @@
       if (!searchable) return;
 
       searchQuery = input.value;
+
+      if (shouldHoldMenuUntilQuery()) {
+        if (isOpen) closeCombobox();
+        return;
+      }
 
       if (!isOpen) {
         isOpen = true;
@@ -942,6 +968,8 @@
       }
 
       if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        if (!isOpen && shouldHoldMenuUntilQuery()) return;
+
         event.preventDefault();
         if (!isOpen) {
           openCombobox();
@@ -1024,7 +1052,7 @@
 
       if (wasOpen) {
         closeCombobox();
-      } else {
+      } else if (!shouldHoldMenuUntilQuery()) {
         openCombobox({ selectInputText: true });
       }
     });

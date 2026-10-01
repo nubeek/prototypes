@@ -129,7 +129,7 @@
                 <img class="toolbar-dropdown-icon" src="../../assets/icons/mail-new.svg" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Start new campaign</span>
               </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem" disabled>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="sendMessageOption" type="button" role="menuitem" aria-controls="sendMessageCard">
                 <img class="toolbar-dropdown-icon" src="../../assets/icons/mail-send.svg?v=2" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Send a message...</span>
               </button>
@@ -815,6 +815,77 @@
       </div>
       </div>
     </div>
+
+    <section class="send-message-card" id="sendMessageCard" role="dialog" aria-labelledby="sendMessageTitle" data-splash-workspace-control hidden>
+      <div class="send-message-header">
+        <img class="send-message-header-icon" src="../../assets/icons/mail-send.svg?v=2" alt="" aria-hidden="true">
+        <h2 class="send-message-title" id="sendMessageTitle">Send a message</h2>
+        <button class="ui-control ui-close-button proto-modal-close send-message-close" id="sendMessageClose" type="button" aria-label="Close send a message">
+          <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
+        </button>
+      </div>
+
+      <form class="send-message-form" id="sendMessageForm" novalidate>
+        <div class="proto-modal-field send-message-row">
+          <span id="sendMessageFromLabel">From</span>
+          <div class="filter-select-field" id="sendMessageFromField">
+            <select class="ui-select filter-field-select" id="sendMessageFromSelect" data-input-id="sendMessageFromInput" aria-label="From">
+              <option value="">Select sender</option>
+            </select>
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+          </div>
+        </div>
+
+        <div class="proto-modal-field send-message-row">
+          <span id="sendMessageRecipientsLabel">Recipients</span>
+          <div class="filter-select-field" id="sendMessageRecipientsField">
+            <select class="ui-select filter-field-select" id="sendMessageRecipientsSelect" data-input-id="sendMessageRecipientsInput" aria-label="Recipients" multiple>
+              <option value="">Add recipient</option>
+            </select>
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+          </div>
+        </div>
+
+        <div class="proto-modal-field send-message-row">
+          <span id="sendMessageTemplateLabel">Template</span>
+          <div class="filter-select-field" id="sendMessageTemplateField">
+            <select class="ui-select filter-field-select" id="sendMessageTemplateSelect" data-input-id="sendMessageTemplateInput" aria-label="Template">
+              <option value="">Select</option>
+            </select>
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+          </div>
+        </div>
+
+        <div class="proto-modal-field send-message-row">
+          <span id="sendMessageSubjectLabel">Subject</span>
+          <input class="send-message-input" id="sendMessageSubject" name="subject" type="text" autocomplete="off" maxlength="150" aria-labelledby="sendMessageSubjectLabel">
+        </div>
+
+        <div class="proto-modal-field send-message-body" id="sendMessageBodyField">
+          <div class="send-message-editor proto-scrollbar" id="sendMessageEditor">
+            <div class="send-message-textarea is-empty" id="sendMessageBody" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Message" data-placeholder="Write your message..."></div>
+          </div>
+          <div class="send-message-template" id="sendMessageTemplatePreview" hidden>
+            <div class="send-message-template-preview proto-scrollbar" id="sendMessageTemplatePreviewFrame">
+              <img class="send-message-template-image" id="sendMessageTemplateImage" src="assets/images/campaign-template.jpg" alt="Welcome to Wefranch email template">
+              <p class="send-message-template-unavailable" id="sendMessageTemplateUnavailable" hidden>Couldn't load the preview</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="send-message-footer">
+          <button class="ui-control ui-button ui-button-ghost send-message-attach" id="sendMessageAttach" type="button" aria-controls="sendMessageAttachInput">
+            <img src="../../assets/icons/image-attach.svg" alt="" aria-hidden="true">
+            Attach image
+          </button>
+          <input class="send-message-attach-input" id="sendMessageAttachInput" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true" hidden>
+          <button class="ui-control ui-button ui-button-primary send-message-send" id="sendMessageSend" type="submit">
+            <span class="campaign-continue-spinner" aria-hidden="true"></span>
+            <span class="campaign-continue-label">Send</span>
+          </button>
+        </div>
+      </form>
+    </section>
   </main>
 
   <button class="map-pill map-pill-reset" id="ownersMapReset" type="button" hidden>
@@ -1415,8 +1486,8 @@
           </div>
           <div class="add-sender-step-panel" id="addCampaignSenderSetupPanel" data-add-sender-step="setup" aria-hidden="true" inert>
             <div class="proto-modal-body add-sender-setup-copy">
-              <p class="proto-modal-subtitle">For the best deliverability, you should authenticate your domain by <button class="ui-control ui-link add-sender-setup-inline-link" type="button" id="addCampaignSenderDnsLink">setting up the DNS records</button>.</p>
-              <p class="proto-modal-subtitle"><span class="add-sender-setup-emphasis">Verify your email instead</span> to finish setup without changing your DNS. It’s faster, but deliverability may be lower.</p>
+              <p class="proto-modal-subtitle">Before sending campaigns, authenticate your domain by <button class="ui-control ui-link add-sender-setup-inline-link" type="button" id="addCampaignSenderDnsLink">setting up the DNS records</button>.</p>
+              <p class="proto-modal-subtitle"><button class="ui-control ui-link add-sender-setup-inline-link" type="button" id="addCampaignSenderVerifyLink">Verify your email</button> to finish setup without changing your DNS. However, if your domain’s security rules (DMARC) require authentication, your campaign won’t be delivered.</p>
             </div>
           </div>
           <div class="add-sender-step-panel" id="addCampaignSenderInboxPanel" data-add-sender-step="inbox" aria-hidden="true" inert>
@@ -1427,14 +1498,14 @@
           </div>
         </div>
         <div class="proto-modal-actions">
-          <button class="ui-control ui-button ui-button-secondary proto-modal-save" id="addCampaignSenderDns" type="button" hidden>
-            <img class="add-sender-dns-icon" src="../../assets/icons/settings.svg" alt="" aria-hidden="true">
-            Set up DNS
-          </button>
           <button class="ui-control ui-button proto-modal-cancel" id="addCampaignSenderBack" type="button">Cancel</button>
           <button class="ui-control ui-button ui-button-primary proto-modal-save" id="addCampaignSenderContinue" type="submit">
             <span class="campaign-continue-spinner" aria-hidden="true"></span>
             <span class="campaign-continue-label" id="addCampaignSenderContinueLabel">Next</span>
+          </button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" id="addCampaignSenderDns" type="button" hidden>
+            <img class="add-sender-dns-icon" src="../../assets/icons/settings.svg" alt="" aria-hidden="true">
+            Set up DNS
           </button>
         </div>
       </form>
@@ -1486,6 +1557,7 @@
   <script src="scripts/09-bootstrap.js"></script>
   <script src="scripts/13-splash.js"></script>
   <script src="scripts/15-campaign-modal.js"></script>
+  <script src="scripts/17-send-message.js"></script>
   <script src="scripts/16-site-header.js"></script>
 </body>
 </html>
