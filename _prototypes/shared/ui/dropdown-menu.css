@@ -13,7 +13,8 @@
  * - .proto-nav__settings-menu
  * - .proto-nav__menu
  *
- * New menus: add .ui-dropdown-menu with a placement modifier.
+ * New menus: add .ui-dropdown-menu with a placement modifier. Menus
+ * without a matching open parent (e.g. floating on <body>) toggle .is-open.
  */
 
 :root {
@@ -76,6 +77,7 @@
   transform: translateX(var(--dropdown-reveal-travel));
 }
 
+.ui-dropdown-menu.is-open,
 .toolbar-dropdown[open] > :is(.toolbar-dropdown-menu, .ui-dropdown-menu),
 .table-heading__sort[open] > :is(.toolbar-dropdown-menu, .ui-dropdown-menu),
 .filter-select-field.is-open :is(.filter-combobox-menu, .ui-dropdown-menu),
@@ -93,6 +95,7 @@
     visibility 0s;
 }
 
+.ui-dropdown-menu--down.is-open,
 .toolbar-dropdown[open] > :is(.toolbar-dropdown-menu, .ui-dropdown-menu),
 .table-heading__sort[open] > :is(.toolbar-dropdown-menu, .ui-dropdown-menu),
 .filter-select-field.is-open :is(.filter-combobox-menu, .ui-dropdown-menu),
@@ -100,6 +103,7 @@
   transform: translateY(var(--dropdown-reveal-travel));
 }
 
+.ui-dropdown-menu--up.is-open,
 .campaign-review-schedule.is-open :is(.campaign-review-schedule-menu, .ui-dropdown-menu),
 .proto-nav.is-settings-open :is(.proto-nav__settings-menu, .ui-dropdown-menu),
 .proto-nav.is-home-open :is(.proto-nav__menu, .ui-dropdown-menu) {

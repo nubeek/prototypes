@@ -199,8 +199,8 @@
     let svg = String(markup || "").replace(/<\?xml[\s\S]*?\?>/i, "").trim();
     if (!svg) return "";
 
-    svg = svg.replace(/fill:\s*(?!none\b)(?!transparent\b)[^;}]+/gi, `fill: ${color}`);
-    svg = svg.replace(/\bfill=(['"])(?!none\b)(?!transparent\b)[^'"]*\1/gi, `fill="${color}"`);
+    svg = svg.replace(/\b(fill|stroke):\s*(?!none\b)(?!transparent\b)[^;}"']+/gi, `$1: ${color}`);
+    svg = svg.replace(/\b(fill|stroke)=(['"])(?!none\b)(?!transparent\b)[^'"]*\2/gi, `$1="${color}"`);
     svg = svg.replace(/currentColor/g, color);
 
     if (!/\bfill=/i.test(svg) && !/fill\s*:/i.test(svg)) {
@@ -282,11 +282,22 @@
     return pending;
   };
 
+  const BACKGROUND_BOX_VALUES = new Set(["border-box", "padding-box", "content-box"]);
+
+  const readMaskProperty = (style, name) => (
+    style.getPropertyValue(`-webkit-mask-${name}`) || style.getPropertyValue(`mask-${name}`)
+  ).trim();
+
+  const toBackgroundBox = (value) => (BACKGROUND_BOX_VALUES.has(value) ? value : "border-box");
+
+  // Masked icons render as solid blocks of their background color in the
+  // capture. Paint them as pre-colored background images using the mask's own
+  // geometry instead, so the element box and layout stay untouched.
   const materializeCssMasks = async (targetWindow) => {
     const { document: targetDocument } = targetWindow;
     const assigned = [];
-    const inserted = [];
     const rules = [];
+    const freezeRules = [];
     const cache = new Map();
     let nextId = 0;
 
@@ -305,8 +316,8 @@
           if (!content || content === "none") return;
         }
 
-        const maskImage = style.webkitMaskImage || style.maskImage;
-        if (!maskImage || maskImage === "none" || !/url\(/i.test(maskImage)) return;
+        const maskImage = readMaskProperty(style, "image");
+        if (!maskImage || maskImage === "none" || !/url\(/i.test(maskImage) || /gradient\(/i.test(maskImage)) return;
 
         const rawUrl = parseCssMaskUrl(maskImage);
         if (!rawUrl) return;
@@ -325,42 +336,20 @@
         assigned.push({ element, attr, previous: element.getAttribute(attr) });
         element.setAttribute(attr, id);
 
-        const image = targetDocument.createElement("img");
-        image.src = dataUri;
-        image.alt = "";
-        image.setAttribute("aria-hidden", "true");
-        image.setAttribute("data-proto-ss-mask-img", id);
-        const width = Number.parseFloat(style.width) || 16;
-        const height = Number.parseFloat(style.height) || 16;
-        image.width = Math.max(1, Math.round(width));
-        image.height = Math.max(1, Math.round(height));
-        image.style.cssText = [
-          "display:block",
-          "flex:0 0 auto",
-          "border:0",
-          "pointer-events:none",
-          `width:${width}px`,
-          `height:${height}px`,
-          style.transform && style.transform !== "none" ? `transform:${style.transform}` : ""
-        ].filter(Boolean).join(";");
-
-        if (pseudo === "::before") {
-          element.insertBefore(image, element.firstChild);
-        } else {
-          element.append(image);
-        }
-        inserted.push(image);
-
-        if (pseudo) {
-          rules.push(
-            `[${attr}="${id}"]${pseudo}{content:none!important;display:none!important;}`
-          );
-        } else {
-          rules.push(
-            `[${attr}="${id}"]{-webkit-mask:none!important;mask:none!important;` +
-            `-webkit-mask-image:none!important;mask-image:none!important;}`
-          );
-        }
+        const selector = `[${attr}="${id}"]${pseudo || ""}`;
+        rules.push(
+          `${selector}{` +
+          "transition:none!important;" +
+          "-webkit-mask:none!important;mask:none!important;" +
+          "background-color:transparent!important;" +
+          `background-image:url("${dataUri}")!important;` +
+          `background-position:${readMaskProperty(style, "position") || "0% 0%"}!important;` +
+          `background-size:${readMaskProperty(style, "size") || "auto"}!important;` +
+          `background-repeat:${readMaskProperty(style, "repeat") || "repeat"}!important;` +
+          `background-origin:${toBackgroundBox(readMaskProperty(style, "origin"))}!important;` +
+          `background-clip:${toBackgroundBox(readMaskProperty(style, "clip"))}!important;}`
+        );
+        freezeRules.push(`${selector}{transition:none!important;}`);
       } catch (error) {
         // Leave this mask as-is rather than failing the whole capture.
       }
@@ -377,7 +366,7 @@
       await process(element, "::after");
     }
 
-    if (!inserted.length && !rules.length) {
+    if (!rules.length) {
       return () => undefined;
     }
 
@@ -386,15 +375,12 @@
     style.textContent = rules.join("\n");
     (targetDocument.head || targetDocument.documentElement).appendChild(style);
 
-    await Promise.all(inserted.map((image) => (
-      typeof image.decode === "function"
-        ? image.decode().catch(() => undefined)
-        : Promise.resolve()
-    )));
-
     return () => {
+      // Restore the original colors with transitions still disabled so the
+      // icons don't visibly fade back in after the capture.
+      style.textContent = freezeRules.join("\n");
+      void targetDocument.documentElement.offsetHeight;
       style.remove();
-      inserted.forEach((image) => image.remove());
       assigned.reverse().forEach(({ element, attr, previous }) => {
         if (previous === null) {
           element.removeAttribute(attr);
@@ -612,8 +598,249 @@
       return false;
     }
 
-    return !node.closest("[data-proto-nav], [data-proto-screenshot-toast], [data-proto-screenshot-preview], [data-proto-recorder]");
+    if (node.closest("[data-proto-nav], [data-proto-screenshot-toast], [data-proto-screenshot-preview], [data-proto-recorder]")) {
+      return false;
+    }
+
+    // Closed modals and other display:none subtrees are still fully styled
+    // by the renderer. Skipping them here skips their descendants too.
+    const view = node.ownerDocument?.defaultView;
+    return !view || view.getComputedStyle(node).display !== "none";
   };
+
+  // The renderer otherwise reads 500+ computed properties on every element,
+  // which is most of the capture time. Longhands only: shorthands are already
+  // expanded by getComputedStyle. Custom properties are omitted because the
+  // values below are the used values, not var() references.
+  const SCREENSHOT_STYLE_PROPERTIES = [
+    "accent-color",
+    "align-content",
+    "align-items",
+    "align-self",
+    "appearance",
+    "aspect-ratio",
+    "backdrop-filter",
+    "background-attachment",
+    "background-blend-mode",
+    "background-clip",
+    "background-color",
+    "background-image",
+    "background-origin",
+    "background-position",
+    "background-repeat",
+    "background-size",
+    "border-bottom-color",
+    "border-bottom-left-radius",
+    "border-bottom-right-radius",
+    "border-bottom-style",
+    "border-bottom-width",
+    "border-collapse",
+    "border-left-color",
+    "border-left-style",
+    "border-left-width",
+    "border-right-color",
+    "border-right-style",
+    "border-right-width",
+    "border-spacing",
+    "border-top-color",
+    "border-top-left-radius",
+    "border-top-right-radius",
+    "border-top-style",
+    "border-top-width",
+    "bottom",
+    "box-decoration-break",
+    "box-shadow",
+    "box-sizing",
+    "caption-side",
+    "caret-color",
+    "clear",
+    "clip",
+    "clip-path",
+    "clip-rule",
+    "color",
+    "color-interpolation",
+    "color-interpolation-filters",
+    "color-scheme",
+    "column-count",
+    "column-gap",
+    "column-rule-color",
+    "column-rule-style",
+    "column-rule-width",
+    "column-span",
+    "column-width",
+    "contain",
+    "contain-intrinsic-height",
+    "contain-intrinsic-size",
+    "contain-intrinsic-width",
+    "container-name",
+    "container-type",
+    "content",
+    "content-visibility",
+    "corner-bottom-left-shape",
+    "corner-bottom-right-shape",
+    "corner-top-left-shape",
+    "corner-top-right-shape",
+    "counter-increment",
+    "counter-reset",
+    "cx",
+    "cy",
+    "direction",
+    "display",
+    "dominant-baseline",
+    "empty-cells",
+    "field-sizing",
+    "fill",
+    "fill-opacity",
+    "fill-rule",
+    "filter",
+    "flex-basis",
+    "flex-direction",
+    "flex-grow",
+    "flex-shrink",
+    "flex-wrap",
+    "float",
+    "flood-color",
+    "flood-opacity",
+    "font-family",
+    "font-feature-settings",
+    "font-kerning",
+    "font-optical-sizing",
+    "font-size",
+    "font-stretch",
+    "font-style",
+    "font-variant",
+    "font-variant-caps",
+    "font-variant-emoji",
+    "font-variant-ligatures",
+    "font-variant-numeric",
+    "font-weight",
+    "grid-auto-columns",
+    "grid-auto-flow",
+    "grid-auto-rows",
+    "grid-column-end",
+    "grid-column-start",
+    "grid-row-end",
+    "grid-row-start",
+    "grid-template-areas",
+    "grid-template-columns",
+    "grid-template-rows",
+    "height",
+    "hyphens",
+    "image-rendering",
+    "isolation",
+    "justify-content",
+    "justify-items",
+    "justify-self",
+    "left",
+    "letter-spacing",
+    "line-height",
+    "list-style-image",
+    "list-style-position",
+    "list-style-type",
+    "margin-bottom",
+    "margin-left",
+    "margin-right",
+    "margin-top",
+    "marker-end",
+    "marker-start",
+    "mask-clip",
+    "mask-image",
+    "mask-origin",
+    "mask-position",
+    "mask-repeat",
+    "mask-size",
+    "max-height",
+    "max-width",
+    "min-height",
+    "min-width",
+    "mix-blend-mode",
+    "object-fit",
+    "object-position",
+    "opacity",
+    "order",
+    "outline-color",
+    "outline-offset",
+    "outline-style",
+    "outline-width",
+    "overflow-clip-margin",
+    "overflow-wrap",
+    "overflow-x",
+    "overflow-y",
+    "padding-bottom",
+    "padding-left",
+    "padding-right",
+    "padding-top",
+    "paint-order",
+    "perspective",
+    "perspective-origin",
+    "pointer-events",
+    "position",
+    "r",
+    "right",
+    "rotate",
+    "row-gap",
+    "rx",
+    "ry",
+    "scale",
+    "scrollbar-color",
+    "scrollbar-width",
+    "shape-rendering",
+    "stop-color",
+    "stop-opacity",
+    "stroke",
+    "stroke-dasharray",
+    "stroke-dashoffset",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "stroke-miterlimit",
+    "stroke-opacity",
+    "stroke-width",
+    "table-layout",
+    "text-align",
+    "text-anchor",
+    "text-box-edge",
+    "text-box-trim",
+    "text-decoration-color",
+    "text-decoration-line",
+    "text-decoration-style",
+    "text-decoration-thickness",
+    "text-indent",
+    "text-overflow",
+    "text-shadow",
+    "text-transform",
+    "text-underline-offset",
+    "text-underline-position",
+    "text-wrap-mode",
+    "text-wrap-style",
+    "top",
+    "transform",
+    "transform-box",
+    "transform-origin",
+    "transform-style",
+    "translate",
+    "vector-effect",
+    "vertical-align",
+    "visibility",
+    "white-space-collapse",
+    "width",
+    "word-break",
+    "word-spacing",
+    "writing-mode",
+    "x",
+    "y",
+    "z-index",
+    "zoom",
+    "-webkit-border-horizontal-spacing",
+    "-webkit-border-vertical-spacing",
+    "-webkit-box-decoration-break",
+    "-webkit-box-orient",
+    "-webkit-font-smoothing",
+    "-webkit-line-clamp",
+    "-webkit-text-fill-color",
+    "-webkit-text-security",
+    "-webkit-text-stroke-color",
+    "-webkit-text-stroke-width",
+  ];
 
   const captureWindow = async (renderer, targetWindow, format = "png", scale = 1) => {
     const targetDocument = targetWindow.document;
@@ -680,6 +907,10 @@
         height: targetWindow.innerHeight,
         scale,
         backgroundColor: "#ffffff",
+        // A resource that never finishes loading otherwise blocks capture for
+        // the library default of 30 seconds.
+        timeout: 4000,
+        includeStyleProperties: SCREENSHOT_STYLE_PROPERTIES,
         style: {
           width: `${targetWindow.innerWidth}px`,
           height: `${targetWindow.innerHeight}px`,
@@ -688,6 +919,11 @@
         features: {
           copyScrollbar: false,
           restoreScrollPosition: true,
+          // Safari and Firefox otherwise redraw the snapshot once per embedded
+          // image, and each redraw waits longer than the last. On a page of
+          // logos that adds up to tens of seconds. Images are already decoded
+          // before this draw.
+          fixSvgXmlDecode: false,
         },
         fetch: {
           requestInit: {

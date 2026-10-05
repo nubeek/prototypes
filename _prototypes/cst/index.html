@@ -129,7 +129,7 @@
                 <img class="toolbar-dropdown-icon" src="../../assets/icons/mail-new.svg" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Start new campaign</span>
               </button>
-              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="sendMessageOption" type="button" role="menuitem" aria-controls="sendMessageCard">
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="sendMessageOption" type="button" role="menuitem" aria-controls="sendMessageCard" hidden>
                 <img class="toolbar-dropdown-icon" src="../../assets/icons/mail-send.svg?v=2" alt="" aria-hidden="true">
                 <span class="toolbar-dropdown-label">Send a message...</span>
               </button>
@@ -837,20 +837,10 @@
         </div>
 
         <div class="proto-modal-field send-message-row">
-          <span id="sendMessageRecipientsLabel">Recipients</span>
+          <span id="sendMessageRecipientsLabel">To (0)</span>
           <div class="filter-select-field" id="sendMessageRecipientsField">
-            <select class="ui-select filter-field-select" id="sendMessageRecipientsSelect" data-input-id="sendMessageRecipientsInput" aria-label="Recipients" multiple>
+            <select class="ui-select filter-field-select" id="sendMessageRecipientsSelect" data-input-id="sendMessageRecipientsInput" aria-label="To (0)" multiple>
               <option value="">Add recipient</option>
-            </select>
-            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
-          </div>
-        </div>
-
-        <div class="proto-modal-field send-message-row">
-          <span id="sendMessageTemplateLabel">Template</span>
-          <div class="filter-select-field" id="sendMessageTemplateField">
-            <select class="ui-select filter-field-select" id="sendMessageTemplateSelect" data-input-id="sendMessageTemplateInput" aria-label="Template">
-              <option value="">Select</option>
             </select>
             <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </div>
@@ -861,10 +851,18 @@
           <input class="send-message-input" id="sendMessageSubject" name="subject" type="text" autocomplete="off" maxlength="150" aria-labelledby="sendMessageSubjectLabel">
         </div>
 
-        <div class="proto-modal-field send-message-body" id="sendMessageBodyField">
-          <div class="send-message-editor proto-scrollbar" id="sendMessageEditor">
-            <div class="send-message-textarea is-empty" id="sendMessageBody" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Message" data-placeholder="Write your message..."></div>
+        <div class="proto-modal-field send-message-row">
+          <span id="sendMessageTemplateLabel">Template</span>
+          <div class="filter-select-field" id="sendMessageTemplateField">
+            <select class="ui-select filter-field-select" id="sendMessageTemplateSelect" data-input-id="sendMessageTemplateInput" aria-label="Template">
+              <option value="">Select...</option>
+            </select>
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </div>
+        </div>
+
+        <div class="proto-modal-field send-message-body" id="sendMessageBodyField" aria-hidden="true" inert>
+          <div class="send-message-template-options" id="sendMessageTemplateOptions" role="listbox" aria-label="Templates" hidden></div>
           <div class="send-message-template" id="sendMessageTemplatePreview" hidden>
             <div class="send-message-template-preview proto-scrollbar" id="sendMessageTemplatePreviewFrame">
               <img class="send-message-template-image" id="sendMessageTemplateImage" src="assets/images/campaign-template.jpg" alt="Welcome to Wefranch email template">
@@ -874,11 +872,10 @@
         </div>
 
         <div class="send-message-footer">
-          <button class="ui-control ui-button ui-button-ghost send-message-attach" id="sendMessageAttach" type="button" aria-controls="sendMessageAttachInput">
-            <img src="../../assets/icons/image-attach.svg" alt="" aria-hidden="true">
-            Attach image
+          <button class="ui-control ui-button ui-button-ghost send-message-templates" id="sendMessageTemplates" type="button" hidden>
+            <img src="../../assets/icons/template.svg" alt="" aria-hidden="true">
+            Edit template
           </button>
-          <input class="send-message-attach-input" id="sendMessageAttachInput" type="file" accept="image/*" multiple tabindex="-1" aria-hidden="true" hidden>
           <button class="ui-control ui-button ui-button-primary send-message-send" id="sendMessageSend" type="submit">
             <span class="campaign-continue-spinner" aria-hidden="true"></span>
             <span class="campaign-continue-label">Send</span>
@@ -1435,7 +1432,7 @@
               <div class="proto-modal-notice__content">
                 <p class="proto-modal-notice__text">
                   To prevent excessive traffic on your website, your campaign will be sent in batches.
-                  <button class="proto-modal-notice__action ui-text-button" type="button">Learn more</button>
+                  <a class="proto-modal-notice__action ui-text-button ui-link" href="../docs/data/email-campaigns/sending-in-batches/" target="_blank" rel="noopener noreferrer">Learn more</a>
                 </p>
               </div>
             </div>

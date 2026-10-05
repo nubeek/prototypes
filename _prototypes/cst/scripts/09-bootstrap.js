@@ -38,6 +38,7 @@ if (tableBody) {
       checkbox.closest("tr[data-location-row-id]")?.classList.toggle("is-checked", checkbox.checked);
       syncLocationHeaderCheckboxState(displayedLocations);
       syncOwnersMapRowSelectionHighlight();
+      syncSendMessageSelection();
       return;
     }
 
@@ -53,6 +54,7 @@ if (tableBody) {
     checkbox.closest("tr[data-owner-index]")?.classList.toggle("is-checked", checkbox.checked);
     syncFranchiseeHeaderCheckboxState(displayedFranchisees);
     syncOwnersMapRowSelectionHighlight();
+    syncSendMessageSelection();
   });
 
   tableBody.addEventListener("click", (event) => {
@@ -102,6 +104,13 @@ if (tableBody) {
       if (!row) return;
       toggleProspectRowHidden(row);
       refreshContactStateViews();
+      return;
+    }
+
+    const contactMoreButton = event.target.closest(".contact-more-action");
+    if (contactMoreButton) {
+      event.stopPropagation();
+      toggleContactMoreMenu(contactMoreButton, { focusFirstItem: event.detail === 0 });
       return;
     }
 
@@ -222,6 +231,7 @@ if (franchiseesTable) {
       syncRenderedRowCheckboxes("tr[data-location-row-id]");
       syncLocationHeaderCheckboxState(displayedLocations);
       syncOwnersMapRowSelectionHighlight();
+      syncSendMessageSelection();
       return;
     }
 
@@ -236,6 +246,7 @@ if (franchiseesTable) {
     syncRenderedRowCheckboxes("tr[data-owner-index]");
     syncFranchiseeHeaderCheckboxState(displayedFranchisees);
     syncOwnersMapRowSelectionHighlight();
+    syncSendMessageSelection();
   });
 }
 

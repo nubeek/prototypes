@@ -12,6 +12,7 @@ window.WefranchDocGroups = [
     pages: [
       { slug: "creating-campaign", label: "Creating & sending campaign" },
       { slug: "setup-domain", label: "Sending domain setup" },
+      { slug: "sending-in-batches", label: "Batch sending" },
     ],
   },
   {

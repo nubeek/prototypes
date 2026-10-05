@@ -2359,10 +2359,15 @@ body.reduce-motion .start-campaign-progress-over {
   position: relative;
   gap: 0;
   overflow: hidden;
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 12px;
+  padding-right: 12px;
   white-space: nowrap;
   transition: padding 280ms ease, gap 280ms ease;
+}
+
+#sendMessageSend {
+  padding-left: 14px;
+  padding-right: 14px;
 }
 
 .campaign-continue-label {
@@ -2438,16 +2443,18 @@ body.reduce-motion .campaign-continue-spinner {
 }
 
 /* Send a message card. Non-modal compose card pinned to the bottom-right of
-   the workspace. Width tracks the map panel. Rows reuse proto-modal-field
+   the workspace. Sized to sit 10px inside a right-docked map panel, whether
+   or not the panel is open. Rows reuse proto-modal-field
    for captions and field errors; the #sendMessageCard scope flattens the
    modal control chrome into the inline label/value rows. */
 .send-message-card {
+  --send-message-inset: 10px;
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: calc(var(--card-padding) + var(--send-message-inset));
+  bottom: calc(var(--card-padding) + var(--send-message-inset));
   z-index: 250;
-  width: min(34vw, 580px);
-  height: min(580px, calc(100% - 32px));
+  width: calc(var(--map-panel-width) - var(--send-message-inset) * 2);
+  height: auto;
   display: flex;
   flex-direction: column;
   padding: 24px;
@@ -2458,7 +2465,11 @@ body.reduce-motion .campaign-continue-spinner {
   opacity: 0;
   filter: blur(6px);
   transform: translateY(32px);
-  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease, filter 300ms ease;
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease,
+    filter 300ms ease,
+    height 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .send-message-card[hidden] {
@@ -2476,6 +2487,10 @@ body.reduce-motion .campaign-continue-spinner {
   filter: blur(6px);
   transform: translateY(24px);
   pointer-events: none;
+}
+
+.send-message-card.is-expanded {
+  height: min(640px, calc(100% - (var(--card-padding) + var(--send-message-inset)) * 2));
 }
 
 .send-message-header {
@@ -2512,9 +2527,12 @@ body.reduce-motion .campaign-continue-spinner {
   flex-direction: column;
 }
 
-#sendMessageCard .send-message-row {
+#sendMessageCard {
   --send-message-label-width: 96px;
   --send-message-label-gap: 12px;
+}
+
+#sendMessageCard .send-message-row {
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: var(--send-message-label-width) minmax(0, 1fr);
@@ -2528,6 +2546,10 @@ body.reduce-motion .campaign-continue-spinner {
 
 #sendMessageCard .send-message-row:first-child {
   border-top: 1px solid var(--color-border);
+}
+
+#sendMessageCard:not(.is-expanded):not(.is-template-animating) .send-message-footer {
+  margin-top: -1px;
 }
 
 #sendMessageCard .send-message-row > span:first-child {
@@ -2552,6 +2574,12 @@ body.reduce-motion .campaign-continue-spinner {
   box-shadow: none;
 }
 
+/* The clear control stays in the trailing row while hidden, so a closed
+   single select only needs room for the chevron. */
+#sendMessageCard .filter-select-field.is-single-select:not(:has(.filter-combobox-clear:not([hidden]))) .filter-combobox-control {
+  padding-right: 32px;
+}
+
 #sendMessageRecipientsField .filter-combobox-control {
   --send-message-chip-height: 28px;
   --send-message-chip-gap: 6px;
@@ -2568,6 +2596,36 @@ body.reduce-motion .campaign-continue-spinner {
 #sendMessageCard .filter-combobox-input {
   min-width: 48px;
   flex-basis: 48px;
+}
+
+#sendMessageCard .filter-select-field.is-single-select .filter-combobox-input {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Shared single-select inputs add 2px top padding. Drop it and nudge up
+     so the value baseline lines up with the row label. */
+  padding-top: 0;
+  position: relative;
+  top: -1px;
+}
+
+#sendMessageCard .filter-select-field.is-single-select.is-open .filter-combobox-input {
+  text-overflow: clip;
+}
+
+#sendMessageTemplateField .filter-combobox-control,
+#sendMessageTemplateField .filter-combobox-input {
+  cursor: pointer;
+}
+
+/* Template options render inside the card body instead of a floating menu. */
+#sendMessageTemplateField .filter-combobox-menu {
+  display: none;
+}
+
+#sendMessageTemplateField.is-picker-open .filter-combobox-chevron img {
+  transform: rotate(180deg);
 }
 
 #sendMessageCard .filter-combobox-trailing {
@@ -2604,115 +2662,101 @@ body.reduce-motion .campaign-continue-spinner {
   font: inherit;
   font-size: var(--font-size-base);
   outline: none;
+  position: relative;
+  top: -1px;
 }
 
-.send-message-input::placeholder,
-.send-message-textarea::placeholder {
+.send-message-input::placeholder {
   color: var(--color-text-muted);
   opacity: 1;
 }
 
 #sendMessageCard .send-message-body {
-  flex: 1 1 auto;
+  flex: 0 0 0px;
   min-height: 0;
   margin: 0;
+  padding: 0;
+  overflow: hidden;
+  transition: padding 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+#sendMessageCard.is-expanded .send-message-body,
+#sendMessageCard.is-template-animating .send-message-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#sendMessageCard.is-expanded .send-message-body {
   padding: 16px 0;
 }
 
-.send-message-editor {
+/* The template list scrolls flush to the field and footer rules so those lines clip the rows. */
+#sendMessageCard.is-expanded .send-message-body:has(.send-message-template-options:not([hidden])) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.send-message-template-options {
   flex: 1 1 auto;
-  min-width: 0;
-  min-height: 120px;
-  overflow: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.send-message-editor[hidden] {
-  display: none;
+.send-message-template-options-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-.send-message-textarea {
-  position: relative;
-  display: flow-root;
-  width: 100%;
-  min-height: 100%;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-base);
-  line-height: 1.45;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  outline: none;
-  cursor: text;
+/* Spacers scroll with the rows. At rest they keep the highlight off the rules;
+   once scrolled, the rules clip the rows with no leftover band. */
+.send-message-template-options-list::before,
+.send-message-template-options-list::after {
+  content: "";
+  flex: 0 0 14px;
 }
 
-.send-message-line:has(> br:only-child) {
-  min-height: 1.45em;
+.send-message-template-options-list::before {
+  flex-basis: 8px;
 }
 
-.send-message-textarea.is-empty::before {
-  content: attr(data-placeholder);
-  position: absolute;
-  top: 0;
-  left: 0;
-  color: var(--color-text-muted);
-  pointer-events: none;
+.send-message-template-options-list > .filter-combobox-divider {
+  flex: 0 0 auto;
+  margin: 8px 12px;
 }
 
-.send-message-inline-image {
-  position: relative;
-  display: block;
-  width: fit-content;
-  max-width: 100%;
-  margin: 8px 0;
-}
-
-.send-message-inline-image img {
-  display: block;
-  max-width: 100%;
-  height: auto;
+.send-message-template-options .filter-combobox-option,
+.send-message-template-options .filter-combobox-menu-action {
+  flex: 0 0 auto;
+  padding: 0 12px;
   border-radius: var(--radius-md);
 }
 
-.send-message-inline-image-remove {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+.send-message-template-options .filter-combobox-menu-action-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.send-message-inline-image:hover .send-message-inline-image-remove,
-.send-message-inline-image-remove:focus-visible {
-  opacity: 1;
+.send-message-template-options:not([hidden]),
+.send-message-template:not([hidden]) {
+  animation: send-message-body-swap 220ms ease both;
 }
 
-.send-message-inline-image-remove:hover {
-  background: #fff;
+@keyframes send-message-body-swap {
+  from {
+    opacity: 0;
+  }
 }
 
-.send-message-inline-image-remove img {
-  display: block;
-  width: 9px;
-  height: 9px;
-}
-
-.send-message-body.is-dragging-image .send-message-textarea {
-  border-radius: var(--radius-md);
-  box-shadow: inset 0 0 0 2px var(--color-brand);
-}
-
-.send-message-textarea[hidden],
+.send-message-template-options[hidden],
 .send-message-template[hidden],
 .send-message-template-image[hidden],
 .send-message-template-unavailable[hidden] {
@@ -2770,20 +2814,36 @@ body.reduce-motion .campaign-continue-spinner {
   border-top: 1px solid var(--color-border);
 }
 
-.send-message-attach {
-  padding: 0 15px;
+.send-message-footer .ui-button {
+  padding: 0 14px;
+}
+
+.send-message-templates {
   font-weight: 500;
 }
 
-.send-message-attach img {
+.send-message-templates[hidden] {
+  display: none;
+}
+
+.send-message-templates img {
   display: block;
   flex: 0 0 auto;
   width: 18px;
   height: 18px;
 }
 
-.send-message-attach[hidden] {
-  display: none;
+@media (max-width: 1480px) {
+  .send-message-footer .ui-button,
+  #sendMessageSend {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .send-message-templates img {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .send-message-send {
@@ -4393,6 +4453,10 @@ h1 {
   min-width: 200px;
 }
 
+#sendMessageOption[hidden] {
+  display: none;
+}
+
 .outreach-dropdown-menu > .toolbar-dropdown-option .toolbar-dropdown-icon {
   width: 18px;
   height: 18px;
@@ -5614,7 +5678,8 @@ tbody tr:not(.raw-data-row):has(.contact-hide-results-action:hover) td,
 tbody tr:not(.raw-data-row):has(.contact-hide-results-action:focus-visible) td,
 tbody tr:not(.raw-data-row):has(.contact-add-lead-action:hover) td,
 tbody tr:not(.raw-data-row):has(.contact-add-lead-action:focus-visible) td,
-tbody tr:not(.raw-data-row):has(.contact-cell-action:focus-within) td {
+tbody tr:not(.raw-data-row):has(.contact-cell-action:focus-within) td,
+tbody tr:not(.raw-data-row):has(.contact-cell-action.is-menu-open) td {
   position: relative;
   z-index: 7;
 }
@@ -5918,21 +5983,38 @@ tbody tr.is-checked:hover td:first-child {
   text-decoration: line-through;
 }
 
-.prospect-dataset-row.is-contact-hidden .location-row-number {
+.locations-table tbody tr.is-contact-hidden .location-row-number {
   color: var(--color-text-disabled);
 }
 
-.prospect-dataset-row.is-contact-hidden .location-table-value,
-.prospect-dataset-row.is-contact-hidden .location-table-email,
-.prospect-dataset-row.is-contact-hidden .location-table-phone,
-.prospect-dataset-row.is-contact-hidden .franchise-name {
+.locations-table tbody tr.is-contact-hidden .location-table-value,
+.locations-table tbody tr.is-contact-hidden .location-table-email,
+.locations-table tbody tr.is-contact-hidden .location-table-phone,
+.locations-table tbody tr.is-contact-hidden .franchise-name {
   color: var(--color-text-disabled);
   font-weight: 400;
   text-decoration: line-through;
 }
 
-.prospect-dataset-row.is-contact-hidden .franchise-logo {
+.locations-table tbody tr.is-contact-hidden .franchise-logo {
   opacity: 0.5;
+}
+
+.contact-email-text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.contact-email-text .email,
+.contact-email-text .location-table-value {
+  max-width: 100%;
+}
+
+.locations-table .contact-email-cell:hover,
+.locations-table .contact-email-cell:focus-within,
+.locations-table .contact-email-cell.is-menu-open {
+  background: var(--color-surface-table-active);
 }
 
 .dataset-franchise-cell {
@@ -6243,7 +6325,7 @@ tbody tr.is-checked:hover td:first-child {
   display: block;
 }
 
-.contact-email-copy {
+.contact-email-send {
   cursor: pointer;
 }
 
@@ -6275,6 +6357,14 @@ tbody tr.is-checked:hover td:first-child {
   height: 100%;
   padding-top: 4px;
   padding-bottom: 4px;
+}
+
+.contact-cell-action.contact-email-cell {
+  align-items: center;
+  height: 100%;
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .contact-cell-action:hover,
@@ -6328,7 +6418,8 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .contact-hide-results-action,
-.contact-add-lead-action {
+.contact-add-lead-action,
+.contact-more-action {
   position: relative;
   z-index: 3;
   width: 32px;
@@ -6436,6 +6527,59 @@ tbody tr.is-checked:hover td:first-child {
 .contact-add-lead-action.is-saved {
   background: rgba(122, 99, 221, 0.14);
   color: var(--color-brand);
+}
+
+.contact-more-action {
+  color: var(--color-text);
+}
+
+.contact-more-action::before {
+  content: "";
+  width: 3px;
+  height: 15px;
+  background-color: currentColor;
+  -webkit-mask: url("../../assets/icons/more.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/more.svg") center / contain no-repeat;
+}
+
+.contact-more-action:hover,
+.contact-more-action:focus-visible,
+.contact-more-action[aria-expanded="true"] {
+  background: #d9d9d9;
+}
+
+.contact-cell-action.is-menu-open {
+  background: var(--color-surface-table-active);
+  gap: 8px;
+}
+
+.contact-cell-action.is-menu-open .contact-row-actions {
+  max-width: 72px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.contact-cell-action.has-more-menu.is-contact-hidden:not(:hover):not(:focus-within):not(.is-menu-open) {
+  gap: 0;
+}
+
+.contact-cell-action.has-more-menu.is-contact-hidden:not(:hover):not(:focus-within):not(.is-menu-open) .contact-row-actions {
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.contact-more-menu {
+  position: fixed;
+  bottom: auto;
+  z-index: 1000;
+  width: max-content;
+  min-width: 200px;
+  padding: 10px 0;
+}
+
+.contact-more-menu .toolbar-dropdown-label {
+  white-space: nowrap;
 }
 
 .contact-hide-results-action.is-hidden:hover,

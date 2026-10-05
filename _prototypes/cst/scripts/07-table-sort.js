@@ -464,7 +464,6 @@ function renderFranchisees(rows) {
   tableBody.innerHTML = rows
     .map(
       (owner, rowIndex) => {
-        const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
         const isContactHidden = hiddenContactOwnerIndexes.has(owner.originalIndex);
         const isChecked = selectedFranchiseeIndexes.has(owner.originalIndex);
         const isRowSelected = activeDetailOwnerIndex === owner.originalIndex
@@ -503,7 +502,7 @@ function renderFranchisees(rows) {
             </div>
           </td>
           <td class="contact-cell">
-            <div class="contact-cell-action ${hasSavedLead ? "is-lead-saved" : ""} ${isContactHidden ? "is-contact-hidden" : ""}">
+            <div class="contact-cell-action has-more-menu ${isContactHidden ? "is-contact-hidden" : ""}">
               <button
                 class="ui-control contact-profile-action"
                 type="button"
@@ -512,23 +511,17 @@ function renderFranchisees(rows) {
               >
                 <span class="contact-profile-text">
                   <span class="contact-name">${owner.contactName}</span>
-                  <span class="ui-link ui-ellipsis email contact-email-copy" tabindex="0" role="button">${owner.email}</span>
+                  <span class="ui-link ui-ellipsis email contact-email-send" tabindex="0" role="button" aria-label="Send a message to ${owner.email}">${owner.email}</span>
                 </span>
               </button>
               <div class="contact-row-actions">
                 <button
-                  class="ui-control contact-hide-results-action ${isContactHidden ? "is-hidden" : ""}"
+                  class="ui-control contact-more-action"
                   type="button"
                   data-owner-index="${owner.originalIndex}"
-                  aria-label="${isContactHidden ? `Show ${owner.contactName} in results` : `Hide ${owner.contactName} from results`}"
-                  data-tooltip="${isContactHidden ? "Show in results" : "Hide from results"}"
-                ></button>
-                <button
-                  class="ui-control contact-add-lead-action ${hasSavedLead ? "is-saved" : ""}"
-                  type="button"
-                  data-owner-index="${owner.originalIndex}"
-                  aria-label="${hasSavedLead ? `Remove ${owner.contactName} from leads` : `Save ${owner.contactName} as a lead`}"
-                  data-tooltip="${hasSavedLead ? "Remove from leads" : "Save as lead"}"
+                  aria-label="More actions for ${owner.contactName}"
+                  aria-haspopup="menu"
+                  aria-expanded="false"
                 ></button>
               </div>
             </div>
@@ -625,9 +618,25 @@ function parseProspectRowStateKey(key) {
   };
 }
 
+function findLocationDatasetRow(id) {
+  const visible = displayedLocations.find((row) => row.sourceView === "locations" && row.id === id);
+  if (visible) return visible;
+
+  for (const owner of owners) {
+    const match = getOwnerLocationRows(owner).find((row) => row.id === id);
+    if (match) return match;
+  }
+
+  return null;
+}
+
 function getProspectRowByStateKey(key) {
   const parsed = parseProspectRowStateKey(key);
   if (!parsed) return null;
+
+  if (parsed.sourceView === "locations") {
+    return findLocationDatasetRow(parsed.id);
+  }
 
   return getProspectDatasetRows(parsed.sourceView).find((row) => row.id === parsed.id) || null;
 }
@@ -949,6 +958,32 @@ function getDatasetFranchiseCellMarkup(row) {
   `;
 }
 
+function getDatasetEmailCellMarkup(row) {
+  const email = normalizeDatasetCellValue(row.email);
+  const isHidden = isProspectRowHidden(row);
+  const stateKey = getProspectRowStateKey(row);
+  const labelName = row.name || "this contact";
+  const emailMarkup = email
+    ? `<span class="ui-link ui-ellipsis email contact-email-send location-table-value location-table-email" tabindex="0" role="button" aria-label="Send a message to ${email}">${email}</span>`
+    : getDatasetCellValueMarkup("", "location-table-email");
+
+  return `
+    <div class="contact-cell-action contact-email-cell has-more-menu ${isHidden ? "is-contact-hidden" : ""}">
+      <span class="contact-email-text">${emailMarkup}</span>
+      <div class="contact-row-actions">
+        <button
+          class="ui-control contact-more-action"
+          type="button"
+          data-prospect-row-key="${stateKey}"
+          aria-label="More actions for ${labelName}"
+          aria-haspopup="menu"
+          aria-expanded="false"
+        ></button>
+      </div>
+    </div>
+  `;
+}
+
 function getDatasetInstitutionCellMarkup(row) {
   if (row.isProspectDataset) {
     return getDatasetCellValueMarkup(row.institution);
@@ -976,10 +1011,10 @@ function renderLocations(rows) {
     .map((row, pageRowIndex) => {
       const rowNumber = pageRowIndex + 1;
       const isSelected = selectedLocationRowIds.has(row.id);
-      const isProspectHidden = row.isProspectDataset && isProspectRowHidden(row);
+      const isRowHidden = isProspectRowHidden(row);
 
       return `
-        <tr class="${row.isProspectDataset ? "prospect-dataset-row" : ""} ${isSelected ? "is-checked" : ""} ${isProspectHidden ? "is-contact-hidden" : ""}" ${getLocationRowAttributeMarkup(row, pageRowIndex)}>
+        <tr class="${row.isProspectDataset ? "prospect-dataset-row" : ""} ${isSelected ? "is-checked" : ""} ${isRowHidden ? "is-contact-hidden" : ""}" ${getLocationRowAttributeMarkup(row, pageRowIndex)}>
           ${getRowSelectCellMarkup({
             rowNumber,
             isSelected,
@@ -992,7 +1027,7 @@ function renderLocations(rows) {
           <td>
             ${getDatasetCellValueMarkup(row.location)}
           </td>
-          <td>${getDatasetCellValueMarkup(row.email, "location-table-email")}</td>
+          <td class="contact-cell">${getDatasetEmailCellMarkup(row)}</td>
           <td>${getDatasetCellValueMarkup(row.phone, "location-table-phone")}</td>
           <td class="location-inner-hover-cell">
             ${getDatasetFranchiseCellMarkup(row)}
@@ -2315,6 +2350,7 @@ function applySort() {
   syncSortHeaders();
   syncTableHeadingSortUI();
   updateFilterSummary();
+  if (typeof syncSendMessageSelection === "function") syncSendMessageSelection();
   maybeScheduleCstTableEnterAnimation();
 }
 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "images/..."). If it's ever opened
+    // without a trailing slash, the browser resolves those relative paths
+    // against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>Why are campaigns sent in batches?</title>
+  <link rel="icon" href="../../../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../../../assets/x192.png" />
+  <link rel="manifest" href="../../../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="../../../../../styles/site-header.css" />
+  <script src="../../../../../scripts/gate.js"></script>
+  <script src="../../../../../scripts/site-header.js"></script>
+  <script src="../../../../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../../../../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="page">
+    <header class="site-header" aria-label="Application header">
+      <div class="site-header-start">
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../../../../assets/icons/menu.svg" alt="" width="14" height="12" />
+        </button>
+        <a class="brand-lockup" href="../../../../" aria-label="Wefranch home">
+          <img class="brand-mark" src="../../../../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
+        </a>
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../../../">Docs</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <a class="breadcrumb-link" href="../">Email Campaigns</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Why are campaigns sent in batches?</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-layout">
+      <aside class="doc-sidebar proto-scrollbar" data-doc-sidebar data-doc-current="sending-in-batches"></aside>
+      <script src="../../../scripts/doc-groups.js"></script>
+      <script src="../../../scripts/breadcrumb.js"></script>
+      <script src="../../../scripts/sidebar.js"></script>
+      <article class="doc">
+        <header>
+          <h1 class="doc-title">Why are campaigns sent in batches?</h1>
+          <p class="doc-updated">Updated <time datetime="2026-10-02">Oct 2, 2026</time></p>
+        </header>
+        <hr class="doc-divider" />
+
+        <div class="doc-body">
+          <h2>How it works</h2>
+          <p>Wefranch sends your campaign in smaller batches spread over time. For domains new to sending campaigns through Wefranch, an automatic warm-up starts with a lower daily sending volume and gradually increases it. During this period, campaigns may take longer to finish sending.</p>
+          <figure class="doc-figure">
+            <img src="images/01-batches-notice.jpg" alt="Email Campaigns list with running campaigns and send progress bars." />
+          </figure>
+
+          <h2>Why we send in batches</h2>
+          <p>Sending too many emails at once can cause email providers to delay or reject messages. Spreading sends over time helps reduce that risk.</p>
+          <p>Warm-up helps your sending domain build a reputation with email providers by gradually increasing the volume instead of starting with a large campaign.</p>
+          <p>Batching and warm-up are part of the normal sending process.</p>
+
+          <h2>What this means for you</h2>
+          <ul>
+            <li><span><strong>It's automatic.</strong> There's nothing to configure.</span></li>
+            <li><span><strong>Your campaign sends gradually.</strong> Some recipients will receive it before others.</span></li>
+            <li><span><strong>Initial campaigns take longer.</strong> During warm-up, fewer emails are sent each day.</span></li>
+            <li><span><strong>Larger campaigns take more time.</strong> Depending on your audience size and current sending limit, sending may continue over multiple days.</span></li>
+          </ul>
+          <p>Selecting your recipients sets your campaign's audience. Batching and warm-up determine how quickly emails are sent to that audience.</p>
+          <p>For support, please email <a class="ui-link" href="mailto:mariyam@wefranch.com">mariyam@wefranch.com</a>.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,13 +1,15 @@
 const SEND_MESSAGE_TRANSITION_MS = 300;
+const SEND_MESSAGE_EXPAND_MS = 420;
 const SEND_MESSAGE_SEND_DELAY_MS = 1000;
 const SEND_MESSAGE_FIELD_ERRORS = {
   sender: "Choose a sender email",
   recipients: "Add at least one recipient",
   subject: "Enter a subject",
-  body: "Write a message, attach an image, or choose a template"
+  template: "Choose a template"
 };
 
 const sendMessageOption = document.getElementById("sendMessageOption");
+const sendMessageOptionLabel = sendMessageOption?.querySelector(".toolbar-dropdown-label");
 const sendMessageCard = document.getElementById("sendMessageCard");
 const sendMessageClose = document.getElementById("sendMessageClose");
 const sendMessageForm = document.getElementById("sendMessageForm");
@@ -15,28 +17,33 @@ const sendMessageFromField = document.getElementById("sendMessageFromField");
 const sendMessageFromSelect = document.getElementById("sendMessageFromSelect");
 const sendMessageRecipientsField = document.getElementById("sendMessageRecipientsField");
 const sendMessageRecipientsSelect = document.getElementById("sendMessageRecipientsSelect");
+const sendMessageRecipientsLabel = document.getElementById("sendMessageRecipientsLabel");
 const sendMessageTemplateField = document.getElementById("sendMessageTemplateField");
 const sendMessageTemplateSelect = document.getElementById("sendMessageTemplateSelect");
 const sendMessageSubject = document.getElementById("sendMessageSubject");
 const sendMessageBodyField = document.getElementById("sendMessageBodyField");
-const sendMessageEditor = document.getElementById("sendMessageEditor");
-const sendMessageBody = document.getElementById("sendMessageBody");
+const sendMessageTemplateOptions = document.getElementById("sendMessageTemplateOptions");
 const sendMessageTemplatePreview = document.getElementById("sendMessageTemplatePreview");
 const sendMessageTemplatePreviewFrame = document.getElementById("sendMessageTemplatePreviewFrame");
 const sendMessageTemplateImage = document.getElementById("sendMessageTemplateImage");
 const sendMessageTemplateUnavailable = document.getElementById("sendMessageTemplateUnavailable");
 const sendMessageSend = document.getElementById("sendMessageSend");
-const sendMessageAttach = document.getElementById("sendMessageAttach");
-const sendMessageAttachInput = document.getElementById("sendMessageAttachInput");
+const sendMessageTemplates = document.getElementById("sendMessageTemplates");
 
-let sendMessageCaretRange = null;
-let sendMessageImageUrls = new Set();
 let sendMessageFromApi = null;
 let sendMessageRecipientsApi = null;
 let sendMessageTemplateApi = null;
 let sendMessageCloseTimeoutId = null;
+let sendMessageExpandFrame = 0;
+let sendMessageExpandTimer = null;
+let sendMessageExpandFrameId = 0;
+let sendMessageExpandEnd = null;
 let sendMessageSendTimeoutId = null;
+let sendMessageTemplatePickerOpen = false;
+let sendMessageTemplateActiveIndex = -1;
 let sendMessagePending = false;
+let sendMessageSelectionKey = "";
+let sendMessageContactRecipients = [];
 
 function isSendMessageOpen() {
   return Boolean(sendMessageCard && !sendMessageCard.hidden && !sendMessageCard.classList.contains("is-closing"));
@@ -67,21 +74,107 @@ function getSendMessageRecipientCandidates() {
     }));
 }
 
+function getActiveSendMessageSelection() {
+  if (isDatasetTableView()) {
+    const rows = displayedLocations.filter((row) => selectedLocationRowIds.has(row.id));
+    return {
+      count: rows.length,
+      key: `dataset:${rows.map((row) => row.id).sort().join("\u0001")}`,
+      recipients: rows.map((row) => ({
+        email: row.email,
+        name: row.name,
+        organization: row.institution
+      }))
+    };
+  }
+
+  const selectedOwners = displayedFranchisees.filter((owner) => (
+    selectedFranchiseeIndexes.has(owner.originalIndex)
+  ));
+  return {
+    count: selectedOwners.length,
+    key: `franchisees:${selectedOwners.map((owner) => owner.originalIndex).sort((a, b) => a - b).join("\u0001")}`,
+    recipients: selectedOwners.map((owner) => ({
+      email: owner.email,
+      name: owner.contactName,
+      organization: owner.ownerName
+    }))
+  };
+}
+
+function getSendMessageSelectionEmails(recipients) {
+  const seenEmails = new Set();
+  const emails = [];
+
+  recipients.forEach((recipient) => {
+    const email = String(recipient.email || "").trim().toLowerCase();
+    if (!email || seenEmails.has(email)) return;
+    seenEmails.add(email);
+    emails.push(email);
+  });
+
+  return emails;
+}
+
 function getSendMessageRecipientOptions() {
   const seenEmails = new Set();
+  const options = [];
 
-  return getSendMessageRecipientCandidates().flatMap((recipient) => {
+  const addRecipient = (recipient) => {
     const email = String(recipient.email || "").trim().toLowerCase();
     const name = String(recipient.name || "").trim();
-    if (!email || seenEmails.has(email)) return [];
+    if (!email || seenEmails.has(email)) return;
 
     seenEmails.add(email);
-    return [{
+    options.push({
       label: name || email,
       value: email,
       meta: [recipient.organization, email].filter(Boolean).join(" · ")
-    }];
-  });
+    });
+  };
+
+  getSendMessageRecipientCandidates().forEach(addRecipient);
+  getActiveSendMessageSelection().recipients.forEach(addRecipient);
+  sendMessageContactRecipients.forEach(addRecipient);
+  return options;
+}
+
+function syncSendMessageRecipientCountLabel() {
+  const recipientCount = window.WefranchFilterCombobox.getValues(sendMessageRecipientsSelect).length;
+  const label = `To (${recipientCount.toLocaleString("en-US")})`;
+  if (sendMessageRecipientsLabel) sendMessageRecipientsLabel.textContent = label;
+  sendMessageRecipientsSelect?.setAttribute("aria-label", label);
+  return recipientCount;
+}
+
+function applySelectedSendMessageRecipients(recipients) {
+  if (!sendMessageRecipientsSelect || !sendMessageRecipientsApi) return;
+
+  const emails = getSendMessageSelectionEmails(recipients);
+  const optionValues = new Set(Array.from(sendMessageRecipientsSelect.options, (option) => option.value));
+  if (emails.some((email) => !optionValues.has(email))) {
+    sendMessageRecipientsApi.setOptions(getSendMessageRecipientOptions(), { placeholder: "Add recipient" });
+  }
+
+  window.WefranchFilterCombobox.setValues(sendMessageRecipientsSelect, emails);
+  sendMessageRecipientsSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  if (emails.length) window.WefranchFieldErrors?.clear(sendMessageRecipientsField);
+}
+
+function syncSendMessageSelection({ applyRecipients = false } = {}) {
+  const selection = getActiveSendMessageSelection();
+  if (sendMessageOption) sendMessageOption.hidden = selection.count === 0;
+  if (sendMessageOptionLabel) {
+    sendMessageOptionLabel.textContent = selection.count
+      ? `Send a message (${selection.count.toLocaleString("en-US")})...`
+      : "Send a message...";
+  }
+
+  const selectionChanged = selection.key !== sendMessageSelectionKey;
+  sendMessageSelectionKey = selection.key;
+  if (applyRecipients || (selectionChanged && isSendMessageOpen())) {
+    applySelectedSendMessageRecipients(selection.recipients);
+  }
 }
 
 function getSendMessageTemplateOptions() {
@@ -97,235 +190,274 @@ function closeSendMessageDropdowns() {
   sendMessageFromApi?.close();
   sendMessageRecipientsApi?.close();
   sendMessageTemplateApi?.close();
+  closeSendMessageTemplatePicker();
 }
 
 function isSendMessageDropdownOpen() {
-  return Boolean(sendMessageCard?.querySelector(".filter-select-field.is-open"));
+  return sendMessageTemplatePickerOpen
+    || Boolean(sendMessageCard?.querySelector(".filter-select-field.is-open"));
 }
 
-function getSendMessageImageFiles(fileList) {
-  return Array.from(fileList || []).filter((file) => file.type.startsWith("image/"));
+function getSendMessageTemplateInput() {
+  return sendMessageTemplateField?.querySelector(".filter-combobox-input") || null;
 }
 
-function getClipboardImageFiles(data) {
-  const fromFiles = getSendMessageImageFiles(data?.files);
-  if (fromFiles.length) return fromFiles;
-
-  return Array.from(data?.items || [])
-    .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
-    .map((item) => item.getAsFile())
-    .filter(Boolean);
+function getSendMessageTemplateOptionButtons() {
+  return Array.from(sendMessageTemplateOptions?.querySelectorAll(".filter-combobox-option, .filter-combobox-menu-action") || []);
 }
 
-function isSendMessageFileDrag(event) {
-  return !getSendMessageTemplateId() && Array.from(event.dataTransfer?.types || []).includes("Files");
+function isSendMessageCreateTemplateAction(button) {
+  return button?.dataset.action === "create-template";
 }
 
-function getSendMessageBodyText() {
-  return String(sendMessageBody?.innerText || "").replace(/\u00a0/g, " ").trim();
+function setSendMessageTemplateActiveOption(index) {
+  const buttons = getSendMessageTemplateOptionButtons();
+  const input = getSendMessageTemplateInput();
+  sendMessageTemplateActiveIndex = buttons.length && index >= 0
+    ? (index + buttons.length) % buttons.length
+    : -1;
+
+  buttons.forEach((button, buttonIndex) => {
+    const isActive = buttonIndex === sendMessageTemplateActiveIndex;
+    button.classList.toggle("is-active", isActive);
+    if (isActive) {
+      input?.setAttribute("aria-activedescendant", button.id);
+      button.scrollIntoView({ block: "nearest" });
+    }
+  });
+  if (sendMessageTemplateActiveIndex < 0) input?.removeAttribute("aria-activedescendant");
 }
 
-function createSendMessageLine() {
-  const line = document.createElement("div");
-  line.className = "send-message-line";
-  line.append(document.createElement("br"));
-  return line;
-}
+function renderSendMessageTemplateOptions() {
+  if (!sendMessageTemplateOptions) return;
 
-function isSendMessageLine(node) {
-  return node?.nodeType === Node.ELEMENT_NODE && node.classList.contains("send-message-line");
-}
+  const selectedId = getSendMessageTemplateId();
+  const templates = getSendMessageTemplateOptions();
+  const list = document.createElement("div");
+  list.className = "send-message-template-options-list proto-scrollbar";
 
-function sendMessageLineIsEmpty(line) {
-  return isSendMessageLine(line) && !line.textContent.replace(/\u00a0/g, " ").trim();
-}
+  const action = document.createElement("button");
+  const icon = document.createElement("span");
+  const actionLabel = document.createElement("span");
+  action.type = "button";
+  action.tabIndex = -1;
+  action.id = "sendMessageTemplateOption-create";
+  action.className = "filter-combobox-menu-action";
+  action.dataset.action = "create-template";
+  action.setAttribute("role", "option");
+  action.setAttribute("aria-selected", "false");
+  icon.className = "filter-combobox-menu-action-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.style.backgroundImage = 'url("../../assets/icons/add.svg")';
+  actionLabel.className = "filter-combobox-menu-action-label";
+  actionLabel.textContent = "Create new template";
+  action.append(icon, actionLabel);
+  list.append(action);
 
-function hasEditableContentBefore(node) {
-  let sibling = node?.previousSibling;
-  while (sibling) {
-    if (sibling.nodeType === Node.TEXT_NODE && sibling.textContent.replace(/\u00a0/g, " ").trim()) return true;
-    if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName !== "BR" && !sibling.classList.contains("send-message-inline-image")) return true;
-    sibling = sibling.previousSibling;
+  if (templates.length) {
+    const divider = document.createElement("div");
+    divider.className = "filter-combobox-divider";
+    divider.setAttribute("role", "separator");
+    list.append(divider);
   }
-  return false;
+
+  templates.forEach(({ label, value }) => {
+    const button = document.createElement("button");
+    const check = document.createElement("span");
+    const text = document.createElement("span");
+    const isSelected = value === selectedId;
+
+    button.type = "button";
+    button.tabIndex = -1;
+    button.id = `sendMessageTemplateOption-${value}`;
+    button.className = "filter-combobox-option";
+    button.classList.toggle("is-selected", isSelected);
+    button.dataset.value = value;
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", String(isSelected));
+    check.className = "filter-combobox-option-check";
+    check.setAttribute("aria-hidden", "true");
+    text.className = "filter-combobox-option-label";
+    text.textContent = label;
+    button.append(check, text);
+    list.append(button);
+  });
+
+  sendMessageTemplateOptions.replaceChildren(list);
 }
 
-function hasEditableContentAfter(node) {
-  let sibling = node?.nextSibling;
-  while (sibling) {
-    if (sibling.nodeType === Node.TEXT_NODE && sibling.textContent.replace(/\u00a0/g, " ").trim()) return true;
-    if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName !== "BR" && !sibling.classList.contains("send-message-inline-image")) return true;
-    sibling = sibling.nextSibling;
+function setSendMessageTemplatePickerOpen(isOpen) {
+  if (sendMessageTemplatePickerOpen === isOpen) return;
+
+  sendMessageTemplatePickerOpen = isOpen;
+  sendMessageTemplateField?.classList.toggle("is-picker-open", isOpen);
+  getSendMessageTemplateInput()?.setAttribute("aria-expanded", String(isOpen));
+
+  if (isOpen) {
+    sendMessageFromApi?.close();
+    sendMessageRecipientsApi?.close();
+    renderSendMessageTemplateOptions();
+    const selectedIndex = getSendMessageTemplateOptions()
+      .findIndex((option) => option.value === getSendMessageTemplateId());
+    // The create action is the first row, so saved templates start at index 1.
+    setSendMessageTemplateActiveOption(selectedIndex < 0 ? -1 : selectedIndex + 1);
+  } else {
+    setSendMessageTemplateActiveOption(-1);
   }
-  return false;
+
+  syncSendMessageTemplate();
 }
 
-function ensureSendMessageCaretSlots() {
-  if (!sendMessageBody) return;
+function openSendMessageTemplatePicker() {
+  setSendMessageTemplatePickerOpen(true);
+}
 
-  const images = [...sendMessageBody.querySelectorAll(":scope > .send-message-inline-image")];
-  if (!images.length) {
-    if (!sendMessageBody.childNodes.length) sendMessageBody.append(document.createElement("br"));
+function closeSendMessageTemplatePicker() {
+  setSendMessageTemplatePickerOpen(false);
+}
+
+function selectSendMessageTemplate(templateId) {
+  if (!CAMPAIGN_DESIGN_TEMPLATES[templateId]) return;
+
+  sendMessageTemplatePickerOpen = false;
+  sendMessageTemplateField?.classList.remove("is-picker-open");
+  getSendMessageTemplateInput()?.setAttribute("aria-expanded", "false");
+  setSendMessageTemplateActiveOption(-1);
+  sendMessageTemplateApi?.setValue(templateId);
+}
+
+function setSendMessageBodyRevealed(isRevealed) {
+  if (!sendMessageBodyField) return;
+  sendMessageBodyField.inert = !isRevealed;
+  sendMessageBodyField.setAttribute("aria-hidden", isRevealed ? "false" : "true");
+}
+
+function hideSendMessageBodyContent() {
+  if (sendMessageTemplateOptions) sendMessageTemplateOptions.hidden = true;
+  if (sendMessageTemplatePreview) sendMessageTemplatePreview.hidden = true;
+  setSendMessageBodyRevealed(false);
+}
+
+function invalidateSendMessageExpand() {
+  sendMessageExpandFrame += 1;
+  window.clearTimeout(sendMessageExpandTimer);
+  sendMessageExpandTimer = null;
+  if (sendMessageExpandFrameId) {
+    window.cancelAnimationFrame(sendMessageExpandFrameId);
+    sendMessageExpandFrameId = 0;
+  }
+  if (sendMessageExpandEnd) {
+    sendMessageCard?.removeEventListener("transitionend", sendMessageExpandEnd);
+    sendMessageExpandEnd = null;
+  }
+}
+
+function finishSendMessageExpandLayout() {
+  if (!sendMessageCard) return;
+  sendMessageCard.classList.remove("is-template-animating");
+  sendMessageCard.style.height = "";
+  sendMessageCard.style.transition = "";
+  if (sendMessageBodyField) sendMessageBodyField.style.transition = "";
+}
+
+function animateSendMessageCard(isExpanded) {
+  const card = sendMessageCard;
+  if (!card) return;
+
+  invalidateSendMessageExpand();
+
+  const reducedMotion = document.body.classList.contains("reduce-motion");
+  if (!isSendMessageOpen() || reducedMotion) {
+    card.classList.toggle("is-expanded", isExpanded);
+    finishSendMessageExpandLayout();
+    if (!isExpanded) hideSendMessageBodyContent();
+    else setSendMessageBodyRevealed(true);
     return;
   }
 
-  images.forEach((image) => {
-    if (hasEditableContentBefore(image)) return;
-    const previous = image.previousSibling;
-    if (previous?.nodeName === "BR") previous.replaceWith(createSendMessageLine());
-    else image.before(createSendMessageLine());
-  });
-  const lastImage = images[images.length - 1];
-  if (hasEditableContentAfter(lastImage)) return;
-  const next = lastImage.nextSibling;
-  if (next?.nodeName === "BR") next.replaceWith(createSendMessageLine());
-  else lastImage.after(createSendMessageLine());
-}
+  const frame = sendMessageExpandFrame;
+  const startHeight = card.getBoundingClientRect().height;
 
-function syncSendMessageBodyEmpty() {
-  const currentUrls = new Set();
-  sendMessageBody?.querySelectorAll(".send-message-inline-image img").forEach((image) => {
-    currentUrls.add(image.src);
-  });
-  sendMessageImageUrls.forEach((url) => {
-    if (!currentUrls.has(url) && url.startsWith("blob:")) URL.revokeObjectURL(url);
-  });
-  sendMessageImageUrls = currentUrls;
-  sendMessageBody?.classList.toggle("is-empty", !getSendMessageBodyText() && !currentUrls.size);
-}
+  card.style.transition = "none";
+  if (sendMessageBodyField) sendMessageBodyField.style.transition = "none";
+  card.classList.remove("is-template-animating");
+  card.classList.toggle("is-expanded", isExpanded);
+  card.style.height = "";
+  const endHeight = card.getBoundingClientRect().height;
 
-function getSendMessageCaretRange() {
-  const selection = window.getSelection();
-  if (selection?.rangeCount && sendMessageBody?.contains(selection.anchorNode)) {
-    return selection.getRangeAt(0);
-  }
-  if (sendMessageCaretRange && sendMessageBody?.contains(sendMessageCaretRange.startContainer)) {
-    return sendMessageCaretRange.cloneRange();
+  if (Math.abs(endHeight - startHeight) < 1) {
+    if (sendMessageBodyField) sendMessageBodyField.style.transition = "";
+    finishSendMessageExpandLayout();
+    if (!isExpanded) hideSendMessageBodyContent();
+    else setSendMessageBodyRevealed(true);
+    return;
   }
 
-  const range = document.createRange();
-  if (sendMessageBody) {
-    range.selectNodeContents(sendMessageBody);
-    range.collapse(false);
-  }
-  return range;
-}
+  // Lock the starting height while transitions are off so the measurement
+  // pass cannot become the animation's from-value.
+  card.classList.toggle("is-expanded", !isExpanded);
+  card.classList.add("is-template-animating");
+  card.style.height = `${startHeight}px`;
+  setSendMessageBodyRevealed(true);
+  void card.offsetWidth;
+  card.style.transition = "";
+  if (sendMessageBodyField) sendMessageBodyField.style.transition = "";
+  void card.offsetWidth;
 
-function getSendMessageRangeAtPoint(x, y) {
-  const fromPoint = document.caretRangeFromPoint?.(x, y);
-  if (fromPoint && sendMessageBody?.contains(fromPoint.startContainer)) return fromPoint;
-
-  const position = document.caretPositionFromPoint?.(x, y);
-  if (position && sendMessageBody?.contains(position.offsetNode)) {
-    const range = document.createRange();
-    range.setStart(position.offsetNode, position.offset);
-    range.collapse(true);
-    return range;
-  }
-
-  return getSendMessageCaretRange();
-}
-
-function placeSendMessageCaret(node, after) {
-  const selection = window.getSelection();
-  const range = document.createRange();
-  if (after) range.setStartAfter(node);
-  else range.setStartBefore(node);
-  range.collapse(true);
-  selection?.removeAllRanges();
-  selection?.addRange(range);
-  sendMessageCaretRange = range.cloneRange();
-}
-
-function placeSendMessageCaretAfter(node) {
-  placeSendMessageCaret(node, true);
-}
-
-function placeSendMessageCaretBefore(node) {
-  placeSendMessageCaret(node, false);
-}
-
-function insertSendMessageText(text) {
-  if (!text || !sendMessageBody) return;
-
-  const range = getSendMessageCaretRange();
-  range.deleteContents();
-  const node = document.createTextNode(text);
-  range.insertNode(node);
-  placeSendMessageCaretAfter(node);
-  syncSendMessageBodyEmpty();
-}
-
-function insertSendMessageImages(files, range = getSendMessageCaretRange()) {
-  const images = getSendMessageImageFiles(files);
-  if (!images.length || !sendMessageBody) return;
-
-  sendMessageBody.focus({ preventScroll: true });
-  range.deleteContents();
-
-  let lastImage = null;
-  images.forEach((file) => {
-    const name = file.name || "Attached image";
-    const figure = document.createElement("figure");
-    figure.className = "send-message-inline-image";
-    figure.contentEditable = "false";
-
-    const image = document.createElement("img");
-    image.src = URL.createObjectURL(file);
-    image.alt = name;
-    image.draggable = false;
-
-    const removeButton = document.createElement("button");
-    removeButton.className = "ui-control send-message-inline-image-remove";
-    removeButton.type = "button";
-    removeButton.setAttribute("aria-label", `Remove ${name}`);
-    removeButton.innerHTML = '<img src="../../assets/icons/remove.svg" alt="" aria-hidden="true">';
-
-    figure.append(image, removeButton);
-    range.insertNode(figure);
-    range.setStartAfter(figure);
-    range.collapse(true);
-    lastImage = figure;
+  sendMessageExpandFrameId = window.requestAnimationFrame(() => {
+    sendMessageExpandFrameId = 0;
+    if (frame !== sendMessageExpandFrame) return;
+    card.classList.toggle("is-expanded", isExpanded);
+    card.style.height = `${endHeight}px`;
   });
 
-  ensureSendMessageCaretSlots();
-  const trailingLine = lastImage?.nextElementSibling;
-  if (sendMessageLineIsEmpty(trailingLine) && trailingLine.firstChild) {
-    placeSendMessageCaretBefore(trailingLine.firstChild);
-  } else if (lastImage) {
-    placeSendMessageCaretAfter(lastImage);
-  }
-  syncSendMessageBodyEmpty();
-  window.WefranchFieldErrors?.clear(sendMessageBodyField);
-  lastImage?.scrollIntoView({ block: "nearest" });
-}
+  const settle = () => {
+    if (frame !== sendMessageExpandFrame) return;
+    invalidateSendMessageExpand();
+    finishSendMessageExpandLayout();
+    if (!card.classList.contains("is-expanded")) hideSendMessageBodyContent();
+  };
 
-function clearSendMessageBody() {
-  sendMessageCaretRange = null;
-  if (sendMessageAttachInput) sendMessageAttachInput.value = "";
-  if (sendMessageBody) sendMessageBody.replaceChildren();
-  ensureSendMessageCaretSlots();
-  syncSendMessageBodyEmpty();
+  sendMessageExpandEnd = (event) => {
+    if (event.target !== card || event.propertyName !== "height") return;
+    settle();
+  };
+  card.addEventListener("transitionend", sendMessageExpandEnd);
+  sendMessageExpandTimer = window.setTimeout(settle, SEND_MESSAGE_EXPAND_MS + 50);
 }
 
 function syncSendMessageTemplate() {
   const templateId = getSendMessageTemplateId();
   const hasTemplate = Boolean(templateId);
   const showPreviewImage = templateId === CAMPAIGN_DESIGN_PREVIEW_TEMPLATE_ID;
+  const showOptions = sendMessageTemplatePickerOpen;
+  const shouldExpand = showOptions || hasTemplate;
+  const isExpanded = Boolean(sendMessageCard?.classList.contains("is-expanded"));
 
-  sendMessageCard?.classList.toggle("has-template", hasTemplate);
-  if (sendMessageEditor) sendMessageEditor.hidden = hasTemplate;
-  if (sendMessageAttach) sendMessageAttach.hidden = hasTemplate;
-  if (sendMessageTemplatePreview) sendMessageTemplatePreview.hidden = !hasTemplate;
-  sendMessageTemplatePreviewFrame?.classList.toggle("is-unavailable", hasTemplate && !showPreviewImage);
-  if (sendMessageTemplateImage) sendMessageTemplateImage.hidden = !showPreviewImage;
-  if (sendMessageTemplateUnavailable) {
-    sendMessageTemplateUnavailable.hidden = !hasTemplate || showPreviewImage;
+  if (hasTemplate) window.WefranchFieldErrors?.clear(sendMessageTemplateField);
+  if (sendMessageTemplates) sendMessageTemplates.hidden = !hasTemplate;
+
+  // When collapsing, keep the current content visible until the card closes.
+  if (shouldExpand) {
+    if (sendMessageTemplateOptions) sendMessageTemplateOptions.hidden = !showOptions;
+    if (sendMessageTemplatePreview) {
+      const wasHidden = sendMessageTemplatePreview.hidden;
+      sendMessageTemplatePreview.hidden = showOptions;
+      if (!showOptions && wasHidden && sendMessageTemplatePreviewFrame) {
+        sendMessageTemplatePreviewFrame.scrollTop = 0;
+      }
+    }
+    sendMessageTemplatePreviewFrame?.classList.toggle("is-unavailable", !showPreviewImage);
+    if (sendMessageTemplateImage) sendMessageTemplateImage.hidden = !showPreviewImage;
+    if (sendMessageTemplateUnavailable) sendMessageTemplateUnavailable.hidden = showPreviewImage;
   }
-  if (hasTemplate && sendMessageTemplatePreviewFrame) {
-    sendMessageTemplatePreviewFrame.scrollTop = 0;
+
+  if (isExpanded === shouldExpand && !sendMessageCard?.classList.contains("is-template-animating")) {
+    if (!shouldExpand) hideSendMessageBodyContent();
+    return;
   }
-  if (hasTemplate) window.WefranchFieldErrors?.clear(sendMessageBodyField);
+
+  animateSendMessageCard(shouldExpand);
 }
 
 function setSendMessagePending(isPending) {
@@ -345,15 +477,16 @@ function resetSendMessageForm() {
   closeSendMessageDropdowns();
   window.WefranchFieldErrors?.clearAll(sendMessageCard, { silent: true });
 
+  sendMessageContactRecipients = [];
   sendMessageFromApi?.setOptions(getSendMessageSenderOptions(), { placeholder: "Select sender" });
   sendMessageFromApi?.reset(getDefaultCampaignSenderEmail());
   sendMessageRecipientsApi?.setOptions(getSendMessageRecipientOptions(), { placeholder: "Add recipient" });
   sendMessageRecipientsApi?.reset("");
-  sendMessageTemplateApi?.setOptions(getSendMessageTemplateOptions(), { placeholder: "Select" });
+  syncSendMessageRecipientCountLabel();
+  sendMessageTemplateApi?.setOptions(getSendMessageTemplateOptions(), { placeholder: "Select..." });
   sendMessageTemplateApi?.reset("");
 
   if (sendMessageSubject) sendMessageSubject.value = "";
-  clearSendMessageBody();
   syncSendMessageTemplate();
 }
 
@@ -363,23 +496,49 @@ function focusSendMessageRecipients() {
   });
 }
 
-function openSendMessageCard() {
+function addSendMessageContactRecipient(contact) {
+  sendMessageContactRecipients.push(contact);
+  const currentRecipients = window.WefranchFilterCombobox
+    .getValues(sendMessageRecipientsSelect)
+    .map((email) => ({ email }));
+  applySelectedSendMessageRecipients([...currentRecipients, contact]);
+}
+
+function focusSendMessageSubject() {
+  window.requestAnimationFrame(() => {
+    sendMessageSubject?.focus({ preventScroll: true });
+  });
+}
+
+function openSendMessageCard({ contact = null } = {}) {
   if (!sendMessageCard) return;
 
   document.getElementById("outreachBtn")?.removeAttribute("open");
 
   if (isSendMessageOpen()) {
-    focusSendMessageRecipients();
+    if (contact) {
+      addSendMessageContactRecipient(contact);
+      focusSendMessageSubject();
+    } else {
+      focusSendMessageRecipients();
+    }
     return;
   }
 
   window.clearTimeout(sendMessageCloseTimeoutId);
   resetSendMessageForm();
+  if (contact) {
+    syncSendMessageSelection();
+    addSendMessageContactRecipient(contact);
+  } else {
+    syncSendMessageSelection({ applyRecipients: true });
+  }
   sendMessageCard.classList.remove("is-closing");
   sendMessageCard.hidden = false;
   void sendMessageCard.offsetWidth;
   sendMessageCard.classList.add("is-open");
-  focusSendMessageRecipients();
+  if (contact) focusSendMessageSubject();
+  else focusSendMessageRecipients();
 }
 
 function closeSendMessageCard() {
@@ -387,6 +546,7 @@ function closeSendMessageCard() {
 
   cancelSendMessagePending();
   closeSendMessageDropdowns();
+  invalidateSendMessageExpand();
   if (sendMessageCard.contains(document.activeElement)) {
     document.activeElement.blur();
   }
@@ -406,7 +566,6 @@ function getSendMessageErrors() {
   const senderEmail = sendMessageFromApi?.getValue() || "";
   const recipients = window.WefranchFilterCombobox.getValues(sendMessageRecipientsSelect);
   const subject = String(sendMessageSubject?.value || "").trim();
-  const body = getSendMessageBodyText();
 
   if (!isCampaignSenderEmailAuthorized(senderEmail)) {
     errors.push({ field: sendMessageFromField, message: SEND_MESSAGE_FIELD_ERRORS.sender });
@@ -417,8 +576,8 @@ function getSendMessageErrors() {
   if (!subject) {
     errors.push({ field: sendMessageSubject, message: SEND_MESSAGE_FIELD_ERRORS.subject });
   }
-  if (!getSendMessageTemplateId() && !body && !sendMessageImageUrls.size) {
-    errors.push({ field: sendMessageBody, message: SEND_MESSAGE_FIELD_ERRORS.body });
+  if (!getSendMessageTemplateId()) {
+    errors.push({ field: sendMessageTemplateField, message: SEND_MESSAGE_FIELD_ERRORS.template });
   }
 
   return errors;
@@ -478,7 +637,7 @@ sendMessageRecipientsField?.addEventListener("focusin", () => {
 
 let sendMessageRecipientCount = 0;
 sendMessageRecipientsSelect?.addEventListener("change", () => {
-  const recipientCount = window.WefranchFilterCombobox.getValues(sendMessageRecipientsSelect).length;
+  const recipientCount = syncSendMessageRecipientCountLabel();
   if (recipientCount > sendMessageRecipientCount && sendMessageRecipientsControl) {
     sendMessageRecipientsControl.scrollTop = sendMessageRecipientsControl.scrollHeight;
   }
@@ -491,84 +650,99 @@ sendMessageTemplateApi = window.WefranchFilterCombobox.enhance(sendMessageTempla
   searchable: false
 });
 
-sendMessageTemplateSelect?.addEventListener("change", syncSendMessageTemplate);
+getSendMessageTemplateInput()?.setAttribute("aria-controls", "sendMessageTemplateOptions");
 
-sendMessageAttach?.addEventListener("click", () => {
-  sendMessageAttachInput?.click();
+sendMessageTemplateSelect?.addEventListener("change", () => {
+  if (sendMessageTemplatePickerOpen) renderSendMessageTemplateOptions();
+  syncSendMessageTemplate();
 });
 
-sendMessageAttachInput?.addEventListener("change", () => {
-  insertSendMessageImages(sendMessageAttachInput.files);
-  sendMessageAttachInput.value = "";
-});
-
-document.addEventListener("selectionchange", () => {
-  const selection = window.getSelection();
-  if (!selection?.rangeCount || !sendMessageBody?.contains(selection.anchorNode)) return;
-  sendMessageCaretRange = selection.getRangeAt(0).cloneRange();
-});
-
-sendMessageBody?.addEventListener("focus", ensureSendMessageCaretSlots);
-
-sendMessageBody?.addEventListener("input", () => {
-  ensureSendMessageCaretSlots();
-  syncSendMessageBodyEmpty();
-});
-
-sendMessageBodyField?.addEventListener("mousedown", (event) => {
-  if (getSendMessageTemplateId()) return;
-  if (event.target !== sendMessageBodyField) return;
-  event.preventDefault();
-  sendMessageBody?.focus({ preventScroll: true });
-});
-
-sendMessageBody?.addEventListener("click", (event) => {
-  const removeButton = event.target.closest(".send-message-inline-image-remove");
-  if (!removeButton || !sendMessageBody.contains(removeButton)) return;
+// Capture so the shared combobox never opens its floating menu for this field.
+sendMessageTemplateField?.addEventListener("mousedown", (event) => {
+  if (event.target.closest(".filter-combobox-clear")) return;
 
   event.preventDefault();
-  const figure = removeButton.closest(".send-message-inline-image");
-  const next = figure?.nextSibling;
-  const previous = figure?.previousSibling;
-  figure?.remove();
-  let line = sendMessageBody.querySelector(".send-message-line");
-  while (line) {
-    const following = line.nextElementSibling;
-    if (sendMessageLineIsEmpty(line) && sendMessageLineIsEmpty(following)) following.remove();
-    else line = following;
+  event.stopPropagation();
+  getSendMessageTemplateInput()?.focus({ preventScroll: true });
+  setSendMessageTemplatePickerOpen(!sendMessageTemplatePickerOpen);
+}, true);
+
+// Open the list before the shared clear handler empties the value, so the
+// card stays expanded and swaps the preview for the options.
+sendMessageTemplateField?.addEventListener("click", (event) => {
+  if (!event.target.closest(".filter-combobox-clear")) return;
+  if (getSendMessageTemplateId()) openSendMessageTemplatePicker();
+}, true);
+
+sendMessageTemplateField?.addEventListener("keydown", (event) => {
+  if (event.target.closest(".filter-combobox-clear")) return;
+
+  const isOpen = sendMessageTemplatePickerOpen;
+  let handled = true;
+
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    const step = event.key === "ArrowDown" ? 1 : -1;
+    if (!isOpen) {
+      openSendMessageTemplatePicker();
+      if (sendMessageTemplateActiveIndex < 0) {
+        const openedCount = getSendMessageTemplateOptionButtons().length;
+        setSendMessageTemplateActiveOption(step > 0 ? 0 : openedCount - 1);
+      }
+    } else {
+      const count = getSendMessageTemplateOptionButtons().length;
+      const current = sendMessageTemplateActiveIndex < 0 && step < 0
+        ? 0
+        : sendMessageTemplateActiveIndex;
+      const next = count ? (current + step + count) % count : -1;
+      setSendMessageTemplateActiveOption(next);
+    }
+  } else if (event.key === "Enter" || event.key === " ") {
+    const activeButton = getSendMessageTemplateOptionButtons()[sendMessageTemplateActiveIndex];
+    if (isOpen && isSendMessageCreateTemplateAction(activeButton)) {
+      handled = true;
+    } else if (isOpen && activeButton) selectSendMessageTemplate(activeButton.dataset.value);
+    else if (!isOpen) openSendMessageTemplatePicker();
+    else closeSendMessageTemplatePicker();
+  } else if (event.key === "Escape" && isOpen) {
+    closeSendMessageTemplatePicker();
+  } else {
+    handled = false;
   }
-  ensureSendMessageCaretSlots();
-  syncSendMessageBodyEmpty();
-  sendMessageBody.focus({ preventScroll: true });
-  if (next && sendMessageBody.contains(next)) placeSendMessageCaretBefore(next.nodeType === Node.ELEMENT_NODE ? next.firstChild || next : next);
-  else if (previous && sendMessageBody.contains(previous)) placeSendMessageCaretAfter(previous);
-});
 
-sendMessageBody?.addEventListener("paste", (event) => {
+  if (!handled) return;
   event.preventDefault();
-  const text = event.clipboardData?.getData("text/plain") || "";
-  const images = getClipboardImageFiles(event.clipboardData);
-  if (text) insertSendMessageText(text);
-  if (images.length) insertSendMessageImages(images);
+  event.stopPropagation();
+}, true);
+
+sendMessageTemplateField?.addEventListener("focusout", (event) => {
+  if (sendMessageTemplateField.contains(event.relatedTarget)) return;
+  if (sendMessageTemplateOptions?.contains(event.relatedTarget)) return;
+  closeSendMessageTemplatePicker();
 });
 
-sendMessageBodyField?.addEventListener("dragover", (event) => {
-  if (!isSendMessageFileDrag(event)) return;
+sendMessageTemplateOptions?.addEventListener("mousedown", (event) => {
   event.preventDefault();
-  event.dataTransfer.dropEffect = "copy";
-  sendMessageBodyField.classList.add("is-dragging-image");
 });
 
-sendMessageBodyField?.addEventListener("dragleave", (event) => {
-  if (sendMessageBodyField.contains(event.relatedTarget)) return;
-  sendMessageBodyField.classList.remove("is-dragging-image");
+sendMessageTemplateOptions?.addEventListener("click", (event) => {
+  const button = event.target.closest(".filter-combobox-option, .filter-combobox-menu-action");
+  if (!button || isSendMessageCreateTemplateAction(button)) return;
+  selectSendMessageTemplate(button.dataset.value);
+  getSendMessageTemplateInput()?.focus({ preventScroll: true });
 });
 
-sendMessageBodyField?.addEventListener("drop", (event) => {
-  sendMessageBodyField.classList.remove("is-dragging-image");
-  if (!isSendMessageFileDrag(event)) return;
-  event.preventDefault();
-  insertSendMessageImages(event.dataTransfer.files, getSendMessageRangeAtPoint(event.clientX, event.clientY));
+sendMessageTemplateOptions?.addEventListener("mousemove", (event) => {
+  const button = event.target.closest(".filter-combobox-option, .filter-combobox-menu-action");
+  if (!button) return;
+  const index = getSendMessageTemplateOptionButtons().indexOf(button);
+  if (index !== sendMessageTemplateActiveIndex) setSendMessageTemplateActiveOption(index);
+});
+
+document.addEventListener("mousedown", (event) => {
+  if (!sendMessageTemplatePickerOpen) return;
+  if (sendMessageTemplateField?.contains(event.target)) return;
+  if (sendMessageTemplateOptions?.contains(event.target)) return;
+  closeSendMessageTemplatePicker();
 });
 
 sendMessageOption?.addEventListener("click", (event) => {
@@ -586,10 +760,6 @@ sendMessageForm?.addEventListener("submit", (event) => {
 sendMessageSubject?.addEventListener("keydown", (event) => {
   if (event.key !== "Enter") return;
   event.preventDefault();
-  if (sendMessageEditor && !sendMessageEditor.hidden) {
-    sendMessageBody.focus({ preventScroll: true });
-    return;
-  }
   submitSendMessage();
 });
 
@@ -598,3 +768,5 @@ sendMessageCard?.addEventListener("keydown", (event) => {
   event.preventDefault();
   closeSendMessageCard();
 });
+
+syncSendMessageSelection();
