@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "images/..."). If it's ever opened
+    // without a trailing slash, the browser resolves those relative paths
+    // against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>How to create an email sequence</title>
+  <link rel="icon" href="../../../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../../../assets/x192.png" />
+  <link rel="manifest" href="../../../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="../../../../../styles/site-header.css" />
+  <script src="../../../../../scripts/gate.js"></script>
+  <script src="../../../../../scripts/site-header.js"></script>
+  <script src="../../../../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../../../../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="page">
+    <header class="site-header" aria-label="Application header">
+      <div class="site-header-start">
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../../../../assets/icons/menu.svg" alt="" width="14" height="12" />
+        </button>
+        <a class="brand-lockup" href="../../../../" aria-label="Wefranch home">
+          <img class="brand-mark" src="../../../../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
+        </a>
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../../../">Docs</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <a class="breadcrumb-link" href="../">Email Campaigns</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Email sequences</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-layout">
+      <aside class="doc-sidebar proto-scrollbar" data-doc-sidebar data-doc-current="email-sequences"></aside>
+      <script src="../../../scripts/doc-groups.js"></script>
+      <script src="../../../scripts/breadcrumb.js"></script>
+      <script src="../../../scripts/sidebar.js"></script>
+      <script src="../../../scripts/markdown.js"></script>
+      <article class="doc">
+        <header>
+          <h1 class="doc-title">How to create an email sequence</h1>
+          <div class="doc-meta">
+            <p class="doc-updated">Updated <time datetime="2026-10-06">Oct 6, 2026</time></p>
+            <span class="doc-meta-divider" aria-hidden="true"></span>
+            <button class="doc-markdown" type="button" aria-label="Switch to markdown" data-tooltip="Switch to markdown">
+              <img class="doc-markdown-icon" src="../../../../../assets/icons/code-block.svg" alt="" width="16" height="16" />
+            </button>
+          </div>
+        </header>
+        <hr class="doc-divider" />
+
+        <div class="doc-body">
+          <h2>How it works</h2>
+          <p>An email sequence is a campaign made of several emails instead of one. Everyone in your audience gets the first email when the campaign starts. Each email after that is sent based on a <strong>trigger</strong>: either a set amount of time after the previous email, or how the recipient reacted to it.</p>
+          <p>A sequence is set up in the same wizard as a single email campaign. You choose the campaign name, sender, and recipients once. Then you build the emails on the <strong>Sequence</strong> stage.</p>
+
+          <h2>Open the wizard</h2>
+          <p>Click the <strong>Email</strong> button in the toolbar on <a class="ui-link" href="../../../../cst/">Prospects</a> or <a class="ui-link" href="../../../../leads/">Leads</a>, then choose <strong>Start new campaign</strong>.</p>
+          <figure class="doc-figure">
+            <img src="images/01-open-wizard.jpg" alt="Email menu on the Prospects toolbar, with Start new campaign and Campaigns." />
+          </figure>
+
+          <h2>Set up the campaign</h2>
+          <p>Work through the <strong>Campaign</strong>, <strong>Sender</strong>, and <strong>Recipients</strong> steps as you would for any campaign. If you need help with these, see <a class="ui-link" href="../creating-campaign/">How to create and send email campaigns</a>.</p>
+
+          <h2>Switch to an email sequence</h2>
+          <p>Every campaign starts as a single email. On the <strong>Subject</strong> step, click <strong>switch to an email sequence</strong> in the line under the title.</p>
+          <p>If you already typed a subject line or chose a design, it becomes the first email of the sequence.</p>
+          <figure class="doc-figure">
+            <img src="images/02-switch-link.jpg" alt="Subject step of the Email stage, with the switch to an email sequence link highlighted." />
+          </figure>
+
+          <h2>Build the sequence</h2>
+          <p>The title changes from <strong>Email</strong> to <strong>Sequence</strong>, and the wizard splits into two panels:</p>
+          <ul>
+            <li><span><strong>On the left</strong>, the sequence. Each email is a card, joined by a line that shows when it is sent.</span></li>
+            <li><span><strong>On the right</strong>, <strong>Edit email</strong>. It has the same <strong>Subject</strong> and <strong>Design</strong> tabs as a single email, and edits whichever card is selected.</span></li>
+          </ul>
+          <p>The sequence starts with one email. Its trigger is fixed: it goes out <strong>On campaign start</strong>. Click the email to select it, then enter its subject line and preview text on the right.</p>
+          <figure class="doc-figure">
+            <img src="images/03-sequence-builder.jpg" alt="Sequence stage, with the first email on the left and the Edit email panel on the right." />
+          </figure>
+
+          <h2>Add more emails</h2>
+          <p>Click the <strong>+</strong> button under the last email to add another. The new email is selected, so you can write its subject straight away.</p>
+          <p>New emails are sent <strong>2 days later</strong> by default. In the card, use <strong>Trigger</strong> and <strong>When</strong> to change it. The line above each card shows the result, for example <em>2 days later</em>.</p>
+          <ul>
+            <li><span>Click an email to select it. Click the arrow on its card to collapse or expand its settings.</span></li>
+            <li><span>Click <strong>Add a subject</strong> on an email without one to jump to its subject field.</span></li>
+            <li><span>Click the bin icon on an email to delete it. The first email can't be deleted.</span></li>
+            <li><span>If you click the selected email again, the right panel is cleared. Select another email, or click <strong>add another</strong>, to continue.</span></li>
+          </ul>
+          <figure class="doc-figure">
+            <img src="images/04-add-email.jpg" alt="Sequence with two emails. The second email is time-based and sent 2 days later." />
+          </figure>
+
+          <h2>Choose when each email is sent</h2>
+          <p>Every email after the first has a <strong>Trigger</strong>:</p>
+          <ul>
+            <li><span><strong>Time-based</strong> sends the email a fixed time after the previous one. Under <strong>When</strong>, choose <em>Immediately</em>, <em>1 day later</em>, <em>2 days later</em>, <em>3 days later</em>, <em>1 week later</em>, or <em>2 weeks later</em>.</span></li>
+            <li><span><strong>Engagement-based</strong> sends the email depending on what the recipient did with the previous one. Under <strong>If recipient</strong>, choose <em>Opens previous email</em>, <em>Doesn't open previous email</em>, <em>Clicks a link in previous email</em>, or <em>Doesn't click a link in previous email</em>.</span></li>
+          </ul>
+          <p>For the two <em>Doesn't</em> options, a <strong>Then</strong> field appears. It sets how long to wait before sending, from <em>Immediately</em> to <em>2 weeks later</em>. The line above the card then reads, for example, <em>If recipient doesn't open previous email then 2 days later</em>.</p>
+          <figure class="doc-figure">
+            <img src="images/05-engagement-trigger.jpg" alt="Second email with an engagement-based trigger: if the recipient doesn't open the previous email, then send 2 days later." />
+          </figure>
+
+          <h2>Design each email</h2>
+          <p>Select an email, open the <strong>Design</strong> tab on the right, and <strong>start from scratch</strong> or pick a saved template. A preview shows what recipients will get. Each email in the sequence has its own design, so repeat this for every email.</p>
+          <p>When every email has a subject and a design, click <strong>Review</strong>. If something required is missing, the wizard selects that email and highlights the field.</p>
+          <figure class="doc-figure">
+            <img src="images/06-design.jpg" alt="Design tab of the Edit email panel, with the Introduction template and its preview." />
+          </figure>
+
+          <h2>Review and schedule</h2>
+          <p>On the <strong>Review &amp; Send</strong> step, the summary adds a <strong>Sequence</strong> row with the number of emails. Subject and design show the first email followed by <em>+N more</em>.</p>
+          <figure class="doc-figure">
+            <img src="images/07-review.jpg" alt="Review and Send step for a sequence, showing 2 emails, the first subject plus 1 more, and 194 recipients." />
+          </figure>
+          <p>Click <strong>Schedule</strong>, then choose <strong>Send now</strong> or <strong>Schedule for later</strong> and pick a date and time. Your choice sets when the campaign starts, and so when the first email is sent. Later emails follow their own triggers. As with any campaign, emails are <a class="ui-link" href="../sending-in-batches/">sent in batches</a>.</p>
+
+          <h2>Switch back to a single email</h2>
+          <p>To go back, click <strong>switch to a single email</strong> in the Edit email panel.</p>
+          <p>If your sequence has more than one email, the wizard asks you to confirm. Switching keeps your first email and discards the rest of the sequence. <strong>This can't be undone.</strong></p>
+          <figure class="doc-figure">
+            <img src="images/08-switch-to-single.jpg" alt="Confirmation dialog: Switch to a single email? Switching keeps your first email and discards the rest of the sequence." />
+          </figure>
+
+          <h2>Need help</h2>
+          <p>Email <a class="ui-link" href="mailto:mariyam@wefranch.com">mariyam@wefranch.com</a>.</p>
+        </div>
+      </article>
+    </main>
+  </div>
+</body>
+</html>
