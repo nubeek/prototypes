@@ -1,0 +1,45 @@
+/* Sortable one-line table headers. Click sets aria-sort on the header. */
+
+.sortable-header {
+  cursor: pointer;
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.right .th-content {
+  justify-content: flex-end;
+}
+
+.th-chevron {
+  display: block;
+  flex: 0 0 auto;
+  opacity: 0;
+  filter: brightness(0) saturate(100%) invert(67%) sepia(0%) saturate(0%) hue-rotate(153deg) brightness(93%) contrast(89%);
+  transition: opacity var(--transition-fast, 180ms ease), transform var(--transition-fast, 180ms ease), filter var(--transition-fast, 180ms ease);
+}
+
+.sortable-header:hover .th-chevron,
+.sortable-header[aria-sort="ascending"] .th-chevron,
+.sortable-header[aria-sort="descending"] .th-chevron,
+.sortable-header[aria-sort="other"] .th-chevron {
+  opacity: 1;
+}
+
+.sortable-header[aria-sort="ascending"] .th-chevron,
+.sortable-header[aria-sort="other"][data-sort-direction="ascending"] .th-chevron {
+  transform: rotate(180deg);
+  filter: brightness(0) saturate(100%);
+}
+
+.sortable-header[aria-sort="descending"] .th-chevron,
+.sortable-header[aria-sort="other"][data-sort-direction="descending"] .th-chevron {
+  filter: brightness(0) saturate(100%);
+}
+
+.sortable-header[aria-sort="other"] .th-chevron {
+  opacity: 0.65;
+}

@@ -23,6 +23,7 @@ strips `.html` and that breaks relative asset paths.
 | --- | --- |
 | Prospects | `_prototypes/cst/` |
 | Leads | `_prototypes/leads/` |
+| Campaigns | `_prototypes/campaigns/` |
 | Territories | `_prototypes/territories/` |
 | Financial Modeling | `_prototypes/financial-modeling/` |
 | Docs | `_prototypes/docs/` |

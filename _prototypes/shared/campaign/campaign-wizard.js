@@ -14,7 +14,23 @@ const CAMPAIGN_PENDING_DNS_VERIFICATION_SENDERS = new Set();
 const CAMPAIGN_EMAIL_VERIFICATION_STARTED_AT = new Map();
 const CAMPAIGN_EMAIL_VERIFICATION_TIMEOUTS = new Map();
 const CAMPAIGN_EMAIL_VERIFICATION_DELAY_MS = 10000;
-const CAMPAIGN_SENDER_STORAGE_KEY = "cst.campaignSenders.v1";
+const CAMPAIGN_SENDER_STORAGE_KEY = "wefranch:campaign-senders";
+const CAMPAIGN_SENDER_LEGACY_STORAGE_KEY = "cst.campaignSenders.v1";
+let campaignWizardSession = null;
+
+function getCampaignAudienceAdapter() {
+  return campaignWizardSession || window.wefranchCampaignAudience || {
+    getAudienceOptions() {
+      return [];
+    },
+    getAudiencePreview() {
+      return null;
+    },
+    getDefaultAudienceValues() {
+      return "";
+    }
+  };
+}
 const CAMPAIGN_SENDER_AUTH_DOMAINS = new Set(["wefranch.com", "wefanch.com"]);
 const CAMPAIGN_DESIGN_TEMPLATES = {
   introduction: "Introduction",
@@ -890,7 +906,10 @@ function normalizeHiddenCampaignSenders(items) {
 
 function readStoredCampaignSenderState() {
   try {
-    const savedValue = window.localStorage?.getItem(CAMPAIGN_SENDER_STORAGE_KEY);
+    let savedValue = window.localStorage?.getItem(CAMPAIGN_SENDER_STORAGE_KEY);
+    if (!savedValue) {
+      savedValue = window.localStorage?.getItem(CAMPAIGN_SENDER_LEGACY_STORAGE_KEY);
+    }
     if (!savedValue) return { senders: [], hidden: [] };
     const parsedValue = JSON.parse(savedValue);
     if (Array.isArray(parsedValue)) {
@@ -932,6 +951,7 @@ function writeStoredCampaignSenderState() {
 }
 
 function loadStoredCampaignSenders() {
+  const hadCurrentKey = Boolean(window.localStorage?.getItem(CAMPAIGN_SENDER_STORAGE_KEY));
   const { senders, hidden } = readStoredCampaignSenderState();
   senders.forEach((sender) => {
     registerCampaignSender(sender.email, sender.name);
@@ -953,6 +973,9 @@ function loadStoredCampaignSenders() {
     if (!CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.has(sender.email)) return;
     scheduleCampaignSenderEmailVerification(sender.email, sender.emailVerificationStartedAt || Date.now());
   });
+  if (!hadCurrentKey && window.localStorage?.getItem(CAMPAIGN_SENDER_LEGACY_STORAGE_KEY)) {
+    writeStoredCampaignSenderState();
+  }
 }
 
 function cancelCampaignSenderEmailVerification(emailAddress) {
@@ -1174,69 +1197,9 @@ function setStartCampaignProgressWidths(withinRatio, overRatio) {
   }
 }
 
-function getCurrentSearchAudience() {
-  const savedTitle = readerModeActive ? readerModeSavedSearchTitle : null;
-  const title = String(
-    savedTitle
-    || getSuggestedSavedViewTitle?.()
-    || getSavedViewEntityTitle?.()
-    || "Current search"
-  ).trim();
-  const matchedOwners = typeof getFilteredFranchisees === "function"
-    ? getFilteredFranchisees()
-    : [];
-  const contactCount = matchedOwners.reduce((total, owner) => (
-    total + (typeof getOwnerContactCount === "function" ? getOwnerContactCount(owner) : 0)
-  ), 0);
-
-  return {
-    audience: START_CAMPAIGN_AUDIENCE_CURRENT,
-    savedSearchId: activeSavedSearchId || null,
-    title,
-    contactCount
-  };
-}
-
-function getUserSavedSearches() {
-  const searches = window.cstSplash?.getSavedSearches?.()
-    || (Array.isArray(window.cstSavedSearchesData) ? window.cstSavedSearchesData : []);
-  const userSearches = [];
-  const sharedSearches = [];
-
-  searches.forEach((search) => {
-    if (window.cstSavedSearchStore?.canEdit?.(search.id)) {
-      userSearches.push(search);
-    } else {
-      sharedSearches.push(search);
-    }
-  });
-
-  return [...userSearches, ...sharedSearches];
-}
-
-function getCurrentSearchOptionLabel() {
-  const { contactCount } = getCurrentSearchAudience();
-  return `Current search (${contactCount.toLocaleString("en-US")})`;
-}
-
 function getStartCampaignAudienceOptions() {
-  const savedSearchOptions = getUserSavedSearches().map((search) => {
-    const matches = window.cstSplash?.getMatchCounts?.(search) || {};
-    const contactCount = Number.isFinite(matches.contactCount) ? matches.contactCount : 0;
-
-    return {
-      label: `${search.title} (${contactCount.toLocaleString("en-US")})`,
-      value: search.id
-    };
-  });
-
-  return [
-    {
-      label: getCurrentSearchOptionLabel(),
-      value: START_CAMPAIGN_AUDIENCE_CURRENT
-    },
-    ...(savedSearchOptions.length ? [{ divider: true }, ...savedSearchOptions] : [])
-  ];
+  const options = getCampaignAudienceAdapter().getAudienceOptions?.();
+  return Array.isArray(options) ? options : [];
 }
 
 function syncStartCampaignAudienceOptions() {
@@ -1260,73 +1223,9 @@ function getSelectedAudienceValues() {
   return window.WefranchFilterCombobox.getValues(startCampaignAudienceSelect);
 }
 
-function getSavedSearchAudience(searchIds) {
-  const ids = [...new Set(
-    (Array.isArray(searchIds) ? searchIds : [searchIds]).filter(Boolean)
-  )];
-  const savedSearches = ids.map((searchId) => (
-    getSavedSearchById?.(searchId)
-    || getUserSavedSearches().find((search) => search.id === searchId)
-    || null
-  )).filter(Boolean);
-  if (!savedSearches.length) return null;
-
-  const selections = savedSearches.map((savedSearch) => {
-    const matches = window.cstSplash?.getMatchCounts?.(savedSearch) || {};
-    return {
-      id: savedSearch.id,
-      title: savedSearch.title,
-      contactCount: Number.isFinite(matches.contactCount) ? matches.contactCount : 0
-    };
-  });
-
-  return {
-    savedSearchId: selections[0].id,
-    savedSearchIds: selections.map((selection) => selection.id),
-    title: selections.map((selection) => selection.title).join(", "),
-    titles: selections.map((selection) => selection.title),
-    contactCount: selections.reduce((total, selection) => total + selection.contactCount, 0)
-  };
-}
-
 function buildCampaignAudiencePreview(selectedValues) {
   if (!selectedValues.length) return null;
-
-  let contactCount = 0;
-  const titles = [];
-  const savedSearchIds = [];
-  let includesCurrent = false;
-
-  selectedValues.forEach((value) => {
-    if (value === START_CAMPAIGN_AUDIENCE_CURRENT) {
-      const currentSearch = getCurrentSearchAudience();
-      includesCurrent = true;
-      contactCount += currentSearch.contactCount;
-      titles.push("Current search");
-      return;
-    }
-
-    const savedSearch = getSavedSearchAudience([value]);
-    if (!savedSearch) return;
-
-    contactCount += savedSearch.contactCount;
-    titles.push(savedSearch.titles[0]);
-    savedSearchIds.push(value);
-  });
-
-  if (!titles.length) return null;
-
-  return {
-    audience: includesCurrent
-      ? (savedSearchIds.length ? "mixed" : START_CAMPAIGN_AUDIENCE_CURRENT)
-      : "saved",
-    savedSearchId: savedSearchIds[0] || null,
-    savedSearchIds,
-    includesCurrent,
-    title: titles.join(", "),
-    titles,
-    contactCount
-  };
+  return getCampaignAudienceAdapter().getAudiencePreview?.(selectedValues) || null;
 }
 
 function resetStartCampaignPreview() {
@@ -1399,7 +1298,12 @@ function syncStartCampaignAudienceState() {
 function resetStartCampaignModal() {
   closeStartCampaignDropdowns();
   syncStartCampaignAudienceOptions();
-  startCampaignAudienceApi?.reset(START_CAMPAIGN_AUDIENCE_CURRENT);
+  const defaultAudience = getCampaignAudienceAdapter().getDefaultAudienceValues?.()
+    ?? START_CAMPAIGN_AUDIENCE_CURRENT;
+  const defaultValue = Array.isArray(defaultAudience)
+    ? (defaultAudience[0] || "")
+    : (defaultAudience || "");
+  startCampaignAudienceApi?.reset(defaultValue);
   startCampaignDraft = null;
   syncStartCampaignAudienceState();
 }
@@ -3094,8 +2998,44 @@ function resetReviewCampaignModal() {
   if (campaignReviewTestEmail) campaignReviewTestEmail.value = CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT;
 }
 
-function handleCampaignReviewScheduleAction(_action) {
-  closeStartCampaignModal();
+function buildCampaignCompletionDraft(schedule) {
+  const audience = buildCampaignAudiencePreview(getSelectedAudienceValues());
+  const sender = getCampaignSenderSelection() || campaignSenderDraft;
+  const isSequence = getCampaignTypeValue() === "drip";
+  let startAt = new Date().toISOString();
+
+  if (schedule === "schedule-later") {
+    const date = String(campaignScheduleDate?.value || "").trim();
+    const hour = String(campaignScheduleHourApi?.getValue?.() || CAMPAIGN_SCHEDULE_DEFAULT_HOUR).padStart(2, "0");
+    const minute = String(campaignScheduleMinuteApi?.getValue?.() || CAMPAIGN_SCHEDULE_DEFAULT_MINUTE).padStart(2, "0");
+    const parsed = new Date(`${date}T${hour}:${minute}:00`);
+    if (!Number.isNaN(parsed.getTime())) startAt = parsed.toISOString();
+  }
+
+  return {
+    name: normalizeCampaignName(campaignName),
+    type: isSequence ? "sequence" : "single",
+    emailCount: isSequence ? Math.max(campaignSequenceEmails.length, 1) : 1,
+    sender: sender
+      ? { email: sender.emailAddress || sender.email || "", name: sender.name || "" }
+      : null,
+    audienceTitle: audience?.title || "",
+    recipientCount: Math.max(0, Math.round(Number(audience?.contactCount) || 0)),
+    schedule,
+    startAt,
+    status: schedule === "schedule-later" ? "scheduled" : "sending"
+  };
+}
+
+function handleCampaignReviewScheduleAction(action) {
+  const draft = buildCampaignCompletionDraft(action);
+  window.cstCampaignDraft = {
+    ...(window.cstCampaignDraft || {}),
+    ...draft
+  };
+  const onComplete = getCampaignAudienceAdapter().onComplete;
+  if (typeof onComplete === "function") onComplete(draft);
+  closeStartCampaignModal({ force: true });
 }
 
 function clearCampaignReviewTestError() {
@@ -3267,6 +3207,9 @@ const startCampaignModalApi = window.createProtoModal({
   },
   onClose() {
     resetCampaignWizard();
+    window.cstCampaignSender = null;
+    window.cstCampaignDraft = null;
+    campaignWizardSession = null;
   },
   shouldCloseOnEscape() {
     if (closeAddCampaignSenderModal()) return false;
@@ -3306,8 +3249,9 @@ function closeStartCampaignModal({ force = false } = {}) {
   startCampaignModalApi.close();
 }
 
-function openStartCampaignModal(trigger = null) {
+function openStartCampaignModal(trigger = null, options) {
   if (!startCampaignModal) return;
+  if (options && typeof options === "object") campaignWizardSession = options;
 
   document.getElementById("outreachBtn")?.removeAttribute("open");
   campaignSenderDraft = null;
@@ -3718,13 +3662,25 @@ campaignScheduleOptions?.addEventListener("change", () => {
   syncCampaignReviewConfirmLabel();
 });
 
-window.addEventListener("cst:saved-searches-changed", () => {
+getCampaignAudienceAdapter().onAudienceChange?.(() => {
   if (!startCampaignModalApi.isVisible()) return;
   syncStartCampaignAudienceState();
 });
 
+window.bindActionTooltip?.(document.getElementById("startCampaignRemainingInfo"), {
+  tooltipClass: "start-campaign-remaining-info-tooltip is-over-modal"
+});
+
+window.WefranchCampaignWizard = {
+  open(options = {}) {
+    openStartCampaignModal(options.trigger || null, options);
+  },
+  close: closeStartCampaignModal,
+  isVisible: () => startCampaignModalApi.isVisible()
+};
+
 window.cstStartCampaignModal = {
   close: closeStartCampaignModal,
   isVisible: () => startCampaignModalApi.isVisible(),
-  open: openStartCampaignModal
+  open: (trigger) => openStartCampaignModal(trigger)
 };

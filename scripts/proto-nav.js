@@ -262,12 +262,19 @@ html:not(.is-signed-out) [data-signed-out-only] {
     { id: "home", label: "Home", icon: "home.svg", href: "/_prototypes/" },
     { id: "prospects", label: "Prospects", icon: "nav-prospects.svg", href: "/_prototypes/cst/" },
     { id: "leads", label: "Leads", icon: "leads-default.svg", href: "/_prototypes/leads/" },
+    { id: "campaigns", label: "Campaigns", icon: "mail-send.svg", href: "/_prototypes/campaigns/" },
     { id: "territories", label: "Territories", icon: "territories.svg", href: "/_prototypes/territories/" },
     { id: "financial-modeling", label: "Financial Modeling", icon: "financial-modeling.svg", href: "/_prototypes/financial-modeling/" },
   ];
+  const NAV_CELL_WIDTH = 62;
+  const NAV_BAR_PAD = 12;
+  const NAV_SETTINGS_EXTRA = 117;
+  const NAV_WIDTH = NAV_BAR_PAD + ITEMS.length * NAV_CELL_WIDTH;
+  const NAV_WIDTH_WITH_SETTINGS = NAV_WIDTH + NAV_SETTINGS_EXTRA;
   const HOME_PAGES = [
     { id: "prospects", label: "Prospects", href: "/_prototypes/cst/" },
     { id: "leads", label: "Leads", href: "/_prototypes/leads/" },
+    { id: "campaigns", label: "Campaigns", href: "/_prototypes/campaigns/" },
     { id: "territories", label: "Territories", href: "/_prototypes/territories/" },
     { id: "financial-modeling", label: "Financial Modeling", href: "/_prototypes/financial-modeling/" },
     { id: "docs", label: "Docs", href: "/_prototypes/docs/" },
@@ -276,9 +283,9 @@ html:not(.is-signed-out) [data-signed-out-only] {
 .proto-nav,
 .proto-nav * { box-sizing: border-box; }
 .proto-nav {
-  --proto-nav-width: 322px;
+  --proto-nav-width: ${NAV_WIDTH}px;
   --proto-nav-height: 60px;
-  --proto-nav-cell-width: 62px;
+  --proto-nav-cell-width: ${NAV_CELL_WIDTH}px;
   --proto-nav-cell-height: 48px;
   --proto-nav-inset: 48px;
   position: fixed;
@@ -295,7 +302,7 @@ html:not(.is-signed-out) [data-signed-out-only] {
   visibility: visible;
   transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1), margin-left 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.proto-nav.has-settings { --proto-nav-width-base: 439px; --proto-nav-width: var(--proto-nav-width-base); }
+.proto-nav.has-settings { --proto-nav-width-base: ${NAV_WIDTH_WITH_SETTINGS}px; --proto-nav-width: var(--proto-nav-width-base); }
 .proto-nav.has-settings.is-showing-size { --proto-nav-width: calc(var(--proto-nav-width-base) + var(--proto-nav-size-width, 0px)); }
 .proto-nav.is-live-size,
 .proto-nav.is-live-size .proto-nav__bar,
@@ -639,7 +646,7 @@ html:not(.is-signed-out) [data-signed-out-only] {
 }
 .proto-screenshot-toast.is-error { background: rgba(145, 29, 29, 0.94); }
 .proto-recorder {
-  --proto-nav-width: 439px;
+  --proto-nav-width: ${NAV_WIDTH_WITH_SETTINGS}px;
   --proto-nav-height: 60px;
   --proto-nav-inset: 48px;
   --proto-recorder-gap: 12px;
@@ -965,6 +972,7 @@ iframe[data-proto-nav-shell].is-fading {
     if (/\/logos(?:\/|$)/.test(pathname)) return "logos";
     if (/\/financial-modeling(?:\/|$)/.test(pathname)) return "financial-modeling";
     if (/\/territories(?:\/|$)/.test(pathname)) return "territories";
+    if (/\/campaigns(?:\/|$)/.test(pathname)) return "campaigns";
     if (/\/leads(?:\/|$)/.test(pathname)) return "leads";
     if (/\/cst(?:\/|$)/.test(pathname)) return "prospects";
     if (/\/docs(?:\/|$)/.test(pathname)) return "docs";
@@ -1079,7 +1087,7 @@ iframe[data-proto-nav-shell].is-fading {
       indicator.style.transition = "none";
     }
 
-    indicator.style.transform = `translate3d(${index * 62}px, 0, 0)`;
+    indicator.style.transform = `translate3d(${index * NAV_CELL_WIDTH}px, 0, 0)`;
 
     if (!animate) {
       indicator.getBoundingClientRect();

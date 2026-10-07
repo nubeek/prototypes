@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <script src="../shared/ui/soft-reload.js"></script>
+  <title>Campaigns</title>
+  <link rel="icon" href="../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../assets/x192.png" />
+  <link rel="manifest" href="../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../shared/ui/proto-modal.css">
+  <link rel="stylesheet" href="../shared/ui/action-tooltip.css">
+  <link rel="stylesheet" href="../shared/filter/filter-sidebar.css">
+  <link rel="stylesheet" href="../../styles/site-header.css">
+  <script src="../../scripts/gate.js"></script>
+  <script src="../../scripts/site-header.js"></script>
+  <script src="../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../styles/gate.css">
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off">
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <header class="site-header" aria-label="Application header">
+    <div class="site-header-start">
+      <button class="site-header-menu" type="button" aria-label="Open menu">
+        <img src="../../assets/icons/menu.svg" alt="" width="14" height="12">
+      </button>
+      <a class="brand-lockup" href="../" aria-label="Wefranch home">
+        <img class="brand-mark" src="../../assets/logo-wefranch.svg" alt="" width="11" height="16">
+      </a>
+      <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+        <span class="breadcrumb-current" aria-current="page">Campaigns</span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="campaigns-page">
+    <h1 class="campaigns-title">Email Campaigns</h1>
+
+    <div class="scope-toolbar campaigns-tabs">
+      <div class="scope-tabs" role="tablist" aria-label="Campaign sections">
+        <button class="scope-tab is-active" id="campaignsTabOverview" type="button" role="tab" aria-selected="true" aria-controls="campaignsPanelOverview" data-campaign-tab="overview">Overview</button>
+        <button class="scope-tab" id="campaignsTabTemplates" type="button" role="tab" aria-selected="false" aria-controls="campaignsPanelTemplates" data-campaign-tab="templates">Templates</button>
+        <button class="scope-tab" id="campaignsTabSettings" type="button" role="tab" aria-selected="false" aria-controls="campaignsPanelSettings" data-campaign-tab="settings">Settings</button>
+      </div>
+    </div>
+
+    <section class="campaigns-panel" id="campaignsPanelOverview" data-campaign-panel="overview" role="tabpanel" aria-labelledby="campaignsTabOverview">
+      <div class="campaigns-overview-head">
+        <div class="campaigns-metrics">
+          <div>
+            <p class="campaigns-metric__label">Total opens</p>
+            <p class="campaigns-metric__value" id="campaignMetricOpens">0</p>
+            <p class="campaigns-trend" id="campaignMetricOpensTrend"></p>
+          </div>
+          <div>
+            <p class="campaigns-metric__label">Total converts</p>
+            <p class="campaigns-metric__value" id="campaignMetricConverts">0</p>
+            <p class="campaigns-trend" id="campaignMetricConvertsTrend"></p>
+          </div>
+        </div>
+        <div class="campaigns-toolbar">
+          <form class="scope-search" id="campaignSearch" role="search" autocomplete="off">
+            <img class="scope-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+            <input
+              class="scope-search-input"
+              id="campaignSearchInput"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Search campaigns"
+              aria-label="Search campaigns"
+            >
+            <button class="scope-search-clear" id="campaignSearchClear" type="button" aria-label="Clear search" hidden></button>
+          </form>
+          <button class="ui-control ui-button ui-button-primary campaigns-new" id="newCampaignBtn" type="button">New campaign</button>
+        </div>
+      </div>
+
+      <div class="campaigns-table-wrap proto-scrollbar" id="campaignsTableWrap">
+        <table class="proto-table campaigns-table is-franchisees-table has-row-select" id="campaignsTable">
+          <thead>
+            <tr>
+              <th class="location-number-header" style="width: 48px">
+                <label class="location-row-select location-select-all" aria-label="Select all campaigns">
+                  <input class="location-row-checkbox location-select-all-checkbox" type="checkbox">
+                  <span class="location-row-checkbox-visual" aria-hidden="true"></span>
+                </label>
+              </th>
+              <th class="sortable-header" data-sort-key="name" aria-sort="none" tabindex="0" style="width: 19%">
+                <span class="th-content">Campaign name <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              </th>
+              <th class="sortable-header campaigns-metric-col" data-sort-key="type" aria-sort="none" tabindex="0">
+                <span class="th-content">Type <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              </th>
+              <th class="sortable-header campaigns-metric-col" data-sort-key="recipients" aria-sort="none" tabindex="0">
+                <span class="th-content">Recipients <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              </th>
+              <th class="sortable-header campaigns-metric-col" data-sort-key="startAt" aria-sort="descending" tabindex="0">
+                <span class="th-content">Start date <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              </th>
+              <th class="sortable-header campaigns-metric-col" data-sort-key="endAt" aria-sort="none" tabindex="0">
+                <span class="th-content">End date <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              </th>
+              <th class="sortable-header campaigns-metric-col" data-sort-key="openRate" aria-sort="none" tabindex="0">
+                <span class="th-content">Open rate <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              </th>
+              <th class="sortable-header campaigns-metric-col" data-sort-key="replyRate" aria-sort="none" tabindex="0">
+                <span class="th-content">Reply rate <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              </th>
+              <th class="sortable-header" data-sort-key="status" aria-sort="none" tabindex="0" style="width: 17%">
+                <span class="th-content">Status <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              </th>
+              <th style="width: 61px"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="campaignsTableBody"></tbody>
+        </table>
+        <div class="empty-state empty-state--overlay" id="campaignsEmptySearch" hidden>
+          <p class="empty-state__message">No campaigns match your search.</p>
+        </div>
+      </div>
+
+      <div class="empty-state empty-state--fill" id="campaignsEmptyAll" hidden>
+        <p class="empty-state__message">No campaigns yet.<br>Create one to start reaching prospects.</p>
+        <button class="empty-state__action ui-text-button" id="campaignEmptyCreate" type="button">Create a campaign</button>
+      </div>
+    </section>
+
+    <section class="campaigns-panel" id="campaignsPanelTemplates" data-campaign-panel="templates" role="tabpanel" aria-labelledby="campaignsTabTemplates" hidden>
+      <div class="empty-state empty-state--fill">
+        <p class="empty-state__message">Templates are coming soon.</p>
+      </div>
+    </section>
+
+    <section class="campaigns-panel" id="campaignsPanelSettings" data-campaign-panel="settings" role="tabpanel" aria-labelledby="campaignsTabSettings" hidden>
+      <div class="empty-state empty-state--fill">
+        <p class="empty-state__message">Settings are coming soon.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="proto-modal-overlay" id="renameCampaignModal" hidden>
+    <section class="proto-modal proto-modal--form" role="dialog" aria-modal="true" aria-labelledby="renameCampaignTitle">
+      <form class="proto-modal-form" id="renameCampaignForm" novalidate>
+        <div class="proto-modal-header">
+          <h2 class="proto-modal-title" id="renameCampaignTitle">Rename campaign</h2>
+          <div class="proto-modal-header-actions">
+            <button class="ui-control ui-close-button proto-modal-close" type="button" aria-label="Close rename campaign">
+              <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
+            </button>
+          </div>
+        </div>
+        <div class="proto-modal-body">
+          <div class="proto-modal-field">
+            <span id="renameCampaignNameLabel">Campaign name</span>
+            <input class="proto-modal-control proto-modal-input" id="renameCampaignName" type="text" maxlength="64" autocomplete="off" aria-labelledby="renameCampaignNameLabel">
+          </div>
+        </div>
+        <div class="proto-modal-actions">
+          <button class="ui-control ui-button proto-modal-cancel" type="button">Cancel</button>
+          <button class="ui-control ui-button ui-button-primary proto-modal-save" type="submit">Save</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script src="../shared/ui/proto-field-captions.js"></script>
+  <script src="../shared/ui/proto-field-error.js"></script>
+  <script src="../shared/ui/compact-select.js"></script>
+  <script src="../shared/ui/proto-modal.js"></script>
+  <script src="../shared/ui/proto-confirm-modal.js"></script>
+  <script src="../shared/ui/proto-toast.js"></script>
+  <script src="../shared/ui/action-tooltip.js"></script>
+  <script src="../shared/filter/filter-combobox.js"></script>
+  <script src="../cst/data/saved-searches.js"></script>
+  <script src="../shared/data/campaigns-store.js"></script>
+  <script src="scripts/campaigns-data.js"></script>
+  <script src="../shared/campaign/campaign-wizard-markup.js"></script>
+  <script src="../shared/campaign/campaign-wizard.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

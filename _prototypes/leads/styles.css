@@ -91,12 +91,16 @@ body.reduce-motion *:not(.mapboxgl-map):not(.mapboxgl-map *)::after {
    Shared Utilities and Components
    ========================================================================== */
 
-.ui-control {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  padding: 0;
+/* Layered so imported component rules win over this reset.
+   The reset still beats user-agent button chrome. */
+@layer proto-control {
+  .ui-control {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    padding: 0;
+  }
 }
 
 /*

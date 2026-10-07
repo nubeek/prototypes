@@ -10,7 +10,7 @@ Control height, base type size, radii, and one-line table row height come from `
 
 - Wide screens: 16px type, 48px controls, 62px table rows, 84px Franchisees rows.
 - Below 1480px: 15px type, 44px controls, 56px table rows, 78px Franchisees rows.
-- Do not redeclare `--font-size-base`, `--control-height`, `--control-height-sm`, `--radius-md`, `--radius-lg`, `--table-row-height`, or `--franchisees-table-row-height`.
+- Do not redeclare `--font-size-base`, `--control-height`, `--control-height-sm`, `--radius-md`, `--radius-lg`, `--table-row-height`, `--franchisees-table-row-height`, `--shadow-menu`, or `--shadow-modal`.
 - Do not add another `max-width: 1480px` override for those tokens. Page-specific layout at that breakpoint is fine.
 - Use `var(--font-size-base)` and `var(--control-height)` on buttons and chrome instead of hardcoded `16px` / `48px`.
 - New labeled or icon buttons use the shared `.ui-button` family. Do not redeclare `.ui-control` or `.ui-button-*` in a feature sheet.

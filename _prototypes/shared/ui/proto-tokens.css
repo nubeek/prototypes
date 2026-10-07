@@ -1,4 +1,5 @@
 @import url("./proto-scrollbar.css");
+@import url("./ui-button.css");
 
 /* Shared prototype type, control, and table-row scale.
    Import this first from a page stylesheet (or rely on proto-modal /
@@ -26,8 +27,14 @@
   --table-row-height: 62px;
   --franchisees-table-row-height: 84px;
 
+  --color-surface: #fff;
   --color-initials-bg: #dfdbf1;
   --color-initials-fg: #8065e8;
+
+  /* Menus and dialogs. Shared chrome reads these, so a page does not
+     have to copy them for a dropdown or modal shadow to appear. */
+  --shadow-menu: 0 10px 28px rgba(0, 0, 0, 0.14);
+  --shadow-modal: 0 18px 34px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 1480px) {

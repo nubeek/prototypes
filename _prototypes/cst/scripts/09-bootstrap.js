@@ -493,10 +493,6 @@ function bindTableHeadingFloatingTooltip(trigger, { tooltipClass = "", onlyBelow
 bindTableHeadingFloatingTooltip(tableHeadingInfo, { tooltipClass: "table-heading-info-floating-tooltip" });
 bindTableHeadingFloatingTooltip(readerEditQueryBtn);
 bindTableHeadingFloatingTooltip(readerViewSettingsBtn, { onlyBelowWidth: 1480 });
-window.bindActionTooltip?.(document.getElementById("startCampaignRemainingInfo"), {
-  tooltipClass: "start-campaign-remaining-info-tooltip is-over-modal"
-});
-
 if (tableHeadingSummary) {
   const openSummaryFilter = (filterTrigger) => {
     const sectionKey = filterTrigger.dataset.filterSection;
