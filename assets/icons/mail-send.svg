@@ -1,14 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Mail-Send-Email-Message--Streamline-Core" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 18 18">
+<svg id="Plain--Streamline-Solar" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 18 18">
   <!-- Generator: Adobe Illustrator 30.8.2, SVG Export Plug-In . SVG Version: 2.1.4 Build 7)  -->
-  <defs>
-    <style>
-      .st0 {
-        fill-rule: evenodd;
-      }
-    </style>
-  </defs>
-  <g id="mail-send-email-message--send-email-paper-airplane-deliver">
-    <path id="Subtract" class="st0" d="M17.81.19c.18.18.24.45.15.69l-6.43,16.71c-.09.24-.32.4-.58.41-.26,0-.5-.14-.6-.38l-2.69-5.91,3.96-3.96c.38-.38.38-.99,0-1.36s-.99-.38-1.36,0l-3.96,3.96L.38,7.66C.14,7.55,0,7.31,0,7.05c0-.26.17-.49.41-.58L17.13.04c.24-.09.51-.03.69.15Z"/>
-  </g>
+  <path d="M14.97,12.3l1.54-4.63c1.35-4.05,2.02-6.07.96-7.14-1.07-1.07-3.09-.39-7.14.96l-4.63,1.54C2.43,4.12.8,4.66.33,5.46c-.44.76-.44,1.7,0,2.46.46.8,2.1,1.34,5.37,2.43.4.14.86.04,1.16-.26l4.96-4.91c.28-.28.73-.27,1,0,.28.28.27.73,0,1l-4.88,4.83c-.33.33-.44.84-.29,1.28,1.09,3.27,1.63,4.9,2.43,5.37.76.44,1.7.44,2.46,0,.8-.46,1.34-2.1,2.43-5.37Z"/>
 </svg>

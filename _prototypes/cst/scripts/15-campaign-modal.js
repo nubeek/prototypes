@@ -11,6 +11,9 @@ const CAMPAIGN_UNAUTHENTICATED_SENDERS = new Set([
 ]);
 const CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS = new Set();
 const CAMPAIGN_PENDING_DNS_VERIFICATION_SENDERS = new Set();
+const CAMPAIGN_EMAIL_VERIFICATION_STARTED_AT = new Map();
+const CAMPAIGN_EMAIL_VERIFICATION_TIMEOUTS = new Map();
+const CAMPAIGN_EMAIL_VERIFICATION_DELAY_MS = 10000;
 const CAMPAIGN_SENDER_STORAGE_KEY = "cst.campaignSenders.v1";
 const CAMPAIGN_SENDER_AUTH_DOMAINS = new Set(["wefranch.com", "wefanch.com"]);
 const CAMPAIGN_DESIGN_TEMPLATES = {
@@ -379,6 +382,7 @@ let pendingAddSenderStepIndex = null;
 let addSenderVerifyPending = false;
 let addSenderVerifyTimeoutId = null;
 let addSenderResendTimeoutId = null;
+let addCampaignSenderOnSave = null;
 let campaignSenderDraft = null;
 let campaignName = DEFAULT_CAMPAIGN_NAME;
 let campaignType = CAMPAIGN_TYPE_DEFAULT;
@@ -650,6 +654,7 @@ function resetAddCampaignSenderModalForm() {
   cancelAddSenderVerifyPending();
   resetAddSenderResend();
   addCampaignSenderModalForm?.reset();
+  addCampaignSenderOnSave = null;
   window.WefranchFieldErrors?.clearAll(addCampaignSenderModalForm, { silent: true });
   setAddSenderStepImmediate(ADD_SENDER_STEP_DETAILS);
 }
@@ -660,27 +665,33 @@ function closeAddCampaignSenderModal() {
   return true;
 }
 
-function openAddCampaignSenderModal(trigger = null) {
+function openAddCampaignSenderModal(trigger = null, { onSave = null } = {}) {
   if (!addCampaignSenderModal) return;
   closeCampaignSenderDropdown();
   resetAddCampaignSenderModalForm();
+  addCampaignSenderOnSave = onSave;
   addCampaignSenderModalApi?.open(trigger);
   syncAddSenderViewportHeight(undefined, { immediate: true });
 }
 
-function openAddCampaignSenderSetupModal(trigger = null) {
+function openAddCampaignSenderSetupModal(trigger = null, {
+  emailAddress: senderEmail = getCampaignSenderEmailAddress(),
+  name: senderName = campaignSenderName?.value,
+  onSave = null
+} = {}) {
   if (!addCampaignSenderModal) return;
   closeCampaignSenderDropdown();
   cancelAddSenderVerifyPending();
   resetAddSenderResend();
   window.WefranchFieldErrors?.clearAll(addCampaignSenderModalForm, { silent: true });
 
-  const emailAddress = normalizeCampaignSenderEmail(getCampaignSenderEmailAddress());
-  const name = String(campaignSenderName?.value || CAMPAIGN_SENDERS[emailAddress] || "").trim();
+  const emailAddress = normalizeCampaignSenderEmail(senderEmail);
+  const name = String(senderName || CAMPAIGN_SENDERS[emailAddress] || "").trim();
 
   if (addCampaignSenderEmail) addCampaignSenderEmail.value = emailAddress;
   if (addCampaignSenderName) addCampaignSenderName.value = name;
 
+  addCampaignSenderOnSave = onSave;
   setAddSenderStepImmediate(ADD_SENDER_STEP_SETUP);
   addCampaignSenderModalApi?.open(trigger);
   syncAddSenderViewportHeight(undefined, { immediate: true });
@@ -724,8 +735,12 @@ function completeAddCampaignSender({
     pendingEmailVerification,
     pendingDnsVerification
   });
-  campaignSenderEmailApi?.setValue(emailAddress);
-  syncCampaignSenderAuthNotice();
+  if (addCampaignSenderOnSave) {
+    addCampaignSenderOnSave(emailAddress);
+  } else {
+    campaignSenderEmailApi?.setValue(emailAddress);
+    syncCampaignSenderAuthNotice();
+  }
   if (close) closeAddCampaignSenderModal();
 }
 
@@ -835,6 +850,7 @@ function syncCampaignSenderEmailOptions() {
   campaignSenderEmailApi?.setOptions(getCampaignSenderEmailOptions(), {
     placeholder: "Email shown to recipients inbox"
   });
+  document.dispatchEvent(new CustomEvent("campaign-senders-change"));
 }
 
 function registerCampaignSender(emailAddress, name) {
@@ -852,12 +868,14 @@ function normalizeStoredCampaignSenders(items) {
     const name = String(item?.name || "").trim();
     if (!email || !name || !isValidCampaignEmail(email)) return [];
     if (DEFAULT_CAMPAIGN_SENDERS[email]) return [];
+    const startedAt = Number(item?.emailVerificationStartedAt);
     return [{
       email,
       name,
       authenticated: item?.authenticated === true,
       pendingEmailVerification: item?.pendingEmailVerification === true,
-      pendingDnsVerification: item?.pendingDnsVerification === true
+      pendingDnsVerification: item?.pendingDnsVerification === true,
+      emailVerificationStartedAt: Number.isFinite(startedAt) && startedAt > 0 ? startedAt : null
     }];
   });
 }
@@ -897,7 +915,8 @@ function writeStoredCampaignSenderState() {
       name: CAMPAIGN_SENDERS[email],
       authenticated: !CAMPAIGN_UNAUTHENTICATED_SENDERS.has(email),
       pendingEmailVerification: CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.has(email),
-      pendingDnsVerification: CAMPAIGN_PENDING_DNS_VERIFICATION_SENDERS.has(email)
+      pendingDnsVerification: CAMPAIGN_PENDING_DNS_VERIFICATION_SENDERS.has(email),
+      emailVerificationStartedAt: CAMPAIGN_EMAIL_VERIFICATION_STARTED_AT.get(email) || null
     }));
   const hidden = Object.keys(DEFAULT_CAMPAIGN_SENDERS)
     .filter((email) => !CAMPAIGN_SENDERS[email]);
@@ -930,6 +949,46 @@ function loadStoredCampaignSenders() {
     CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.delete(email);
     CAMPAIGN_PENDING_DNS_VERIFICATION_SENDERS.delete(email);
   });
+  senders.forEach((sender) => {
+    if (!CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.has(sender.email)) return;
+    scheduleCampaignSenderEmailVerification(sender.email, sender.emailVerificationStartedAt || Date.now());
+  });
+}
+
+function cancelCampaignSenderEmailVerification(emailAddress) {
+  window.clearTimeout(CAMPAIGN_EMAIL_VERIFICATION_TIMEOUTS.get(emailAddress));
+  CAMPAIGN_EMAIL_VERIFICATION_TIMEOUTS.delete(emailAddress);
+  CAMPAIGN_EMAIL_VERIFICATION_STARTED_AT.delete(emailAddress);
+}
+
+function scheduleCampaignSenderEmailVerification(emailAddress, startedAt = Date.now()) {
+  window.clearTimeout(CAMPAIGN_EMAIL_VERIFICATION_TIMEOUTS.get(emailAddress));
+  CAMPAIGN_EMAIL_VERIFICATION_STARTED_AT.set(emailAddress, startedAt);
+  const delay = Math.max(startedAt + CAMPAIGN_EMAIL_VERIFICATION_DELAY_MS - Date.now(), 0);
+  CAMPAIGN_EMAIL_VERIFICATION_TIMEOUTS.set(emailAddress, window.setTimeout(() => {
+    markCampaignSenderEmailVerified(emailAddress);
+  }, delay));
+}
+
+function markCampaignSenderEmailVerified(emailAddress) {
+  cancelCampaignSenderEmailVerification(emailAddress);
+  if (!CAMPAIGN_SENDERS[emailAddress]) return;
+  if (!CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.has(emailAddress)) return;
+
+  CAMPAIGN_UNAUTHENTICATED_SENDERS.delete(emailAddress);
+  CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.delete(emailAddress);
+  writeStoredCampaignSenderState();
+
+  if (getCampaignSenderEmailAddress() === emailAddress) {
+    window.WefranchFieldErrors?.clear(campaignSenderEmailField);
+  }
+  syncCampaignSenderAuthNotice();
+  syncCampaignSenderContinue();
+  syncCampaignStepErrorChrome();
+  syncCampaignStepHeight();
+  document.dispatchEvent(new CustomEvent("campaign-sender-verified", {
+    detail: { email: emailAddress }
+  }));
 }
 
 function saveCampaignSender(emailAddress, name, {
@@ -938,6 +997,7 @@ function saveCampaignSender(emailAddress, name, {
   pendingDnsVerification = false
 } = {}) {
   registerCampaignSender(emailAddress, name);
+  cancelCampaignSenderEmailVerification(emailAddress);
   if (authenticated || isCampaignSenderDomainAuthenticated(emailAddress)) {
     CAMPAIGN_UNAUTHENTICATED_SENDERS.delete(emailAddress);
     CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.delete(emailAddress);
@@ -945,6 +1005,7 @@ function saveCampaignSender(emailAddress, name, {
   } else if (pendingEmailVerification) {
     CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.add(emailAddress);
     CAMPAIGN_PENDING_DNS_VERIFICATION_SENDERS.delete(emailAddress);
+    scheduleCampaignSenderEmailVerification(emailAddress);
   } else if (pendingDnsVerification) {
     CAMPAIGN_PENDING_DNS_VERIFICATION_SENDERS.add(emailAddress);
     CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.delete(emailAddress);
@@ -961,6 +1022,7 @@ function removeCampaignSender(emailAddress) {
   if (!email || !CAMPAIGN_SENDERS[email]) return;
 
   const wasSelected = getCampaignSenderEmailAddress() === email;
+  cancelCampaignSenderEmailVerification(email);
   delete CAMPAIGN_SENDERS[email];
   CAMPAIGN_UNAUTHENTICATED_SENDERS.delete(email);
   CAMPAIGN_PENDING_EMAIL_VERIFICATION_SENDERS.delete(email);

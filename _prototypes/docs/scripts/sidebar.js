@@ -170,6 +170,7 @@
       document.title = parsed.title;
     }
     markCurrent(slug);
+    window.WefranchDocReadingTime?.sync();
     window.WefranchDocMarkdown?.sync();
     window.scrollTo(0, 0);
   };

@@ -2,7 +2,7 @@
 // Field names follow the CST API; data/real/overlay.js maps them onto the
 // prototype's owner shape.
 window.cstDumpData = {
-  "generatedAt": "2026-08-22T11:04:43.842Z",
+  "generatedAt": "2026-10-07T08:47:55.872Z",
   "source": "_source",
   "ownersTableTotal": 24126,
   "ownersTablePage": 100,
@@ -7416,15 +7416,15 @@ window.cstDumpData = {
     },
     {
       "publicId": "prqpx",
-      "name": "Schuck, David",
-      "groupCode": "Schuck, David",
-      "website": "",
-      "linkedinUrl": "",
-      "contactsCount": 1,
+      "name": "Spartan Fitness Holdings",
+      "groupCode": "Spartan Fitness Holdings",
+      "website": "https://www.spartanfranchises.com/",
+      "linkedinUrl": "https://www.linkedin.com/company/spartan-fitness-holdings/",
+      "contactsCount": 12,
       "unitsCount": 152,
       "contact": {
         "name": "David Schuck",
-        "title": "",
+        "title": "Founder & CEO",
         "email": "david.schuck@clubpilates.com",
         "phone": "",
         "linkedinUrl": "",
@@ -7441,12 +7441,82 @@ window.cstDumpData = {
         {
           "key": "david-schuck",
           "name": "David Schuck",
-          "title": "",
-          "children": []
+          "title": "Founder & CEO",
+          "children": [
+            {
+              "key": "brian-cormican",
+              "name": "Brian Cormican",
+              "title": "Chief Operating Officer",
+              "children": [
+                {
+                  "key": "amy-blank",
+                  "name": "Amy Blank",
+                  "title": "Director of Operations, Midwest",
+                  "children": []
+                },
+                {
+                  "key": "alexis-bond",
+                  "name": "Alexis Bond",
+                  "title": "Director of Operations, East",
+                  "children": []
+                },
+                {
+                  "key": "nikki-mcphail",
+                  "name": "Nikki McPhail",
+                  "title": "Director of Operations, South",
+                  "children": []
+                },
+                {
+                  "key": "alicia-lavender",
+                  "name": "Alicia Lavender",
+                  "title": "Director of Pit Crew",
+                  "children": []
+                },
+                {
+                  "key": "scott-faller",
+                  "name": "Scott Faller",
+                  "title": "Head of Development",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "key": "becky-hansen",
+              "name": "Becky Hansen",
+              "title": "Chief Financial Officer",
+              "children": [
+                {
+                  "key": "bradley-pagoto",
+                  "name": "Bradley Pagoto",
+                  "title": "Director of Financial Planning & Analysis",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "key": "tara-sikes",
+              "name": "Tara Sikes",
+              "title": "Chief People Officer",
+              "children": [
+                {
+                  "key": "tanya-siuta",
+                  "name": "Tanya Siuta",
+                  "title": "Vice President of People",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "key": "cheri-tennill",
+              "name": "Cheri Tennill",
+              "title": "Vice President of Marketing",
+              "children": []
+            }
+          ]
         }
       ],
       "mappedUnitCount": 152,
-      "orgChartPeopleCount": 1,
+      "orgChartPeopleCount": 12,
       "units": [
         [29.593, -95.606, 21740],
         [40.188, -75.229, 21747],
@@ -16253,9 +16323,9 @@ window.cstDumpData = {
     },
     {
       "publicId": "k0q4",
-      "name": "L5 FITNESS",
-      "groupCode": "L5 FITNESS",
-      "website": "",
+      "name": "L5 Fitness",
+      "groupCode": "L5 Fitness",
+      "website": "https://www.l5healthandfitness.com/",
       "linkedinUrl": "https://www.linkedin.com/company/l5-orangetheory/",
       "contactsCount": 2,
       "unitsCount": 42,

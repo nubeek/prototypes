@@ -1,19 +1,133 @@
 {
   "institution": {
-    "group_code": "Schuck, David",
+    "group_code": "Spartan Fitness Holdings",
     "id": 21979,
-    "name": "Schuck, David",
+    "name": "Spartan Fitness Holdings",
     "public_id": "prqpx"
   },
   "org_chart": [
     {
       "abbreviation": "DS",
-      "children": [],
+      "children": [
+        {
+          "abbreviation": "BC",
+          "children": [
+            {
+              "abbreviation": "AB",
+              "children": [],
+              "id": 949136,
+              "name": "Amy Blank",
+              "org_key": "amy-blank",
+              "org_parent": "brian-cormican",
+              "org_title": "Director of Operations, Midwest",
+              "profile_picture": null
+            },
+            {
+              "abbreviation": "AX",
+              "children": [],
+              "id": 949137,
+              "name": "Alexis Bond",
+              "org_key": "alexis-bond",
+              "org_parent": "brian-cormican",
+              "org_title": "Director of Operations, East",
+              "profile_picture": null
+            },
+            {
+              "abbreviation": "NM",
+              "children": [],
+              "id": 949138,
+              "name": "Nikki McPhail",
+              "org_key": "nikki-mcphail",
+              "org_parent": "brian-cormican",
+              "org_title": "Director of Operations, South",
+              "profile_picture": null
+            },
+            {
+              "abbreviation": "AL",
+              "children": [],
+              "id": 949135,
+              "name": "Alicia Lavender",
+              "org_key": "alicia-lavender",
+              "org_parent": "brian-cormican",
+              "org_title": "Director of Pit Crew",
+              "profile_picture": null
+            },
+            {
+              "abbreviation": "SF",
+              "children": [],
+              "id": 949134,
+              "name": "Scott Faller",
+              "org_key": "scott-faller",
+              "org_parent": "brian-cormican",
+              "org_title": "Head of Development",
+              "profile_picture": null
+            }
+          ],
+          "id": 949128,
+          "name": "Brian Cormican",
+          "org_key": "brian-cormican",
+          "org_parent": "david-schuck",
+          "org_title": "Chief Operating Officer",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "BH",
+          "children": [
+            {
+              "abbreviation": "BP",
+              "children": [],
+              "id": 949139,
+              "name": "Bradley Pagoto",
+              "org_key": "bradley-pagoto",
+              "org_parent": "becky-hansen",
+              "org_title": "Director of Financial Planning & Analysis",
+              "profile_picture": null
+            }
+          ],
+          "id": 949129,
+          "name": "Becky Hansen",
+          "org_key": "becky-hansen",
+          "org_parent": "david-schuck",
+          "org_title": "Chief Financial Officer",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "TS",
+          "children": [
+            {
+              "abbreviation": "TAS",
+              "children": [],
+              "id": 949131,
+              "name": "Tanya Siuta",
+              "org_key": "tanya-siuta",
+              "org_parent": "tara-sikes",
+              "org_title": "Vice President of People",
+              "profile_picture": null
+            }
+          ],
+          "id": 949130,
+          "name": "Tara Sikes",
+          "org_key": "tara-sikes",
+          "org_parent": "david-schuck",
+          "org_title": "Chief People Officer",
+          "profile_picture": null
+        },
+        {
+          "abbreviation": "CT",
+          "children": [],
+          "id": 949132,
+          "name": "Cheri Tennill",
+          "org_key": "cheri-tennill",
+          "org_parent": "david-schuck",
+          "org_title": "Vice President of Marketing",
+          "profile_picture": null
+        }
+      ],
       "id": 949127,
       "name": "David Schuck",
       "org_key": "david-schuck",
       "org_parent": null,
-      "org_title": "",
+      "org_title": "Founder & CEO",
       "profile_picture": null
     }
   ]

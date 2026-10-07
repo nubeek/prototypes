@@ -2548,7 +2548,7 @@ body.reduce-motion .campaign-continue-spinner {
   border-top: 1px solid var(--color-border);
 }
 
-#sendMessageCard:not(.is-expanded):not(.is-template-animating) .send-message-footer {
+#sendMessageCard:not(.is-expanded):not(.is-template-animating) .send-message-form > .send-message-footer {
   margin-top: -1px;
 }
 
@@ -2559,6 +2559,31 @@ body.reduce-motion .campaign-continue-spinner {
 #sendMessageCard .proto-modal-field-message {
   grid-column: 2;
   margin: 0 0 10px;
+}
+
+.send-message-error-action {
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(
+    in srgb,
+    currentColor var(--ui-link-underline-opacity-hover),
+    transparent
+  );
+  text-underline-offset: 2px;
+  transition: text-decoration-color 160ms ease-in-out;
+}
+
+.send-message-error-action:hover,
+.send-message-error-action:focus-visible,
+.send-message-error-action:active {
+  text-decoration-color: color-mix(
+    in srgb,
+    currentColor var(--ui-link-underline-opacity-active),
+    transparent
+  );
 }
 
 #sendMessageCard .filter-select-field {
@@ -2844,10 +2869,86 @@ body.reduce-motion .campaign-continue-spinner {
     width: 16px;
     height: 16px;
   }
+
+  .send-message-undo img {
+    width: 16px;
+    height: 15px;
+  }
 }
 
 .send-message-send {
   margin-left: auto;
+}
+
+.send-message-sent {
+  display: none;
+  flex-direction: column;
+}
+
+#sendMessageCard.is-sent {
+  height: auto;
+}
+
+#sendMessageCard.is-sent .send-message-header-icon,
+#sendMessageCard.is-sent .send-message-title,
+#sendMessageCard.is-sent .send-message-form {
+  display: none;
+}
+
+#sendMessageCard.is-sent .send-message-sent,
+#sendMessageCard.is-returning .send-message-form {
+  animation: send-message-body-swap 220ms ease both;
+}
+
+#sendMessageCard.is-sent .send-message-sent {
+  display: flex;
+}
+
+.send-message-sent-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 56px;
+  text-align: center;
+}
+
+.send-message-sent-icon {
+  display: block;
+  width: 54px;
+  height: 54px;
+}
+
+.send-message-sent-title {
+  margin: 24px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.send-message-sent-text {
+  margin: 20px 0 0;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+
+.send-message-undo {
+  font-weight: 500;
+}
+
+.send-message-undo img {
+  display: block;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 17px;
+}
+
+.send-message-done {
+  margin-left: auto;
+}
+
+body.reduce-motion #sendMessageCard.is-sent .send-message-sent,
+body.reduce-motion #sendMessageCard.is-returning .send-message-form {
+  animation: none;
 }
 
 .campaign-review-name {

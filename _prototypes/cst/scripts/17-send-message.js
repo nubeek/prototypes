@@ -3,6 +3,7 @@ const SEND_MESSAGE_EXPAND_MS = 420;
 const SEND_MESSAGE_SEND_DELAY_MS = 1000;
 const SEND_MESSAGE_FIELD_ERRORS = {
   sender: "Choose a sender email",
+  senderDomain: "Authenticate your sending domain",
   recipients: "Add at least one recipient",
   subject: "Enter a subject",
   template: "Choose a template"
@@ -28,7 +29,10 @@ const sendMessageTemplatePreviewFrame = document.getElementById("sendMessageTemp
 const sendMessageTemplateImage = document.getElementById("sendMessageTemplateImage");
 const sendMessageTemplateUnavailable = document.getElementById("sendMessageTemplateUnavailable");
 const sendMessageSend = document.getElementById("sendMessageSend");
+const sendMessageSendLabel = sendMessageSend?.querySelector(".campaign-continue-label");
 const sendMessageTemplates = document.getElementById("sendMessageTemplates");
+const sendMessageUndo = document.getElementById("sendMessageUndo");
+const sendMessageDone = document.getElementById("sendMessageDone");
 
 let sendMessageFromApi = null;
 let sendMessageRecipientsApi = null;
@@ -50,10 +54,33 @@ function isSendMessageOpen() {
 }
 
 function getSendMessageSenderOptions() {
-  return getAuthorizedCampaignSenderEmails().map((emailAddress) => ({
-    label: emailAddress,
-    value: emailAddress
-  }));
+  return getCampaignSenderEmailOptions();
+}
+
+function syncSendMessageSenderOptions() {
+  sendMessageFromApi?.setOptions(getSendMessageSenderOptions(), { placeholder: "Select sender" });
+}
+
+function selectSendMessageSender(emailAddress) {
+  syncSendMessageSenderOptions();
+  sendMessageFromApi?.setValue(emailAddress);
+  window.WefranchFieldErrors?.clear(sendMessageFromField);
+}
+
+function openSendMessageSenderSetup(trigger) {
+  openAddCampaignSenderSetupModal(trigger, {
+    emailAddress: sendMessageFromApi?.getValue() || "",
+    onSave: selectSendMessageSender
+  });
+}
+
+function decorateSendMessageSenderDomainError(messageEl) {
+  const action = document.createElement("button");
+  action.type = "button";
+  action.className = "ui-control send-message-error-action";
+  action.textContent = "Authenticate";
+  action.addEventListener("click", () => openSendMessageSenderSetup(action));
+  messageEl.replaceChildren(action, " your sending domain");
 }
 
 function getSendMessageRecipientCandidates() {
@@ -464,6 +491,98 @@ function setSendMessagePending(isPending) {
   sendMessagePending = isPending;
   sendMessageSend?.classList.toggle("is-loading", isPending);
   if (sendMessageSend) sendMessageSend.disabled = isPending;
+  if (sendMessageSendLabel) sendMessageSendLabel.textContent = isPending ? "Sending..." : "Send";
+}
+
+function isSendMessageSent() {
+  return Boolean(sendMessageCard?.classList.contains("is-sent"));
+}
+
+function setSendMessageSent(isSent) {
+  sendMessageCard?.classList.toggle("is-sent", isSent);
+  sendMessageCard?.setAttribute("aria-labelledby", isSent ? "sendMessageSentTitle" : "sendMessageTitle");
+}
+
+function syncSendMessageExpandedState() {
+  const isExpanded = sendMessageTemplatePickerOpen || Boolean(getSendMessageTemplateId());
+  sendMessageCard?.classList.toggle("is-expanded", isExpanded);
+  if (isExpanded) setSendMessageBodyRevealed(true);
+  else hideSendMessageBodyContent();
+}
+
+// Animates the card between two layouts that change its height, such as the
+// compose form and the sent confirmation.
+function animateSendMessageCardLayout(applyChange) {
+  const card = sendMessageCard;
+  if (!card) return;
+
+  invalidateSendMessageExpand();
+  finishSendMessageExpandLayout();
+
+  if (!isSendMessageOpen() || document.body.classList.contains("reduce-motion")) {
+    applyChange();
+    invalidateSendMessageExpand();
+    finishSendMessageExpandLayout();
+    syncSendMessageExpandedState();
+    return;
+  }
+
+  const startHeight = card.getBoundingClientRect().height;
+  card.style.transition = "none";
+  applyChange();
+  // applyChange may start the template expand animation; settle it here so
+  // this height transition is the only one running.
+  invalidateSendMessageExpand();
+  finishSendMessageExpandLayout();
+  syncSendMessageExpandedState();
+  card.style.transition = "none";
+  card.style.height = "";
+  const endHeight = card.getBoundingClientRect().height;
+
+  if (Math.abs(endHeight - startHeight) < 1) {
+    finishSendMessageExpandLayout();
+    return;
+  }
+
+  const frame = sendMessageExpandFrame;
+  card.style.height = `${startHeight}px`;
+  void card.offsetWidth;
+  card.style.transition = "";
+  void card.offsetWidth;
+
+  sendMessageExpandFrameId = window.requestAnimationFrame(() => {
+    sendMessageExpandFrameId = 0;
+    if (frame !== sendMessageExpandFrame) return;
+    card.style.height = `${endHeight}px`;
+  });
+
+  const settle = () => {
+    if (frame !== sendMessageExpandFrame) return;
+    invalidateSendMessageExpand();
+    finishSendMessageExpandLayout();
+  };
+
+  sendMessageExpandEnd = (event) => {
+    if (event.target !== card || event.propertyName !== "height") return;
+    settle();
+  };
+  card.addEventListener("transitionend", sendMessageExpandEnd);
+  sendMessageExpandTimer = window.setTimeout(settle, SEND_MESSAGE_EXPAND_MS + 50);
+}
+
+function showSendMessageSent() {
+  closeSendMessageDropdowns();
+  animateSendMessageCardLayout(() => setSendMessageSent(true));
+  sendMessageDone?.focus({ preventScroll: true });
+}
+
+function undoSendMessageSent() {
+  if (!isSendMessageSent()) return;
+  animateSendMessageCardLayout(() => {
+    setSendMessageSent(false);
+    sendMessageCard.classList.add("is-returning");
+  });
+  sendMessageSend?.focus({ preventScroll: true });
 }
 
 function cancelSendMessagePending() {
@@ -478,7 +597,7 @@ function resetSendMessageForm() {
   window.WefranchFieldErrors?.clearAll(sendMessageCard, { silent: true });
 
   sendMessageContactRecipients = [];
-  sendMessageFromApi?.setOptions(getSendMessageSenderOptions(), { placeholder: "Select sender" });
+  syncSendMessageSenderOptions();
   sendMessageFromApi?.reset(getDefaultCampaignSenderEmail());
   sendMessageRecipientsApi?.setOptions(getSendMessageRecipientOptions(), { placeholder: "Add recipient" });
   sendMessageRecipientsApi?.reset("");
@@ -488,6 +607,8 @@ function resetSendMessageForm() {
 
   if (sendMessageSubject) sendMessageSubject.value = "";
   syncSendMessageTemplate();
+  setSendMessageSent(false);
+  sendMessageCard?.classList.remove("is-returning");
 }
 
 function focusSendMessageRecipients() {
@@ -510,29 +631,37 @@ function focusSendMessageSubject() {
   });
 }
 
-function openSendMessageCard({ contact = null } = {}) {
-  if (!sendMessageCard) return;
-
-  document.getElementById("outreachBtn")?.removeAttribute("open");
-
-  if (isSendMessageOpen()) {
-    if (contact) {
-      addSendMessageContactRecipient(contact);
-      focusSendMessageSubject();
-    } else {
-      focusSendMessageRecipients();
-    }
-    return;
-  }
-
-  window.clearTimeout(sendMessageCloseTimeoutId);
-  resetSendMessageForm();
+function applyOpenSendMessageRecipients(contact) {
   if (contact) {
     syncSendMessageSelection();
     addSendMessageContactRecipient(contact);
   } else {
     syncSendMessageSelection({ applyRecipients: true });
   }
+}
+
+function openSendMessageCard({ contact = null } = {}) {
+  if (!sendMessageCard) return;
+
+  document.getElementById("outreachBtn")?.removeAttribute("open");
+
+  if (isSendMessageOpen()) {
+    if (isSendMessageSent()) {
+      animateSendMessageCardLayout(() => {
+        resetSendMessageForm();
+        applyOpenSendMessageRecipients(contact);
+      });
+    } else if (contact) {
+      addSendMessageContactRecipient(contact);
+    }
+    if (contact) focusSendMessageSubject();
+    else focusSendMessageRecipients();
+    return;
+  }
+
+  window.clearTimeout(sendMessageCloseTimeoutId);
+  resetSendMessageForm();
+  applyOpenSendMessageRecipients(contact);
   sendMessageCard.classList.remove("is-closing");
   sendMessageCard.hidden = false;
   void sendMessageCard.offsetWidth;
@@ -567,8 +696,10 @@ function getSendMessageErrors() {
   const recipients = window.WefranchFilterCombobox.getValues(sendMessageRecipientsSelect);
   const subject = String(sendMessageSubject?.value || "").trim();
 
-  if (!isCampaignSenderEmailAuthorized(senderEmail)) {
+  if (!senderEmail || !CAMPAIGN_SENDERS[senderEmail]) {
     errors.push({ field: sendMessageFromField, message: SEND_MESSAGE_FIELD_ERRORS.sender });
+  } else if (!isCampaignSenderEmailAuthorized(senderEmail)) {
+    errors.push({ field: sendMessageFromField, message: SEND_MESSAGE_FIELD_ERRORS.senderDomain });
   }
   if (!recipients.length) {
     errors.push({ field: sendMessageRecipientsField, message: SEND_MESSAGE_FIELD_ERRORS.recipients });
@@ -603,22 +734,50 @@ function submitSendMessage() {
     return;
   }
 
-  const recipientCount = window.WefranchFilterCombobox.getValues(sendMessageRecipientsSelect).length;
   setSendMessagePending(true);
   sendMessageSendTimeoutId = window.setTimeout(() => {
     sendMessageSendTimeoutId = null;
     setSendMessagePending(false);
-    closeSendMessageCard();
-    window.WefranchToast?.show({
-      message: `Message sent to ${recipientCount.toLocaleString("en-US")} ${recipientCount === 1 ? "recipient" : "recipients"}.`
-    });
+    showSendMessageSent();
   }, SEND_MESSAGE_SEND_DELAY_MS);
 }
 
 sendMessageFromApi = window.WefranchFilterCombobox.enhance(sendMessageFromSelect, {
   singleSelect: true,
   clearable: false,
-  searchable: false
+  searchable: false,
+  optionRemove: true,
+  onRemoveOption(emailAddress) {
+    removeCampaignSender(emailAddress);
+  },
+  menuActions: [
+    {
+      label: "Add new sender",
+      icon: "../../assets/icons/add.svg",
+      onClick() {
+        openAddCampaignSenderModal(sendMessageFromField, { onSave: selectSendMessageSender });
+      }
+    }
+  ]
+});
+
+document.addEventListener("campaign-sender-verified", (event) => {
+  if (sendMessageFromApi?.getValue() !== event.detail?.email) return;
+  window.WefranchFieldErrors?.clear(sendMessageFromField);
+});
+
+document.addEventListener("campaign-senders-change", () => {
+  if (!sendMessageFromApi) return;
+  syncSendMessageSenderOptions();
+  if (CAMPAIGN_SENDERS[sendMessageFromApi.getValue()]) return;
+  sendMessageFromApi.setValue(getDefaultCampaignSenderEmail());
+  window.WefranchFieldErrors?.clear(sendMessageFromField);
+});
+
+sendMessageFromField?.closest(".proto-modal-field")?.addEventListener("proto-field-error", (event) => {
+  if (event.detail?.message !== SEND_MESSAGE_FIELD_ERRORS.senderDomain) return;
+  const messageEl = event.currentTarget.querySelector(":scope > .proto-modal-field-message");
+  if (messageEl) decorateSendMessageSenderDomainError(messageEl);
 });
 
 sendMessageRecipientsApi = window.WefranchFilterCombobox.enhance(sendMessageRecipientsSelect, {
@@ -751,6 +910,12 @@ sendMessageOption?.addEventListener("click", (event) => {
 });
 
 sendMessageClose?.addEventListener("click", closeSendMessageCard);
+sendMessageDone?.addEventListener("click", closeSendMessageCard);
+sendMessageUndo?.addEventListener("click", undoSendMessageSent);
+
+sendMessageForm?.addEventListener("animationend", (event) => {
+  if (event.target === sendMessageForm) sendMessageCard?.classList.remove("is-returning");
+});
 
 sendMessageForm?.addEventListener("submit", (event) => {
   event.preventDefault();

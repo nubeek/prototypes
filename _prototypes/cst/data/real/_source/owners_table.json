@@ -473,18 +473,18 @@
         "linkedin_link": null,
         "name": "David Schuck",
         "org_key": "david-schuck",
-        "org_title": "",
+        "org_title": "Founder & CEO",
         "phone": null,
         "profile_picture": null
       },
-      "contacts_count": 1,
-      "group_code": "Schuck, David",
+      "contacts_count": 12,
+      "group_code": "Spartan Fitness Holdings",
       "id": 21979,
-      "linkedin_link": null,
-      "name": "Schuck, David",
+      "linkedin_link": "https://www.linkedin.com/company/spartan-fitness-holdings/",
+      "name": "Spartan Fitness Holdings",
       "public_id": "prqpx",
       "units_count": 152,
-      "website": null
+      "website": "https://www.spartanfranchises.com/"
     },
     {
       "concepts": [
@@ -2517,13 +2517,13 @@
         "profile_picture": "http://localhost:8000/media/images/user-profile/31526c0a49a944c7b9939a5718d4efef.jpeg"
       },
       "contacts_count": 2,
-      "group_code": "L5 FITNESS",
+      "group_code": "L5 Fitness",
       "id": 6897,
       "linkedin_link": "https://www.linkedin.com/company/l5-orangetheory/",
-      "name": "L5 FITNESS",
+      "name": "L5 Fitness",
       "public_id": "k0q4",
       "units_count": 42,
-      "website": null
+      "website": "https://www.l5healthandfitness.com/"
     },
     {
       "concepts": [
