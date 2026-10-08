@@ -48,6 +48,7 @@ let sendMessageTemplateActiveIndex = -1;
 let sendMessagePending = false;
 let sendMessageSelectionKey = "";
 let sendMessageContactRecipients = [];
+let sendMessageRecipientOrder = [];
 
 function isSendMessageOpen() {
   return Boolean(sendMessageCard && !sendMessageCard.hidden && !sendMessageCard.classList.contains("is-closing"));
@@ -101,9 +102,33 @@ function getSendMessageRecipientCandidates() {
     }));
 }
 
+function getSelectedSendMessageLocationRows() {
+  const rowsById = new Map(displayedLocations.map((row) => [row.id, row]));
+  const rows = [];
+
+  selectedLocationRowIds.forEach((rowId) => {
+    const row = rowsById.get(rowId);
+    if (row) rows.push(row);
+  });
+
+  return rows;
+}
+
+function getSelectedSendMessageOwners() {
+  const ownersByIndex = new Map(displayedFranchisees.map((owner) => [owner.originalIndex, owner]));
+  const owners = [];
+
+  selectedFranchiseeIndexes.forEach((ownerIndex) => {
+    const owner = ownersByIndex.get(ownerIndex);
+    if (owner) owners.push(owner);
+  });
+
+  return owners;
+}
+
 function getActiveSendMessageSelection() {
   if (isDatasetTableView()) {
-    const rows = displayedLocations.filter((row) => selectedLocationRowIds.has(row.id));
+    const rows = getSelectedSendMessageLocationRows();
     return {
       count: rows.length,
       key: `dataset:${rows.map((row) => row.id).sort().join("\u0001")}`,
@@ -115,9 +140,7 @@ function getActiveSendMessageSelection() {
     };
   }
 
-  const selectedOwners = displayedFranchisees.filter((owner) => (
-    selectedFranchiseeIndexes.has(owner.originalIndex)
-  ));
+  const selectedOwners = getSelectedSendMessageOwners();
   return {
     count: selectedOwners.length,
     key: `franchisees:${selectedOwners.map((owner) => owner.originalIndex).sort((a, b) => a - b).join("\u0001")}`,
@@ -163,7 +186,79 @@ function getSendMessageRecipientOptions() {
   getSendMessageRecipientCandidates().forEach(addRecipient);
   getActiveSendMessageSelection().recipients.forEach(addRecipient);
   sendMessageContactRecipients.forEach(addRecipient);
-  return options;
+  return orderSendMessageRecipientOptions(options);
+}
+
+function commitSendMessageRecipientOrder(emails) {
+  const emailSet = new Set(emails);
+  const nextOrder = [];
+  const seen = new Set();
+
+  sendMessageRecipientOrder.forEach((email) => {
+    if (!emailSet.has(email) || seen.has(email)) return;
+    seen.add(email);
+    nextOrder.push(email);
+  });
+
+  emails.forEach((email) => {
+    if (!email || seen.has(email)) return;
+    seen.add(email);
+    nextOrder.push(email);
+  });
+
+  sendMessageRecipientOrder = nextOrder;
+  return nextOrder;
+}
+
+function orderSendMessageRecipientOptions(options) {
+  if (!sendMessageRecipientOrder.length) return options;
+
+  const optionsByValue = new Map(options.map((option) => [option.value, option]));
+  const orderedOptions = [];
+  const usedValues = new Set();
+
+  sendMessageRecipientOrder.forEach((email) => {
+    const option = optionsByValue.get(email);
+    if (!option || usedValues.has(email)) return;
+    usedValues.add(email);
+    orderedOptions.push(option);
+  });
+
+  options.forEach((option) => {
+    if (usedValues.has(option.value)) return;
+    orderedOptions.push(option);
+  });
+
+  return orderedOptions;
+}
+
+function syncSendMessageRecipientOptionOrder() {
+  if (!sendMessageRecipientsSelect || !sendMessageRecipientOrder.length) return;
+
+  const options = Array.from(sendMessageRecipientsSelect.options);
+  const placeholder = options.find((option) => option.value === "");
+  const optionsByValue = new Map(
+    options.filter((option) => option.value).map((option) => [option.value, option])
+  );
+  const orderedOptions = [];
+  const usedValues = new Set();
+
+  sendMessageRecipientOrder.forEach((email) => {
+    const option = optionsByValue.get(email);
+    if (!option || usedValues.has(email)) return;
+    usedValues.add(email);
+    orderedOptions.push(option);
+  });
+
+  options.forEach((option) => {
+    if (!option.value || usedValues.has(option.value)) return;
+    orderedOptions.push(option);
+  });
+
+  const fragment = document.createDocumentFragment();
+  if (placeholder) fragment.append(placeholder);
+  orderedOptions.forEach((option) => fragment.append(option));
+  sendMessageRecipientsSelect.append(fragment);
 }
 
 function syncSendMessageRecipientCountLabel() {
@@ -177,7 +272,7 @@ function syncSendMessageRecipientCountLabel() {
 function applySelectedSendMessageRecipients(recipients) {
   if (!sendMessageRecipientsSelect || !sendMessageRecipientsApi) return;
 
-  const emails = getSendMessageSelectionEmails(recipients);
+  const emails = commitSendMessageRecipientOrder(getSendMessageSelectionEmails(recipients));
   const optionValues = new Set(Array.from(sendMessageRecipientsSelect.options, (option) => option.value));
   if (emails.some((email) => !optionValues.has(email))) {
     sendMessageRecipientsApi.setOptions(getSendMessageRecipientOptions(), { placeholder: "Add recipient" });
@@ -597,6 +692,7 @@ function resetSendMessageForm() {
   window.WefranchFieldErrors?.clearAll(sendMessageCard, { silent: true });
 
   sendMessageContactRecipients = [];
+  sendMessageRecipientOrder = [];
   syncSendMessageSenderOptions();
   sendMessageFromApi?.reset(getDefaultCampaignSenderEmail());
   sendMessageRecipientsApi?.setOptions(getSendMessageRecipientOptions(), { placeholder: "Add recipient" });
@@ -625,12 +721,6 @@ function addSendMessageContactRecipient(contact) {
   applySelectedSendMessageRecipients([...currentRecipients, contact]);
 }
 
-function focusSendMessageSubject() {
-  window.requestAnimationFrame(() => {
-    sendMessageSubject?.focus({ preventScroll: true });
-  });
-}
-
 function applyOpenSendMessageRecipients(contact) {
   if (contact) {
     syncSendMessageSelection();
@@ -654,8 +744,7 @@ function openSendMessageCard({ contact = null } = {}) {
     } else if (contact) {
       addSendMessageContactRecipient(contact);
     }
-    if (contact) focusSendMessageSubject();
-    else focusSendMessageRecipients();
+    focusSendMessageRecipients();
     return;
   }
 
@@ -666,8 +755,7 @@ function openSendMessageCard({ contact = null } = {}) {
   sendMessageCard.hidden = false;
   void sendMessageCard.offsetWidth;
   sendMessageCard.classList.add("is-open");
-  if (contact) focusSendMessageSubject();
-  else focusSendMessageRecipients();
+  focusSendMessageRecipients();
 }
 
 function closeSendMessageCard() {
@@ -789,6 +877,7 @@ sendMessageRecipientsApi = window.WefranchFilterCombobox.enhance(sendMessageReci
 
 const sendMessageRecipientsControl = sendMessageRecipientsField?.querySelector(".filter-combobox-control");
 sendMessageRecipientsControl?.classList.add("proto-scrollbar");
+sendMessageRecipientsField?.querySelector(".filter-combobox-clear")?.setAttribute("tabindex", "-1");
 
 sendMessageRecipientsField?.addEventListener("focusin", () => {
   sendMessageRecipientsApi?.setOptions(getSendMessageRecipientOptions(), { placeholder: "Add recipient" });
@@ -796,6 +885,10 @@ sendMessageRecipientsField?.addEventListener("focusin", () => {
 
 let sendMessageRecipientCount = 0;
 sendMessageRecipientsSelect?.addEventListener("change", () => {
+  commitSendMessageRecipientOrder(window.WefranchFilterCombobox.getValues(sendMessageRecipientsSelect));
+  syncSendMessageRecipientOptionOrder();
+  sendMessageRecipientsApi?.sync();
+
   const recipientCount = syncSendMessageRecipientCountLabel();
   if (recipientCount > sendMessageRecipientCount && sendMessageRecipientsControl) {
     sendMessageRecipientsControl.scrollTop = sendMessageRecipientsControl.scrollHeight;

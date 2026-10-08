@@ -411,8 +411,12 @@ body.reduce-motion .target-modal.is-resizing {
   width: 28px;
   height: 28px;
   display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
   color: inherit;
+  appearance: none;
+  -webkit-appearance: none;
   transform: none;
 }
 
@@ -455,7 +459,7 @@ body.reduce-motion .target-modal.is-resizing {
   width: 9px;
   height: 9px;
   filter: var(--color-chevron-soft);
-  transform: translateY(-1px);
+  transform: none;
   transition: filter var(--transition-fast);
 }
 
