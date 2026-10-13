@@ -372,6 +372,26 @@ body.reduce-motion .target-modal.is-resizing {
   box-shadow: 0 0 0 1px var(--color-brand);
 }
 
+.proto-modal-field .filter-select-field.is-disabled:not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control,
+.proto-modal-field .filter-select-field.is-disabled:not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control:hover,
+.target-modal-field .filter-select-field.is-disabled:not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control,
+.target-modal-field .filter-select-field.is-disabled:not(.has-selection):not(:focus-within):not(.is-open) .filter-combobox-control:hover {
+  background: #f2f2f2;
+  border-color: transparent;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.proto-modal-field .filter-select-field.is-disabled .filter-combobox-input,
+.target-modal-field .filter-select-field.is-disabled .filter-combobox-input {
+  cursor: not-allowed;
+}
+
+.proto-modal-field .filter-select-field.is-disabled .filter-combobox-input::placeholder,
+.target-modal-field .filter-select-field.is-disabled .filter-combobox-input::placeholder {
+  color: var(--color-text-disabled, #cdcdcd);
+}
+
 /* Modal dropdowns reuse filter-header icons: 9×9 remove.svg + 11×6 chevron. */
 .proto-modal-field .filter-select-field.has-selection > img,
 .target-modal-field .filter-select-field.has-selection > img {

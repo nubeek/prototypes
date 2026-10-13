@@ -17,6 +17,7 @@ const CAMPAIGN_EMAIL_VERIFICATION_DELAY_MS = 10000;
 const CAMPAIGN_SENDER_STORAGE_KEY = "wefranch:campaign-senders";
 const CAMPAIGN_SENDER_LEGACY_STORAGE_KEY = "cst.campaignSenders.v1";
 let campaignWizardSession = null;
+let campaignDraftRecordId = null;
 
 function getCampaignAudienceAdapter() {
   return campaignWizardSession || window.wefranchCampaignAudience || {
@@ -347,6 +348,13 @@ const campaignStepContinue = document.getElementById("campaignStepContinue");
 const campaignStepContinueLabel = campaignStepContinue?.querySelector(".campaign-continue-label");
 const startCampaignAudienceField = document.getElementById("startCampaignAudienceField");
 const startCampaignAudienceSelect = document.getElementById("startCampaignAudienceSelect");
+const campaignAdvancedOptionsToggle = document.getElementById("campaignAdvancedOptionsToggle");
+const campaignAdvancedOptions = document.getElementById("campaignAdvancedOptions");
+const campaignExcludeField = document.getElementById("campaignExcludeField");
+const campaignExcludeSelect = document.getElementById("campaignExcludeSelect");
+const campaignFilterOutField = document.getElementById("campaignFilterOutField");
+const campaignFilterOutSelect = document.getElementById("campaignFilterOutSelect");
+const CAMPAIGN_EXCLUDE_STATUSES = new Set(["completed", "canceled", "cancelled"]);
 const startCampaignPreview = document.getElementById("startCampaignPreview");
 const startCampaignRecipientCount = document.getElementById("startCampaignRecipientCount");
 const startCampaignRemainingCount = document.getElementById("startCampaignRemainingCount");
@@ -403,6 +411,8 @@ let campaignSenderDraft = null;
 let campaignName = DEFAULT_CAMPAIGN_NAME;
 let campaignType = CAMPAIGN_TYPE_DEFAULT;
 let startCampaignAudienceApi = null;
+let campaignExcludeApi = null;
+let campaignFilterOutApi = null;
 let startCampaignDraft = null;
 let campaignDesignTemplateApi = null;
 let campaignScheduleHourApi = null;
@@ -1164,10 +1174,16 @@ function resetCampaignSenderModal() {
 
 function closeStartCampaignDropdowns() {
   startCampaignAudienceApi?.close();
+  campaignExcludeApi?.close();
+  campaignFilterOutApi?.close();
 }
 
 function isStartCampaignDropdownOpen() {
-  return Boolean(startCampaignAudienceField?.classList.contains("is-open"));
+  return Boolean(
+    startCampaignAudienceField?.classList.contains("is-open")
+    || campaignExcludeField?.classList.contains("is-open")
+    || campaignFilterOutField?.classList.contains("is-open")
+  );
 }
 
 function formatStartCampaignCount(count, singular, plural) {
@@ -1226,6 +1242,158 @@ function getSelectedAudienceValues() {
 function buildCampaignAudiencePreview(selectedValues) {
   if (!selectedValues.length) return null;
   return getCampaignAudienceAdapter().getAudiencePreview?.(selectedValues) || null;
+}
+
+function listExcludableCampaigns() {
+  const campaigns = window.WefranchCampaignsStore?.list?.() || [];
+  return campaigns
+    .filter((campaign) => CAMPAIGN_EXCLUDE_STATUSES.has(campaign.status))
+    .sort((left, right) => String(right.endAt || right.startAt || "").localeCompare(
+      String(left.endAt || left.startAt || "")
+    ));
+}
+
+function hashUnit(value) {
+  let hash = 2166136261;
+  const text = String(value);
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) / 4294967295;
+}
+
+function engagementCount(campaign, type) {
+  const sent = Math.max(0, Math.round(Number(campaign.sentCount) || 0));
+  const opened = Math.min(sent || Number(campaign.opens) || 0, Math.max(0, Math.round(Number(campaign.opens) || 0)));
+  const delivered = Math.min(sent, Math.round(sent * 0.97));
+  const clicked = Math.min(opened, Math.round(opened * 0.22));
+
+  switch (type) {
+    case "sent": return sent;
+    case "delivered": return delivered;
+    case "opened": return Math.min(delivered || sent, opened);
+    case "clicked": return clicked;
+    default: return 0;
+  }
+}
+
+function getCampaignSegment() {
+  return window.WefranchFilterCombobox.getValues(campaignFilterOutSelect)[0] || "sent";
+}
+
+function campaignSegmentCount(campaign, segment = getCampaignSegment()) {
+  const recipients = Math.max(0, Math.round(Number(campaign.recipientCount) || 0));
+  if (!segment || segment === "sent") return recipients;
+  return Math.min(recipients, engagementCount(campaign, segment));
+}
+
+function exclusionRate(campaign, filters) {
+  const recipients = Math.max(1, Math.round(Number(campaign.recipientCount) || 0));
+  const segment = filters[0] || "sent";
+  if (segment === "sent") return 1;
+  return Math.min(1, engagementCount(campaign, segment) / recipients);
+}
+
+function estimateExcludedRecipients(audienceCount, audienceKey) {
+  if (!campaignExcludeSelect || audienceCount <= 0) return 0;
+
+  const campaignIds = window.WefranchFilterCombobox.getValues(campaignExcludeSelect);
+  if (!campaignIds.length) return 0;
+
+  const filters = window.WefranchFilterCombobox.getValues(campaignFilterOutSelect);
+  const campaigns = new Map(listExcludableCampaigns().map((campaign) => [campaign.id, campaign]));
+  let remaining = audienceCount;
+  let excluded = 0;
+
+  campaignIds.forEach((id) => {
+    const campaign = campaigns.get(id);
+    if (!campaign || remaining <= 0) return;
+
+    const overlap = 0.16 + hashUnit(`${audienceKey}|${id}`) * 0.28;
+    const inBoth = Math.round(audienceCount * overlap);
+    const cut = Math.min(remaining, Math.round(inBoth * exclusionRate(campaign, filters)));
+    excluded += cut;
+    remaining -= cut;
+  });
+
+  return excluded;
+}
+
+function getEffectiveCampaignAudiencePreview() {
+  const preview = buildCampaignAudiencePreview(getSelectedAudienceValues());
+  if (!preview) return null;
+
+  const contactCount = Math.max(0, Math.round(Number(preview.contactCount) || 0));
+  const audienceKey = [...(preview.savedSearchIds || preview.titles || [preview.title || ""])].join("|");
+  const excluded = estimateExcludedRecipients(contactCount, audienceKey);
+  if (!excluded) return { ...preview, contactCount };
+
+  return {
+    ...preview,
+    contactCount: Math.max(0, contactCount - excluded)
+  };
+}
+
+function syncExcludeCampaignOptions() {
+  if (!campaignExcludeSelect) return;
+
+  const options = listExcludableCampaigns().map((campaign) => ({
+    label: `${campaign.name} (${campaignSegmentCount(campaign).toLocaleString("en-US")})`,
+    value: campaign.id
+  }));
+  const placeholder = options.length
+    ? "Select recipients from previous campaigns"
+    : "No finished or canceled campaigns";
+
+  if (campaignExcludeApi) {
+    campaignExcludeApi.setOptions(options, { placeholder });
+  } else {
+    window.WefranchFilterCombobox.setOptions(campaignExcludeSelect, options, { placeholder });
+  }
+
+  campaignExcludeSelect.disabled = options.length === 0;
+  campaignExcludeApi?.sync();
+}
+
+function syncCampaignFilterOutEnabled() {
+  const hasCampaign = window.WefranchFilterCombobox.getValues(campaignExcludeSelect).length > 0;
+  const segment = window.WefranchFilterCombobox.getValues(campaignFilterOutSelect)[0] || "";
+
+  if (!hasCampaign) {
+    if (segment) campaignFilterOutApi?.reset("");
+  } else if (!segment) {
+    campaignFilterOutApi?.setValue("sent", { dispatch: false });
+  }
+
+  if (campaignFilterOutSelect) {
+    campaignFilterOutSelect.disabled = !hasCampaign;
+    campaignFilterOutApi?.sync();
+  }
+}
+
+function setCampaignAdvancedOptionsOpen(isOpen) {
+  if (!campaignAdvancedOptions || !campaignAdvancedOptionsToggle) return;
+
+  campaignAdvancedOptions.hidden = !isOpen;
+  campaignAdvancedOptionsToggle.setAttribute("aria-expanded", String(isOpen));
+
+  if (!isOpen) {
+    campaignExcludeApi?.close();
+    campaignFilterOutApi?.close();
+  }
+
+  if (CAMPAIGN_STEPS[activeCampaignStepIndex]?.id === "recipients") {
+    syncCampaignStepHeight();
+  }
+}
+
+function resetCampaignAdvancedOptions() {
+  setCampaignAdvancedOptionsOpen(false);
+  syncExcludeCampaignOptions();
+  campaignExcludeApi?.reset("");
+  campaignFilterOutApi?.reset("");
+  syncCampaignFilterOutEnabled();
 }
 
 function resetStartCampaignPreview() {
@@ -1287,8 +1455,7 @@ function syncStartCampaignContinue() {
 function syncStartCampaignAudienceState() {
   syncStartCampaignAudienceOptions();
 
-  const selectedValues = getSelectedAudienceValues();
-  const preview = buildCampaignAudiencePreview(selectedValues);
+  const preview = getEffectiveCampaignAudiencePreview();
 
   startCampaignDraft = preview;
   renderStartCampaignPreview(preview);
@@ -1304,6 +1471,7 @@ function resetStartCampaignModal() {
     ? (defaultAudience[0] || "")
     : (defaultAudience || "");
   startCampaignAudienceApi?.reset(defaultValue);
+  resetCampaignAdvancedOptions();
   startCampaignDraft = null;
   syncStartCampaignAudienceState();
 }
@@ -1949,7 +2117,7 @@ function formatCampaignReviewMore(primary, extraCount) {
 }
 
 function collectCampaignReviewDraft() {
-  const audience = buildCampaignAudiencePreview(getSelectedAudienceValues());
+  const audience = getEffectiveCampaignAudiencePreview();
 
   if (isDripCampaign()) {
     commitActiveSequenceEmailFields();
@@ -2749,15 +2917,16 @@ function shouldConfirmCampaignDiscard() {
 function openCampaignDiscardConfirm() {
   closeCampaignTypeSwitchConfirm();
   campaignDiscardConfirmApi?.open({
-    title: "Discard changes?",
-    message: "Are you sure you want to leave?\nChanges you made will not be saved.",
-    confirmLabel: "Discard",
-    cancelLabel: "Cancel",
+    title: "Close campaign setup?",
+    message: buildFinishLaterMessage(),
+    confirmLabel: "Close",
+    cancelLabel: "Keep editing",
     confirmPlacement: "start",
     confirmVariant: "secondary",
     cancelVariant: "primary",
     trigger: startCampaignModal?.querySelector(".proto-modal-close"),
     onConfirm() {
+      saveCampaignAsDraft();
       closeStartCampaignModal({ force: true });
     }
   });
@@ -2998,8 +3167,96 @@ function resetReviewCampaignModal() {
   if (campaignReviewTestEmail) campaignReviewTestEmail.value = CAMPAIGN_REVIEW_TEST_EMAIL_DEFAULT;
 }
 
+function campaignsListHref(draftId) {
+  const url = new URL("../campaigns/", window.location.href);
+  if (draftId) url.searchParams.set("draft", String(draftId));
+  return `${url.pathname}${url.search}`;
+}
+
+function getCampaignDraftSender() {
+  const selected = getCampaignSenderSelection() || campaignSenderDraft;
+  const email = String(
+    selected?.emailAddress || selected?.email || getCampaignSenderEmailAddress() || ""
+  ).trim();
+  const name = String(selected?.name || campaignSenderName?.value || "").trim();
+  if (!email && !name) return null;
+  return { name, email };
+}
+
+function buildCampaignDraftSnapshot() {
+  commitCampaignSettingsName();
+  if (isDripCampaign()) commitActiveSequenceEmailFields();
+
+  const audience = getEffectiveCampaignAudiencePreview();
+  const sender = getCampaignDraftSender();
+  const isSequence = isDripCampaign();
+
+  return {
+    name: normalizeCampaignName(campaignName),
+    type: isSequence ? "sequence" : "single",
+    emailCount: isSequence ? Math.max(campaignSequenceEmails.length, 1) : 1,
+    sender: sender && (sender.name || sender.email) ? sender : null,
+    audienceTitle: audience?.title || "",
+    recipientCount: Math.max(0, Math.round(Number(audience?.contactCount) || 0)),
+    status: "draft",
+    attentionReason: "",
+    startAt: null,
+    endAt: null,
+    sentCount: 0,
+    opens: 0,
+    replies: 0,
+    converts: 0
+  };
+}
+
+function saveCampaignAsDraft({ notify = true } = {}) {
+  const draft = buildCampaignDraftSnapshot();
+  const onSaveDraft = getCampaignAudienceAdapter().onSaveDraft;
+  let record = null;
+
+  if (typeof onSaveDraft === "function") {
+    record = onSaveDraft(draft, { notify, id: campaignDraftRecordId }) || null;
+  } else {
+    const store = window.WefranchCampaignsStore;
+    record = campaignDraftRecordId
+      ? (store?.update?.(campaignDraftRecordId, draft) || store?.create?.(draft) || null)
+      : (store?.create?.(draft) || null);
+    if (notify && record) {
+      window.WefranchToast?.show({
+        message: `${record.name} saved as a draft.`,
+        action: { label: "View campaigns", href: campaignsListHref(record.id) }
+      });
+    }
+  }
+
+  if (record?.id) campaignDraftRecordId = record.id;
+  return record;
+}
+
+function buildFinishLaterMessage() {
+  const message = document.createElement("span");
+  message.append("Your campaign will be saved");
+  message.append(document.createElement("br"));
+  message.append("as a draft in ");
+  const link = document.createElement("a");
+  link.className = "ui-link";
+  link.href = campaignsListHref();
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = "Campaigns";
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    const record = saveCampaignAsDraft({ notify: false });
+    const href = campaignsListHref(record?.id);
+    link.href = href;
+    window.open(href, "_blank", "noopener");
+  });
+  message.append(link, ".");
+  return message;
+}
+
 function buildCampaignCompletionDraft(schedule) {
-  const audience = buildCampaignAudiencePreview(getSelectedAudienceValues());
+  const audience = getEffectiveCampaignAudiencePreview();
   const sender = getCampaignSenderSelection() || campaignSenderDraft;
   const isSequence = getCampaignTypeValue() === "drip";
   let startAt = new Date().toISOString();
@@ -3072,7 +3329,7 @@ function sendCampaignReviewTestEmail() {
 
 function enterCampaignReview() {
   const sender = getCampaignSenderSelection();
-  const audience = buildCampaignAudiencePreview(getSelectedAudienceValues());
+  const audience = getEffectiveCampaignAudiencePreview();
   if (!sender || !audience) return;
 
   const campaignType = getCampaignTypeValue();
@@ -3210,6 +3467,7 @@ const startCampaignModalApi = window.createProtoModal({
     window.cstCampaignSender = null;
     window.cstCampaignDraft = null;
     campaignWizardSession = null;
+    campaignDraftRecordId = null;
   },
   shouldCloseOnEscape() {
     if (closeAddCampaignSenderModal()) return false;
@@ -3254,6 +3512,7 @@ function openStartCampaignModal(trigger = null, options) {
   if (options && typeof options === "object") campaignWizardSession = options;
 
   document.getElementById("outreachBtn")?.removeAttribute("open");
+  campaignDraftRecordId = null;
   campaignSenderDraft = null;
   window.cstCampaignSender = null;
   window.cstCampaignDraft = null;
@@ -3383,6 +3642,43 @@ startCampaignAudienceApi = window.WefranchFilterCombobox.enhance(startCampaignAu
 
 startCampaignAudienceSelect?.addEventListener("change", () => {
   syncStartCampaignAudienceState();
+});
+
+campaignExcludeApi = window.WefranchFilterCombobox.enhance(campaignExcludeSelect, {
+  singleSelect: false,
+  clearable: true,
+  searchable: true
+});
+
+campaignFilterOutApi = window.WefranchFilterCombobox.enhance(campaignFilterOutSelect, {
+  singleSelect: true,
+  clearable: false,
+  searchable: false
+});
+
+syncExcludeCampaignOptions();
+syncCampaignFilterOutEnabled();
+
+campaignAdvancedOptionsToggle?.addEventListener("click", () => {
+  const isOpen = campaignAdvancedOptionsToggle.getAttribute("aria-expanded") === "true";
+  setCampaignAdvancedOptionsOpen(!isOpen);
+});
+
+campaignExcludeSelect?.addEventListener("change", () => {
+  syncCampaignFilterOutEnabled();
+  syncExcludeCampaignOptions();
+  syncStartCampaignAudienceState();
+});
+
+campaignFilterOutSelect?.addEventListener("change", () => {
+  syncExcludeCampaignOptions();
+  syncStartCampaignAudienceState();
+});
+
+window.addEventListener("wefranch:campaigns-change", () => {
+  syncExcludeCampaignOptions();
+  syncCampaignFilterOutEnabled();
+  if (startCampaignModalApi?.isOpen?.()) syncStartCampaignAudienceState();
 });
 
 campaignSenderEmailSelect?.addEventListener("change", () => {
@@ -3525,7 +3821,7 @@ campaignSenderModalForm?.addEventListener("submit", (event) => {
 startCampaignModalForm?.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  const draft = buildCampaignAudiencePreview(getSelectedAudienceValues());
+  const draft = getEffectiveCampaignAudiencePreview();
   if (draft) {
     window.cstCampaignDraft = {
       ...draft,

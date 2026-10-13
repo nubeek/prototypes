@@ -142,6 +142,23 @@
         refresh?.();
       });
     },
+    onSaveDraft(draft, options = {}) {
+      const existingId = options?.id;
+      const record = existingId
+        ? (window.WefranchCampaignsStore?.update?.(existingId, draft) || window.WefranchCampaignsStore?.create?.(draft))
+        : window.WefranchCampaignsStore?.create?.(draft);
+      if (options?.notify !== false) {
+        const name = record?.name || draft?.name || "Campaign";
+        const href = record?.id
+          ? `../campaigns/?draft=${encodeURIComponent(record.id)}`
+          : "../campaigns/";
+        window.WefranchToast?.show({
+          message: `${name} saved as a draft.`,
+          action: { label: "View campaigns", href }
+        });
+      }
+      return record;
+    },
     onComplete(draft) {
       const record = window.WefranchCampaignsStore?.create?.(draft);
       const name = record?.name || draft?.name || "Campaign";

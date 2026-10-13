@@ -1244,6 +1244,54 @@ body.reduce-motion .campaign-design-preview__empty-label {
   opacity: 1;
 }
 
+.campaign-advanced-options-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-top: 12px;
+  line-height: 1.2;
+}
+
+.campaign-advanced-options-chevron {
+  display: block;
+  width: 11px;
+  height: 6px;
+  flex: 0 0 auto;
+  background-color: currentColor;
+  -webkit-mask: url("../../../assets/icons/chevron.svg") center / 11px 6px no-repeat;
+  mask: url("../../../assets/icons/chevron.svg") center / 11px 6px no-repeat;
+  transition: transform var(--transition-fast, 160ms ease);
+}
+
+.campaign-advanced-options-toggle[aria-expanded="true"] .campaign-advanced-options-chevron {
+  transform: rotate(180deg);
+}
+
+body.reduce-motion .campaign-advanced-options-chevron {
+  transition: none;
+}
+
+.campaign-advanced-options[hidden] {
+  display: none;
+}
+
+.campaign-advanced-options .proto-modal-field:last-child {
+  margin-bottom: 0;
+}
+
+#campaignExcludeField .filter-combobox-chip {
+  background: #f6dcdc;
+}
+
+#campaignExcludeField .filter-combobox-chip-remove {
+  color: #d49a9a;
+}
+
+#campaignExcludeField .filter-combobox-chip-remove:hover {
+  color: #111;
+}
+
 .start-campaign-preview[hidden] {
   display: none;
 }

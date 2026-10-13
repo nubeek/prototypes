@@ -351,10 +351,21 @@
       return cell;
     }
 
+    if (campaign.status === "paused") {
+      const icon = document.createElement("img");
+      icon.className = "campaign-status__pause";
+      icon.src = "../../assets/icons/pause.svg";
+      icon.alt = "";
+      const label = document.createElement("span");
+      label.className = "campaign-status__label";
+      label.textContent = "Paused";
+      cell.append(icon, label);
+      return cell;
+    }
+
     const label = document.createElement("span");
     label.className = "campaign-status__label";
-    if (campaign.status === "paused") label.textContent = "Paused";
-    else label.textContent = "Draft";
+    label.textContent = "Draft";
     cell.append(label);
     return cell;
   }
@@ -543,6 +554,24 @@
       getAudiencePreview: (values) => base.getAudiencePreview?.(values) || null,
       getDefaultAudienceValues: () => base.getDefaultAudienceValues?.() ?? "",
       onAudienceChange: base.onAudienceChange,
+      onSaveDraft(draft, options = {}) {
+        const existingId = options?.id;
+        const record = existingId
+          ? (store()?.update?.(existingId, draft) || store()?.create?.(draft))
+          : store()?.create?.(draft);
+        if (options?.notify === false) return record;
+        pinnedId = record?.id || null;
+        if (searchInput) searchInput.value = "";
+        const name = record?.name || draft?.name || "Campaign";
+        window.WefranchToast?.show({
+          message: `${name} saved as a draft.`
+        });
+        if (window.location.hash && window.location.hash !== "#overview") {
+          window.location.hash = "overview";
+        }
+        renderOverview();
+        return record;
+      },
       onComplete(draft) {
         const record = store()?.create?.(draft);
         pinnedId = record?.id || null;
@@ -726,6 +755,17 @@
     window.WefranchFieldErrors?.clear(renameInput);
   });
 
+  function consumeDraftHighlight() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("draft");
+    if (!id) return;
+    if (store()?.get?.(id)) pinnedId = id;
+    params.delete("draft");
+    const query = params.toString();
+    const next = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+    window.history.replaceState(null, "", next);
+  }
+
   window.addEventListener("wefranch:campaigns-change", () => {
     if (activeTab() === "overview") renderOverview();
   });
@@ -733,5 +773,6 @@
   tableWrap?.addEventListener("scroll", syncTableScrollChrome, { passive: true });
   window.addEventListener("resize", syncTableScrollChrome);
 
+  consumeDraftHighlight();
   syncTabs();
 })();
