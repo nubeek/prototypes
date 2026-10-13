@@ -1,5 +1,7 @@
 @import url("../shared/ui/proto-tokens.css");
+@import url("../shared/ui/toolbar.css");
 @import url("../shared/ui/dropdown-menu.css");
+@import url("../shared/ui/ui-menu.css");
 @import url("../shared/ui/compact-select.css");
 @import url("../shared/ui/empty-state.css");
 @import url("../shared/ui/ui-link.css");
@@ -100,17 +102,10 @@ body img[src$="/chevron.svg"] {
   display: none;
 }
 
-.campaigns-overview-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 32px;
-  margin-bottom: 28px;
-}
-
 .campaigns-metrics {
   display: flex;
   gap: 72px;
+  margin-bottom: 28px;
 }
 
 .campaigns-metric__label {
@@ -158,10 +153,7 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaigns-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 0 0 auto;
+  padding-bottom: 20px;
 }
 
 .campaigns-toolbar .scope-search {
@@ -429,13 +421,13 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaigns-table tbody tr:hover .location-row-number,
-.location-row-select:focus-within .location-row-number,
+.location-row-checkbox:focus-visible ~ .location-row-number,
 .location-row-checkbox:checked ~ .location-row-number {
   opacity: 0;
 }
 
 .campaigns-table tbody tr:hover .location-row-checkbox-visual,
-.location-row-select:focus-within .location-row-checkbox-visual,
+.location-row-checkbox:focus-visible ~ .location-row-checkbox-visual,
 .location-row-checkbox:checked ~ .location-row-checkbox-visual {
   opacity: 1;
 }
@@ -628,69 +620,12 @@ body img[src$="/chevron.svg"] {
   opacity: 1;
 }
 
-.campaigns-row-menu {
-  position: relative;
-  display: inline-flex;
+#campaignsRowMenu [data-action="pause"] .toolbar-dropdown-icon {
+  transform: scale(0.72);
 }
 
-.campaigns-row-menu > summary {
-  list-style: none;
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
-  border-radius: var(--radius-md);
-}
-
-.campaigns-row-menu > summary:hover,
-.campaigns-row-menu > summary:focus-visible,
-.campaigns-row-menu[open] > summary {
-  background: #d9d9d9;
-}
-
-.campaigns-row-menu > summary::-webkit-details-marker {
-  display: none;
-}
-
-.campaigns-row-menu > summary img {
-  width: 16px;
-  height: 16px;
-}
-
-.campaigns-row-menu > .toolbar-dropdown-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  width: 180px;
-  padding: 8px 0;
-  z-index: 5;
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-menu);
-}
-
-.campaigns-row-menu .ui-menu-item {
-  width: 100%;
-  height: 40px;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-base);
-  text-align: left;
-  padding: 0 16px;
-  cursor: pointer;
-}
-
-.campaigns-row-menu .ui-menu-item:hover {
-  background: var(--color-surface-muted);
-}
-
-.campaigns-row-menu .ui-menu-item[data-action="delete"] {
-  color: #fc353d;
-}
-
-.campaigns-panel.is-empty .campaigns-overview-head {
-  margin-bottom: 0;
+.campaigns-panel.is-empty .campaigns-toolbar {
+  padding-bottom: 0;
 }
 
 @media (max-width: 1480px) {
@@ -717,16 +652,5 @@ body img[src$="/chevron.svg"] {
   .campaigns-table.has-row-select td:first-child {
     padding-left: 11px;
     padding-right: 11px;
-  }
-}
-
-@media (max-width: 900px) {
-  .campaigns-overview-head {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .campaigns-toolbar {
-    justify-content: flex-end;
   }
 }

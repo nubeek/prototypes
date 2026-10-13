@@ -278,7 +278,7 @@ function createContactMoreMenuItem(action) {
 function getContactMoreMenu() {
   if (!contactMoreMenu) {
     contactMoreMenu = document.createElement("div");
-    contactMoreMenu.className = "ui-menu ui-dropdown-menu ui-dropdown-menu--down contact-more-menu";
+    contactMoreMenu.className = "ui-menu ui-dropdown-menu ui-dropdown-menu--down ui-more-menu";
     contactMoreMenu.setAttribute("role", "menu");
 
     const divider = document.createElement("div");

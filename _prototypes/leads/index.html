@@ -73,7 +73,7 @@
           </button>
           <div class="toolbar-selection" id="leadSelectionActions" hidden>
             <span class="toolbar-divider" aria-hidden="true"></span>
-            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="deleteSelectedLeadsBtn" type="button">
+            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="deleteSelectedLeadsBtn" type="button" data-toolbar-selection-action="delete">
               <img class="toolbar-asset-icon toolbar-delete-icon" src="../../assets/icons/delete.svg" alt="" aria-hidden="true">
               Delete
             </button>
@@ -577,6 +577,7 @@
   <script src="../shared/data/leads-store.js"></script>
   <script src="../shared/ui/proto-modal.js"></script>
   <script src="../shared/ui/proto-confirm-modal.js"></script>
+  <script src="../shared/ui/toolbar-selection.js"></script>
   <script src="../shared/ui/proto-field-captions.js"></script>
   <script src="../shared/ui/proto-field-error.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>

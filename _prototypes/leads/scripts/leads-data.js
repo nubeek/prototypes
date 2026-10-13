@@ -84,6 +84,17 @@
   const selectedLeadIds = new Set();
   let isCreatingList = false;
   let createListDraft = "";
+  const leadSelection = window.createToolbarSelection?.({
+    container: leadSelectionActions,
+    noun: { one: "lead", other: "leads" },
+    getSelectedCount: () => selectedLeadIds.size,
+    onBeforeDelete() {
+      moveSelectedLeadsDropdown?.removeAttribute("open");
+    },
+    onDelete() {
+      removeSelectedLeads();
+    }
+  });
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -1542,7 +1553,7 @@
 
   function syncSelectionToolbar() {
     const hasSelection = selectedLeadIds.size > 0;
-    if (leadSelectionActions) leadSelectionActions.hidden = !hasSelection;
+    leadSelection?.sync();
     if (!hasSelection) moveSelectedLeadsDropdown?.removeAttribute("open");
     if (hasSelection && moveSelectedLeadsDropdown?.open) renderMoveToMenu();
   }

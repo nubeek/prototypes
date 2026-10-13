@@ -1,5 +1,7 @@
 @import url("../shared/ui/proto-tokens.css");
+@import url("../shared/ui/toolbar.css");
 @import url("../shared/ui/dropdown-menu.css");
+@import url("../shared/ui/ui-menu.css");
 @import url("../shared/ui/compact-select.css");
 @import url("../shared/ui/empty-state.css");
 @import url("../shared/ui/ui-link.css");
@@ -207,45 +209,6 @@ body img[src$="/chevron.svg"] {
 .ui-select:focus {
   border: 2px solid var(--color-brand);
   background: var(--color-surface);
-}
-
-.ui-menu {
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-menu);
-  overflow: hidden;
-}
-
-.ui-menu-item {
-  width: 100%;
-  height: var(--control-height);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-base);
-  font-weight: 400;
-  line-height: 1;
-  text-align: left;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.ui-menu-item:hover:not(:disabled) {
-  background: var(--color-surface-muted);
-}
-
-.ui-menu-item:disabled {
-  color: var(--color-text-disabled);
-  cursor: default;
-}
-
-.ui-menu-item:disabled .toolbar-dropdown-icon {
-  opacity: 0.35;
 }
 
 .ui-section-title {
@@ -2491,17 +2454,6 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
    Header Toolbar
    ========================================================================== */
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 10px;
-  flex: 0 0 auto;
-  position: relative;
-  z-index: 200;
-}
-
 .header::after {
   content: "";
   position: absolute;
@@ -2802,21 +2754,6 @@ h1 {
   z-index: 1;
 }
 
-.toolbar-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.toolbar-primary {
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.toolbar-primary .toolbar-divider {
-  margin: 0 2px;
-}
-
 .view {
   display: flex;
   align-items: center;
@@ -2883,42 +2820,13 @@ h1 {
   white-space: nowrap;
 }
 
-.toolbar-actions {
-  gap: 10px;
-}
-
-.toolbar-actions .toolbar-divider {
-  margin: 0 2px;
-}
-
 .toolbar-tabs {
   height: var(--control-height);
-}
-
-.toolbar-divider {
-  width: 1px;
-  height: 32px;
-  background: var(--color-border-toolbar);
-}
-
-.toolbar-btn {
-  border: 1px solid var(--color-border-toolbar);
-  color: var(--color-text);
-  background: var(--color-surface);
 }
 
 .toolbar-tabs .toolbar-btn {
   border: 0;
   background: transparent;
-}
-
-.filter-toggle-btn {
-  width: auto;
-  min-width: 102px;
-  height: var(--control-height);
-  border-radius: var(--radius-md);
-  padding: 0 14px;
-  font-weight: 400;
 }
 
 .toolbar-split {
@@ -2994,15 +2902,6 @@ h1 {
   background: transparent;
 }
 
-.toolbar-btn:disabled {
-  color: #d5d5d8;
-  cursor: default;
-}
-
-.toolbar-btn:disabled:hover {
-  background: var(--color-surface);
-}
-
 .segmented-control-btn:disabled:hover::before {
   background: var(--color-surface-toolbar-hover);
 }
@@ -3010,10 +2909,6 @@ h1 {
 .toolbar-icon {
   width: 20px;
   height: 20px;
-  display: block;
-}
-
-.toolbar-asset-icon {
   display: block;
 }
 
@@ -3333,18 +3228,8 @@ h1 {
   overflow: visible;
 }
 
-.toolbar-dropdown-divider {
-  height: 0;
-  border-top: 1px solid var(--color-border-toolbar);
-  margin: 10px 16px;
-}
-
 .toolbar-dropdown-option[aria-checked="true"] .toolbar-dropdown-label {
   font-weight: 500;
-}
-
-.toolbar-dropdown-action .toolbar-dropdown-label {
-  font-weight: 400;
 }
 
 .toolbar-submenu {
@@ -3435,13 +3320,6 @@ h1 {
 
 .toolbar-dropdown-option[aria-checked="true"] .toolbar-switch::before {
   transform: translateX(6px);
-}
-
-.toolbar-dropdown-icon {
-  width: 18px;
-  height: 18px;
-  display: block;
-  flex: 0 0 auto;
 }
 
 .toolbar-screenshot-icon {
@@ -4779,13 +4657,13 @@ tbody tr.is-checked:hover td:first-child {
 }
 
 .has-row-select tbody tr:hover .location-row-number,
-.location-row-select:focus-within .location-row-number,
+.location-row-checkbox:focus-visible ~ .location-row-number,
 .location-row-checkbox:checked ~ .location-row-number {
   opacity: 0;
 }
 
 .has-row-select tbody tr:hover .location-row-checkbox-visual,
-.location-row-select:focus-within .location-row-checkbox-visual,
+.location-row-checkbox:focus-visible ~ .location-row-checkbox-visual,
 .location-row-checkbox:checked ~ .location-row-checkbox-visual {
   opacity: 1;
 }
@@ -5156,19 +5034,6 @@ tbody tr.is-checked:hover td:first-child {
   max-width: 0;
   opacity: 0;
   pointer-events: none;
-}
-
-.contact-more-menu {
-  position: fixed;
-  bottom: auto;
-  z-index: 1000;
-  width: max-content;
-  min-width: 200px;
-  padding: 10px 0;
-}
-
-.contact-more-menu .toolbar-dropdown-label {
-  white-space: nowrap;
 }
 
 .contact-hide-results-action.is-hidden:hover,

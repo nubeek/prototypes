@@ -352,12 +352,23 @@
     return true;
   }
 
+  function removeMany(ids) {
+    const removing = new Set(ids);
+    const next = campaigns.filter((campaign) => !removing.has(campaign.id));
+    const removed = campaigns.length - next.length;
+    if (!removed) return 0;
+    campaigns = next;
+    writeStored();
+    return removed;
+  }
+
   window.WefranchCampaignsStore = {
     list,
     get,
     create,
     update,
     duplicate,
-    remove
+    remove,
+    removeMany
   };
 })();

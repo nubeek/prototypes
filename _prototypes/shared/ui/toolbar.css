@@ -1,0 +1,86 @@
+/* Shared page toolbar: a .header row with a .toolbar-primary group on the
+   left (search, filters, selection actions) and .toolbar-actions on the right.
+   Batch actions for selected rows live in a hidden .toolbar-selection group;
+   toolbar-selection.js shows it while rows are selected. */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 200;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-primary {
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.toolbar-actions {
+  gap: 10px;
+}
+
+.toolbar-primary .toolbar-divider,
+.toolbar-actions .toolbar-divider {
+  margin: 0 2px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--color-border-toolbar, #ececf0);
+}
+
+.toolbar-btn {
+  border: 1px solid var(--color-border-toolbar, #ececf0);
+  color: var(--color-text, #111);
+  background: var(--color-surface, #fff);
+}
+
+.filter-toggle-btn {
+  width: auto;
+  min-width: 102px;
+  height: var(--control-height);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  font-weight: 400;
+}
+
+.toolbar-btn:disabled {
+  color: #d5d5d8;
+  cursor: default;
+}
+
+.toolbar-btn:disabled:hover {
+  background: var(--color-surface, #fff);
+}
+
+.toolbar-asset-icon {
+  display: block;
+}
+
+.toolbar-selection {
+  display: contents;
+}
+
+.toolbar-selection[hidden] {
+  display: none;
+}
+
+.toolbar-delete-icon {
+  width: 12px;
+  height: 14px;
+}
+
+.toolbar-delete-confirm-count {
+  font-weight: 500;
+}

@@ -33,6 +33,7 @@
   const renameForm = document.getElementById("renameCampaignForm");
   const renameInput = document.getElementById("renameCampaignName");
   const renameModal = document.getElementById("renameCampaignModal");
+  const selectionActions = document.getElementById("campaignSelectionActions");
 
   let sortKey = "startAt";
   let sortDirection = "descending";
@@ -48,6 +49,27 @@
   });
 
   const deleteConfirm = window.createProtoConfirmModal?.();
+
+  const selection = window.createToolbarSelection?.({
+    container: selectionActions,
+    noun: { one: "campaign", other: "campaigns" },
+    getSelectedCount: () => selectedIds.size,
+    onBeforeDelete() {
+      closeMenus();
+    },
+    onDelete() {
+      const ids = [...selectedIds];
+      const onlyName = ids.length === 1 ? store()?.get?.(ids[0])?.name : "";
+      selectedIds.clear();
+      if (ids.includes(pinnedId)) pinnedId = null;
+      const removed = store()?.removeMany?.(ids) || 0;
+      if (!removed) {
+        renderOverview();
+        return;
+      }
+      toast(removed === 1 && onlyName ? `${onlyName} deleted.` : `${removed} campaigns deleted.`);
+    }
+  });
 
   function store() {
     return window.WefranchCampaignsStore;
@@ -241,14 +263,203 @@
     return "Single email";
   }
 
-  function menuItem(action, label) {
+  const ROW_MENU_OFFSET = 2;
+  const ROW_MENU_VIEWPORT_PADDING = 8;
+  const ROW_MENU_ITEM_SELECTOR = "[data-action]:not(:disabled)";
+  const iconSrc = (name) => `../../assets/icons/${name}`;
+
+  let rowMenu = null;
+  let rowMenuTrigger = null;
+  let rowMenuCampaignId = null;
+
+  function menuItem(action, label, icon) {
     const button = document.createElement("button");
-    button.className = "ui-menu-item";
+    button.className = "ui-menu-item toolbar-dropdown-option toolbar-dropdown-action";
     button.type = "button";
-    button.role = "menuitem";
+    button.setAttribute("role", "menuitem");
     button.dataset.action = action;
-    button.textContent = label;
+    const image = document.createElement("img");
+    image.className = "toolbar-dropdown-icon";
+    image.alt = "";
+    image.setAttribute("aria-hidden", "true");
+    image.src = iconSrc(icon);
+    const text = document.createElement("span");
+    text.className = "toolbar-dropdown-label";
+    text.textContent = label;
+    button.append(image, text);
     return button;
+  }
+
+  function menuDivider() {
+    const divider = document.createElement("div");
+    divider.className = "toolbar-dropdown-divider";
+    divider.setAttribute("role", "separator");
+    return divider;
+  }
+
+  function getRowMenu() {
+    if (!rowMenu) {
+      rowMenu = document.createElement("div");
+      rowMenu.id = "campaignsRowMenu";
+      rowMenu.className = "ui-menu ui-dropdown-menu ui-dropdown-menu--down ui-more-menu";
+      rowMenu.setAttribute("role", "menu");
+      rowMenu.addEventListener("click", handleRowMenuClick);
+      rowMenu.addEventListener("keydown", handleRowMenuKeydown);
+      document.body.append(rowMenu);
+    }
+    return rowMenu;
+  }
+
+  function syncRowMenu(campaign) {
+    const menu = getRowMenu();
+    menu.setAttribute("aria-label", `Actions for ${campaign.name}`);
+    menu.replaceChildren(
+      menuItem("report", "View report", "table.svg"),
+      menuItem("duplicate", "Duplicate", "copy.svg"),
+      ...(campaign.status === "sending" ? [menuItem("pause", "Pause", "pause.svg")] : []),
+      ...(campaign.status === "paused" ? [menuItem("resume", "Resume", "reload.svg")] : []),
+      menuItem("rename", "Rename", "notes.svg"),
+      menuDivider(),
+      menuItem("delete", "Delete", "delete.svg")
+    );
+  }
+
+  function positionRowMenu(trigger) {
+    const menu = rowMenu;
+    const triggerRect = trigger.getBoundingClientRect();
+    const travel = parseFloat(getComputedStyle(menu).getPropertyValue("--dropdown-reveal-travel")) || 0;
+    const padding = ROW_MENU_VIEWPORT_PADDING;
+    const width = menu.offsetWidth;
+    const height = menu.offsetHeight;
+    const belowTop = triggerRect.bottom + ROW_MENU_OFFSET;
+    const aboveTop = triggerRect.top - ROW_MENU_OFFSET - height;
+    const opensAbove = belowTop + travel + height > window.innerHeight - padding
+      && aboveTop - travel >= padding;
+    const left = Math.min(
+      Math.max(padding, triggerRect.right - width),
+      window.innerWidth - width - padding
+    );
+
+    menu.classList.toggle("ui-dropdown-menu--up", opensAbove);
+    menu.classList.toggle("ui-dropdown-menu--down", !opensAbove);
+    menu.style.left = `${left}px`;
+    menu.style.top = `${opensAbove ? aboveTop : belowTop}px`;
+  }
+
+  function getRowMenuItems() {
+    return rowMenu ? [...rowMenu.querySelectorAll(ROW_MENU_ITEM_SELECTOR)] : [];
+  }
+
+  function focusRowMenuItem(index) {
+    const items = getRowMenuItems();
+    if (!items.length) return;
+    items[(index + items.length) % items.length].focus({ preventScroll: true });
+  }
+
+  function openRowMenu(trigger, { focusFirstItem = false } = {}) {
+    const campaign = store()?.get?.(trigger.dataset.campaignId);
+    if (!campaign) return;
+
+    closeRowMenu();
+    const menu = getRowMenu();
+    syncRowMenu(campaign);
+    rowMenuTrigger = trigger;
+    rowMenuCampaignId = campaign.id;
+    trigger.setAttribute("aria-expanded", "true");
+    positionRowMenu(trigger);
+    menu.classList.add("is-open");
+    if (focusFirstItem) focusRowMenuItem(0);
+  }
+
+  function closeRowMenu({ restoreFocus = false } = {}) {
+    const trigger = rowMenuTrigger;
+    if (!trigger) return;
+
+    rowMenuTrigger = null;
+    rowMenuCampaignId = null;
+    rowMenu?.classList.remove("is-open");
+    trigger.setAttribute("aria-expanded", "false");
+    if (restoreFocus && trigger.isConnected) trigger.focus({ preventScroll: true });
+  }
+
+  function toggleRowMenu(trigger, options) {
+    if (rowMenuTrigger === trigger) {
+      closeRowMenu();
+      return;
+    }
+    openRowMenu(trigger, options);
+  }
+
+  function handleRowMenuClick(event) {
+    const item = event.target.closest(ROW_MENU_ITEM_SELECTOR);
+    const trigger = rowMenuTrigger;
+    const campaignId = rowMenuCampaignId;
+    if (!item || !campaignId) return;
+
+    const action = item.dataset.action;
+    closeRowMenu({ restoreFocus: event.detail === 0 });
+    const campaign = store()?.get?.(campaignId);
+    if (!campaign) return;
+    runCampaignAction(campaign, action, trigger);
+  }
+
+  function handleRowMenuKeydown(event) {
+    const items = getRowMenuItems();
+    const currentIndex = items.indexOf(document.activeElement);
+
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      focusRowMenuItem(currentIndex === -1 ? (step > 0 ? 0 : -1) : currentIndex + step);
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      focusRowMenuItem(event.key === "Home" ? 0 : -1);
+    } else if (event.key === "Tab") {
+      event.preventDefault();
+      closeRowMenu({ restoreFocus: true });
+    }
+  }
+
+  function runCampaignAction(campaign, action, trigger) {
+    if (action === "report") {
+      toast("Campaign reports are coming soon.");
+      return;
+    }
+    if (action === "duplicate") {
+      const copy = store()?.duplicate?.(campaign.id);
+      pinnedId = copy?.id || null;
+      toast(`${copy?.name || "Campaign"} saved as a draft.`);
+      renderOverview();
+      return;
+    }
+    if (action === "pause") {
+      store()?.update?.(campaign.id, { status: "paused" });
+      toast(`${campaign.name} paused.`);
+      return;
+    }
+    if (action === "resume") {
+      store()?.update?.(campaign.id, { status: "sending" });
+      toast(`${campaign.name} resumed.`);
+      return;
+    }
+    if (action === "rename") {
+      openRename(campaign, trigger);
+      return;
+    }
+    if (action === "delete") {
+      deleteConfirm?.open({
+        title: "Delete campaign?",
+        message: `Delete ${campaign.name}?\nThis can't be undone.`,
+        confirmLabel: "Delete",
+        cancelLabel: "Cancel",
+        trigger,
+        onConfirm() {
+          store()?.remove?.(campaign.id);
+          if (pinnedId === campaign.id) pinnedId = null;
+          toast(`${campaign.name} deleted.`);
+        }
+      });
+    }
   }
 
   function bindTooltip(trigger) {
@@ -446,28 +657,15 @@
 
     const menuCell = document.createElement("td");
     menuCell.className = "campaigns-menu-cell";
-    const details = document.createElement("details");
-    details.className = "toolbar-dropdown campaigns-row-menu";
-    const summary = document.createElement("summary");
-    summary.className = "ui-control ui-button ui-button-ghost ui-icon-button";
-    summary.setAttribute("aria-label", `Actions for ${campaign.name}`);
-    const more = document.createElement("img");
-    more.src = "../../assets/icons/more.svg";
-    more.alt = "";
-    summary.append(more);
-    const menu = document.createElement("div");
-    menu.className = "ui-menu toolbar-dropdown-menu";
-    menu.role = "menu";
-    menu.append(
-      menuItem("report", "View report"),
-      menuItem("duplicate", "Duplicate"),
-      ...(campaign.status === "sending" ? [menuItem("pause", "Pause")] : []),
-      ...(campaign.status === "paused" ? [menuItem("resume", "Resume")] : []),
-      menuItem("rename", "Rename"),
-      menuItem("delete", "Delete")
-    );
-    details.append(summary, menu);
-    menuCell.append(details);
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "ui-control ui-more-button";
+    more.dataset.campaignId = campaign.id;
+    more.setAttribute("aria-label", `Actions for ${campaign.name}`);
+    more.setAttribute("aria-haspopup", "menu");
+    more.setAttribute("aria-expanded", "false");
+    more.setAttribute("aria-controls", "campaignsRowMenu");
+    menuCell.append(more);
 
     row.append(selectCell, nameCell, typeCell, recipientsCell, startCell, endCell, openCell, replyCell, statusCell, menuCell);
     return row;
@@ -478,6 +676,7 @@
   }
 
   function syncSelectAll() {
+    selection?.sync();
     const selectAll = table?.querySelector(".location-select-all");
     const checkbox = selectAll?.querySelector(".location-select-all-checkbox");
     if (!(selectAll instanceof HTMLLabelElement) || !(checkbox instanceof HTMLInputElement)) return;
@@ -518,6 +717,7 @@
   }
 
   function renderOverview() {
+    closeRowMenu();
     const campaigns = store()?.list?.() || [];
     pruneSelection(campaigns);
     renderMetrics(campaigns);
@@ -586,12 +786,6 @@
         }
         renderOverview();
       }
-    });
-  }
-
-  function closeMenus(except) {
-    document.querySelectorAll(".campaigns-row-menu[open]").forEach((menu) => {
-      if (menu !== except) menu.open = false;
     });
   }
 
@@ -676,66 +870,37 @@
       renderOverview();
       return;
     }
+  });
 
-    const action = event.target.closest("[data-action]");
-    const row = event.target.closest("tr[data-campaign-id]");
-    if (!action || !row) return;
+  table?.addEventListener("click", (event) => {
+    const trigger = event.target.closest(".ui-more-button");
+    if (!trigger) return;
+    event.stopPropagation();
+    toggleRowMenu(trigger, { focusFirstItem: event.detail === 0 });
+  });
+
+  table?.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowDown") return;
+    const trigger = event.target.closest(".ui-more-button");
+    if (!trigger) return;
     event.preventDefault();
-    const campaign = store()?.get?.(row.dataset.campaignId);
-    if (!campaign) return;
-    closeMenus();
-
-    if (action.dataset.action === "report") {
-      toast("Campaign reports are coming soon.");
-      return;
-    }
-    if (action.dataset.action === "duplicate") {
-      const copy = store()?.duplicate?.(campaign.id);
-      pinnedId = copy?.id || null;
-      toast(`${copy?.name || "Campaign"} saved as a draft.`);
-      renderOverview();
-      return;
-    }
-    if (action.dataset.action === "pause") {
-      store()?.update?.(campaign.id, { status: "paused" });
-      toast(`${campaign.name} paused.`);
-      return;
-    }
-    if (action.dataset.action === "resume") {
-      store()?.update?.(campaign.id, { status: "sending" });
-      toast(`${campaign.name} resumed.`);
-      return;
-    }
-    if (action.dataset.action === "rename") {
-      openRename(campaign, action);
-      return;
-    }
-    if (action.dataset.action === "delete") {
-      deleteConfirm?.open({
-        title: "Delete campaign?",
-        message: `Delete ${campaign.name}?\nThis can't be undone.`,
-        confirmLabel: "Delete",
-        cancelLabel: "Cancel",
-        trigger: action,
-        onConfirm() {
-          store()?.remove?.(campaign.id);
-          if (pinnedId === campaign.id) pinnedId = null;
-          toast(`${campaign.name} deleted.`);
-        }
-      });
-    }
+    openRowMenu(trigger, { focusFirstItem: true });
   });
 
-  table?.addEventListener("toggle", (event) => {
-    const menu = event.target;
-    if (!(menu instanceof HTMLDetailsElement) || !menu.open) return;
-    closeMenus(menu);
-  }, true);
-
-  document.addEventListener("click", (event) => {
-    if (event.target.closest(".campaigns-row-menu")) return;
-    closeMenus();
+  document.addEventListener("pointerdown", (event) => {
+    if (!rowMenuTrigger || !(event.target instanceof Node)) return;
+    if (rowMenu?.contains(event.target) || rowMenuTrigger.contains(event.target)) return;
+    closeRowMenu();
   });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !rowMenuTrigger) return;
+    event.preventDefault();
+    closeRowMenu({ restoreFocus: true });
+  });
+
+  tableWrap?.addEventListener("scroll", () => closeRowMenu(), { passive: true });
+  window.addEventListener("resize", () => closeRowMenu());
 
   renameForm?.addEventListener("submit", (event) => {
     event.preventDefault();

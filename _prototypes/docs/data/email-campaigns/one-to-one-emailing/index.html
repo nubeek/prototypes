@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // This page's assets are relative (e.g. "images/..."). If it's ever opened
+    // without a trailing slash, the browser resolves those relative paths
+    // against the wrong base and the page fails to load. Normalize first.
+    if (!window.location.pathname.endsWith("/")) {
+      window.location.replace(window.location.pathname + "/" + window.location.search + window.location.hash);
+    }
+  </script>
+  <title>Sending 1:1 direct email messages</title>
+  <link rel="icon" href="../../../../../assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../../../assets/x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../../../assets/x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="../../../../../assets/x96.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../../../../../assets/x192.png" />
+  <link rel="manifest" href="../../../../../assets/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../styles.css" />
+  <link rel="stylesheet" href="../../../../../styles/site-header.css" />
+  <script src="../../../../../scripts/gate.js"></script>
+  <script src="../../../../../scripts/site-header.js"></script>
+  <script src="../../../../../scripts/proto-nav.js"></script>
+  <link rel="stylesheet" href="../../../../../styles/gate.css" />
+</head>
+<body class="access-locked">
+  <div class="access-gate" data-access-gate>
+    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
+      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
+      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
+      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
+      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
+    </form>
+  </div>
+
+  <div class="page">
+    <header class="site-header" aria-label="Application header">
+      <div class="site-header-start">
+        <button class="site-header-menu" type="button" aria-label="Open menu">
+          <img src="../../../../../assets/icons/menu.svg" alt="" width="14" height="12" />
+        </button>
+        <a class="brand-lockup" href="../../../../" aria-label="Wefranch home">
+          <img class="brand-mark" src="../../../../../assets/logo-wefranch.svg" alt="" width="11" height="16" />
+        </a>
+        <nav class="breadcrumb" aria-label="Breadcrumb" data-site-breadcrumb>
+          <a class="breadcrumb-link" href="../../../">Docs</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <a class="breadcrumb-link" href="../">Email Campaigns</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current" aria-current="page">Direct mailing</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="doc-layout">
+      <aside class="doc-sidebar proto-scrollbar" data-doc-sidebar data-doc-current="one-to-one-emailing"></aside>
+      <script src="../../../scripts/doc-groups.js"></script>
+      <script src="../../../scripts/breadcrumb.js"></script>
+      <script src="../../../scripts/sidebar.js"></script>
+      <script src="../../../scripts/markdown.js"></script>
+      <div class="doc-column">
+      <article class="doc">
+        <header>
+          <h1 class="doc-title">Sending 1:1 direct email messages</h1>
+          <div class="doc-meta">
+            <p class="doc-updated">Updated <time datetime="2026-10-13">Oct 13, 2026</time></p>
+            <span class="doc-meta-divider" aria-hidden="true"></span>
+            <button class="doc-markdown" type="button" aria-label="Switch to markdown" data-tooltip="Switch to markdown">
+              <img class="doc-markdown-icon" src="../../../../../assets/icons/code-block.svg" alt="" width="16" height="16" />
+            </button>
+          </div>
+        </header>
+        <hr class="doc-divider" />
+
+        <div class="doc-body">
+          <h2>How it works</h2>
+          <p>Direct mailing lets you send a pre-built email template to one contact, or to a few, without setting up a campaign. Use it for a quick introduction or a follow-up to someone you found on <a class="ui-link" href="../../../../cst/">Prospects</a>.</p>
+          <p>You write the message in a small <strong>Send a message</strong> card that opens over the page, so you keep your search and table in view. A message needs a sender, at least one recipient, a subject line, and a template. There is no wizard, no schedule, and no sequence. If you want any of those, create an <a class="ui-link" href="../creating-campaign/">email campaign</a> instead.</p>
+
+          <h2>Open the Send a message card</h2>
+          <p>There are three ways to open the card. Each one pre-fills the <strong>To</strong> field for you.</p>
+
+          <p><strong>Click an email address.</strong> Hover over a contact's email address in the table. A <strong>Send a message</strong> tooltip appears. Click the address to open the card with that contact as the only recipient.</p>
+          <figure class="doc-figure">
+            <img src="images/01-email-link.jpg" alt="Prospects table with the mouse over a contact's email address and a Send a message tooltip." />
+          </figure>
+
+          <p><strong>Use the contact menu.</strong> Hover over a contact and click the <strong>three-dot</strong> button next to the email address, then choose <strong>Send message</strong>. The menu also has <strong>Add to leads</strong>, <strong>Copy email</strong>, and <strong>Hide from results</strong>.</p>
+          <figure class="doc-figure">
+            <img src="images/02-more-menu.jpg" alt="Contact menu with Add to leads, Send message, Copy email, and Hide from results." />
+          </figure>
+
+          <p><strong>Select several rows.</strong> To write to more than one contact, tick the rows you want, then open the <strong>Email</strong> menu in the toolbar and choose <strong>Send a message</strong>. The number in brackets is how many rows you selected. The option only appears when at least one row is selected.</p>
+          <figure class="doc-figure">
+            <img src="images/03-select-rows.jpg" alt="Email menu with three rows selected, showing Send a message (3)." />
+          </figure>
+          <p>The card opens in the bottom right corner with the selected contacts in the <strong>To</strong> field. If you change your row selection while the card is open, the <strong>To</strong> field updates to match.</p>
+          <figure class="doc-figure">
+            <img src="images/04-message-card.jpg" alt="Send a message card with From, To (3), Subject, and Template fields." />
+          </figure>
+
+          <h2>Choose a sender</h2>
+          <p>The <strong>From</strong> field starts with your default sender. Open it to pick another address, or choose <strong>Add new sender</strong> to add one. To authenticate a new sender, follow <a class="ui-link" href="../setup-domain/">How to set up your sending domain</a>.</p>
+          <figure class="doc-figure">
+            <img src="images/05-sender.jpg" alt="From dropdown with three sender addresses and Add new sender." />
+          </figure>
+
+          <h2>Check the recipients</h2>
+          <p>Each recipient in <strong>To</strong> is shown as a chip, and the label counts them, for example <strong>To (3)</strong>.</p>
+          <ul>
+            <li><span>Click the <strong>×</strong> on a chip to remove that person. Click the <strong>×</strong> at the end of the field to remove everyone.</span></li>
+            <li><span>Start typing a name, company, or email address to add someone else. The suggestions come from the contacts in your current results, so contacts you hid from results are not offered.</span></li>
+            <li><span>A person is only added once, even if they appear in your results more than once.</span></li>
+          </ul>
+          <figure class="doc-figure">
+            <img src="images/06-recipients.jpg" alt="To field with the text gus typed and one matching contact suggested." />
+          </figure>
+
+          <h2>Write the subject and choose a template</h2>
+          <p>Enter a <strong>Subject</strong>. It can be up to 150 characters.</p>
+          <p>Then open <strong>Template</strong> and pick the email to send. The card expands to list your saved templates: Introduction, Territory opportunity, Market update, Follow-up, and Event invitation. Choose <strong>Create new template</strong> at the top if none of them fit.</p>
+          <figure class="doc-figure">
+            <img src="images/07-template-picker.jpg" alt="Template list with Create new template, Introduction, Territory opportunity, Market update, and Follow-up." />
+          </figure>
+          <p>Once you choose a template, a preview shows what recipients will get. Scroll inside the preview to read all of it. Click <strong>Edit template</strong> to change the template itself. To pick a different one, open the <strong>Template</strong> field again, or click the <strong>×</strong> to clear it.</p>
+          <figure class="doc-figure">
+            <img src="images/08-template-preview.jpg" alt="Template field set to Introduction, with a preview of the email and an Edit template button." />
+          </figure>
+
+          <h2>Send the message</h2>
+          <p>Click <strong>Send</strong>, or press <strong>Enter</strong> while your cursor is in the subject line. If something is missing, the card shows a red message under the field and moves your cursor to the first one:</p>
+          <ul>
+            <li><span><strong>Choose a sender email.</strong> No sender is selected.</span></li>
+            <li><span><strong>Add at least one recipient.</strong> The <strong>To</strong> field is empty.</span></li>
+            <li><span><strong>Enter a subject.</strong> The subject line is blank.</span></li>
+            <li><span><strong>Choose a template.</strong> No template is selected.</span></li>
+          </ul>
+          <figure class="doc-figure">
+            <img src="images/09-errors.jpg" alt="Send a message card with Enter a subject and Choose a template errors." />
+          </figure>
+
+          <h2>If your sender isn't authenticated</h2>
+          <p>You can only send from an authenticated address. If you pick one that isn't, the card shows <strong>Authenticate your sending domain</strong> under <strong>From</strong>. Click <strong>Authenticate</strong> to finish setting it up without leaving the card, or choose a different sender. See <a class="ui-link" href="../setup-domain/">How to set up your sending domain</a> for the steps.</p>
+          <figure class="doc-figure">
+            <img src="images/10-sender-error.jpg" alt="From field showing an unauthenticated sender with the message Authenticate your sending domain." />
+          </figure>
+
+          <h2>After you send</h2>
+          <p>The button shows <strong>Sending…</strong> for a moment, then the card confirms <strong>Your message will be sent shortly</strong>. Until it goes out, you can review or cancel it in the <strong>campaigns dashboard</strong>.</p>
+          <ul>
+            <li><span>Click <strong>Undo sent</strong> to go back to the message. Everything you entered is still there, so you can fix it and send again.</span></li>
+            <li><span>Click <strong>Close</strong> when you're done.</span></li>
+          </ul>
+          <figure class="doc-figure">
+            <img src="images/11-sent.jpg" alt="Confirmation: Your message will be sent shortly, with Undo sent and Close buttons." />
+          </figure>
+
+          <h2>Close the card without sending</h2>
+          <p>Click the <strong>×</strong> in the corner, or press <strong>Esc</strong>. The message isn't saved as a draft, so the recipients, subject, and template are cleared. The next time you open the card, you start fresh.</p>
+          <p>If a dropdown is open, <strong>Esc</strong> closes the dropdown first. Press it again to close the card.</p>
+
+        </div>
+      </article>
+      <footer class="doc-footer" data-doc-footer></footer>
+      </div>
+      <script src="../../../scripts/reading-time.js"></script>
+      <script src="../../../scripts/footer.js"></script>
+    </main>
+  </div>
+</body>
+</html>

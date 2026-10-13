@@ -65,20 +65,21 @@
     </div>
 
     <section class="campaigns-panel" id="campaignsPanelOverview" data-campaign-panel="overview" role="tabpanel" aria-labelledby="campaignsTabOverview">
-      <div class="campaigns-overview-head">
-        <div class="campaigns-metrics">
-          <div>
-            <p class="campaigns-metric__label">Total opens</p>
-            <p class="campaigns-metric__value" id="campaignMetricOpens">0</p>
-            <p class="campaigns-trend" id="campaignMetricOpensTrend"></p>
-          </div>
-          <div>
-            <p class="campaigns-metric__label">Total converts</p>
-            <p class="campaigns-metric__value" id="campaignMetricConverts">0</p>
-            <p class="campaigns-trend" id="campaignMetricConvertsTrend"></p>
-          </div>
+      <div class="campaigns-metrics">
+        <div>
+          <p class="campaigns-metric__label">Total opens</p>
+          <p class="campaigns-metric__value" id="campaignMetricOpens">0</p>
+          <p class="campaigns-trend" id="campaignMetricOpensTrend"></p>
         </div>
-        <div class="campaigns-toolbar">
+        <div>
+          <p class="campaigns-metric__label">Total converts</p>
+          <p class="campaigns-metric__value" id="campaignMetricConverts">0</p>
+          <p class="campaigns-trend" id="campaignMetricConvertsTrend"></p>
+        </div>
+      </div>
+
+      <div class="header campaigns-toolbar" aria-label="Campaigns toolbar">
+        <div class="toolbar-group toolbar-primary">
           <form class="scope-search" id="campaignSearch" role="search" autocomplete="off">
             <img class="scope-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
             <input
@@ -92,6 +93,16 @@
             >
             <button class="scope-search-clear" id="campaignSearchClear" type="button" aria-label="Clear search" hidden></button>
           </form>
+          <div class="toolbar-selection" id="campaignSelectionActions" hidden>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="deleteSelectedCampaignsBtn" type="button" data-toolbar-selection-action="delete">
+              <img class="toolbar-asset-icon toolbar-delete-icon" src="../../assets/icons/delete.svg" alt="" aria-hidden="true">
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <div class="toolbar-group toolbar-actions">
           <button class="ui-control ui-button ui-button-primary campaigns-new" id="newCampaignBtn" type="button">New campaign</button>
         </div>
       </div>
@@ -189,6 +200,7 @@
   <script src="../shared/ui/compact-select.js"></script>
   <script src="../shared/ui/proto-modal.js"></script>
   <script src="../shared/ui/proto-confirm-modal.js"></script>
+  <script src="../shared/ui/toolbar-selection.js"></script>
   <script src="../shared/ui/proto-toast.js"></script>
   <script src="../shared/ui/action-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>

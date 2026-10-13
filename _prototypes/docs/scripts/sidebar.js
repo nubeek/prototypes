@@ -57,6 +57,14 @@
     const label = document.createElement("span");
     label.textContent = group.label;
 
+    const categoryIcon = document.createElement("img");
+    categoryIcon.className = "doc-sidebar-category-icon";
+    categoryIcon.src = `../../../../../assets/icons/${group.icon}`;
+    categoryIcon.alt = "";
+    categoryIcon.width = 16;
+    categoryIcon.height = 16;
+    categoryIcon.setAttribute("aria-hidden", "true");
+
     const chevron = document.createElement("span");
     chevron.className = "doc-sidebar-category-chevron";
     chevron.setAttribute("aria-hidden", "true");
@@ -68,7 +76,7 @@
     chevronIcon.height = 12;
     chevron.append(chevronIcon);
 
-    toggle.append(label, chevron);
+    toggle.append(categoryIcon, label, chevron);
     heading.append(toggle);
 
     const list = document.createElement("ul");

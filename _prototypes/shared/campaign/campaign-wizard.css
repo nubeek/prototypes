@@ -644,6 +644,15 @@ body.reduce-motion .add-sender-step-viewport {
   pointer-events: auto;
 }
 
+/* A resting translateX(0) layer sits on the modal's fractional offset and
+   blurs the step until a dropdown sets overflow: visible. Keep the
+   transform only while a step is sliding. */
+.campaign-step-panel.is-active {
+  transform: none;
+  will-change: auto;
+  transition: none;
+}
+
 body.reduce-motion .campaign-step-panel,
 body.reduce-motion .campaign-step-viewport,
 body.reduce-motion .campaign-step-body,

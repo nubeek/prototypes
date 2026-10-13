@@ -18,12 +18,10 @@
   const toolbarSearchBtn = document.getElementById("toolbarSearchBtn");
   const leadsToolbarMenuDropdown = document.getElementById("leadsToolbarMenuDropdown");
   const manageColumnsOption = document.getElementById("manageColumnsOption");
-  const deleteSelectedLeadsBtn = document.getElementById("deleteSelectedLeadsBtn");
   const moveSelectedLeadsDropdown = document.getElementById("moveSelectedLeadsDropdown");
   const moveSelectedLeadsMenu = document.getElementById("moveSelectedLeadsMenu");
   const addLeadBtn = document.getElementById("addLeadBtn");
   const leadDetailPanel = document.getElementById("leadDetailPanel");
-  const deleteSelectedLeadsConfirmApi = window.createProtoConfirmModal?.();
 
   window.WefranchFilterCombobox?.bindOutsideClick?.();
 
@@ -58,15 +56,6 @@
     moveSelectedLeadsDropdown?.removeAttribute("open");
   }
 
-  function getDeleteSelectedLeadsCopy(leads) {
-    const count = leads.length;
-    const noun = count === 1 ? "lead" : "leads";
-    return {
-      title: "Delete selected leads?",
-      messageHtml: `Are you sure you want to delete<br><span class="lead-delete-confirm-count">the ${count} selected ${noun}?</span>`
-    };
-  }
-
   tableEmptyStateAddManual?.addEventListener("click", (event) => {
     event.preventDefault();
     closeEmptyStateAddDropdown();
@@ -99,24 +88,6 @@
     event.preventDefault();
     closeLeadsToolbarMenuDropdown();
     page.openManageColumns?.(manageColumnsOption);
-  });
-
-  deleteSelectedLeadsBtn?.addEventListener("click", () => {
-    const leads = page.getSelectedLeads?.() || [];
-    if (!leads.length) return;
-
-    closeMoveSelectedLeadsDropdown();
-    const copy = getDeleteSelectedLeadsCopy(leads);
-    deleteSelectedLeadsConfirmApi?.open({
-      title: copy.title,
-      messageHtml: copy.messageHtml,
-      cancelLabel: "Cancel",
-      confirmLabel: "Delete",
-      trigger: deleteSelectedLeadsBtn,
-      onConfirm() {
-        page.removeSelectedLeads?.();
-      }
-    });
   });
 
   moveSelectedLeadsDropdown?.addEventListener("toggle", () => {

@@ -1,0 +1,115 @@
+/* Shared action menus. Same chrome as the Franchisees contact menu:
+   icon + label rows inside .ui-menu. Pair a floating panel with
+   .ui-dropdown-menu from dropdown-menu.css and toggle .is-open.
+   .ui-more-button is the 32px more trigger. */
+
+.ui-menu {
+  border-radius: var(--radius-md);
+  background: var(--color-surface, #fff);
+  box-shadow: var(--shadow-menu, 0 10px 28px rgba(0, 0, 0, 0.14));
+  overflow: hidden;
+}
+
+.ui-menu-item {
+  width: 100%;
+  height: var(--control-height);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text, #111);
+  font: inherit;
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  line-height: 1;
+  text-align: left;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.ui-menu-item:hover:not(:disabled),
+.ui-menu-item:focus-visible:not(:disabled) {
+  background: var(--color-surface-muted, #f4f4f4);
+  outline: none;
+}
+
+.ui-menu-item:disabled {
+  color: var(--color-text-disabled, #cdcdcd);
+  cursor: default;
+}
+
+.ui-menu-item:disabled .toolbar-dropdown-icon {
+  opacity: 0.35;
+}
+
+.toolbar-dropdown-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.toolbar-dropdown-divider {
+  height: 0;
+  border-top: 1px solid var(--color-border-toolbar, #ececf0);
+  margin: 10px 16px;
+}
+
+.toolbar-dropdown-action .toolbar-dropdown-label {
+  font-weight: 400;
+}
+
+.ui-more-menu {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  min-width: 200px;
+  padding: 10px 0;
+}
+
+/* Beat a later .ui-dropdown-menu--up { bottom } so the panel keeps its
+   content height. Position comes from the inline top set in script. */
+.ui-more-menu.ui-dropdown-menu--up,
+.ui-more-menu.ui-dropdown-menu--down {
+  bottom: auto;
+}
+
+.ui-more-menu .toolbar-dropdown-label {
+  white-space: nowrap;
+}
+
+.ui-more-button {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  background: transparent;
+  color: var(--color-text, #111);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.ui-more-button::before {
+  content: "";
+  width: 3px;
+  height: 15px;
+  background-color: currentColor;
+  -webkit-mask: url("../../../assets/icons/more.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/more.svg") center / contain no-repeat;
+}
+
+.ui-more-button:hover,
+.ui-more-button:focus-visible,
+.ui-more-button[aria-expanded="true"] {
+  background: #d9d9d9;
+  outline: none;
+}
