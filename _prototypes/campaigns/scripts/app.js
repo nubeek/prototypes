@@ -55,7 +55,7 @@
     noun: { one: "campaign", other: "campaigns" },
     getSelectedCount: () => selectedIds.size,
     onBeforeDelete() {
-      closeMenus();
+      closeRowMenu();
     },
     onDelete() {
       const ids = [...selectedIds];
