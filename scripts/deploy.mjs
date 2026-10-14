@@ -14,6 +14,8 @@ const PUBLIC_PATH_REWRITES = new Map([
   ["../../styles/", "../styles/"],
   ["../../assets/", "../assets/"],
 ]);
+const PUBLIC_ROOT_DIRS = new Set(["scripts", "assets", "styles"]);
+const RELATIVE_CLIMB_PATTERN = /(?:\.\.\/)+[A-Za-z0-9._~!$&*+,;=:@%/-]*/g;
 const LOCAL_REDIRECT_SCRIPT_PATTERN = /\n?  <script data-local-prototypes-redirect>[\s\S]*?<\/script>\n?/;
 const LOCAL_SHARED_PATH = "../_prototypes/shared/";
 const PUBLIC_SHARED_PATH = "../shared/";
@@ -71,43 +73,71 @@ const walkFiles = async (directory) => {
   return files;
 };
 
-const rewritePublicPaths = async (directory) => {
-  const files = await walkFiles(directory);
+const replaceLiteralPublicPaths = (source) => {
   const sortedRewrites = [...PUBLIC_PATH_REWRITES.entries()]
     .sort((a, b) => b[0].length - a[0].length);
+  const placeholders = new Map();
+  let next = source;
 
+  for (const [sourcePath] of sortedRewrites) {
+    const placeholder = `__PUBLIC_PATH_${placeholders.size}__`;
+    placeholders.set(placeholder, sourcePath);
+    next = next.split(sourcePath).join(placeholder);
+  }
+
+  for (const [sourcePath, publicPath] of sortedRewrites) {
+    for (const [placeholder, originalPath] of placeholders) {
+      if (originalPath === sourcePath) {
+        next = next.split(placeholder).join(publicPath);
+      }
+    }
+  }
+
+  return next;
+};
+
+// HTML and CSS urls resolve from the file. Only shorten a climb when it
+// actually lands on repo-root scripts/assets/styles. A literal replace also
+// matches docs-internal paths such as ../../../scripts/sidebar.js.
+const rewriteResolvedPublicPaths = (source, fromDir) => source.replace(RELATIVE_CLIMB_PATTERN, (relativePath) => {
+  const absolute = path.resolve(fromDir, relativePath);
+  const repoRelative = path.relative(REPO_ROOT, absolute);
+
+  if (repoRelative.startsWith("..") || path.isAbsolute(repoRelative)) {
+    return relativePath;
+  }
+
+  const [top] = repoRelative.split(path.sep);
+  if (!PUBLIC_ROOT_DIRS.has(top)) {
+    return relativePath;
+  }
+
+  return relativePath.slice("../".length);
+});
+
+const rewritePublicPaths = async (directory, sourceDirectory) => {
+  const files = await walkFiles(directory);
   const rewritableExtensions = new Set([".html", ".js", ".json", ".css"]);
 
   for (const file of files) {
     const basename = path.basename(file);
+    const extension = path.extname(file);
     if (
-      !rewritableExtensions.has(path.extname(file))
+      !rewritableExtensions.has(extension)
       || basename.startsWith("generate-")
       || basename.startsWith("patch-")
     ) {
       continue;
     }
 
-    let html = await readFile(file, "utf8");
-    const originalHtml = html;
-    const placeholders = new Map();
+    const original = await readFile(file, "utf8");
+    const sourceFile = path.join(sourceDirectory, path.relative(directory, file));
+    const rewritten = extension === ".html" || extension === ".css"
+      ? rewriteResolvedPublicPaths(original, path.dirname(sourceFile))
+      : replaceLiteralPublicPaths(original);
 
-    for (const [sourcePath] of sortedRewrites) {
-      const placeholder = `__PUBLIC_PATH_${placeholders.size}__`;
-      placeholders.set(placeholder, sourcePath);
-      html = html.split(sourcePath).join(placeholder);
-    }
-
-    for (const [sourcePath, publicPath] of sortedRewrites) {
-      for (const [placeholder, originalPath] of placeholders) {
-        if (originalPath === sourcePath) {
-          html = html.split(placeholder).join(publicPath);
-        }
-      }
-    }
-
-    if (html !== originalHtml) {
-      await writeFile(file, html);
+    if (rewritten !== original) {
+      await writeFile(file, rewritten);
     }
   }
 };
@@ -163,7 +193,7 @@ const publish = async () => {
 
     await rm(destination, { recursive: true, force: true });
     await copyDirectory(source, destination);
-    await rewritePublicPaths(destination);
+    await rewritePublicPaths(destination, source);
   }
 
   const relativeOutput = path.relative(REPO_ROOT, outputDir) || ".";
