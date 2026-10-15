@@ -426,6 +426,36 @@
     return `Starting in ${minutes} minute${minutes === 1 ? "" : "s"}`;
   }
 
+  function formatClock(ms) {
+    const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const paddedSeconds = String(seconds).padStart(2, "0");
+    if (hours > 0) return `${hours}:${String(minutes).padStart(2, "0")}:${paddedSeconds}`;
+    return `${minutes}:${paddedSeconds}`;
+  }
+
+  function presentCampaign(campaign) {
+    const snapshot = store()?.deliverySnapshot?.(campaign);
+    if (!snapshot) return campaign;
+    return {
+      ...campaign,
+      status: snapshot.status,
+      sentCount: snapshot.sentCount,
+      endAt: snapshot.endAt,
+      delivery: snapshot
+    };
+  }
+
+  function deliverySignature(campaign) {
+    const delivery = campaign.delivery;
+    if (!delivery) return "";
+    const remaining = delivery.remainingMs == null ? "" : Math.ceil(delivery.remainingMs / 1000);
+    const next = delivery.nextBatchMs == null ? "" : Math.ceil(delivery.nextBatchMs / 1000);
+    return [delivery.status, delivery.sentCount, remaining, next, delivery.endAt || ""].join("|");
+  }
+
   function formatRate(value) {
     if (value == null) return null;
     return `${Math.round(value * 100)}%`;
@@ -488,8 +518,11 @@
     const menu = getRowMenu();
     menu.setAttribute("aria-label", `Actions for ${campaign.name}`);
     if (campaign.source === "direct") {
+      const status = presentCampaign(campaign).status;
       menu.replaceChildren(
         menuItem("report", "View report", "table.svg"),
+        ...(status === "sending" || status === "scheduled" ? [menuItem("pause", "Pause", "pause.svg")] : []),
+        ...(status === "paused" ? [menuItem("resume", "Resume", "reload.svg")] : []),
         menuDivider(),
         menuItem("delete", "Delete", "delete.svg")
       );
@@ -616,13 +649,13 @@
       return;
     }
     if (action === "pause") {
-      store()?.update?.(campaign.id, { status: "paused" });
-      toast(`${campaign.name} paused.`);
+      const paused = store()?.pause?.(campaign.id);
+      if (paused) toast(`${paused.name} paused.`);
       return;
     }
     if (action === "resume") {
-      store()?.update?.(campaign.id, { status: "sending" });
-      toast(`${campaign.name} resumed.`);
+      const resumed = store()?.resume?.(campaign.id);
+      if (resumed) toast(`${resumed.name} resumed.`);
       return;
     }
     if (action === "rename") {
@@ -663,42 +696,57 @@
     return dots;
   }
 
+  function appendSendingProgress(cell, sent, total) {
+    const ratio = total > 0 ? Math.max(0, Math.min(sent / total, 1)) : 0;
+    const exact = `${sent.toLocaleString("en-US")} of ${total.toLocaleString("en-US")}`;
+    const line = document.createElement("span");
+    line.className = "campaign-status__line";
+    const track = document.createElement("span");
+    track.className = "campaign-status__track";
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", String(total));
+    track.setAttribute("aria-valuenow", String(sent));
+    track.setAttribute("aria-label", exact);
+    const fill = document.createElement("span");
+    fill.className = "campaign-status__fill";
+    fill.style.width = `${ratio * 100}%`;
+    track.append(fill);
+    const count = document.createElement("span");
+    count.className = "campaign-status__count";
+    const percent = document.createElement("span");
+    percent.className = "campaign-status__percent";
+    percent.textContent = `${Math.round(ratio * 100)}%`;
+    const detail = document.createElement("span");
+    detail.className = "campaign-status__exact";
+    detail.textContent = exact;
+    count.append(percent, detail);
+    line.append(track, count);
+    cell.append(line);
+  }
+
+  function appendNextBatch(cell, nextBatchMs) {
+    if (nextBatchMs == null) return;
+    const next = document.createElement("span");
+    next.className = "campaign-status__next";
+    next.textContent = `Next batch in ${formatClock(nextBatchMs)}`;
+    cell.append(next);
+  }
+
   function renderStatus(campaign) {
     const cell = document.createElement("div");
     cell.className = `campaign-status campaign-status--${campaign.status}`;
+    const delivery = campaign.delivery || null;
 
     if (campaign.status === "sending") {
       const sent = campaign.sentCount;
       const total = Math.max(campaign.recipientCount, 0);
-      const ratio = total > 0 ? Math.max(0, Math.min(sent / total, 1)) : 0;
-      const exact = `${sent.toLocaleString("en-US")} of ${total.toLocaleString("en-US")}`;
       const label = document.createElement("span");
       label.className = "campaign-status__label";
       label.append("Sending", sendingDots());
-      const line = document.createElement("span");
-      line.className = "campaign-status__line";
-      const track = document.createElement("span");
-      track.className = "campaign-status__track";
-      track.setAttribute("role", "progressbar");
-      track.setAttribute("aria-valuemin", "0");
-      track.setAttribute("aria-valuemax", String(total));
-      track.setAttribute("aria-valuenow", String(sent));
-      track.setAttribute("aria-label", exact);
-      const fill = document.createElement("span");
-      fill.className = "campaign-status__fill";
-      fill.style.width = `${ratio * 100}%`;
-      track.append(fill);
-      const count = document.createElement("span");
-      count.className = "campaign-status__count";
-      const percent = document.createElement("span");
-      percent.className = "campaign-status__percent";
-      percent.textContent = `${Math.round(ratio * 100)}%`;
-      const detail = document.createElement("span");
-      detail.className = "campaign-status__exact";
-      detail.textContent = exact;
-      count.append(percent, detail);
-      line.append(track, count);
-      cell.append(label, line);
+      cell.append(label);
+      appendSendingProgress(cell, sent, total);
+      appendNextBatch(cell, delivery?.nextBatchMs);
       return cell;
     }
 
@@ -710,8 +758,12 @@
       line.className = "campaign-status__line";
       const date = document.createElement("span");
       date.className = "campaign-status__meta";
-      const remaining = remainingMs(campaign.startAt);
-      if (remaining != null && remaining < 60 * 60 * 1000) {
+      const countdown = delivery?.remainingMs;
+      const remaining = countdown == null ? remainingMs(campaign.startAt) : countdown;
+      if (countdown != null) {
+        date.textContent = `Starting in ${formatClock(countdown)}`;
+        line.append(date);
+      } else if (remaining != null && remaining < 60 * 60 * 1000) {
         date.textContent = formatImminent(remaining);
         line.append(date);
       } else {
@@ -746,6 +798,10 @@
     }
 
     if (campaign.status === "paused") {
+      const holding = Boolean(delivery && (delivery.remainingMs != null || delivery.sentCount > 0 || delivery.nextBatchMs != null));
+      cell.classList.toggle("is-holding", holding);
+      const hold = document.createElement("span");
+      hold.className = "campaign-status__hold";
       const icon = document.createElement("img");
       icon.className = "campaign-status__pause";
       icon.src = "../../assets/icons/pause.svg";
@@ -753,7 +809,17 @@
       const label = document.createElement("span");
       label.className = "campaign-status__label";
       label.textContent = "Paused";
-      cell.append(icon, label);
+      hold.append(icon, label);
+      cell.append(hold);
+      if (delivery?.remainingMs != null) {
+        const date = document.createElement("span");
+        date.className = "campaign-status__meta";
+        date.textContent = `Starting in ${formatClock(delivery.remainingMs)}`;
+        cell.append(date);
+      } else if (delivery && (delivery.sentCount > 0 || delivery.nextBatchMs != null)) {
+        appendSendingProgress(cell, campaign.sentCount, Math.max(campaign.recipientCount, 0));
+        appendNextBatch(cell, delivery.nextBatchMs);
+      }
       return cell;
     }
 
@@ -793,6 +859,7 @@
       selectedIds.has(campaign.id) ? "is-checked" : ""
     ].filter(Boolean).join(" ");
     row.dataset.campaignId = campaign.id;
+    row.dataset.delivery = deliverySignature(campaign);
 
     const selectCell = renderSelectCell(campaign, rowNumber);
     const nameCell = document.createElement("td");
@@ -836,6 +903,7 @@
     else clickCell.append(dash());
 
     const statusCell = document.createElement("td");
+    statusCell.className = "campaigns-status-cell";
     statusCell.append(renderStatus(campaign));
 
     const menuCell = document.createElement("td");
@@ -901,7 +969,7 @@
 
   function renderOverview() {
     closeRowMenu();
-    const allCampaigns = store()?.list?.() || [];
+    const allCampaigns = (store()?.list?.() || []).map(presentCampaign);
     const source = activeView().source;
     const campaigns = allCampaigns.filter((campaign) => campaign.source === source);
     pruneSelection(campaigns);
@@ -1147,10 +1215,40 @@
     window.history.replaceState(null, "", next);
   }
 
+  function syncLiveDelivery() {
+    if (!tableBody || !LIST_VIEWS[activeTab()]) return;
+    let structureChanged = false;
+    tableBody.querySelectorAll("tr[data-campaign-id]").forEach((row) => {
+      const stored = store()?.get?.(row.dataset.campaignId);
+      if (!stored) return;
+      const campaign = presentCampaign(stored);
+      const signature = deliverySignature(campaign);
+      if (!signature || row.dataset.delivery === signature) return;
+      const previous = (row.dataset.delivery || "").split("|");
+      const next = signature.split("|");
+      row.dataset.delivery = signature;
+      if (!previous[0] || previous[0] !== next[0] || previous[1] !== next[1] || previous[4] !== next[4]) {
+        structureChanged = Boolean(previous[0]);
+        if (!previous[0]) {
+          const cell = row.querySelector(".campaigns-status-cell");
+          if (cell) cell.replaceChildren(renderStatus(campaign));
+        }
+        return;
+      }
+      const clock = row.querySelector(".campaign-status__meta, .campaign-status__next");
+      const delivery = campaign.delivery;
+      if (!clock || !delivery) return;
+      if (delivery.remainingMs != null) clock.textContent = `Starting in ${formatClock(delivery.remainingMs)}`;
+      else if (delivery.nextBatchMs != null) clock.textContent = `Next batch in ${formatClock(delivery.nextBatchMs)}`;
+    });
+    if (structureChanged) renderOverview();
+  }
+
   window.addEventListener("wefranch:campaigns-change", () => {
     if (LIST_VIEWS[activeTab()]) renderOverview();
-    else renderMetrics(store()?.list?.() || []);
+    else renderMetrics((store()?.list?.() || []).map(presentCampaign));
   });
+  window.setInterval(syncLiveDelivery, 1000);
 
   page?.addEventListener("scroll", syncTableScrollChrome, { passive: true });
   window.addEventListener("resize", () => {

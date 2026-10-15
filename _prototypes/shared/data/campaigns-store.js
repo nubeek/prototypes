@@ -6,6 +6,11 @@
   const SEED_CLICKS_KEY = "wefranch:campaigns-seed-clicks-v1";
   const NAME_MAX = 64;
   const STATUSES = new Set(["draft", "scheduled", "sending", "paused", "completed"]);
+  // New direct emails wait, then leave in batches. Pause time is subtracted
+  // from the clock so a hold delays both the countdown and the next batch.
+  const DIRECT_COUNTDOWN_MS = 5 * 60 * 1000;
+  const DIRECT_BATCH_SIZE = 10;
+  const DIRECT_BATCH_INTERVAL_MS = 30 * 60 * 1000;
 
   function createId() {
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -278,7 +283,95 @@
       )),
       replies: Math.max(0, Math.round(Number(record.replies) || 0)),
       converts: Math.max(0, Math.round(Number(record.converts) || 0)),
-      createdAt: record.createdAt || new Date().toISOString()
+      createdAt: record.createdAt || new Date().toISOString(),
+      batchSize: Number(record.batchSize) > 0 ? Math.round(Number(record.batchSize)) : 0,
+      batchIntervalMs: Number(record.batchIntervalMs) > 0 ? Math.round(Number(record.batchIntervalMs)) : 0,
+      pausedAt: record.pausedAt || null,
+      pausedDurationMs: Math.max(0, Math.round(Number(record.pausedDurationMs) || 0))
+    };
+  }
+
+  function isBatchedDirect(record) {
+    return record?.source === "direct" && record.batchSize > 0 && record.batchIntervalMs > 0;
+  }
+
+  function scheduleNewDirect(draft) {
+    if (draft?.source !== "direct" || draft.status === "draft" || Number(draft.batchSize) > 0) {
+      return draft || {};
+    }
+    return {
+      ...draft,
+      status: "scheduled",
+      startAt: new Date(Date.now() + DIRECT_COUNTDOWN_MS).toISOString(),
+      endAt: null,
+      sentCount: 0,
+      opens: 0,
+      clicks: 0,
+      replies: 0,
+      converts: 0,
+      batchSize: DIRECT_BATCH_SIZE,
+      batchIntervalMs: DIRECT_BATCH_INTERVAL_MS,
+      pausedDurationMs: 0,
+      pausedAt: null
+    };
+  }
+
+  // Projects a batched direct email onto the virtual clock. `now` is injectable
+  // so the same rules drive both the live list and catch-up after a reload.
+  function deliverySnapshot(record, now = Date.now()) {
+    if (!isBatchedDirect(record)) return null;
+    const start = Date.parse(record.startAt);
+    if (!Number.isFinite(start)) return null;
+
+    const pausedDuration = Math.max(0, Number(record.pausedDurationMs) || 0);
+    const pausedAt = record.pausedAt ? Date.parse(record.pausedAt) : NaN;
+    const frozen = record.status === "paused" && Number.isFinite(pausedAt);
+    const clock = (frozen ? pausedAt : now) - pausedDuration;
+    const total = Math.max(0, record.recipientCount);
+    const batchSize = record.batchSize;
+    const interval = record.batchIntervalMs;
+    const status = frozen ? "paused" : null;
+
+    if (clock < start) {
+      return {
+        status: status || "scheduled",
+        sentCount: 0,
+        endAt: null,
+        remainingMs: Math.max(0, start - clock),
+        nextBatchMs: null
+      };
+    }
+
+    if (total <= 0) {
+      return {
+        status: status || "completed",
+        sentCount: 0,
+        endAt: new Date(start + pausedDuration).toISOString(),
+        remainingMs: null,
+        nextBatchMs: null
+      };
+    }
+
+    const elapsed = clock - start;
+    const batches = Math.floor(elapsed / interval) + 1;
+    const sent = Math.min(total, batches * batchSize);
+    if (sent >= total) {
+      const needed = Math.max(1, Math.ceil(total / batchSize));
+      return {
+        status: status || "completed",
+        sentCount: total,
+        endAt: new Date(start + (needed - 1) * interval + pausedDuration).toISOString(),
+        remainingMs: null,
+        nextBatchMs: null
+      };
+    }
+
+    return {
+      status: status || "sending",
+      sentCount: sent,
+      endAt: null,
+      remainingMs: null,
+      nextBatchMs: Math.max(0, start + batches * interval - clock)
     };
   }
 
@@ -380,18 +473,19 @@
   }
 
   function create(draft) {
-    const status = STATUSES.has(draft?.status) ? draft.status : "sending";
+    const incoming = scheduleNewDirect(draft);
+    const status = STATUSES.has(incoming?.status) ? incoming.status : "sending";
     const record = normalize({
-      ...draft,
+      ...incoming,
       id: createId(),
       status,
-      sentCount: draft?.sentCount || 0,
-      opens: draft?.opens || 0,
-      clicks: draft?.clicks || 0,
-      replies: draft?.replies || 0,
-      converts: draft?.converts || 0,
-      endAt: draft?.endAt || null,
-      startAt: status === "draft" ? null : (draft?.startAt || new Date().toISOString()),
+      sentCount: incoming?.sentCount || 0,
+      opens: incoming?.opens || 0,
+      clicks: incoming?.clicks || 0,
+      replies: incoming?.replies || 0,
+      converts: incoming?.converts || 0,
+      endAt: incoming?.endAt || null,
+      startAt: status === "draft" ? null : (incoming?.startAt || new Date().toISOString()),
       createdAt: new Date().toISOString()
     });
     campaigns = [record, ...campaigns];
@@ -447,6 +541,72 @@
     return removed;
   }
 
+  function advanceDeliveries(now = Date.now()) {
+    let changed = false;
+    campaigns = campaigns.map((campaign) => {
+      if (!isBatchedDirect(campaign) || campaign.status === "paused" || campaign.status === "draft") {
+        return campaign;
+      }
+      if (campaign.status === "completed" && campaign.sentCount >= campaign.recipientCount && campaign.endAt) {
+        return campaign;
+      }
+      const snapshot = deliverySnapshot(campaign, now);
+      if (!snapshot) return campaign;
+      if (
+        snapshot.status === campaign.status
+        && snapshot.sentCount === campaign.sentCount
+        && snapshot.endAt === campaign.endAt
+      ) {
+        return campaign;
+      }
+      changed = true;
+      return { ...campaign, status: snapshot.status, sentCount: snapshot.sentCount, endAt: snapshot.endAt };
+    });
+    if (changed) writeStored();
+    return changed;
+  }
+
+  function pause(id) {
+    advanceDeliveries();
+    const campaign = campaigns.find((entry) => entry.id === id);
+    if (!campaign) return null;
+    if (isBatchedDirect(campaign)) {
+      if (campaign.status !== "scheduled" && campaign.status !== "sending") return null;
+      return update(id, { status: "paused", pausedAt: new Date().toISOString() });
+    }
+    if (campaign.status !== "sending") return null;
+    return update(id, { status: "paused" });
+  }
+
+  function resume(id) {
+    const campaign = campaigns.find((entry) => entry.id === id);
+    if (!campaign || campaign.status !== "paused") return null;
+    if (!isBatchedDirect(campaign)) return update(id, { status: "sending" });
+
+    const pausedAt = Date.parse(campaign.pausedAt);
+    const extra = Number.isFinite(pausedAt) ? Math.max(0, Date.now() - pausedAt) : 0;
+    const resumed = {
+      ...campaign,
+      status: "scheduled",
+      pausedAt: null,
+      pausedDurationMs: (campaign.pausedDurationMs || 0) + extra
+    };
+    const snapshot = deliverySnapshot(resumed);
+    return update(id, {
+      status: snapshot?.status || "scheduled",
+      sentCount: snapshot?.sentCount ?? campaign.sentCount,
+      endAt: snapshot?.endAt ?? null,
+      pausedAt: null,
+      pausedDurationMs: resumed.pausedDurationMs
+    });
+  }
+
+  advanceDeliveries();
+  window.setInterval(() => advanceDeliveries(), 1000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") advanceDeliveries();
+  });
+
   window.WefranchCampaignsStore = {
     list,
     get,
@@ -454,6 +614,9 @@
     update,
     duplicate,
     remove,
-    removeMany
+    removeMany,
+    deliverySnapshot,
+    pause,
+    resume
   };
 })();

@@ -679,10 +679,18 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaign-status--sending,
-.campaign-status--scheduled {
+.campaign-status--scheduled,
+.campaign-status--paused.is-holding {
   align-items: flex-start;
   flex-direction: column;
   gap: 2px;
+}
+
+.campaign-status__hold {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .campaign-status__line {
@@ -764,11 +772,16 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaign-status__meta,
-.campaign-status__count {
+.campaign-status__count,
+.campaign-status__next {
   color: var(--color-text-muted);
   font-size: var(--font-size-base);
   font-weight: 400;
   white-space: nowrap;
+}
+
+.campaign-status__next {
+  line-height: 1.15;
 }
 
 .campaign-status__count {

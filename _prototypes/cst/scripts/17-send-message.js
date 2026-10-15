@@ -33,6 +33,7 @@ const sendMessageSendLabel = sendMessageSend?.querySelector(".campaign-continue-
 const sendMessageTemplates = document.getElementById("sendMessageTemplates");
 const sendMessageUndo = document.getElementById("sendMessageUndo");
 const sendMessageDone = document.getElementById("sendMessageDone");
+const sendMessageSentDashboard = document.getElementById("sendMessageSentDashboard");
 
 let sendMessageFromApi = null;
 let sendMessageRecipientsApi = null;
@@ -672,10 +673,21 @@ function showSendMessageSent() {
   sendMessageDone?.focus({ preventScroll: true });
 }
 
+function getDirectEmailsHref(recordId) {
+  const url = new URL("../campaigns/", window.location.href);
+  if (recordId) url.searchParams.set("draft", String(recordId));
+  url.hash = "direct-emails";
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function syncSendMessageDashboardHref() {
+  if (!sendMessageSentDashboard) return;
+  sendMessageSentDashboard.href = getDirectEmailsHref(sendMessageRecordId);
+}
+
 function recordSendMessage() {
   const senderEmail = sendMessageFromApi?.getValue() || "";
   const recipients = window.WefranchFilterCombobox.getValues(sendMessageRecipientsSelect);
-  const sentAt = new Date().toISOString();
   const record = window.WefranchCampaignsStore?.create?.({
     source: "direct",
     name: String(sendMessageSubject?.value || "").trim(),
@@ -683,13 +695,10 @@ function recordSendMessage() {
     emailCount: 1,
     sender: { name: CAMPAIGN_SENDERS[senderEmail] || "", email: senderEmail },
     audienceTitle: recipients.length === 1 ? recipients[0] : `${recipients.length} recipients`,
-    recipientCount: recipients.length,
-    status: "completed",
-    startAt: sentAt,
-    endAt: sentAt,
-    sentCount: recipients.length
+    recipientCount: recipients.length
   });
   sendMessageRecordId = record?.id || null;
+  syncSendMessageDashboardHref();
 }
 
 function forgetSendMessageRecord() {
@@ -733,6 +742,7 @@ function resetSendMessageForm() {
   syncSendMessageTemplate();
   setSendMessageSent(false);
   sendMessageCard?.classList.remove("is-returning");
+  syncSendMessageDashboardHref();
 }
 
 function focusSendMessageRecipients() {
