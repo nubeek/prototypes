@@ -27,10 +27,11 @@
     if (!(container instanceof HTMLElement)) return null;
 
     const deleteButton = container.querySelector('[data-toolbar-selection-action="delete"]');
-    const noun = {
-      one: options.noun?.one || "item",
-      other: options.noun?.other || `${options.noun?.one || "item"}s`
-    };
+    // Read at confirm time so a page can switch nouns (for example per tab).
+    function noun() {
+      const one = options.noun?.one || "item";
+      return { one, other: options.noun?.other || `${one}s` };
+    }
     let confirm = null;
 
     function selectedCount() {
@@ -45,10 +46,11 @@
       const count = selectedCount();
       if (!count) return;
       options.onBeforeDelete?.();
+      const { one, other } = noun();
       confirm = confirm || window.createProtoConfirmModal?.();
       confirm?.open({
-        title: `Delete selected ${noun.other}?`,
-        messageHtml: `Are you sure you want to delete<br><span class="toolbar-delete-confirm-count">the ${count} selected ${count === 1 ? noun.one : noun.other}?</span>`,
+        title: `Delete selected ${other}?`,
+        messageHtml: `Are you sure you want to delete<br><span class="toolbar-delete-confirm-count">the ${count} selected ${count === 1 ? one : other}?</span>`,
         cancelLabel: "Cancel",
         confirmLabel: "Delete",
         trigger: deleteButton,

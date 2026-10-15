@@ -5394,7 +5394,6 @@ a.franchise-name:focus-visible {
   }
 
   .card { padding: 12px; }
-  .header { gap: 12px; }
   .header-actions { align-items: flex-start; flex-direction: column; gap: 10px; }
 
   .owner-org-panel {

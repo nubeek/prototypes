@@ -53,31 +53,44 @@
     </div>
   </header>
 
-  <main class="campaigns-page">
-    <h1 class="campaigns-title">Email Campaigns</h1>
+  <main class="campaigns-page proto-scrollbar">
+    <div class="campaigns-content">
+    <div class="campaigns-heading">
+      <h1 class="campaigns-title">Email Campaigns</h1>
+
+      <div class="campaigns-metrics">
+        <div class="campaigns-metric">
+          <p class="campaigns-metric__label">Open rate</p>
+          <p class="campaigns-metric__value" id="campaignMetricOpenRate">–</p>
+          <p class="campaigns-trend" id="campaignMetricOpenRateTrend"></p>
+        </div>
+        <div class="campaigns-metrics__divider" aria-hidden="true"></div>
+        <div class="campaigns-metric">
+          <p class="campaigns-metric__label">Click rate</p>
+          <p class="campaigns-metric__value" id="campaignMetricClickRate">–</p>
+          <p class="campaigns-trend" id="campaignMetricClickRateTrend"></p>
+        </div>
+        <div class="campaigns-metrics__divider" aria-hidden="true"></div>
+        <div class="campaigns-metric">
+          <p class="campaigns-metric__label">Domain health</p>
+          <p class="campaigns-metric__value" id="campaignMetricDomainHealth">98%</p>
+          <p class="campaigns-trend">
+            <span class="campaigns-trend__badge" id="campaignMetricDomainHealthLabel" data-health="excellent">Excellent</span>
+          </p>
+        </div>
+      </div>
+    </div>
 
     <div class="scope-toolbar campaigns-tabs">
       <div class="scope-tabs" role="tablist" aria-label="Campaign sections">
-        <button class="scope-tab is-active" id="campaignsTabOverview" type="button" role="tab" aria-selected="true" aria-controls="campaignsPanelOverview" data-campaign-tab="overview">Overview</button>
+        <button class="scope-tab is-active" id="campaignsTabCampaigns" type="button" role="tab" aria-selected="true" aria-controls="campaignsPanelOverview" data-campaign-tab="campaigns">Campaigns</button>
+        <button class="scope-tab" id="campaignsTabDirect" type="button" role="tab" aria-selected="false" aria-controls="campaignsPanelOverview" data-campaign-tab="direct-emails">Direct emails</button>
         <button class="scope-tab" id="campaignsTabTemplates" type="button" role="tab" aria-selected="false" aria-controls="campaignsPanelTemplates" data-campaign-tab="templates">Templates</button>
         <button class="scope-tab" id="campaignsTabSettings" type="button" role="tab" aria-selected="false" aria-controls="campaignsPanelSettings" data-campaign-tab="settings">Settings</button>
       </div>
     </div>
 
-    <section class="campaigns-panel" id="campaignsPanelOverview" data-campaign-panel="overview" role="tabpanel" aria-labelledby="campaignsTabOverview">
-      <div class="campaigns-metrics">
-        <div>
-          <p class="campaigns-metric__label">Total opens</p>
-          <p class="campaigns-metric__value" id="campaignMetricOpens">0</p>
-          <p class="campaigns-trend" id="campaignMetricOpensTrend"></p>
-        </div>
-        <div>
-          <p class="campaigns-metric__label">Total converts</p>
-          <p class="campaigns-metric__value" id="campaignMetricConverts">0</p>
-          <p class="campaigns-trend" id="campaignMetricConvertsTrend"></p>
-        </div>
-      </div>
-
+    <section class="campaigns-panel" id="campaignsPanelOverview" data-campaign-panel="overview" role="tabpanel" aria-labelledby="campaignsTabCampaigns">
       <div class="header campaigns-toolbar" aria-label="Campaigns toolbar">
         <div class="toolbar-group toolbar-primary">
           <form class="scope-search" id="campaignSearch" role="search" autocomplete="off">
@@ -107,7 +120,7 @@
         </div>
       </div>
 
-      <div class="campaigns-table-wrap proto-scrollbar" id="campaignsTableWrap">
+      <div class="campaigns-table-wrap" id="campaignsTableWrap">
         <table class="proto-table campaigns-table is-franchisees-table has-row-select" id="campaignsTable">
           <thead>
             <tr>
@@ -118,7 +131,7 @@
                 </label>
               </th>
               <th class="sortable-header" data-sort-key="name" aria-sort="none" tabindex="0" style="width: 19%">
-                <span class="th-content">Campaign name <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+                <span class="th-content"><span id="campaignsNameHeader">Campaign name</span> <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
               </th>
               <th class="sortable-header campaigns-metric-col" data-sort-key="type" aria-sort="none" tabindex="0">
                 <span class="th-content">Type <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
@@ -135,8 +148,8 @@
               <th class="sortable-header campaigns-metric-col" data-sort-key="openRate" aria-sort="none" tabindex="0">
                 <span class="th-content">Open rate <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
               </th>
-              <th class="sortable-header campaigns-metric-col" data-sort-key="replyRate" aria-sort="none" tabindex="0">
-                <span class="th-content">Reply rate <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
+              <th class="sortable-header campaigns-metric-col" data-sort-key="clickRate" aria-sort="none" tabindex="0">
+                <span class="th-content">Click rate <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
               </th>
               <th class="sortable-header" data-sort-key="status" aria-sort="none" tabindex="0" style="width: 17%">
                 <span class="th-content">Status <img class="th-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true"></span>
@@ -147,7 +160,7 @@
           <tbody id="campaignsTableBody"></tbody>
         </table>
         <div class="empty-state empty-state--overlay" id="campaignsEmptySearch" hidden>
-          <p class="empty-state__message">No campaigns match your search.</p>
+          <p class="empty-state__message" id="campaignsEmptySearchMessage">No campaigns match your search.</p>
         </div>
       </div>
 
@@ -155,9 +168,36 @@
         <p class="empty-state__message">No campaigns yet.<br>Create one to start reaching prospects.</p>
         <button class="empty-state__action ui-text-button" id="campaignEmptyCreate" type="button">Create a campaign</button>
       </div>
+
+      <div class="empty-state empty-state--fill" id="campaignsEmptyDirect" hidden>
+        <p class="empty-state__message">No direct emails yet.<br>Send a message from Prospects to see it here.</p>
+        <a class="empty-state__action ui-text-button" href="../cst/">Go to Prospects</a>
+      </div>
     </section>
 
-    <section class="campaigns-panel" id="campaignsPanelTemplates" data-campaign-panel="templates" role="tabpanel" aria-labelledby="campaignsTabTemplates" hidden>
+    <section class="campaigns-panel is-empty" id="campaignsPanelTemplates" data-campaign-panel="templates" role="tabpanel" aria-labelledby="campaignsTabTemplates" hidden>
+      <div class="header campaigns-toolbar" aria-label="Templates toolbar">
+        <div class="toolbar-group toolbar-primary">
+          <form class="scope-search" id="templateSearch" role="search" autocomplete="off">
+            <img class="scope-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+            <input
+              class="scope-search-input"
+              id="templateSearchInput"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Search templates"
+              aria-label="Search templates"
+            >
+            <button class="scope-search-clear" id="templateSearchClear" type="button" aria-label="Clear search" hidden></button>
+          </form>
+        </div>
+
+        <div class="toolbar-group toolbar-actions">
+          <button class="ui-control ui-button ui-button-primary campaigns-new" id="createTemplateBtn" type="button">Create template</button>
+        </div>
+      </div>
+
       <div class="empty-state empty-state--fill">
         <p class="empty-state__message">Templates are coming soon.</p>
       </div>
@@ -168,6 +208,7 @@
         <p class="empty-state__message">Settings are coming soon.</p>
       </div>
     </section>
+    </div>
   </main>
 
   <div class="proto-modal-overlay" id="renameCampaignModal" hidden>

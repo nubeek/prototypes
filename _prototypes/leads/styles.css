@@ -2837,10 +2837,6 @@ tbody tr.is-checked:hover td:nth-child(2) {
     --lead-detail-padding-bottom: 24px;
   }
 
-  .header {
-    gap: 12px;
-  }
-
   .table-heading h2 {
     font-size: 22px;
   }

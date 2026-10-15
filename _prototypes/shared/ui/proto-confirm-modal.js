@@ -11,7 +11,7 @@
      confirmLabel: "Switch",
      confirmPlacement: "end",
      confirmVariant: "primary",
-     cancelVariant: "ghost",
+     cancelVariant: "secondary",
      trigger,
      onConfirm() {},
      onCancel() {}
@@ -38,15 +38,16 @@
     });
   }
 
-  function buttonClassForVariant(variant, fallback) {
+  function buttonClassForVariant(variant, fallback, slot) {
     const resolved = variant || fallback;
+    const base = `${BUTTON_BASE_CLASS} ${slot}`;
     if (resolved === "secondary") {
-      return `${BUTTON_BASE_CLASS} proto-modal-save ui-button-secondary`;
+      return `${base} ui-button-secondary`;
     }
     if (resolved === "ghost") {
-      return `${BUTTON_BASE_CLASS} proto-modal-cancel`;
+      return base;
     }
-    return `${BUTTON_BASE_CLASS} proto-modal-save ui-button-primary`;
+    return `${base} ui-button-primary`;
   }
 
   function createProtoConfirmModal(options = {}) {
@@ -62,7 +63,7 @@
         <h2 class="proto-modal-title proto-confirm-title" id="${id}Title"></h2>
         <p class="proto-modal-subtitle proto-confirm-body" id="${id}Body"></p>
         <div class="proto-modal-actions proto-confirm-actions">
-          <button class="ui-control ui-button proto-modal-cancel" type="button" data-proto-confirm-action="cancel">Cancel</button>
+          <button class="ui-control ui-button proto-modal-cancel ui-button-secondary" type="button" data-proto-confirm-action="cancel">Cancel</button>
           <button class="ui-control ui-button ui-button-primary proto-modal-save" type="button" data-proto-confirm-action="confirm">Confirm</button>
         </div>
       </section>
@@ -120,8 +121,8 @@
         setConfirmMessage(bodyEl, openOptions);
         cancelBtn.textContent = openOptions.cancelLabel || "Cancel";
         confirmBtn.textContent = openOptions.confirmLabel || "Confirm";
-        cancelBtn.className = buttonClassForVariant(openOptions.cancelVariant, "ghost");
-        confirmBtn.className = buttonClassForVariant(openOptions.confirmVariant, "primary");
+        cancelBtn.className = buttonClassForVariant(openOptions.cancelVariant, "secondary", "proto-modal-cancel");
+        confirmBtn.className = buttonClassForVariant(openOptions.confirmVariant, "primary", "proto-modal-save");
         if (openOptions.confirmPlacement === "start") {
           actionsEl.append(confirmBtn, cancelBtn);
         } else {

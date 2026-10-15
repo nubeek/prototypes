@@ -1,6 +1,23 @@
 (function () {
-  const TABS = ["overview", "templates", "settings"];
-  const SORT_KEYS = new Set(["name", "type", "recipients", "startAt", "endAt", "openRate", "replyRate", "status"]);
+  const TABS = ["campaigns", "direct-emails", "templates", "settings"];
+  const LIST_PANEL = "overview";
+  const LIST_VIEWS = {
+    campaigns: {
+      source: "campaign",
+      noun: { one: "campaign", other: "campaigns" },
+      label: "campaigns",
+      nameHeader: "Campaign name",
+      searchLabel: "Search campaigns"
+    },
+    "direct-emails": {
+      source: "direct",
+      noun: { one: "email", other: "emails" },
+      label: "direct emails",
+      nameHeader: "Subject",
+      searchLabel: "Search direct emails"
+    }
+  };
+  const SORT_KEYS = new Set(["name", "type", "recipients", "startAt", "endAt", "openRate", "clickRate", "status"]);
   const dateFormat = new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
@@ -18,18 +35,30 @@
   const searchForm = document.getElementById("campaignSearch");
   const searchInput = document.getElementById("campaignSearchInput");
   const searchClear = document.getElementById("campaignSearchClear");
+  const templateSearchForm = document.getElementById("templateSearch");
+  const templateSearchInput = document.getElementById("templateSearchInput");
+  const templateSearchClear = document.getElementById("templateSearchClear");
   const newCampaignBtn = document.getElementById("newCampaignBtn");
   const emptyCreateBtn = document.getElementById("campaignEmptyCreate");
-  const metricsOpens = document.getElementById("campaignMetricOpens");
-  const metricsConverts = document.getElementById("campaignMetricConverts");
-  const metricsOpensTrend = document.getElementById("campaignMetricOpensTrend");
-  const metricsConvertsTrend = document.getElementById("campaignMetricConvertsTrend");
+  const metricsOpenRate = document.getElementById("campaignMetricOpenRate");
+  const metricsClickRate = document.getElementById("campaignMetricClickRate");
+  const metricsOpenRateTrend = document.getElementById("campaignMetricOpenRateTrend");
+  const metricsClickRateTrend = document.getElementById("campaignMetricClickRateTrend");
+  const metricsDomainHealth = document.getElementById("campaignMetricDomainHealth");
+  const metricsDomainHealthLabel = document.getElementById("campaignMetricDomainHealthLabel");
+  const page = document.querySelector(".campaigns-page");
+  const content = document.querySelector(".campaigns-content");
+  const tabs = document.querySelector(".campaigns-tabs");
+  const toolbar = document.querySelector(".campaigns-toolbar");
   const table = document.getElementById("campaignsTable");
   const tableBody = document.getElementById("campaignsTableBody");
   const tableWrap = document.getElementById("campaignsTableWrap");
   const emptyAll = document.getElementById("campaignsEmptyAll");
+  const emptyDirect = document.getElementById("campaignsEmptyDirect");
   const emptySearch = document.getElementById("campaignsEmptySearch");
-  const overviewPanel = document.querySelector('[data-campaign-panel="overview"]');
+  const emptySearchMessage = document.getElementById("campaignsEmptySearchMessage");
+  const nameHeader = document.getElementById("campaignsNameHeader");
+  const overviewPanel = document.querySelector(`[data-campaign-panel="${LIST_PANEL}"]`);
   const renameForm = document.getElementById("renameCampaignForm");
   const renameInput = document.getElementById("renameCampaignName");
   const renameModal = document.getElementById("renameCampaignModal");
@@ -39,7 +68,10 @@
   let sortDirection = "descending";
   let pinnedId = null;
   let renameId = null;
+  let listTab = null;
+  let scrollEaseFrame = 0;
   const selectedIds = new Set();
+  const selectionNoun = { ...LIST_VIEWS.campaigns.noun };
 
   const renameModalApi = window.createProtoModal?.({
     overlay: renameModal,
@@ -52,7 +84,7 @@
 
   const selection = window.createToolbarSelection?.({
     container: selectionActions,
-    noun: { one: "campaign", other: "campaigns" },
+    noun: selectionNoun,
     getSelectedCount: () => selectedIds.size,
     onBeforeDelete() {
       closeRowMenu();
@@ -67,7 +99,7 @@
         renderOverview();
         return;
       }
-      toast(removed === 1 && onlyName ? `${onlyName} deleted.` : `${removed} campaigns deleted.`);
+      toast(removed === 1 && onlyName ? `${onlyName} deleted.` : `${removed} ${selectionNoun.other} deleted.`);
     }
   });
 
@@ -77,20 +109,133 @@
 
   function activeTab() {
     const hash = window.location.hash.replace("#", "");
-    return TABS.includes(hash) ? hash : "overview";
+    return TABS.includes(hash) ? hash : "campaigns";
+  }
+
+  function activeView() {
+    return LIST_VIEWS[listTab] || LIST_VIEWS.campaigns;
+  }
+
+  function isDirectView() {
+    return activeView().source === "direct";
+  }
+
+  function applyListView(tab) {
+    if (listTab === tab) return;
+    const switching = listTab !== null;
+    listTab = tab;
+    const view = activeView();
+    if (switching) {
+      selectedIds.clear();
+      pinnedId = null;
+      if (searchInput) searchInput.value = "";
+    }
+    Object.assign(selectionNoun, view.noun);
+    if (nameHeader) nameHeader.textContent = view.nameHeader;
+    if (searchInput) {
+      searchInput.placeholder = view.searchLabel;
+      searchInput.setAttribute("aria-label", view.searchLabel);
+    }
+    if (emptySearchMessage) emptySearchMessage.textContent = `No ${view.label} match your search.`;
+    table?.querySelector(".location-select-all")?.setAttribute("aria-label", `Select all ${view.label}`);
+    if (newCampaignBtn) newCampaignBtn.hidden = isDirectView();
+    const tabButton = tabButtons.find((button) => button.dataset.campaignTab === tab);
+    if (overviewPanel && tabButton) overviewPanel.setAttribute("aria-labelledby", tabButton.id);
+  }
+
+  function prefersReducedMotion() {
+    return document.documentElement.classList.contains("is-reduce-motion")
+      || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  }
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function clearPanelHold() {
+    document.querySelectorAll(".campaigns-panel").forEach((panel) => {
+      panel.style.flexGrow = "";
+      panel.style.height = "";
+    });
+  }
+
+  // Pin the page at its current height so a shorter panel can't clamp scrollTop
+  // before easeScrollIntoRange gets to animate it. The visible panel is later
+  // locked to its natural height so the extra space stays below it.
+  function holdScrollHeight() {
+    cancelAnimationFrame(scrollEaseFrame);
+    scrollEaseFrame = 0;
+    clearPanelHold();
+    if (!page || !content) return 0;
+    if (page.scrollTop <= 0) {
+      content.style.minHeight = "";
+      return 0;
+    }
+    const height = content.offsetHeight;
+    content.style.minHeight = `${height}px`;
+    return height;
+  }
+
+  function releaseScrollHeight() {
+    if (content) content.style.minHeight = "";
+    clearPanelHold();
+    syncTableScrollChrome();
+  }
+
+  function easeScrollIntoRange(fromTop, heldHeight) {
+    if (!page || !content || !heldHeight) return;
+    content.style.minHeight = "";
+    const panel = document.querySelector(".campaigns-panel:not([hidden])");
+    const naturalPanelHeight = panel?.offsetHeight || 0;
+    const maxTop = Math.max(0, page.scrollHeight - page.clientHeight);
+    if (fromTop <= maxTop || prefersReducedMotion()) {
+      releaseScrollHeight();
+      return;
+    }
+    content.style.minHeight = `${heldHeight}px`;
+    if (panel && naturalPanelHeight) {
+      panel.style.flexGrow = "0";
+      panel.style.height = `${naturalPanelHeight}px`;
+    }
+    page.scrollTop = fromTop;
+    const distance = fromTop - maxTop;
+    const duration = Math.min(520, Math.max(280, distance * 0.6));
+    const start = performance.now();
+    const step = (now) => {
+      const progress = Math.min(1, (now - start) / duration);
+      page.scrollTop = fromTop - distance * easeOutCubic(progress);
+      if (progress < 1) {
+        scrollEaseFrame = requestAnimationFrame(step);
+        return;
+      }
+      scrollEaseFrame = 0;
+      releaseScrollHeight();
+    };
+    scrollEaseFrame = requestAnimationFrame(step);
   }
 
   function syncTabs() {
+    const fromTop = page?.scrollTop || 0;
+    const heldHeight = holdScrollHeight();
     const tab = activeTab();
+    const isList = Boolean(LIST_VIEWS[tab]);
+    const panelName = isList ? LIST_PANEL : tab;
     tabButtons.forEach((button) => {
       const selected = button.dataset.campaignTab === tab;
       button.classList.toggle("is-active", selected);
       button.setAttribute("aria-selected", String(selected));
     });
     panels.forEach((panel) => {
-      panel.hidden = panel.dataset.campaignPanel !== tab;
+      panel.hidden = panel.dataset.campaignPanel !== panelName;
     });
-    if (tab === "overview") renderOverview();
+    if (isList) {
+      applyListView(tab);
+      renderOverview();
+    } else {
+      closeRowMenu();
+      renderMetrics(store()?.list?.() || []);
+    }
+    easeScrollIntoRange(fromTop, heldHeight);
   }
 
   function queryText() {
@@ -116,7 +261,7 @@
     if (key === "startAt") return campaign.startAt ? Date.parse(campaign.startAt) : null;
     if (key === "endAt") return campaign.endAt ? Date.parse(campaign.endAt) : null;
     if (key === "openRate") return rate(campaign.opens, campaign.sentCount);
-    if (key === "replyRate") return rate(campaign.replies, campaign.sentCount);
+    if (key === "clickRate") return rate(campaign.clicks, campaign.sentCount);
     if (key === "status") return campaign.status;
     return "";
   }
@@ -180,15 +325,43 @@
     element.classList.toggle("is-down", !up);
     element.replaceChildren();
 
+    const badge = document.createElement("span");
+    badge.className = "campaigns-trend__badge";
+
     const arrow = document.createElement("img");
     arrow.src = "../../assets/icons/chevron.svg";
     arrow.alt = "";
     arrow.className = up ? "campaigns-trend__arrow is-up" : "campaigns-trend__arrow";
-    element.append(arrow);
+    badge.append(arrow);
 
-    const label = document.createElement("span");
-    label.textContent = `${up ? "+" : ""}${percent}% vs last month`;
-    element.append(label);
+    const value = document.createElement("span");
+    value.textContent = `${up ? "+" : ""}${percent}%`;
+    badge.append(value);
+
+    const period = document.createElement("span");
+    period.className = "campaigns-trend__period";
+    period.textContent = "vs last month";
+    element.append(badge, period);
+  }
+
+  /* Bands follow the common 0-100 domain/sender health scale (Mailgun, Validity
+     Sender Score, EmailElement): 85+ Excellent, 70-84 Good, 50-69 Fair,
+     30-49 Poor, under 30 Critical. */
+  const DOMAIN_HEALTH_LEVELS = [
+    { min: 85, key: "excellent", label: "Excellent" },
+    { min: 70, key: "good", label: "Good" },
+    { min: 50, key: "fair", label: "Fair" },
+    { min: 30, key: "poor", label: "Poor" },
+    { min: 0, key: "critical", label: "Critical" }
+  ];
+
+  function renderDomainHealth() {
+    if (!metricsDomainHealth || !metricsDomainHealthLabel) return;
+    const score = parseFloat(metricsDomainHealth.textContent);
+    if (!Number.isFinite(score)) return;
+    const level = DOMAIN_HEALTH_LEVELS.find((item) => score >= item.min) || DOMAIN_HEALTH_LEVELS.at(-1);
+    metricsDomainHealthLabel.textContent = level.label;
+    metricsDomainHealthLabel.dataset.health = level.key;
   }
 
   function renderMetrics(campaigns) {
@@ -196,18 +369,18 @@
     const thisKey = monthKey(now);
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastKey = monthKey(lastMonth);
-    const opens = campaigns.reduce((total, campaign) => total + campaign.opens, 0);
-    const converts = campaigns.reduce((total, campaign) => total + campaign.converts, 0);
-    if (metricsOpens) metricsOpens.textContent = opens.toLocaleString("en-US");
-    if (metricsConverts) metricsConverts.textContent = converts.toLocaleString("en-US");
-    renderTrend(metricsOpensTrend, trendRatio(
-      sumInMonth(campaigns, "opens", thisKey),
-      sumInMonth(campaigns, "opens", lastKey)
-    ));
-    renderTrend(metricsConvertsTrend, trendRatio(
-      sumInMonth(campaigns, "converts", thisKey),
-      sumInMonth(campaigns, "converts", lastKey)
-    ));
+    const total = (field) => campaigns.reduce((sum, campaign) => sum + (Number(campaign[field]) || 0), 0);
+    const monthRate = (field, key) => rate(sumInMonth(campaigns, field, key), sumInMonth(campaigns, "sentCount", key)) || 0;
+    const setRate = (element, part) => {
+      if (!element) return;
+      const value = rate(total(part), total("sentCount"));
+      element.textContent = value === null ? "–" : formatRate(value);
+    };
+    setRate(metricsOpenRate, "opens");
+    setRate(metricsClickRate, "clicks");
+    renderTrend(metricsOpenRateTrend, trendRatio(monthRate("opens", thisKey), monthRate("opens", lastKey)));
+    renderTrend(metricsClickRateTrend, trendRatio(monthRate("clicks", thisKey), monthRate("clicks", lastKey)));
+    renderDomainHealth();
   }
 
   function dash() {
@@ -260,7 +433,8 @@
 
   function typeLabel(campaign) {
     if (campaign.type === "sequence") return "Sequence";
-    return "Single email";
+    if (campaign.source === "direct") return "Direct";
+    return "Single";
   }
 
   const ROW_MENU_OFFSET = 2;
@@ -313,6 +487,14 @@
   function syncRowMenu(campaign) {
     const menu = getRowMenu();
     menu.setAttribute("aria-label", `Actions for ${campaign.name}`);
+    if (campaign.source === "direct") {
+      menu.replaceChildren(
+        menuItem("report", "View report", "table.svg"),
+        menuDivider(),
+        menuItem("delete", "Delete", "delete.svg")
+      );
+      return;
+    }
     menu.replaceChildren(
       menuItem("report", "View report", "table.svg"),
       menuItem("duplicate", "Duplicate", "copy.svg"),
@@ -421,8 +603,9 @@
   }
 
   function runCampaignAction(campaign, action, trigger) {
+    const isDirect = campaign.source === "direct";
     if (action === "report") {
-      toast("Campaign reports are coming soon.");
+      toast(isDirect ? "Email reports are coming soon." : "Campaign reports are coming soon.");
       return;
     }
     if (action === "duplicate") {
@@ -448,7 +631,7 @@
     }
     if (action === "delete") {
       deleteConfirm?.open({
-        title: "Delete campaign?",
+        title: isDirect ? "Delete email?" : "Delete campaign?",
         message: `Delete ${campaign.name}?\nThis can't be undone.`,
         confirmLabel: "Delete",
         cancelLabel: "Cancel",
@@ -647,10 +830,10 @@
     if (openLabel) openCell.textContent = openLabel;
     else openCell.append(dash());
 
-    const replyCell = document.createElement("td");
-    const replyLabel = formatRate(rate(campaign.replies, campaign.sentCount));
-    if (replyLabel) replyCell.textContent = replyLabel;
-    else replyCell.append(dash());
+    const clickCell = document.createElement("td");
+    const clickLabel = formatRate(rate(campaign.clicks, campaign.sentCount));
+    if (clickLabel) clickCell.textContent = clickLabel;
+    else clickCell.append(dash());
 
     const statusCell = document.createElement("td");
     statusCell.append(renderStatus(campaign));
@@ -667,7 +850,7 @@
     more.setAttribute("aria-controls", "campaignsRowMenu");
     menuCell.append(more);
 
-    row.append(selectCell, nameCell, typeCell, recipientsCell, startCell, endCell, openCell, replyCell, statusCell, menuCell);
+    row.append(selectCell, nameCell, typeCell, recipientsCell, startCell, endCell, openCell, clickCell, statusCell, menuCell);
     return row;
   }
 
@@ -718,15 +901,18 @@
 
   function renderOverview() {
     closeRowMenu();
-    const campaigns = store()?.list?.() || [];
+    const allCampaigns = store()?.list?.() || [];
+    const source = activeView().source;
+    const campaigns = allCampaigns.filter((campaign) => campaign.source === source);
     pruneSelection(campaigns);
-    renderMetrics(campaigns);
+    renderMetrics(allCampaigns);
     syncSearchChrome();
     const rows = visibleCampaigns(campaigns);
     const hasCampaigns = campaigns.length > 0;
     const hasRows = rows.length > 0;
 
-    if (emptyAll) emptyAll.hidden = hasCampaigns;
+    if (emptyAll) emptyAll.hidden = hasCampaigns || isDirectView();
+    if (emptyDirect) emptyDirect.hidden = hasCampaigns || !isDirectView();
     if (overviewPanel) overviewPanel.classList.toggle("is-empty", !hasCampaigns);
     if (tableWrap) tableWrap.hidden = !hasCampaigns;
     if (emptySearch) emptySearch.hidden = !hasCampaigns || hasRows;
@@ -736,13 +922,30 @@
     }
     syncSelectAll();
     syncSortHeaders();
+    syncStickyOffsets();
     syncTableScrollChrome();
   }
 
+  function syncStickyOffsets() {
+    if (!page || !tabs) return;
+    page.style.setProperty("--campaigns-tabs-height", `${tabs.offsetHeight}px`);
+    if (toolbar && overviewPanel && !overviewPanel.hidden) {
+      page.style.setProperty("--campaigns-toolbar-height", `${toolbar.offsetHeight}px`);
+    }
+  }
+
   function syncTableScrollChrome() {
-    if (!tableWrap) return;
-    const hasVerticalOverflow = tableWrap.scrollHeight > tableWrap.clientHeight + 1;
-    const hasTopOverlap = tableWrap.scrollTop > 0;
+    if (!tableWrap || !page) return;
+    const thead = table?.querySelector("thead");
+    if (!thead || tableWrap.hidden) {
+      tableWrap.classList.remove("is-header-row-overlap", "is-status-column-overlap");
+      return;
+    }
+    const hasRightOverlap = page.scrollWidth > page.clientWidth + 1
+      && page.scrollLeft + page.clientWidth < page.scrollWidth - 1;
+    tableWrap.classList.toggle("is-status-column-overlap", hasRightOverlap);
+    const hasVerticalOverflow = page.scrollHeight > page.clientHeight + 1;
+    const hasTopOverlap = tableWrap.getBoundingClientRect().top < thead.getBoundingClientRect().top - 1;
     tableWrap.classList.toggle("is-header-row-overlap", hasVerticalOverflow && hasTopOverlap);
   }
 
@@ -766,9 +969,7 @@
         window.WefranchToast?.show({
           message: `${name} saved as a draft.`
         });
-        if (window.location.hash && window.location.hash !== "#overview") {
-          window.location.hash = "overview";
-        }
+        if (activeTab() !== "campaigns") window.location.hash = "campaigns";
         renderOverview();
         return record;
       },
@@ -781,9 +982,7 @@
         window.WefranchToast?.show({
           message: scheduled ? `${name} scheduled.` : `${name} is sending.`
         });
-        if (window.location.hash !== "#overview") {
-          window.location.hash = "overview";
-        }
+        if (activeTab() !== "campaigns") window.location.hash = "campaigns";
         renderOverview();
       }
     });
@@ -826,6 +1025,23 @@
     pinnedId = null;
     searchInput?.focus();
     renderOverview();
+  });
+
+  function syncTemplateSearchChrome() {
+    const hasQuery = Boolean(String(templateSearchInput?.value || "").trim());
+    templateSearchForm?.classList.toggle("is-active-search", hasQuery);
+    if (templateSearchClear) templateSearchClear.hidden = !hasQuery;
+  }
+
+  templateSearchForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+  });
+  templateSearchInput?.addEventListener("input", syncTemplateSearchChrome);
+  templateSearchClear?.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (templateSearchInput) templateSearchInput.value = "";
+    syncTemplateSearchChrome();
+    templateSearchInput?.focus();
   });
 
   newCampaignBtn?.addEventListener("click", () => openWizard(newCampaignBtn));
@@ -899,7 +1115,7 @@
     closeRowMenu({ restoreFocus: true });
   });
 
-  tableWrap?.addEventListener("scroll", () => closeRowMenu(), { passive: true });
+  page?.addEventListener("scroll", () => closeRowMenu(), { passive: true });
   window.addEventListener("resize", () => closeRowMenu());
 
   renameForm?.addEventListener("submit", (event) => {
@@ -932,11 +1148,20 @@
   }
 
   window.addEventListener("wefranch:campaigns-change", () => {
-    if (activeTab() === "overview") renderOverview();
+    if (LIST_VIEWS[activeTab()]) renderOverview();
+    else renderMetrics(store()?.list?.() || []);
   });
 
-  tableWrap?.addEventListener("scroll", syncTableScrollChrome, { passive: true });
-  window.addEventListener("resize", syncTableScrollChrome);
+  page?.addEventListener("scroll", syncTableScrollChrome, { passive: true });
+  window.addEventListener("resize", () => {
+    syncStickyOffsets();
+    syncTableScrollChrome();
+  });
+  document.fonts?.ready?.then(() => {
+    syncStickyOffsets();
+    syncTableScrollChrome();
+  });
+  syncStickyOffsets();
 
   consumeDraftHighlight();
   syncTabs();

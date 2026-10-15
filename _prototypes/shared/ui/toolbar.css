@@ -84,3 +84,9 @@
 .toolbar-delete-confirm-count {
   font-weight: 500;
 }
+
+@media (max-width: 1480px) {
+  .header {
+    gap: 12px;
+  }
+}

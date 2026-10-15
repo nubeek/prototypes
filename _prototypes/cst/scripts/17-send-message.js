@@ -49,6 +49,7 @@ let sendMessagePending = false;
 let sendMessageSelectionKey = "";
 let sendMessageContactRecipients = [];
 let sendMessageRecipientOrder = [];
+let sendMessageRecordId = null;
 
 function isSendMessageOpen() {
   return Boolean(sendMessageCard && !sendMessageCard.hidden && !sendMessageCard.classList.contains("is-closing"));
@@ -671,8 +672,34 @@ function showSendMessageSent() {
   sendMessageDone?.focus({ preventScroll: true });
 }
 
+function recordSendMessage() {
+  const senderEmail = sendMessageFromApi?.getValue() || "";
+  const recipients = window.WefranchFilterCombobox.getValues(sendMessageRecipientsSelect);
+  const sentAt = new Date().toISOString();
+  const record = window.WefranchCampaignsStore?.create?.({
+    source: "direct",
+    name: String(sendMessageSubject?.value || "").trim(),
+    type: "single",
+    emailCount: 1,
+    sender: { name: CAMPAIGN_SENDERS[senderEmail] || "", email: senderEmail },
+    audienceTitle: recipients.length === 1 ? recipients[0] : `${recipients.length} recipients`,
+    recipientCount: recipients.length,
+    status: "completed",
+    startAt: sentAt,
+    endAt: sentAt,
+    sentCount: recipients.length
+  });
+  sendMessageRecordId = record?.id || null;
+}
+
+function forgetSendMessageRecord() {
+  if (sendMessageRecordId) window.WefranchCampaignsStore?.remove?.(sendMessageRecordId);
+  sendMessageRecordId = null;
+}
+
 function undoSendMessageSent() {
   if (!isSendMessageSent()) return;
+  forgetSendMessageRecord();
   animateSendMessageCardLayout(() => {
     setSendMessageSent(false);
     sendMessageCard.classList.add("is-returning");
@@ -693,6 +720,7 @@ function resetSendMessageForm() {
 
   sendMessageContactRecipients = [];
   sendMessageRecipientOrder = [];
+  sendMessageRecordId = null;
   syncSendMessageSenderOptions();
   sendMessageFromApi?.reset(getDefaultCampaignSenderEmail());
   sendMessageRecipientsApi?.setOptions(getSendMessageRecipientOptions(), { placeholder: "Add recipient" });
@@ -826,6 +854,7 @@ function submitSendMessage() {
   sendMessageSendTimeoutId = window.setTimeout(() => {
     sendMessageSendTimeoutId = null;
     setSendMessagePending(false);
+    recordSendMessage();
     showSendMessageSent();
   }, SEND_MESSAGE_SEND_DELAY_MS);
 }

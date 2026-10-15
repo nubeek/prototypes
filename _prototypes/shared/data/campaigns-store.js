@@ -2,6 +2,8 @@
    campaign is scheduled, and the Campaigns overview reads it back. */
 (function () {
   const STORAGE_KEY = "wefranch:campaigns";
+  const DIRECT_SEED_KEY = "wefranch:campaigns-direct-seeded";
+  const SEED_CLICKS_KEY = "wefranch:campaigns-seed-clicks-v1";
   const NAME_MAX = 64;
   const STATUSES = new Set(["draft", "scheduled", "sending", "paused", "completed"]);
 
@@ -74,6 +76,7 @@
         endAt: null,
         sentCount: 450,
         opens: 210,
+        clicks: 100,
         replies: 24,
         converts: 18,
         createdAt: iso(0, 1, 9, 0)
@@ -92,6 +95,7 @@
         endAt: null,
         sentCount: 720,
         opens: 390,
+        clicks: 145,
         replies: 48,
         converts: 40,
         createdAt: iso(0, 2, 9, 0)
@@ -110,6 +114,7 @@
         endAt: iso(0, 5, 17, 0),
         sentCount: 900,
         opens: 340,
+        clicks: 135,
         replies: 40,
         converts: 60,
         createdAt: iso(0, 1, 8, 0)
@@ -128,6 +133,7 @@
         endAt: null,
         sentCount: 200,
         opens: 80,
+        clicks: 45,
         replies: 9,
         converts: 10,
         createdAt: iso(0, 4, 11, 0)
@@ -204,7 +210,39 @@
         converts: 0,
         createdAt: iso(0, 2, 16, 0)
       }
-    ].map(normalize);
+    ].concat(seedDirectEmails()).map(normalize);
+  }
+
+  function seedDirectEmails() {
+    const direct = (id, name, from, recipient, recipientCount, sentAt, stats) => ({
+      id,
+      source: "direct",
+      name,
+      type: "single",
+      emailCount: 1,
+      sender: from,
+      audienceTitle: recipient,
+      recipientCount,
+      status: "completed",
+      attentionReason: "",
+      startAt: sentAt,
+      endAt: sentAt,
+      sentCount: recipientCount,
+      ...stats,
+      createdAt: sentAt
+    });
+    const philip = sender("Philip Litassy", "philip.litassy@wefanch.com");
+    const gregory = sender("Gregory Ugwi", "gregory.ugwi@wefranch.com");
+    return [
+      direct("seed-direct-follow-up", "Quick follow-up on our call", philip, "Maria Lopez", 1,
+        iso(0, 3, 10, 15), { opens: 1, clicks: 0, replies: 1, converts: 0 }),
+      direct("seed-direct-intro", "Introducing Chirp Photo Labs", gregory, "12 recipients", 12,
+        iso(0, 2, 14, 30), { opens: 7, clicks: 3, replies: 2, converts: 1 }),
+      direct("seed-direct-austin", "Territory availability in Austin", philip, "3 recipients", 3,
+        iso(-1, 18, 11, 0), { opens: 2, clicks: 1, replies: 1, converts: 0 }),
+      direct("seed-direct-next-steps", "Next steps for your franchise application", gregory, "Daniel Kim", 1,
+        iso(-1, 9, 16, 45), { opens: 1, clicks: 1, replies: 0, converts: 0 })
+    ];
   }
 
   function normalize(record) {
@@ -221,6 +259,7 @@
 
     return {
       id: String(record.id || createId()),
+      source: record.source === "direct" ? "direct" : "campaign",
       name: clampName(record.name),
       type,
       emailCount,
@@ -233,6 +272,10 @@
       endAt: record.endAt || null,
       sentCount: Math.max(0, Math.round(Number(record.sentCount) || 0)),
       opens: Math.max(0, Math.round(Number(record.opens) || 0)),
+      // Records saved before clicks existed get a stand-in of ~30% of opens.
+      clicks: Math.max(0, Math.round(
+        record.clicks == null ? (Number(record.opens) || 0) * 0.3 : Number(record.clicks) || 0
+      )),
       replies: Math.max(0, Math.round(Number(record.replies) || 0)),
       converts: Math.max(0, Math.round(Number(record.converts) || 0)),
       createdAt: record.createdAt || new Date().toISOString()
@@ -262,12 +305,52 @@
     }
   }
 
+  function claimDirectSeeds() {
+    try {
+      if (window.localStorage?.getItem(DIRECT_SEED_KEY)) return false;
+      window.localStorage?.setItem(DIRECT_SEED_KEY, "1");
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Saved lists keep demo click counts in sync when seed stats change.
+  function syncSeedClickStats() {
+    try {
+      if (window.localStorage?.getItem(SEED_CLICKS_KEY)) return false;
+      window.localStorage?.setItem(SEED_CLICKS_KEY, "1");
+    } catch (error) {
+      return false;
+    }
+    const byId = new Map(seedCampaigns().map((record) => [record.id, record]));
+    let dirty = false;
+    campaigns = campaigns.map((campaign) => {
+      const seed = byId.get(campaign.id);
+      if (!seed || campaign.clicks === seed.clicks) return campaign;
+      dirty = true;
+      return { ...campaign, clicks: seed.clicks };
+    });
+    return dirty;
+  }
+
+  // Lists saved before direct emails existed get the direct seeds once.
+  function addMissingDirectSeeds() {
+    if (!claimDirectSeeds()) return false;
+    const ids = new Set(campaigns.map((campaign) => campaign.id));
+    const missing = seedDirectEmails().map(normalize).filter((record) => !ids.has(record.id));
+    if (!missing.length) return false;
+    campaigns = [...campaigns, ...missing];
+    return true;
+  }
+
   const stored = readStored();
   let campaigns = stored ? stored.campaigns : null;
   if (!campaigns) {
     campaigns = seedCampaigns();
+    claimDirectSeeds();
     writeStored();
-  } else if (stored.dirty) {
+  } else if (addMissingDirectSeeds() || syncSeedClickStats() || stored.dirty) {
     writeStored();
   }
 
@@ -304,6 +387,7 @@
       status,
       sentCount: draft?.sentCount || 0,
       opens: draft?.opens || 0,
+      clicks: draft?.clicks || 0,
       replies: draft?.replies || 0,
       converts: draft?.converts || 0,
       endAt: draft?.endAt || null,
@@ -339,6 +423,7 @@
       endAt: null,
       sentCount: 0,
       opens: 0,
+      clicks: 0,
       replies: 0,
       converts: 0
     });

@@ -68,16 +68,62 @@ body img[src$="/chevron.svg"] {
   border: 0;
 }
 
+/* One scroll container. No padding here: sticky offsets are measured from its
+   padding edge, so spacing lives on the children instead.
+
+   .campaigns-content is as wide as the table needs. The heading, tabs, toolbar
+   and empty states are pinned with `left: 0` and sized to the visible width
+   (100cqw), so scrolling the table sideways never moves them. */
 .campaigns-page {
+  --campaigns-gutter: 24px;
+  --campaigns-tabs-height: 74px;
+  --campaigns-toolbar-height: 54px;
   flex: 1 1 auto;
+  min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 36px 24px 0;
+  overflow: auto;
+  container-type: inline-size;
+}
+
+.campaigns-content {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: calc(1230px + 2 * var(--campaigns-gutter));
+}
+
+/* Only the table needs the extra width. */
+.campaigns-content:has(> .campaigns-panel:not(#campaignsPanelOverview):not([hidden])),
+.campaigns-content:has(#campaignsPanelOverview.is-empty) {
+  min-width: 0;
+}
+
+.campaigns-heading,
+.campaigns-tabs,
+.campaigns-toolbar,
+.campaigns-panel > .empty-state {
+  position: sticky;
+  left: 0;
+  width: 100cqw;
+  max-width: none;
+}
+
+.campaigns-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  flex: 0 0 auto;
+  height: 160px;
+  padding: 28px var(--campaigns-gutter) 0;
 }
 
 .campaigns-title {
-  margin: 8px 0 28px;
+  align-self: flex-start;
+  margin: 0;
   font-size: 36px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -86,14 +132,38 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaigns-tabs {
-  padding-left: 0;
-  padding-right: 0;
-  margin-bottom: 28px;
+  top: 0;
+  z-index: 20;
+  align-items: stretch;
+  padding: 0 var(--campaigns-gutter) 18px;
+  margin-bottom: 0;
+  background: #fff;
+}
+
+.campaigns-tabs.scope-toolbar::after {
+  left: var(--campaigns-gutter);
+  right: var(--campaigns-gutter);
+  bottom: 10px;
+}
+
+.campaigns-tabs .scope-tabs {
+  align-items: stretch;
+}
+
+.campaigns-tabs .scope-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 0 0;
+  height: 56px;
+}
+
+.campaigns-tabs .scope-tab.is-active::after {
+  /* Sit on the divider, which is inset from the tab row by the bottom padding. */
+  bottom: calc(10px - 18px + 1px);
 }
 
 .campaigns-panel {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
@@ -103,13 +173,38 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaigns-metrics {
+  --campaigns-metric-width: 188px;
   display: flex;
-  gap: 72px;
-  margin-bottom: 28px;
+  flex: 0 0 auto;
+  align-self: center;
+  align-items: stretch;
+  gap: 40px;
+  margin: 0;
+  animation: campaigns-metrics-fade linear both;
+  animation-timeline: view();
+  animation-range: exit 0% exit 100%;
+}
+
+@keyframes campaigns-metrics-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.campaigns-metric {
+  flex: 0 0 var(--campaigns-metric-width);
+  width: var(--campaigns-metric-width);
+  min-width: var(--campaigns-metric-width);
+  max-width: var(--campaigns-metric-width);
+}
+
+.campaigns-metrics__divider {
+  flex: 0 0 1px;
+  width: 1px;
+  background: var(--color-border);
 }
 
 .campaigns-metric__label {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   color: var(--color-text-soft);
   font-size: var(--font-size-base);
   font-weight: 500;
@@ -120,21 +215,44 @@ body img[src$="/chevron.svg"] {
   color: var(--color-text);
   font-size: 40px;
   font-weight: 700;
-  letter-spacing: -0.04em;
   line-height: 1;
 }
 
 .campaigns-trend {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 10px 0 0;
-  color: var(--color-brand-primary);
+  gap: 4px;
+  margin: 8px 0 0;
+  color: var(--color-text-soft);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
+  line-height: 1;
 }
 
-.campaigns-trend.is-down {
+.campaigns-trend__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-brand-primary) 14%, white);
+  color: var(--color-brand-primary);
+  font-weight: 600;
+}
+
+.campaigns-trend__badge[data-health="fair"] {
+  background: color-mix(in srgb, #f5a524 16%, white);
+  color: #b26b00;
+}
+
+.campaigns-trend__badge[data-health="poor"],
+.campaigns-trend__badge[data-health="critical"] {
+  background: color-mix(in srgb, #fc353d 12%, white);
+  color: #fc353d;
+}
+
+.campaigns-trend.is-down .campaigns-trend__badge {
+  background: color-mix(in srgb, #fc353d 12%, white);
   color: #fc353d;
 }
 
@@ -153,11 +271,37 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaigns-toolbar {
-  padding-bottom: 20px;
+  top: var(--campaigns-tabs-height);
+  z-index: 15;
+  flex: 0 0 auto;
+  padding-left: var(--campaigns-gutter);
+  padding-right: var(--campaigns-gutter);
+  background: #fff;
+}
+
+.campaigns-toolbar::after {
+  content: "";
+  position: absolute;
+  left: var(--campaigns-gutter);
+  right: var(--campaigns-gutter);
+  bottom: 0;
+  height: 1px;
+  background: #e6e6ea;
+}
+
+.campaigns-panel > .empty-state {
+  margin: 0;
 }
 
 .campaigns-toolbar .scope-search {
+  height: var(--control-height);
+  min-width: var(--control-height);
   margin-bottom: 0;
+  border-radius: var(--radius-md);
+}
+
+.campaigns-toolbar .scope-search:not(:focus-within):not(.is-active-search) {
+  width: var(--control-height);
 }
 
 .campaigns-new {
@@ -165,24 +309,14 @@ body img[src$="/chevron.svg"] {
   min-width: 156px;
 }
 
-.campaigns-table-wrap {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  border-top: 1px solid #e6e6ea;
+.campaigns-new[hidden] {
+  display: none;
 }
 
-.campaigns-table-wrap::after {
-  content: "";
-  position: sticky;
-  bottom: 0;
-  z-index: 9;
-  display: block;
-  width: 100%;
-  height: 14px;
-  background: #fff;
-  pointer-events: none;
+.campaigns-table-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0 var(--campaigns-gutter);
 }
 
 .campaigns-table {
@@ -197,10 +331,13 @@ body img[src$="/chevron.svg"] {
   width: calc(64% / 6);
 }
 
-.campaigns-table th {
+.campaigns-table thead {
   position: sticky;
-  top: 0;
+  top: calc(var(--campaigns-tabs-height) + var(--campaigns-toolbar-height));
   z-index: 8;
+}
+
+.campaigns-table th {
   padding: 16px 14px;
   background: rgba(255, 255, 255, 0.8);
   -webkit-backdrop-filter: blur(14px);
@@ -327,6 +464,62 @@ body img[src$="/chevron.svg"] {
 .campaigns-table tbody tr.is-new:is(:hover, .is-checked),
 .campaigns-table tbody tr.is-new:is(:hover, .is-checked) td {
   background: #f3f3f4;
+}
+
+/* Pinned right edge: Status + row actions stay in view when the table scrolls
+   sideways on narrow screens. Cells need an opaque background of their own, so
+   each row exposes its fill through --campaigns-pin-bg. */
+.campaigns-table {
+  --campaigns-actions-width: 61px;
+}
+
+.campaigns-table tbody tr {
+  --campaigns-pin-bg: #fff;
+}
+
+.campaigns-table tbody tr.is-new {
+  --campaigns-pin-bg: var(--color-brand-soft);
+}
+
+.campaigns-table tbody tr:is(:hover, .is-checked) {
+  --campaigns-pin-bg: #f3f3f4;
+}
+
+.campaigns-table.campaigns-table tbody tr > td:nth-last-child(-n + 2),
+.campaigns-table.campaigns-table thead th:nth-last-child(-n + 2) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: var(--campaigns-pin-bg, #fff);
+}
+
+.campaigns-table.campaigns-table thead th:nth-last-child(-n + 2) {
+  z-index: 3;
+  background: #fff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.campaigns-table.campaigns-table tbody tr > td:nth-last-child(2),
+.campaigns-table.campaigns-table thead th:nth-last-child(2) {
+  right: var(--campaigns-actions-width);
+}
+
+.campaigns-table-wrap.is-status-column-overlap .campaigns-table tbody tr > td:nth-last-child(2),
+.campaigns-table-wrap.is-status-column-overlap .campaigns-table thead th:nth-last-child(2) {
+  box-shadow:
+    -1px 0 0 #e6e6ea,
+    -2px 0 0 rgba(230, 230, 234, 0.25),
+    -3px 0 0 rgba(230, 230, 234, 0.25);
+}
+
+.campaigns-table-wrap.is-status-column-overlap.is-header-row-overlap .campaigns-table thead th:nth-last-child(2) {
+  box-shadow:
+    -1px 0 0 #e6e6ea,
+    -2px 0 0 rgba(230, 230, 234, 0.25),
+    -3px 0 0 rgba(230, 230, 234, 0.25),
+    0 2px 0 rgba(230, 230, 234, 0.25),
+    0 3px 0 rgba(230, 230, 234, 0.25);
 }
 
 .campaigns-table.has-row-select th:first-child,
@@ -628,9 +821,19 @@ body img[src$="/chevron.svg"] {
   padding-bottom: 0;
 }
 
+.campaigns-panel.is-empty .campaigns-toolbar::after {
+  display: none;
+}
+
 @media (max-width: 1480px) {
   .campaigns-page {
-    padding: 28px 20px 0;
+    --campaigns-gutter: 20px;
+  }
+
+  .campaigns-heading {
+    height: 148px;
+    padding-top: 28px;
+    gap: 32px;
   }
 
   .campaigns-title,
@@ -639,7 +842,8 @@ body img[src$="/chevron.svg"] {
   }
 
   .campaigns-metrics {
-    gap: 48px;
+    --campaigns-metric-width: 168px;
+    gap: 28px;
   }
 
   .campaigns-table th,
@@ -652,5 +856,17 @@ body img[src$="/chevron.svg"] {
   .campaigns-table.has-row-select td:first-child {
     padding-left: 11px;
     padding-right: 11px;
+  }
+}
+
+/* No room beside the title: drop the metrics instead of stacking them. */
+@media (max-width: 980px) {
+  .campaigns-heading {
+    height: auto;
+    padding-bottom: 24px;
+  }
+
+  .campaigns-metrics {
+    display: none;
   }
 }

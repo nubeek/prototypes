@@ -32,7 +32,7 @@
 .scope-tabs {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 42px;
 }
 
 .scope-tab {
@@ -188,7 +188,7 @@
 
 @media (max-width: 800px) {
   .scope-tabs {
-    gap: 20px;
+    gap: 32px;
   }
 
   .scope-search:focus-within,
