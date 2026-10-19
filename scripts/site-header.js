@@ -26,6 +26,7 @@
       element.addEventListener("click", item.onClick);
     } else {
       element = document.createElement("span");
+      element.className = "breadcrumb-ancestor";
     }
 
     element.textContent = label;

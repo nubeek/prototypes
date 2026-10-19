@@ -2,7 +2,9 @@
    Markup and classes live in compact-select.css. Load this when creating
    the control in JS. Pages that already render the markup do not need it. */
 (function () {
-  const CHEVRON_SRC = "../../assets/icons/chevron.svg";
+  const CHEVRON_SRC = document.currentScript?.src
+    ? new URL("../../../assets/icons/chevron.svg", document.currentScript.src).href
+    : "../../assets/icons/chevron.svg";
 
   function normalizeOption(option) {
     if (option && typeof option === "object") {

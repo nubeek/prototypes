@@ -18,26 +18,24 @@
     }
   };
   const SORT_KEYS = new Set(["name", "type", "recipients", "startAt", "endAt", "openRate", "clickRate", "status"]);
-  const dateFormat = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  });
-  const scheduleFormat = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  const {
+    rate,
+    formatRate,
+    dash,
+    formatDate,
+    formatClock,
+    presentCampaign,
+    deliverySignature,
+    typeLabel,
+    renderStatus,
+    detailHref
+  } = window.WefranchCampaignFormat;
 
   const tabButtons = Array.from(document.querySelectorAll("[data-campaign-tab]"));
   const panels = Array.from(document.querySelectorAll("[data-campaign-panel]"));
   const searchForm = document.getElementById("campaignSearch");
   const searchInput = document.getElementById("campaignSearchInput");
   const searchClear = document.getElementById("campaignSearchClear");
-  const templateSearchForm = document.getElementById("templateSearch");
-  const templateSearchInput = document.getElementById("templateSearchInput");
-  const templateSearchClear = document.getElementById("templateSearchClear");
   const newCampaignBtn = document.getElementById("newCampaignBtn");
   const emptyCreateBtn = document.getElementById("campaignEmptyCreate");
   const metricsOpenRate = document.getElementById("campaignMetricOpenRate");
@@ -64,9 +62,10 @@
   const renameModal = document.getElementById("renameCampaignModal");
   const selectionActions = document.getElementById("campaignSelectionActions");
 
-  let sortKey = "startAt";
+  let sortKey = "status";
   let sortDirection = "descending";
   let pinnedId = null;
+  let unreadId = null;
   let renameId = null;
   let listTab = null;
   let scrollEaseFrame = 0;
@@ -248,12 +247,6 @@
     if (searchClear) searchClear.hidden = !hasQuery;
   }
 
-  function rate(part, whole) {
-    const sent = Number(whole) || 0;
-    if (sent <= 0) return null;
-    return (Number(part) || 0) / sent;
-  }
-
   function sortValue(campaign, key) {
     if (key === "name") return campaign.name.toLowerCase();
     if (key === "type") return campaign.type === "sequence" ? campaign.emailCount : 0;
@@ -381,90 +374,6 @@
     renderTrend(metricsOpenRateTrend, trendRatio(monthRate("opens", thisKey), monthRate("opens", lastKey)));
     renderTrend(metricsClickRateTrend, trendRatio(monthRate("clicks", thisKey), monthRate("clicks", lastKey)));
     renderDomainHealth();
-  }
-
-  function dash() {
-    const span = document.createElement("span");
-    span.className = "dataset-empty-value";
-    span.textContent = "–";
-    return span;
-  }
-
-  function formatDate(value) {
-    if (!value) return null;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return null;
-    return dateFormat.format(date);
-  }
-
-  function formatSchedule(value) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    return scheduleFormat.format(date);
-  }
-
-  function remainingMs(value) {
-    const time = new Date(value).getTime();
-    if (!Number.isFinite(time)) return null;
-    return time - Date.now();
-  }
-
-  function formatRelative(value) {
-    const remaining = remainingMs(value);
-    const minutes = remaining == null ? 0 : Math.round(remaining / 60000);
-    if (minutes < 1) return "in under 1 minute";
-    if (minutes < 60) return `in ${minutes} minute${minutes === 1 ? "" : "s"}`;
-    const hours = Math.round(minutes / 60);
-    if (hours < 48) return `in ${hours} hour${hours === 1 ? "" : "s"}`;
-    const days = Math.round(hours / 24);
-    return `in ${days} day${days === 1 ? "" : "s"}`;
-  }
-
-  function formatImminent(remaining) {
-    if (remaining < 60 * 1000) return "Starting in under 1 minute";
-    const minutes = Math.floor(remaining / 60000);
-    return `Starting in ${minutes} minute${minutes === 1 ? "" : "s"}`;
-  }
-
-  function formatClock(ms) {
-    const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    const paddedSeconds = String(seconds).padStart(2, "0");
-    if (hours > 0) return `${hours}:${String(minutes).padStart(2, "0")}:${paddedSeconds}`;
-    return `${minutes}:${paddedSeconds}`;
-  }
-
-  function presentCampaign(campaign) {
-    const snapshot = store()?.deliverySnapshot?.(campaign);
-    if (!snapshot) return campaign;
-    return {
-      ...campaign,
-      status: snapshot.status,
-      sentCount: snapshot.sentCount,
-      endAt: snapshot.endAt,
-      delivery: snapshot
-    };
-  }
-
-  function deliverySignature(campaign) {
-    const delivery = campaign.delivery;
-    if (!delivery) return "";
-    const remaining = delivery.remainingMs == null ? "" : Math.ceil(delivery.remainingMs / 1000);
-    const next = delivery.nextBatchMs == null ? "" : Math.ceil(delivery.nextBatchMs / 1000);
-    return [delivery.status, delivery.sentCount, remaining, next, delivery.endAt || ""].join("|");
-  }
-
-  function formatRate(value) {
-    if (value == null) return null;
-    return `${Math.round(value * 100)}%`;
-  }
-
-  function typeLabel(campaign) {
-    if (campaign.type === "sequence") return "Sequence";
-    if (campaign.source === "direct") return "Direct";
-    return "Single";
   }
 
   const ROW_MENU_OFFSET = 2;
@@ -638,12 +547,13 @@
   function runCampaignAction(campaign, action, trigger) {
     const isDirect = campaign.source === "direct";
     if (action === "report") {
-      toast(isDirect ? "Email reports are coming soon." : "Campaign reports are coming soon.");
+      window.location.href = detailHref(campaign);
       return;
     }
     if (action === "duplicate") {
       const copy = store()?.duplicate?.(campaign.id);
       pinnedId = copy?.id || null;
+      unreadId = pinnedId;
       toast(`${copy?.name || "Campaign"} saved as a draft.`);
       renderOverview();
       return;
@@ -672,162 +582,11 @@
         onConfirm() {
           store()?.remove?.(campaign.id);
           if (pinnedId === campaign.id) pinnedId = null;
+          if (unreadId === campaign.id) unreadId = null;
           toast(`${campaign.name} deleted.`);
         }
       });
     }
-  }
-
-  function bindTooltip(trigger) {
-    window.bindActionTooltip?.(trigger, {
-      tooltipClass: "campaigns-tooltip"
-    });
-  }
-
-  function sendingDots() {
-    const dots = document.createElement("span");
-    dots.className = "campaign-status__dots";
-    dots.setAttribute("aria-hidden", "true");
-    for (let index = 0; index < 3; index += 1) {
-      const dot = document.createElement("span");
-      dot.textContent = ".";
-      dots.append(dot);
-    }
-    return dots;
-  }
-
-  function appendSendingProgress(cell, sent, total) {
-    const ratio = total > 0 ? Math.max(0, Math.min(sent / total, 1)) : 0;
-    const exact = `${sent.toLocaleString("en-US")} of ${total.toLocaleString("en-US")}`;
-    const line = document.createElement("span");
-    line.className = "campaign-status__line";
-    const track = document.createElement("span");
-    track.className = "campaign-status__track";
-    track.setAttribute("role", "progressbar");
-    track.setAttribute("aria-valuemin", "0");
-    track.setAttribute("aria-valuemax", String(total));
-    track.setAttribute("aria-valuenow", String(sent));
-    track.setAttribute("aria-label", exact);
-    const fill = document.createElement("span");
-    fill.className = "campaign-status__fill";
-    fill.style.width = `${ratio * 100}%`;
-    track.append(fill);
-    const count = document.createElement("span");
-    count.className = "campaign-status__count";
-    const percent = document.createElement("span");
-    percent.className = "campaign-status__percent";
-    percent.textContent = `${Math.round(ratio * 100)}%`;
-    const detail = document.createElement("span");
-    detail.className = "campaign-status__exact";
-    detail.textContent = exact;
-    count.append(percent, detail);
-    line.append(track, count);
-    cell.append(line);
-  }
-
-  function appendNextBatch(cell, nextBatchMs) {
-    if (nextBatchMs == null) return;
-    const next = document.createElement("span");
-    next.className = "campaign-status__next";
-    next.textContent = `Next batch in ${formatClock(nextBatchMs)}`;
-    cell.append(next);
-  }
-
-  function renderStatus(campaign) {
-    const cell = document.createElement("div");
-    cell.className = `campaign-status campaign-status--${campaign.status}`;
-    const delivery = campaign.delivery || null;
-
-    if (campaign.status === "sending") {
-      const sent = campaign.sentCount;
-      const total = Math.max(campaign.recipientCount, 0);
-      const label = document.createElement("span");
-      label.className = "campaign-status__label";
-      label.append("Sending", sendingDots());
-      cell.append(label);
-      appendSendingProgress(cell, sent, total);
-      appendNextBatch(cell, delivery?.nextBatchMs);
-      return cell;
-    }
-
-    if (campaign.status === "scheduled") {
-      const label = document.createElement("span");
-      label.className = "campaign-status__label";
-      label.textContent = "Scheduled";
-      const line = document.createElement("span");
-      line.className = "campaign-status__line";
-      const date = document.createElement("span");
-      date.className = "campaign-status__meta";
-      const countdown = delivery?.remainingMs;
-      const remaining = countdown == null ? remainingMs(campaign.startAt) : countdown;
-      if (countdown != null) {
-        date.textContent = `Starting in ${formatClock(countdown)}`;
-        line.append(date);
-      } else if (remaining != null && remaining < 60 * 60 * 1000) {
-        date.textContent = formatImminent(remaining);
-        line.append(date);
-      } else {
-        date.textContent = formatSchedule(campaign.startAt);
-        const relative = formatRelative(campaign.startAt);
-        const when = document.createElement("button");
-        when.className = "campaign-status__info";
-        when.type = "button";
-        when.dataset.tooltip = relative;
-        when.setAttribute("aria-label", `Starts ${relative}`);
-        const icon = document.createElement("img");
-        icon.src = "../../assets/icons/info.svg";
-        icon.alt = "";
-        when.append(icon);
-        line.append(date, when);
-        bindTooltip(when);
-      }
-      cell.append(label, line);
-      return cell;
-    }
-
-    if (campaign.status === "completed") {
-      const icon = document.createElement("img");
-      icon.className = "campaign-status__check";
-      icon.src = "../../assets/icons/check.svg";
-      icon.alt = "";
-      const label = document.createElement("span");
-      label.className = "campaign-status__label";
-      label.textContent = "Completed";
-      cell.append(icon, label);
-      return cell;
-    }
-
-    if (campaign.status === "paused") {
-      const holding = Boolean(delivery && (delivery.remainingMs != null || delivery.sentCount > 0 || delivery.nextBatchMs != null));
-      cell.classList.toggle("is-holding", holding);
-      const hold = document.createElement("span");
-      hold.className = "campaign-status__hold";
-      const icon = document.createElement("img");
-      icon.className = "campaign-status__pause";
-      icon.src = "../../assets/icons/pause.svg";
-      icon.alt = "";
-      const label = document.createElement("span");
-      label.className = "campaign-status__label";
-      label.textContent = "Paused";
-      hold.append(icon, label);
-      cell.append(hold);
-      if (delivery?.remainingMs != null) {
-        const date = document.createElement("span");
-        date.className = "campaign-status__meta";
-        date.textContent = `Starting in ${formatClock(delivery.remainingMs)}`;
-        cell.append(date);
-      } else if (delivery && (delivery.sentCount > 0 || delivery.nextBatchMs != null)) {
-        appendSendingProgress(cell, campaign.sentCount, Math.max(campaign.recipientCount, 0));
-        appendNextBatch(cell, delivery.nextBatchMs);
-      }
-      return cell;
-    }
-
-    const label = document.createElement("span");
-    label.className = "campaign-status__label";
-    label.textContent = "Draft";
-    cell.append(label);
-    return cell;
   }
 
   function renderSelectCell(campaign, rowNumber) {
@@ -855,7 +614,7 @@
   function renderRow(campaign, rowNumber) {
     const row = document.createElement("tr");
     row.className = [
-      campaign.id === pinnedId ? "is-new" : "",
+      campaign.id === unreadId ? "is-new" : "",
       selectedIds.has(campaign.id) ? "is-checked" : ""
     ].filter(Boolean).join(" ");
     row.dataset.campaignId = campaign.id;
@@ -865,8 +624,9 @@
     const nameCell = document.createElement("td");
     const name = document.createElement("div");
     name.className = "campaign-name";
-    const title = document.createElement("span");
-    title.className = "campaign-name__title";
+    const title = document.createElement("button");
+    title.className = "ui-control campaign-name__title";
+    title.type = "button";
     title.textContent = campaign.name;
     const senderLine = document.createElement("span");
     senderLine.className = "campaign-name__sender";
@@ -1006,12 +766,11 @@
     if (!tableWrap || !page) return;
     const thead = table?.querySelector("thead");
     if (!thead || tableWrap.hidden) {
-      tableWrap.classList.remove("is-header-row-overlap", "is-status-column-overlap");
+      tableWrap.classList.remove("is-header-row-overlap", "is-name-column-overlap");
       return;
     }
-    const hasRightOverlap = page.scrollWidth > page.clientWidth + 1
-      && page.scrollLeft + page.clientWidth < page.scrollWidth - 1;
-    tableWrap.classList.toggle("is-status-column-overlap", hasRightOverlap);
+    const hasLeftOverlap = page.scrollWidth > page.clientWidth + 1 && page.scrollLeft > 1;
+    tableWrap.classList.toggle("is-name-column-overlap", hasLeftOverlap);
     const hasVerticalOverflow = page.scrollHeight > page.clientHeight + 1;
     const hasTopOverlap = tableWrap.getBoundingClientRect().top < thead.getBoundingClientRect().top - 1;
     tableWrap.classList.toggle("is-header-row-overlap", hasVerticalOverflow && hasTopOverlap);
@@ -1032,6 +791,7 @@
           : store()?.create?.(draft);
         if (options?.notify === false) return record;
         pinnedId = record?.id || null;
+        unreadId = pinnedId;
         if (searchInput) searchInput.value = "";
         const name = record?.name || draft?.name || "Campaign";
         window.WefranchToast?.show({
@@ -1044,6 +804,7 @@
       onComplete(draft) {
         const record = store()?.create?.(draft);
         pinnedId = record?.id || null;
+        unreadId = pinnedId;
         if (searchInput) searchInput.value = "";
         const scheduled = (record?.status || draft?.status) === "scheduled";
         const name = record?.name || draft?.name || "Campaign";
@@ -1095,23 +856,6 @@
     renderOverview();
   });
 
-  function syncTemplateSearchChrome() {
-    const hasQuery = Boolean(String(templateSearchInput?.value || "").trim());
-    templateSearchForm?.classList.toggle("is-active-search", hasQuery);
-    if (templateSearchClear) templateSearchClear.hidden = !hasQuery;
-  }
-
-  templateSearchForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-  });
-  templateSearchInput?.addEventListener("input", syncTemplateSearchChrome);
-  templateSearchClear?.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (templateSearchInput) templateSearchInput.value = "";
-    syncTemplateSearchChrome();
-    templateSearchInput?.focus();
-  });
-
   newCampaignBtn?.addEventListener("click", () => openWizard(newCampaignBtn));
   emptyCreateBtn?.addEventListener("click", () => openWizard(emptyCreateBtn));
 
@@ -1149,7 +893,7 @@
         sortDirection = sortDirection === "ascending" ? "descending" : "ascending";
       } else {
         sortKey = key;
-        sortDirection = key === "name" || key === "status" || key === "type" ? "ascending" : "descending";
+        sortDirection = key === "name" || key === "type" ? "ascending" : "descending";
       }
       renderOverview();
       return;
@@ -1161,6 +905,17 @@
     if (!trigger) return;
     event.stopPropagation();
     toggleRowMenu(trigger, { focusFirstItem: event.detail === 0 });
+  });
+
+  tableBody?.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest(".location-row-select, .ui-more-button, .campaign-status__info")) return;
+    const row = event.target.closest("tr[data-campaign-id]");
+    if (!row) return;
+    closeRowMenu();
+    const campaign = store()?.get?.(row.dataset.campaignId);
+    if (!campaign) return;
+    window.location.href = detailHref(campaign);
   });
 
   table?.addEventListener("keydown", (event) => {
@@ -1208,7 +963,10 @@
     const params = new URLSearchParams(window.location.search);
     const id = params.get("draft");
     if (!id) return;
-    if (store()?.get?.(id)) pinnedId = id;
+    if (store()?.get?.(id)) {
+      pinnedId = id;
+      unreadId = id;
+    }
     params.delete("draft");
     const query = params.toString();
     const next = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;

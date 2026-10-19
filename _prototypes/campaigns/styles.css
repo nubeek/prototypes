@@ -123,7 +123,7 @@ body img[src$="/chevron.svg"] {
 
 .campaigns-title {
   align-self: flex-start;
-  margin: 0;
+  margin: 16px 0 0;
   font-size: 36px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -378,46 +378,46 @@ body img[src$="/chevron.svg"] {
   cursor: pointer;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) td:first-child {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected) td:first-child {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) td:last-child {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected) td:last-child {
   background: inherit;
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked):has(+ tr:is(:hover, .is-checked)) td:first-child {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected):has(+ tr:is(:hover, .is-checked, .is-selected)) td:first-child {
   border-bottom-left-radius: 0;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked):has(+ tr:is(:hover, .is-checked)) td:last-child {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected):has(+ tr:is(:hover, .is-checked, .is-selected)) td:last-child {
   border-bottom-right-radius: 0;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) + tr:is(:hover, .is-checked) td:first-child {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected) + tr:is(:hover, .is-checked, .is-selected) td:first-child {
   border-top-left-radius: 0;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) + tr:is(:hover, .is-checked) td:last-child {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected) + tr:is(:hover, .is-checked, .is-selected) td:last-child {
   border-top-right-radius: 0;
 }
 
-.campaigns-table tbody tr:not(:is(:hover, .is-checked)):has(+ tr:is(:hover, .is-checked)) td {
+.campaigns-table tbody tr:not(:is(:hover, .is-checked, .is-selected, .is-new)):has(+ tr:is(:hover, .is-checked, .is-selected, .is-new)) td {
   border-bottom-color: transparent;
 }
 
-.campaigns-table:has(> tbody > tr:first-child:is(:hover, .is-checked)) > thead th {
+.campaigns-table:has(> tbody > tr:first-child:is(:hover, .is-checked, .is-selected, .is-new)) > thead th {
   border-bottom-color: transparent;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) > td:not(:first-child) {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected, .is-new) > td:not(:nth-child(-n + 2)) {
   position: relative;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) > td::before {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected, .is-new) > td::before {
   content: "";
   position: absolute;
   left: 0;
@@ -429,48 +429,54 @@ body img[src$="/chevron.svg"] {
   pointer-events: none;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) > td:first-child::before,
-.campaigns-table tbody tr:is(:hover, .is-checked) > td:last-child::before {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected, .is-new) > td:first-child::before,
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected, .is-new) > td:last-child::before {
   height: 12px;
   background: transparent;
   border-top: 1px solid #e9e9ed;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) > td:first-child::before {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected, .is-new) > td:first-child::before {
   border-top-left-radius: 12px;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) > td:last-child::before {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected, .is-new) > td:last-child::before {
   border-top-right-radius: 12px;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) + tr:is(:hover, .is-checked) > td::before {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected) + tr:is(:hover, .is-checked, .is-selected) > td::before {
   content: none;
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked),
-.campaigns-table tbody tr:is(:hover, .is-checked) td {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected),
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected) td {
   background: #f3f3f4;
-}
-
-.campaigns-table tbody tr:is(:hover, .is-checked) td:first-child {
-  position: relative;
 }
 
 .campaigns-table tbody tr.is-new td {
   background: var(--color-brand-soft);
 }
 
-.campaigns-table tbody tr.is-new:is(:hover, .is-checked),
-.campaigns-table tbody tr.is-new:is(:hover, .is-checked) td {
+.campaigns-table tbody tr.is-new td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.campaigns-table tbody tr.is-new td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.campaigns-table tbody tr.is-new:is(:hover, .is-checked, .is-selected),
+.campaigns-table tbody tr.is-new:is(:hover, .is-checked, .is-selected) td {
   background: #f3f3f4;
 }
 
-/* Pinned right edge: Status + row actions stay in view when the table scrolls
-   sideways on narrow screens. Cells need an opaque background of their own, so
-   each row exposes its fill through --campaigns-pin-bg. */
+/* Pinned left edge: selection and campaign name stay in view when the table
+   scrolls sideways. Cells need an opaque background of their own, so each row
+   exposes its fill through --campaigns-pin-bg. */
 .campaigns-table {
-  --campaigns-actions-width: 61px;
+  --campaigns-select-width: 48px;
 }
 
 .campaigns-table tbody tr {
@@ -481,52 +487,67 @@ body img[src$="/chevron.svg"] {
   --campaigns-pin-bg: var(--color-brand-soft);
 }
 
-.campaigns-table tbody tr:is(:hover, .is-checked) {
+.campaigns-table tbody tr:is(:hover, .is-checked, .is-selected) {
   --campaigns-pin-bg: #f3f3f4;
 }
 
-.campaigns-table.campaigns-table tbody tr > td:nth-last-child(-n + 2),
-.campaigns-table.campaigns-table thead th:nth-last-child(-n + 2) {
+.campaigns-table.has-row-select tbody tr > td:nth-child(-n + 2),
+.campaigns-table.has-row-select thead th:nth-child(-n + 2) {
   position: sticky;
-  right: 0;
+  left: var(--campaigns-gutter);
   z-index: 1;
   background: var(--campaigns-pin-bg, #fff);
 }
 
-.campaigns-table.campaigns-table thead th:nth-last-child(-n + 2) {
+.campaigns-table.has-row-select thead th:nth-child(-n + 2) {
   z-index: 3;
   background: #fff;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
-.campaigns-table.campaigns-table tbody tr > td:nth-last-child(2),
-.campaigns-table.campaigns-table thead th:nth-last-child(2) {
-  right: var(--campaigns-actions-width);
+.campaigns-table.has-row-select tbody tr > td:nth-child(2),
+.campaigns-table.has-row-select thead th:nth-child(2) {
+  left: calc(var(--campaigns-gutter) + var(--campaigns-select-width));
 }
 
-.campaigns-table-wrap.is-status-column-overlap .campaigns-table tbody tr > td:nth-last-child(2),
-.campaigns-table-wrap.is-status-column-overlap .campaigns-table thead th:nth-last-child(2) {
-  box-shadow:
-    -1px 0 0 #e6e6ea,
-    -2px 0 0 rgba(230, 230, 234, 0.25),
-    -3px 0 0 rgba(230, 230, 234, 0.25);
+/* The gutter sits outside the pinned cells. Once columns scroll underneath,
+   cover it with the page surface so rows and highlights end at the table's
+   left edge, the same as tables that scroll inside their own wrapper. */
+.campaigns-table-wrap.is-name-column-overlap .campaigns-table.has-row-select tbody tr > td:first-child::after,
+.campaigns-table-wrap.is-name-column-overlap .campaigns-table.has-row-select thead th:first-child::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  right: 100%;
+  width: var(--campaigns-gutter);
+  background: var(--color-surface);
+  pointer-events: none;
 }
 
-.campaigns-table-wrap.is-status-column-overlap.is-header-row-overlap .campaigns-table thead th:nth-last-child(2) {
+.campaigns-table-wrap.is-name-column-overlap .campaigns-table tbody tr > td:nth-child(2),
+.campaigns-table-wrap.is-name-column-overlap .campaigns-table thead th:nth-child(2) {
   box-shadow:
-    -1px 0 0 #e6e6ea,
-    -2px 0 0 rgba(230, 230, 234, 0.25),
-    -3px 0 0 rgba(230, 230, 234, 0.25),
+    1px 0 0 #e6e6ea,
+    2px 0 0 rgba(230, 230, 234, 0.25),
+    3px 0 0 rgba(230, 230, 234, 0.25);
+}
+
+.campaigns-table-wrap.is-name-column-overlap.is-header-row-overlap .campaigns-table thead th:nth-child(2) {
+  box-shadow:
+    1px 0 0 #e6e6ea,
+    2px 0 0 rgba(230, 230, 234, 0.25),
+    3px 0 0 rgba(230, 230, 234, 0.25),
     0 2px 0 rgba(230, 230, 234, 0.25),
     0 3px 0 rgba(230, 230, 234, 0.25);
 }
 
 .campaigns-table.has-row-select th:first-child,
 .campaigns-table.has-row-select td:first-child {
-  width: 48px;
-  min-width: 48px;
-  max-width: 48px;
+  width: var(--campaigns-select-width);
+  min-width: var(--campaigns-select-width);
+  max-width: var(--campaigns-select-width);
   padding-left: 11px;
   padding-right: 11px;
   overflow: visible;
@@ -661,8 +682,18 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaign-name__title {
+  max-width: 100%;
   color: var(--color-text);
   font-weight: 600;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.campaign-name__title:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .campaign-name__sender {
@@ -675,7 +706,9 @@ body img[src$="/chevron.svg"] {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
 }
 
 .campaign-status--sending,
@@ -687,13 +720,6 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaign-status__hold {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.campaign-status__line {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -701,10 +727,23 @@ body img[src$="/chevron.svg"] {
   max-width: 100%;
 }
 
+.campaign-status__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .campaign-status__label {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   color: var(--color-text);
   font-weight: 500;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .campaign-status__dots span:nth-child(2) {
@@ -754,9 +793,9 @@ body img[src$="/chevron.svg"] {
 
 .campaign-status__track {
   position: relative;
-  flex: 0 0 auto;
-  width: clamp(64px, 10vw, 128px);
-  min-width: 64px;
+  flex: 1 1 64px;
+  width: auto;
+  min-width: 24px;
   max-width: 128px;
   height: 6px;
   border-radius: 999px;
@@ -772,8 +811,19 @@ body img[src$="/chevron.svg"] {
 }
 
 .campaign-status__meta,
-.campaign-status__count,
 .campaign-status__next {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.campaign-status__count {
+  flex: 0 0 auto;
   color: var(--color-text-muted);
   font-size: var(--font-size-base);
   font-weight: 400;
@@ -804,6 +854,7 @@ body img[src$="/chevron.svg"] {
 
 .campaign-status__info {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   width: 22px;
@@ -836,6 +887,186 @@ body img[src$="/chevron.svg"] {
 
 .campaigns-panel.is-empty .campaigns-toolbar::after {
   display: none;
+}
+
+/* ==========================================================================
+   Templates gallery (cards follow the Prospects splash tiles)
+   ========================================================================== */
+
+.campaigns-templates {
+  display: flex;
+  flex-direction: column;
+  padding: 24px var(--campaigns-gutter) 32px;
+}
+
+.campaigns-templates[hidden],
+.campaigns-templates__section[hidden] {
+  display: none;
+}
+
+.campaigns-templates__heading {
+  margin: 12px 0 24px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.campaigns-templates__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 20px;
+  padding-bottom: 24px;
+}
+
+.template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: clamp(14px, 0.5vw, 20px);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: #fff;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 220ms ease-in-out, box-shadow 220ms ease-in-out, transform 160ms ease-in-out;
+}
+
+.template-card:hover,
+.template-card:focus-visible {
+  border-width: 2px;
+  /* The extra pixel comes out of the padding, so the card stays the same size. */
+  padding: calc(clamp(14px, 0.5vw, 20px) - 1px);
+  border-color: var(--color-border);
+  box-shadow: 0 8px 20px rgba(17, 17, 26, 0.08);
+  transform: translateY(-4px);
+  outline: none;
+}
+
+.template-card:active {
+  transform: translateY(1px);
+}
+
+.template-card:hover:active,
+.template-card:focus-visible:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(17, 17, 26, 0.06);
+}
+
+/* The email sits as a sheet on a white frame, cropped at the bottom edge. */
+.template-card__preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* 16/8 on tall windows, easing to 16/6 as the window gets shorter. */
+  aspect-ratio: 16 / clamp(6, calc(6 + (100vh - 720px) / 180px), 8);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #f3f3f5;
+}
+
+.template-card__sheet {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  display: block;
+  width: 70%;
+  height: auto;
+  border-radius: 6px 6px 0 0;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(17, 17, 26, 0.06),
+    0 8px 24px rgba(17, 17, 26, 0.08);
+  transform: translateX(-50%);
+  transition: transform 260ms ease;
+}
+
+.template-card:hover .template-card__sheet,
+.template-card:focus-visible .template-card__sheet {
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.template-card__title {
+  min-width: 0;
+  overflow: hidden;
+  padding: 4px 8px 0;
+  font-size: clamp(16px, 1.5vw, 18px);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: #1d1d22;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.template-card__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 8px 4px;
+}
+
+.template-card__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.template-card__label,
+.template-card__value {
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.template-card__label {
+  color: #a0a0a8;
+}
+
+.template-card__value {
+  color: #1d1d22;
+}
+
+.template-card__chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 50ms ease;
+}
+
+.template-card__chevron img {
+  transform: rotate(-90deg);
+  filter: brightness(0) saturate(100%) invert(72%) sepia(0%) saturate(0%) hue-rotate(183deg) brightness(91%) contrast(86%);
+  transition: filter var(--transition-fast);
+}
+
+.template-card:hover .template-card__chevron,
+.template-card:focus-visible .template-card__chevron {
+  background: var(--color-surface-control);
+}
+
+.template-card:hover .template-card__chevron img,
+.template-card:focus-visible .template-card__chevron img {
+  filter: brightness(0) saturate(100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .template-card,
+  .template-card__sheet {
+    transition: none;
+  }
 }
 
 @media (max-width: 1480px) {

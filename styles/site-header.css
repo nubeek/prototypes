@@ -144,6 +144,7 @@ html.is-site-header-hidden .site-header {
   text-decoration: none;
 }
 
+.breadcrumb-ancestor,
 .breadcrumb-separator {
   color: #aaaaaa;
   user-select: none;

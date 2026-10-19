@@ -1,0 +1,749 @@
+/* Campaign detail page. Shares tokens, status, and scope-tab styles with
+   ../styles.css, which this page loads first. */
+
+.campaign-page {
+  --campaign-page-gutter: 24px;
+  --campaign-sidebar-width: 400px;
+  --campaign-sidebar-duration: 260ms;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.campaign-page__content {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.campaign-page__content[hidden] {
+  display: none;
+}
+
+/* The scroll container has no vertical padding: sticky offsets are measured
+   from its padding edge, so the toolbar would pin below the gap. */
+.campaign-page__main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 var(--campaign-page-gutter);
+}
+
+/* Header */
+
+/* Same box as .campaigns-heading: 160px, title pinned to the top. min-height
+   so a title that wraps onto extra lines can grow past it. */
+.campaign-page__header {
+  min-height: 160px;
+  padding: 28px 0 20px;
+}
+
+.campaign-page__title {
+  margin: 16px 0 0;
+  min-width: 0;
+  color: var(--color-text);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.campaign-page__status {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+  margin-top: 12px;
+}
+
+.campaign-page__status .campaign-status {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+}
+
+.campaign-page__status .campaign-status__line {
+  flex: 0 1 auto;
+  width: auto;
+  gap: 12px;
+}
+
+.campaign-page__status .campaign-status__track {
+  flex: 0 1 auto;
+  width: 240px;
+  max-width: none;
+}
+
+.campaign-page__status .campaign-status__line--ring {
+  gap: 8px;
+}
+
+.campaign-page__status .campaign-status__line--ring .campaign-status__label {
+  font-weight: 600;
+}
+
+.campaign-status__percent-label {
+  font-weight: 400;
+}
+
+.campaign-status__ring {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+
+.campaign-status__ring svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.campaign-status__ring-track,
+.campaign-status__ring-fill {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.campaign-status__ring-track {
+  stroke: #e4e4ea;
+}
+
+.campaign-status__ring-fill {
+  stroke: var(--color-brand-primary);
+  stroke-linecap: round;
+}
+
+/* Recipients */
+
+.campaign-recipients {
+  min-width: 0;
+  padding-bottom: 40px;
+}
+
+.campaign-recipients__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  align-items: flex-end;
+  padding: 10px 0 0;
+}
+
+.campaign-recipients__segments {
+  gap: 32px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.campaign-recipients__segment {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.campaign-recipients__segment-count {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.campaign-recipients__segment.is-active .campaign-recipients__segment-count {
+  color: var(--color-text-soft);
+}
+
+.campaign-recipients__tools {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.campaign-recipients__tools .scope-search {
+  height: var(--control-height);
+  min-width: var(--control-height);
+  margin-bottom: 0;
+  border-radius: var(--radius-md);
+}
+
+.campaign-recipients__tools .scope-search:not(:focus-within):not(.is-active-search) {
+  width: var(--control-height);
+}
+
+.campaign-sidebar-toggle {
+  border: 1px solid var(--color-border-toolbar);
+  border-radius: var(--radius-md);
+}
+
+/* The icon's bar is on the left; the sidebar is on the right. */
+.campaign-sidebar-toggle img {
+  width: 18px;
+  height: 18px;
+  transform: scaleX(-1);
+}
+
+.campaign-recipients__table-wrap {
+  position: relative;
+  min-height: 240px;
+}
+
+/* The shared overlay centers in this box. Grow it to the space under the
+   toolbar so an empty segment sits in the middle of the page, and start the
+   overlay below the column headers, which stay visible. */
+.campaign-recipients:has(#recipientEmpty:not([hidden])) {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: 0;
+}
+
+.campaign-recipients:has(#recipientEmpty:not([hidden])) .campaign-recipients__table-wrap {
+  flex: 1 1 auto;
+}
+
+.campaign-recipients__table.is-empty + .empty-state--overlay {
+  top: var(--recipient-thead-height, 0px);
+}
+
+.campaign-recipients__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.campaign-recipients__table thead {
+  position: sticky;
+  top: var(--recipient-toolbar-height, 0px);
+  z-index: 4;
+}
+
+.campaign-recipients__table th {
+  padding: 16px 14px;
+  border-bottom: 1px solid #e8e8ed;
+  background: #fff;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.campaign-recipients__table th:first-child,
+.campaign-recipients__table td:first-child {
+  padding-left: 0;
+}
+
+.campaign-recipients__table td {
+  padding: 10px 14px 11px;
+  border-bottom: 1px solid #e9e9ed;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.campaign-recipients__table.is-empty thead th {
+  border-bottom-color: transparent;
+}
+
+.campaign-recipients__table tbody tr:hover td {
+  background: var(--color-surface-toolbar-hover);
+}
+
+.recipient-name {
+  font-weight: 600;
+}
+
+.recipient-email,
+.recipient-activity {
+  color: var(--color-text-soft);
+}
+
+/* Same pastel swatches as the Leads stage chips, at the same 25% tint. */
+.recipient-status {
+  --recipient-status-swatch: var(--color-surface-muted);
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--recipient-status-swatch) 25%, transparent);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.recipient-status--pending {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.recipient-status--sent {
+  --recipient-status-swatch: #f7d06a;
+}
+
+.recipient-status--delivered {
+  --recipient-status-swatch: #8ccd6c;
+}
+
+.recipient-status--opened {
+  --recipient-status-swatch: #d8a0f9;
+}
+
+.recipient-status--clicked {
+  --recipient-status-swatch: #8dacf5;
+}
+
+.recipient-status--bounced {
+  --recipient-status-swatch: #f47c7c;
+}
+
+.recipient-status--unsubscribed {
+  --recipient-status-swatch: #f47c7c;
+  background: color-mix(in srgb, var(--recipient-status-swatch) 45%, transparent);
+}
+
+.campaign-recipients__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0 0;
+}
+
+.campaign-recipients__footer[hidden] {
+  display: none;
+}
+
+.campaign-recipients__count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+}
+
+/* Sidebar. The panel keeps its width while the column collapses, so its
+   content slides out instead of reflowing. */
+
+.campaign-sidebar {
+  flex: 0 0 auto;
+  width: calc(var(--campaign-sidebar-width) + var(--campaign-page-gutter));
+  min-height: 0;
+  padding: 16px var(--campaign-page-gutter) 24px 0;
+  overflow: hidden;
+}
+
+.campaign-page__content.is-sidebar-animated .campaign-sidebar {
+  transition:
+    width var(--campaign-sidebar-duration) ease,
+    padding-right var(--campaign-sidebar-duration) ease,
+    opacity 180ms ease;
+}
+
+.campaign-page__content.is-sidebar-collapsed .campaign-sidebar {
+  width: 0;
+  padding-right: 0;
+  opacity: 0;
+}
+
+.campaign-sidebar__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: var(--campaign-sidebar-width);
+  height: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+/* Only needed when the sidebar floats over the toolbar's toggle. */
+.campaign-sidebar__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  display: none;
+}
+
+.campaign-sidebar__close img {
+  display: block;
+  width: 10px;
+  height: 10px;
+  opacity: 0.32;
+}
+
+.campaign-sidebar__close:hover img,
+.campaign-sidebar__close:focus-visible img {
+  opacity: 1;
+  filter: brightness(0) saturate(100%);
+}
+
+.campaign-sidebar__scroll {
+  --campaign-sidebar-padding: 32px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 calc(var(--campaign-sidebar-padding) - var(--scrollbar-size)) var(--campaign-sidebar-padding) var(--campaign-sidebar-padding);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Each header sticks to the top of the sidebar until its section scrolls away,
+   then the next one takes its place. The background reaches the card edges so
+   content doesn't show beside the bar; the divider stays inside the padding. */
+.campaign-sidebar__section-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-right: calc(-1 * (var(--campaign-sidebar-padding) - var(--scrollbar-size)));
+  margin-left: calc(-1 * var(--campaign-sidebar-padding));
+  padding: var(--campaign-sidebar-padding) calc(var(--campaign-sidebar-padding) - var(--scrollbar-size)) 12px var(--campaign-sidebar-padding);
+  background: var(--color-surface);
+}
+
+.campaign-sidebar__section-head::after {
+  content: "";
+  position: absolute;
+  right: calc(var(--campaign-sidebar-padding) - var(--scrollbar-size));
+  bottom: 0;
+  left: var(--campaign-sidebar-padding);
+  height: 1px;
+  background: var(--color-border);
+}
+
+.campaign-sidebar__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+  margin: 0;
+  padding: 24px 0 20px;
+}
+
+.campaign-sidebar__field {
+  min-width: 0;
+}
+
+.campaign-sidebar__field.is-full {
+  grid-column: 1 / -1;
+}
+
+.campaign-sidebar__field.is-editable {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+}
+
+.campaign-sidebar__field.is-editable > .campaign-sidebar__label,
+.campaign-sidebar__field.is-editable > .campaign-sidebar__value {
+  grid-column: 1;
+}
+
+.campaign-sidebar__field.is-editable > .campaign-sidebar__edit {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+/* The design preview keeps the full width, so its button sits on the label row. */
+.campaign-sidebar__field.is-editable:has(.campaign-sidebar__design) > .campaign-sidebar__design {
+  grid-column: 1 / -1;
+}
+
+.campaign-sidebar__field.is-editable:has(.campaign-sidebar__design) > .campaign-sidebar__edit {
+  grid-row: 1;
+  margin: -5px 0;
+}
+
+.campaign-sidebar__edit {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.campaign-sidebar__field.is-editable:hover .campaign-sidebar__edit,
+.campaign-sidebar__edit:focus-visible {
+  opacity: 1;
+}
+
+.campaign-sidebar__edit:hover,
+.campaign-sidebar__edit:focus-visible {
+  background: var(--color-surface-control);
+  color: var(--color-text);
+}
+
+.campaign-sidebar__edit:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.campaign-sidebar__edit-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  background-color: currentColor;
+  -webkit-mask: url("../../../assets/icons/notes.svg") center / contain no-repeat;
+  mask: url("../../../assets/icons/notes.svg") center / contain no-repeat;
+}
+
+.campaign-sidebar__label {
+  margin-bottom: 3px;
+  color: #000;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.campaign-sidebar__value {
+  min-width: 0;
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* Metrics */
+
+.campaign-sidebar__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 8px 0;
+}
+
+.campaign-sidebar__metric {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.campaign-sidebar__metric {
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+button.campaign-sidebar__metric:hover,
+button.campaign-sidebar__metric:focus-visible,
+button.campaign-sidebar__metric.is-active {
+  background: var(--color-surface-muted);
+}
+
+button.campaign-sidebar__metric:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
+}
+
+.campaign-sidebar__metric:nth-child(odd) {
+  border-right: 1px solid var(--color-border);
+}
+
+.campaign-sidebar__metric:nth-child(-n + 6) {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.campaign-sidebar__metric:nth-child(1) {
+  border-top-left-radius: var(--radius-md);
+}
+
+.campaign-sidebar__metric:nth-child(2) {
+  border-top-right-radius: var(--radius-md);
+}
+
+.campaign-sidebar__metric:nth-last-child(2) {
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.campaign-sidebar__metric:last-child {
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.campaign-sidebar__metric-label {
+  color: var(--color-text-soft);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.campaign-sidebar__metric-value {
+  margin-top: 8px;
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.campaign-sidebar__metric-detail {
+  max-width: 100%;
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Message */
+
+.campaign-sidebar__title {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.campaign-sidebar__template {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.campaign-sidebar__emails {
+  gap: 24px;
+  margin-top: 24px;
+  border-bottom: 1px solid #e6e6ea;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.campaign-sidebar__emails[hidden] {
+  display: none;
+}
+
+.campaign-sidebar__emails .scope-tab {
+  padding-bottom: 12px;
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+}
+
+.campaign-sidebar__emails .scope-tab.is-active::after {
+  bottom: -1px;
+}
+
+.campaign-sidebar__fields--message {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.campaign-sidebar__design {
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+}
+
+.campaign-sidebar__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 18px rgba(0, 0, 0, 0.06);
+  background: #fff;
+}
+
+.campaign-page > .empty-state {
+  flex: 1 1 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campaign-page__content.is-sidebar-animated .campaign-sidebar {
+    transition: none;
+  }
+}
+
+@media (max-width: 1480px) {
+  .campaign-page {
+    --campaign-page-gutter: 20px;
+    --campaign-sidebar-width: 360px;
+  }
+
+  .campaign-page__header {
+    min-height: 148px;
+  }
+
+  .campaign-page__title {
+    font-size: 32px;
+  }
+
+  .campaign-sidebar__scroll {
+    --campaign-sidebar-padding: 24px;
+  }
+
+  .campaign-recipients__table th,
+  .campaign-recipients__table td {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* No room for both: the sidebar floats over the table instead. The campaigns
+   heading also drops its fixed height here. */
+@media (max-width: 980px) {
+  .campaign-page__header {
+    min-height: 0;
+    padding-bottom: 24px;
+  }
+
+  .campaign-sidebar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+  }
+
+  .campaign-sidebar__panel {
+    box-shadow: var(--shadow-menu);
+  }
+
+  .campaign-sidebar__close {
+    display: grid;
+  }
+}

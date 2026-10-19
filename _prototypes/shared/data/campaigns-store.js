@@ -11,6 +11,53 @@
   const DIRECT_COUNTDOWN_MS = 5 * 60 * 1000;
   const DIRECT_BATCH_SIZE = 10;
   const DIRECT_BATCH_INTERVAL_MS = 30 * 60 * 1000;
+  const TEMPLATE_IDS = ["introduction", "territory-opportunity", "market-update", "follow-up", "event-invitation"];
+
+  const seedMessage = (subjectLine, previewText, templateId) => ({ subjectLine, previewText, templateId });
+  const SEED_MESSAGES = {
+    "seed-chirp-family": [
+      seedMessage("Join the Chirp Photo Labs family", "Bring an award-winning photo lab to your market.", "introduction")
+    ],
+    "seed-print-success": [
+      seedMessage("Print your success with Chirp", "Open territories are going fast in the Midwest.", "territory-opportunity")
+    ],
+    "seed-meet-team": [
+      seedMessage("Meet the team behind Chirp Photo Labs", "A quick hello from our franchise development team.", "introduction"),
+      seedMessage("How our operators hit break-even in 14 months", "Real numbers from three Chirp locations.", "market-update"),
+      seedMessage("Ready to talk territories?", "Book a 20-minute call with Gregory.", "follow-up")
+    ],
+    "seed-october-update": [
+      seedMessage("October market update", "Unit growth, top-performing regions, and what's next.", "market-update")
+    ],
+    "seed-wellness": [
+      seedMessage("Following up on wellness territories", "A few open markets near your current locations.", "follow-up")
+    ],
+    "seed-franchise": [
+      seedMessage("A new franchise opportunity for your group", "Expand your portfolio with a proven concept.", "territory-opportunity")
+    ],
+    "seed-welcome": [
+      seedMessage("Welcome to Wefranch", "Here is how we can help you find the right franchise.", "introduction"),
+      seedMessage("Explore financial models for your market", "Forecast performance before you commit.", "market-update"),
+      seedMessage("Join our next operator webinar", "Live Q&A with multi-unit operators.", "event-invitation"),
+      seedMessage("Any questions so far?", "Reply to this email and we'll get back to you.", "follow-up")
+    ],
+    "seed-q4": [
+      seedMessage("Q4 territory check-in", "", "follow-up")
+    ],
+    "seed-coffee": [
+      seedMessage("Introducing our coffee and bakery brands", "Concepts built for high-traffic locations.", "introduction"),
+      seedMessage("You're invited: coffee brands tasting day", "Meet the founders in person.", "event-invitation")
+    ]
+  };
+
+  function hashString(value) {
+    const text = String(value || "");
+    let hash = 0;
+    for (let index = 0; index < text.length; index += 1) {
+      hash = (hash * 31 + text.charCodeAt(index)) >>> 0;
+    }
+    return hash;
+  }
 
   function createId() {
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -250,6 +297,39 @@
     ];
   }
 
+  // Delivered, unsubscribed, and spam counts are not tracked yet, so they are derived
+  // from the sent count with a per-campaign rate that stays stable across reloads.
+  function engagement(record) {
+    const sent = Math.max(0, Math.round(Number(record?.sentCount) || 0));
+    const opens = Math.min(sent, Math.max(0, Math.round(Number(record?.opens) || 0)));
+    const clicks = Math.min(opens, Math.max(0, Math.round(Number(record?.clicks) || 0)));
+    const hash = hashString(record?.id);
+    const deliveryRate = 0.97 + (hash % 3) / 100;
+    const unsubscribeRate = 0.01 + ((hash >>> 3) % 2) / 100;
+    const spamRate = ((hash >>> 5) % 4) / 1000;
+    const delivered = Math.min(sent, Math.max(opens, Math.round(sent * deliveryRate)));
+    const unsubscribes = Math.min(delivered, Math.round(delivered * unsubscribeRate));
+    const spamReports = Math.min(delivered, Math.round(delivered * spamRate));
+    return { sent, delivered, opens, clicks, unsubscribes, spamReports };
+  }
+
+  function normalizeMessages(record, name, emailCount) {
+    const saved = Array.isArray(record.messages) && record.messages.length
+      ? record.messages
+      : SEED_MESSAGES[record.id] || [];
+    const offset = hashString(record.id) % TEMPLATE_IDS.length;
+    return Array.from({ length: emailCount }, (_, index) => {
+      const message = saved[index] && typeof saved[index] === "object" ? saved[index] : {};
+      const subjectLine = String(message.subjectLine || "").trim();
+      const templateId = String(message.templateId || "").trim();
+      return {
+        subjectLine: subjectLine || (index === 0 ? name : `${name} (follow-up ${index})`),
+        previewText: String(message.previewText || "").trim(),
+        templateId: templateId || TEMPLATE_IDS[(offset + index) % TEMPLATE_IDS.length]
+      };
+    });
+  }
+
   function normalize(record) {
     if (!record || typeof record !== "object") return null;
     const status = STATUSES.has(record.status) ? record.status : "draft";
@@ -262,12 +342,15 @@
       }
       : null;
 
-    return {
-      id: String(record.id || createId()),
+    const id = String(record.id || createId());
+    const name = clampName(record.name);
+    const normalized = {
+      id,
       source: record.source === "direct" ? "direct" : "campaign",
-      name: clampName(record.name),
+      name,
       type,
       emailCount,
+      messages: normalizeMessages({ ...record, id }, name, emailCount),
       sender: senderRecord && (senderRecord.name || senderRecord.email) ? senderRecord : null,
       audienceTitle: String(record.audienceTitle || "").trim(),
       recipientCount: Math.max(0, Math.round(Number(record.recipientCount) || 0)),
@@ -289,6 +372,11 @@
       pausedAt: record.pausedAt || null,
       pausedDurationMs: Math.max(0, Math.round(Number(record.pausedDurationMs) || 0))
     };
+    const stats = engagement(normalized);
+    normalized.delivered = stats.delivered;
+    normalized.unsubscribes = stats.unsubscribes;
+    normalized.spamReports = stats.spamReports;
+    return normalized;
   }
 
   function isBatchedDirect(record) {
@@ -459,7 +547,8 @@
   function clone(campaign) {
     return {
       ...campaign,
-      sender: campaign.sender ? { ...campaign.sender } : null
+      sender: campaign.sender ? { ...campaign.sender } : null,
+      messages: campaign.messages.map((entry) => ({ ...entry }))
     };
   }
 
@@ -560,7 +649,7 @@
         return campaign;
       }
       changed = true;
-      return { ...campaign, status: snapshot.status, sentCount: snapshot.sentCount, endAt: snapshot.endAt };
+      return normalize({ ...campaign, status: snapshot.status, sentCount: snapshot.sentCount, endAt: snapshot.endAt });
     });
     if (changed) writeStored();
     return changed;
@@ -616,6 +705,7 @@
     remove,
     removeMany,
     deliverySnapshot,
+    engagement,
     pause,
     resume
   };
