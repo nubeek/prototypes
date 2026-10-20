@@ -464,6 +464,7 @@ function renderFranchisees(rows) {
   tableBody.innerHTML = rows
     .map(
       (owner, rowIndex) => {
+        const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
         const isContactHidden = hiddenContactOwnerIndexes.has(owner.originalIndex);
         const isChecked = selectedFranchiseeIndexes.has(owner.originalIndex);
         const isRowSelected = activeDetailOwnerIndex === owner.originalIndex
@@ -502,7 +503,7 @@ function renderFranchisees(rows) {
             </div>
           </td>
           <td class="contact-cell">
-            <div class="contact-cell-action has-more-menu ${isContactHidden ? "is-contact-hidden" : ""}">
+            <div class="contact-cell-action has-more-menu ${hasSavedLead ? "is-lead-saved" : ""} ${isContactHidden ? "is-contact-hidden" : ""}">
               <button
                 class="ui-control contact-profile-action"
                 type="button"
@@ -522,6 +523,13 @@ function renderFranchisees(rows) {
                   aria-label="More actions for ${owner.contactName}"
                   aria-haspopup="menu"
                   aria-expanded="false"
+                ></button>
+                <button
+                  class="ui-control contact-add-lead-action ${hasSavedLead ? "is-saved" : ""}"
+                  type="button"
+                  data-owner-index="${owner.originalIndex}"
+                  aria-label="${hasSavedLead ? `Remove ${owner.contactName} from leads` : `Save ${owner.contactName} as a lead`}"
+                  data-tooltip="${hasSavedLead ? "Remove from leads" : "Save as lead"}"
                 ></button>
               </div>
             </div>
@@ -961,6 +969,7 @@ function getDatasetFranchiseCellMarkup(row) {
 function getDatasetEmailCellMarkup(row) {
   const email = normalizeDatasetCellValue(row.email);
   const isHidden = isProspectRowHidden(row);
+  const hasSavedLead = isProspectRowLeadSaved(row);
   const stateKey = getProspectRowStateKey(row);
   const labelName = row.name || "this contact";
   const emailMarkup = email
@@ -968,7 +977,7 @@ function getDatasetEmailCellMarkup(row) {
     : getDatasetCellValueMarkup("", "location-table-email");
 
   return `
-    <div class="contact-cell-action contact-email-cell has-more-menu ${isHidden ? "is-contact-hidden" : ""}">
+    <div class="contact-cell-action contact-email-cell has-more-menu ${hasSavedLead ? "is-lead-saved" : ""} ${isHidden ? "is-contact-hidden" : ""}">
       <span class="contact-email-text">${emailMarkup}</span>
       <div class="contact-row-actions">
         <button
@@ -978,6 +987,13 @@ function getDatasetEmailCellMarkup(row) {
           aria-label="More actions for ${labelName}"
           aria-haspopup="menu"
           aria-expanded="false"
+        ></button>
+        <button
+          class="ui-control contact-add-lead-action prospect-add-lead-action ${hasSavedLead ? "is-saved" : ""}"
+          type="button"
+          data-prospect-row-key="${stateKey}"
+          aria-label="${hasSavedLead ? `Remove ${labelName} from leads` : `Save ${labelName} as a lead`}"
+          data-tooltip="${hasSavedLead ? "Remove from leads" : "Save as lead"}"
         ></button>
       </div>
     </div>

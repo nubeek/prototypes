@@ -15,6 +15,24 @@
     blur: 42,
     color: "rgba(0, 0, 0, 0.06)",
   };
+  // Focus highlight for doc figures. The wash is the same gray as the margin
+  // behind those images (#e6e6e6), at 65% opacity. The circle stays sharp:
+  // white 4px inner border at 35% opacity, plus a soft shadow outside the ring.
+  // Ordinary screenshots leave this off. Opt in with take({ highlight }).
+  const FOCUS_OVERLAY_COLOR = "#e6e6e6";
+  const FOCUS_OVERLAY_OPACITY = 0.65;
+  const FOCUS_BORDER_WIDTH = 4;
+  const FOCUS_BORDER_OPACITY = 0.35;
+  const FOCUS_SHADOW_ALPHA = 0.16;
+  const FOCUS_SHADOW_BLUR = 7;
+  const FOCUS_HIGHLIGHT = {
+    overlayColor: FOCUS_OVERLAY_COLOR,
+    overlayOpacity: FOCUS_OVERLAY_OPACITY,
+    borderColor: "#ffffff",
+    borderOpacity: FOCUS_BORDER_OPACITY,
+    borderWidth: FOCUS_BORDER_WIDTH,
+    shadowBlur: FOCUS_SHADOW_BLUR,
+  };
   let rendererLoader = null;
 
   const nextPaint = (targetWindow) => new Promise((resolve) => {
@@ -1022,7 +1040,120 @@
     return card;
   };
 
-  const composeBackground = (dataUrl, { transparent = false, scale = 1 } = {}) => new Promise((resolve, reject) => {
+  const resolveHighlight = (highlight, { margin = 0, scale = 1 } = {}) => {
+    if (!highlight) {
+      return null;
+    }
+
+    const x = Number(highlight.x);
+    const y = Number(highlight.y);
+    const radius = Number(highlight.radius);
+    if (![x, y, radius].every(Number.isFinite) || radius <= 0) {
+      return null;
+    }
+
+    return {
+      x: x * scale + margin,
+      y: y * scale + margin,
+      radius: radius * scale,
+    };
+  };
+
+  const applyFocusHighlight = (context, canvas, highlight, scale = 1) => {
+    const placed = highlight.radius ? highlight : null;
+    if (!placed) {
+      return;
+    }
+
+    context.save();
+    context.shadowColor = "transparent";
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 0;
+    context.shadowBlur = 0;
+
+    const { x, y, radius } = placed;
+    const borderWidth = FOCUS_BORDER_WIDTH * scale;
+    const overlay = document.createElement("canvas");
+    overlay.width = canvas.width;
+    overlay.height = canvas.height;
+    const overlayContext = overlay.getContext("2d");
+    if (!overlayContext) {
+      context.restore();
+      return;
+    }
+
+    overlayContext.fillStyle = FOCUS_OVERLAY_COLOR;
+    overlayContext.globalAlpha = FOCUS_OVERLAY_OPACITY;
+    overlayContext.fillRect(0, 0, overlay.width, overlay.height);
+    overlayContext.globalCompositeOperation = "destination-out";
+    overlayContext.globalAlpha = 1;
+    overlayContext.beginPath();
+    overlayContext.arc(x, y, radius, 0, Math.PI * 2);
+    overlayContext.fill();
+    context.drawImage(overlay, 0, 0);
+
+    const halo = document.createElement("canvas");
+    halo.width = canvas.width;
+    halo.height = canvas.height;
+    const haloContext = halo.getContext("2d");
+    if (!haloContext) {
+      context.restore();
+      return;
+    }
+
+    haloContext.shadowColor = `rgba(0, 0, 0, ${FOCUS_SHADOW_ALPHA})`;
+    haloContext.shadowBlur = FOCUS_SHADOW_BLUR * scale;
+    haloContext.strokeStyle = `rgba(0, 0, 0, ${FOCUS_SHADOW_ALPHA})`;
+    haloContext.lineWidth = borderWidth;
+    haloContext.beginPath();
+    haloContext.arc(x, y, radius, 0, Math.PI * 2);
+    haloContext.stroke();
+    haloContext.shadowColor = "transparent";
+    haloContext.globalCompositeOperation = "destination-out";
+    haloContext.beginPath();
+    haloContext.arc(x, y, radius, 0, Math.PI * 2);
+    haloContext.fill();
+    context.drawImage(halo, 0, 0);
+
+    context.save();
+    context.strokeStyle = `rgba(255, 255, 255, ${FOCUS_BORDER_OPACITY})`;
+    context.lineWidth = borderWidth;
+    context.beginPath();
+    context.arc(x, y, Math.max(0, radius - borderWidth / 2), 0, Math.PI * 2);
+    context.stroke();
+    context.restore();
+    context.restore();
+  };
+
+  const composeHighlight = (dataUrl, highlight, scale = 1) => new Promise((resolve, reject) => {
+    const placed = resolveHighlight(highlight, { scale });
+    if (!placed) {
+      resolve(dataUrl);
+      return;
+    }
+
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Failed to compose the focus highlight."));
+        return;
+      }
+
+      context.drawImage(image, 0, 0);
+      applyFocusHighlight(context, canvas, placed, scale);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    image.onerror = () => {
+      reject(new Error("Failed to compose the focus highlight."));
+    };
+    image.src = dataUrl;
+  });
+
+  const composeBackground = (dataUrl, { transparent = false, scale = 1, highlight = null } = {}) => new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
       const canvas = document.createElement("canvas");
@@ -1045,6 +1176,10 @@
       context.shadowBlur = BACKGROUND_SHADOW.blur * scale;
       context.shadowColor = BACKGROUND_SHADOW.color;
       context.drawImage(card, margin, margin);
+      const placed = resolveHighlight(highlight, { margin, scale });
+      if (placed) {
+        applyFocusHighlight(context, canvas, placed, scale);
+      }
       resolve(canvas.toDataURL("image/png"));
     };
     image.onerror = () => {
@@ -1059,6 +1194,7 @@
     background = false,
     transparent = false,
     scale = 1,
+    highlight = null,
   } = {}) => {
     if (targetWindow.location.protocol === "file:") {
       throw new Error("Open the prototype through localhost to take a screenshot.");
@@ -1067,7 +1203,9 @@
     const captureScale = scale >= 2 ? 2 : 1;
     let dataUrl = await render(targetWindow, { scale: captureScale });
     if (background) {
-      dataUrl = await composeBackground(dataUrl, { transparent, scale: captureScale });
+      dataUrl = await composeBackground(dataUrl, { transparent, scale: captureScale, highlight });
+    } else if (highlight) {
+      dataUrl = await composeHighlight(dataUrl, highlight, captureScale);
     }
 
     fileName = fileName || getFileName(targetWindow, captureScale);
@@ -1085,5 +1223,6 @@
   window.wefranchPrototypeScreenshot = {
     render,
     take,
+    focusHighlight: FOCUS_HIGHLIGHT,
   };
 })();

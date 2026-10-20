@@ -285,7 +285,6 @@ function getContactMoreMenu() {
     divider.className = "toolbar-dropdown-divider";
     divider.setAttribute("role", "separator");
     contactMoreMenu.append(
-      createContactMoreMenuItem("lead"),
       createContactMoreMenuItem("message"),
       createContactMoreMenuItem("copy"),
       divider,
@@ -339,9 +338,6 @@ function syncContactMoreMenu(context) {
   const { email, name } = context;
 
   contactMoreMenu.setAttribute("aria-label", `Actions for ${name || email || "contact"}`);
-  setContactMoreMenuItem("lead", context.isLeadSaved
-    ? { label: "Remove from leads", icon: "leads-remove.svg" }
-    : { label: "Add to leads", icon: "leads-add.svg" });
   setContactMoreMenuItem("message", { label: "Send message", icon: "mail-send.svg?v=2", disabled: !email });
   setContactMoreMenuItem("copy", { label: "Copy email", icon: "copy.svg", disabled: !email });
   setContactMoreMenuItem("hide", context.isHidden
@@ -428,15 +424,6 @@ async function handleContactMoreMenuClick(event) {
   const action = item.dataset.contactMoreAction;
   closeContactMoreMenu({ restoreFocus: event.detail === 0 });
   if (!context) return;
-
-  if (action === "lead") {
-    if (context.prospectRowKey) {
-      handleSaveLeadAction(trigger, null, null, context.prospectRowKey);
-      return;
-    }
-    handleSaveLeadAction(trigger, context.ownerIndex);
-    return;
-  }
 
   if (action === "message") {
     openSendMessageCard({

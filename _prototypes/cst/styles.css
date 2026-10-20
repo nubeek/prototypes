@@ -4966,6 +4966,10 @@ tbody tr.is-checked:hover td:first-child {
   display: none;
 }
 
+.contact-cell-action.has-more-menu.is-lead-saved:not(:hover):not(:focus-within):not(.is-menu-open) .contact-more-action {
+  display: none;
+}
+
 .contact-add-lead-action:hover {
   background: #d9d9d9;
   color: var(--color-text);
