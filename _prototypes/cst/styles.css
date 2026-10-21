@@ -6288,10 +6288,17 @@ body.reduce-motion :is(
   gap: 0;
 }
 
+/* Beat .ui-button / .ui-icon-button display from stylesheets loaded after
+   this file (proto-modal and filter-sidebar re-import ui-button.css). Equal
+   specificity would leave the back button visible outside read mode. */
+.ui-button[data-reader-only],
+.ui-icon-button[data-reader-only],
 [data-reader-only] {
   display: none;
 }
 
+.card.is-reader-mode .ui-button[data-reader-only],
+.card.is-reader-mode .ui-icon-button[data-reader-only],
 .card.is-reader-mode [data-reader-only] {
   display: inline-flex;
 }
