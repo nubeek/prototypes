@@ -47,7 +47,7 @@ const FRANCHISE_LOGO_FILE_OVERRIDES = {
   "Smoothie King": "smoothie-king.png",
   "Starbucks": "starbucks.png",
   "Qdoba": "qdoba.png",
-  "Title Boxing Club": "title-boxing-club.png",
+  "Title Boxing Club": "title-boxing-club.jpg",
   "Popeyes Louisiana Kitchen": "popeyes-louisiana-kitchen.jpg",
   "Tropical Smoothie Cafe": "tropical-smoothie-cafe.png",
   "Aussie Pet Mobile": "aussie-pet-mobile.png",

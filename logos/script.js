@@ -2,7 +2,7 @@
   const COLLECTIONS = window.LOGO_COLLECTION || { franchisees: [], franchises: [] };
   const LOGO_ROOT = "../assets/logos";
   const ACRONYMS = new Set([
-    "llc", "qsr", "srg", "plk", "pcrk", "sscp", "wks", "gps", "mbn", "ta", "fp", "cr", "ihop", "ups", "sbj"
+    "llc", "qsr", "srg", "plk", "pcrk", "sscp", "wks", "gps", "mbn", "ta", "fp", "cr", "ihop", "ups", "sbj", "kk", "pmg", "usa"
   ]);
   const LABEL_OVERRIDES = {
     "7eleven": "7-Eleven",
@@ -19,6 +19,7 @@
     "golds-gym": "Gold's Gym",
     "i9-sports": "i9 Sports",
     "jersey-mikes": "Jersey Mike's",
+    "love-s-travel-stops": "Love's Travel Stops",
     "jimmy-johns": "Jimmy John's",
     "mcdonalds": "McDonald's",
     "papa-johns": "Papa John's",
@@ -26,6 +27,7 @@
     "remax": "RE/MAX",
     "romulus-restaurants-l-l-c": "Romulus Restaurants LLC",
     "see-and-be-kitchen": "See & Be Kitchen",
+    "tommy-pollina": "Tommy Pollina Landscape Co",
     "tony-romas": "Tony Roma's",
     "tony-romas-bones-burgers": "Tony Roma's Bones & Burgers",
     "wendys": "Wendy's"
@@ -33,6 +35,9 @@
 
   const select = document.querySelector("[data-logo-collection]");
   const grid = document.querySelector("[data-logo-grid]");
+  const searchInput = document.querySelector("[data-logo-search]");
+  const searchClear = document.querySelector("[data-logo-search-clear]");
+  const empty = document.querySelector("[data-logo-empty]");
 
   const titleCaseLabel = (file) => {
     const stem = file.replace(/\.[^.]+$/, "");
@@ -80,14 +85,45 @@
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
+  const normalizeSearch = (value) => String(value || "")
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  const searchQuery = () => normalizeSearch(searchInput?.value);
+
+  const syncSearchChrome = () => {
+    const field = searchInput?.closest(".logo-search");
+    const hasQuery = Boolean(searchInput?.value.trim());
+    field?.classList.toggle("is-active-search", hasQuery);
+    if (searchClear) searchClear.hidden = !hasQuery;
+  };
+
+  const applySearch = () => {
+    const query = searchQuery();
+    let visible = 0;
+    grid.querySelectorAll(".logo-card").forEach((card) => {
+      const match = !query || String(card.dataset.search || "").includes(query);
+      card.hidden = !match;
+      if (match) visible += 1;
+    });
+    if (empty) empty.hidden = visible > 0;
+    syncSearchChrome();
+  };
+
   const render = (collection) => {
     const files = COLLECTIONS[collection] || [];
     const items = files
-      .map((file) => ({
-        file,
-        label: titleCaseLabel(file),
-        src: `${LOGO_ROOT}/${collection}/${encodeURIComponent(file)}`
-      }))
+      .map((file) => {
+        const label = titleCaseLabel(file);
+        return {
+          file,
+          label,
+          search: normalizeSearch(`${label} ${file}`),
+          src: `${LOGO_ROOT}/${collection}/${encodeURIComponent(file)}`
+        };
+      })
       .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
 
     grid.classList.remove("is-entering-active");
@@ -97,6 +133,7 @@
         class="logo-card"
         href="${item.src}"
         download="${escapeHtml(item.file)}"
+        data-search="${escapeHtml(item.search)}"
         style="--enter-index: ${index}"
         title="Download ${escapeHtml(item.file)}"
       >
@@ -107,6 +144,7 @@
         <p class="logo-card-file">${escapeHtml(item.file)}</p>
       </a>
     `).join("");
+    applySearch();
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -137,5 +175,26 @@
     const collection = readSelectedCollection();
     writeCollection(collection);
     render(collection);
+  });
+
+  searchInput?.addEventListener("input", applySearch);
+
+  searchInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (searchInput.value) {
+      searchInput.value = "";
+      applySearch();
+      return;
+    }
+    searchInput.blur();
+  });
+
+  searchClear?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!searchInput) return;
+    searchInput.value = "";
+    applySearch();
+    searchInput.focus();
   });
 })();

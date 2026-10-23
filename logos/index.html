@@ -37,17 +37,40 @@
   <div class="logo-page">
     <header class="logo-toolbar">
       <h1 class="logo-toolbar-title">Logo Collection</h1>
-      <div class="logo-toolbar-select">
-        <div class="filter-select-field">
-          <select class="ui-select filter-field-select" id="logoCollectionSelect" data-logo-collection aria-label="Logo collection">
-            <option value="franchisees">Franchisees</option>
-            <option value="franchises">Franchises</option>
-          </select>
-          <img src="../assets/icons/chevron.svg" alt="" aria-hidden="true">
+      <div class="logo-toolbar-controls">
+        <label class="logo-search" for="logoSearchInput">
+          <img class="logo-search-icon" src="../assets/icons/search.svg" alt="" aria-hidden="true">
+          <input
+            class="logo-search-input"
+            id="logoSearchInput"
+            data-logo-search
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="Search logos"
+            aria-label="Search logos"
+          >
+          <button class="logo-search-clear" id="logoSearchClear" data-logo-search-clear type="button" aria-label="Clear search" hidden></button>
+        </label>
+        <span class="logo-toolbar-divider" aria-hidden="true"></span>
+        <div class="logo-toolbar-select">
+          <div class="filter-select-field">
+            <select class="ui-select filter-field-select" id="logoCollectionSelect" data-logo-collection aria-label="Logo collection">
+              <option value="franchisees">Franchisees</option>
+              <option value="franchises">Franchises</option>
+            </select>
+            <img src="../assets/icons/chevron.svg" alt="" aria-hidden="true">
+          </div>
         </div>
       </div>
     </header>
-    <main class="logo-grid" data-logo-grid aria-live="polite"></main>
+    <main class="logo-results">
+      <div class="logo-grid" data-logo-grid aria-live="polite"></div>
+      <p class="logo-empty" data-logo-empty hidden>No logos match.</p>
+    </main>
   </div>
 
   <script src="../_prototypes/shared/filter/filter-combobox.js"></script>
