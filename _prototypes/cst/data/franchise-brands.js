@@ -33,6 +33,7 @@ const FRANCHISE_ACCENT_COLORS = Object.freeze({
   "Planet Fitness": "#9701FB",
   "Popeyes Louisiana Kitchen": "#FD7E03",
   "Slim Chicken's": "#F8BBC4",
+  "Subway": "#009744",
   "Snap Fitness": "#BB0F1F",
   "Taco Bell Traditional": "#592793",
   "Tim Hortons": "#CB1F3C",

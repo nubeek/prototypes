@@ -34,7 +34,7 @@
       "Jimmy John's", "Taco Bell Traditional", "Buffalo Wild Wings",
       "Jersey Mike's", "Captain D's", "Slim Chicken's", "Five Guys",
       "Dave's Hot Chicken", "Tropical Smoothie Cafe", "Tim Hortons",
-      "Firehouse Subs", "McDonald's"
+      "Firehouse Subs", "McDonald's", "Subway"
     ]
   };
 
@@ -75,7 +75,14 @@
   function flattenOrgChart(nodes, publicId, reportsTo, flattened) {
     (nodes || []).forEach((node) => {
       const id = `${publicId}-${node.key}`;
-      flattened.push({ id, name: node.name, title: node.title, reportsTo });
+      flattened.push({
+        id,
+        name: node.name,
+        title: node.title,
+        reportsTo,
+        ...(node.email ? { email: node.email } : {}),
+        ...(node.phone ? { phone: node.phone } : {})
+      });
       flattenOrgChart(node.children, publicId, id, flattened);
     });
 
@@ -98,7 +105,11 @@
       const located = { ...node, location: "" };
       if (!isPrimary) return located;
 
-      return { ...located, email: contact.email || "", phone: contact.phone || "" };
+      return {
+        ...located,
+        ...(contact.email ? { email: contact.email } : {}),
+        ...(contact.phone ? { phone: contact.phone } : {})
+      };
     });
   }
 
@@ -120,7 +131,7 @@
   function buildUnits(dumpOwner, franchises, categoryId) {
     const locations = window.cstDumpLocations || {};
 
-    return (dumpOwner.units || []).map(([lat, lng, cstUnitId], unitIndex) => {
+    return (dumpOwner.units || []).map(([lat, lng, cstUnitId, unitLabel], unitIndex) => {
       // CST points have no concept. Cycle the owner's brands so each unit can
       // hold one franchise colour on the map. Owner-level filters still read
       // the full `franchises` list.
@@ -144,7 +155,7 @@
         categoryId,
         lat,
         lng,
-        label: locations[getLocationCellKey(lat, lng)] || ""
+        label: unitLabel || locations[getLocationCellKey(lat, lng)] || ""
       };
     });
   }
