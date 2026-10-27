@@ -1146,26 +1146,51 @@ body.reduce-motion .proto-modal.campaign-wizard-modal::before {
   inset: 0;
   z-index: 1;
   display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 8px;
+  border-radius: calc(var(--radius-md) - 1px);
+  text-align: center;
+}
+
+.campaign-design-preview__option {
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  border-radius: calc(var(--radius-md) - 1px);
-  text-align: center;
-  transition:
-    inset var(--transition-fast),
-    background-color var(--transition-fast);
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--radius-md) - 4px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
 }
 
-.campaign-design-preview.is-empty:hover .campaign-design-preview__empty {
-  inset: 8px;
+.campaign-design-preview__option:hover {
   background: var(--color-brand-soft);
+}
+
+.campaign-design-preview__divider {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  margin: 16px 0;
+  background: #e4e4e4;
 }
 
 body.reduce-motion .campaign-design-preview__empty,
 body.reduce-motion .campaign-design-preview__border-path,
 body.reduce-motion .campaign-design-preview__empty-template,
-body.reduce-motion .campaign-design-preview__empty-label {
+body.reduce-motion .campaign-design-preview__empty-label,
+body.reduce-motion .campaign-design-preview__upload,
+body.reduce-motion .campaign-design-preview__option {
   transition: none;
 }
 
@@ -1180,7 +1205,7 @@ body.reduce-motion .campaign-design-preview__empty-label {
   position: relative;
   display: block;
   width: 112px;
-  height: 94px;
+  height: 96px;
 }
 
 .campaign-design-preview__empty-template {
@@ -1188,11 +1213,20 @@ body.reduce-motion .campaign-design-preview__empty-label {
   top: 2px;
   left: 50%;
   width: 64px;
-  height: auto;
-  border-radius: 4px;
-  box-shadow: 0 6px 8px 0 rgba(0, 0, 0, 0.06);
+  height: 80px;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: rgb(255, 255, 255);
+  box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.08);
   transform-origin: 50% 70%;
   transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.campaign-design-preview__empty-template img {
+  display: block;
+  width: 64px;
+  height: 80px;
+  max-width: none;
 }
 
 .campaign-design-preview__empty-template--back {
@@ -1205,15 +1239,46 @@ body.reduce-motion .campaign-design-preview__empty-label {
   transform: translateX(calc(-50% + 13px)) rotate(7deg);
 }
 
-.campaign-design-preview.is-empty:hover .campaign-design-preview__empty-template--back {
+.campaign-design-preview__option--scratch:hover .campaign-design-preview__empty-template--back {
   transform: translateX(calc(-50% - 25px)) translateY(-5px) rotate(-9deg);
 }
 
-.campaign-design-preview.is-empty:hover .campaign-design-preview__empty-template--front {
+.campaign-design-preview__option--scratch:hover .campaign-design-preview__empty-template--front {
   transform: translateX(calc(-50% + 25px)) translateY(-12px) rotate(9deg);
 }
 
+.campaign-design-preview__upload-slot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 112px;
+  height: 96px;
+}
+
+.campaign-design-preview__upload {
+  width: 64px;
+  height: 80px;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: rgb(255, 255, 255);
+  box-shadow: 0px 6px 10px 0px rgba(0, 0, 0, 0.08);
+  transform: translateY(-10px);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.campaign-design-preview__upload img {
+  display: block;
+  width: 64px;
+  height: 80px;
+  opacity: 1;
+}
+
+.campaign-design-preview__option--upload:hover .campaign-design-preview__upload {
+  transform: translateY(-16px);
+}
+
 .campaign-design-preview__empty-label {
+  margin-top: -6px;
   padding: 9px 10px;
   border-radius: var(--radius-sm);
   color: #050505;
@@ -1226,7 +1291,7 @@ body.reduce-motion .campaign-design-preview__empty-label {
     background-color var(--transition-fast);
 }
 
-.campaign-design-preview.is-empty:hover .campaign-design-preview__empty-label {
+.campaign-design-preview__option:hover .campaign-design-preview__empty-label {
   color: var(--color-brand);
   background-color: rgba(122, 99, 221, 0.1);
 }
