@@ -3853,7 +3853,8 @@ h1 {
   content: "";
   position: sticky;
   bottom: 0;
-  z-index: 9;
+  /* Above pinned columns (8), the header row (9), and corner headers (10). */
+  z-index: 11;
   display: block;
   width: 100%;
   height: 14px;
@@ -3923,8 +3924,8 @@ th {
   backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
-  /* Above always-visible lead actions (3) and hovered row tooltips (6–7). */
-  z-index: 8;
+  /* Above pinned body columns (8), lead actions (3), and hovered row cells (6–7). */
+  z-index: 9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3935,16 +3936,18 @@ td:first-child,
 #locationNumberColumnHeader[hidden] + #ownerColumnHeader {
   position: sticky;
   left: 0;
-  background: #fff;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  z-index: 1;
+  /* Same frost as the header row, so a column sliding underneath blurs
+     instead of ending in a hard edge. Still above hovered row cells (6–7). */
+  background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  z-index: 8;
   box-shadow: none;
 }
 
 th:first-child,
 #locationNumberColumnHeader[hidden] + #ownerColumnHeader {
-  z-index: 9;
+  z-index: 10;
 }
 
 .table-wrap.is-name-column-overlap th:first-child,
@@ -4130,23 +4133,25 @@ tbody tr:hover {
 }
 
 tbody tr:hover td:first-child {
-  background: #f3f3f4;
+  background: rgba(243, 243, 244, 0.8);
 }
 
-tbody tr:has(.owner-icons:hover) td,
-tbody tr:has(.owner-icons:focus-within) td,
-tbody tr:not([data-unit-index]):has(.franchise-logo:hover) td,
-tbody tr:not([data-unit-index]):has(.franchise-logo:focus-visible) td {
+/* Raise the row so an overflowing pill or tooltip clears the next row.
+   Never the pinned column: that cell stays sticky and above this layer. */
+tbody tr:has(.owner-icons:hover) td:not(:first-child),
+tbody tr:has(.owner-icons:focus-within) td:not(:first-child),
+tbody tr:not([data-unit-index]):has(.franchise-logo:hover) td:not(:first-child),
+tbody tr:not([data-unit-index]):has(.franchise-logo:focus-visible) td:not(:first-child) {
   position: relative;
   z-index: 6;
 }
 
-tbody tr:not(.raw-data-row):has(.contact-hide-results-action:hover) td,
-tbody tr:not(.raw-data-row):has(.contact-hide-results-action:focus-visible) td,
-tbody tr:not(.raw-data-row):has(.contact-add-lead-action:hover) td,
-tbody tr:not(.raw-data-row):has(.contact-add-lead-action:focus-visible) td,
-tbody tr:not(.raw-data-row):has(.contact-cell-action:focus-within) td,
-tbody tr:not(.raw-data-row):has(.contact-cell-action.is-menu-open) td {
+tbody tr:not(.raw-data-row):has(.contact-hide-results-action:hover) td:not(:first-child),
+tbody tr:not(.raw-data-row):has(.contact-hide-results-action:focus-visible) td:not(:first-child),
+tbody tr:not(.raw-data-row):has(.contact-add-lead-action:hover) td:not(:first-child),
+tbody tr:not(.raw-data-row):has(.contact-add-lead-action:focus-visible) td:not(:first-child),
+tbody tr:not(.raw-data-row):has(.contact-cell-action:focus-within) td:not(:first-child),
+tbody tr:not(.raw-data-row):has(.contact-cell-action.is-menu-open) td:not(:first-child) {
   position: relative;
   z-index: 7;
 }
@@ -4162,7 +4167,7 @@ tbody tr.is-selected td:first-child,
 tbody tr.is-selected:hover td:first-child,
 tbody tr.is-checked td:first-child,
 tbody tr.is-checked:hover td:first-child {
-  background: #f3f3f4;
+  background: rgba(243, 243, 244, 0.8);
 }
 
 .raw-data-table {
@@ -4224,7 +4229,8 @@ tbody tr.is-checked:hover td:first-child {
   position: sticky;
   left: 0;
   bottom: 0;
-  z-index: 10;
+  /* Above the bottom fade (11) and pinned header corner (10). */
+  z-index: 12;
   width: auto !important;
   padding: 0 !important;
   padding-left: 0 !important;

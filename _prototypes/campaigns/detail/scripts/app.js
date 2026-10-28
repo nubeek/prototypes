@@ -27,11 +27,11 @@
   const SIDEBAR_KEY = "wefranch:campaign-detail-sidebar";
   const STATUS_ORDER = ["pending", "bounced", "sent", "delivered", "opened", "clicked", "unsubscribed"];
   const TEMPLATES = {
-    introduction: { label: "Introduction", image: "../assets/images/campaign-template.jpg" },
-    "territory-opportunity": { label: "Territory opportunity", image: "../assets/images/email-template-1.jpg" },
-    "market-update": { label: "Market update", image: "../assets/images/email-template-2.jpg" },
-    "follow-up": { label: "Follow-up", image: "../assets/images/email-template-1.jpg" },
-    "event-invitation": { label: "Event invitation", image: "../assets/images/email-template-3.jpg" }
+    introduction: { label: "Introduction", image: "../assets/images/email-template-1.jpg" },
+    "territory-opportunity": { label: "Territory opportunity", image: "../assets/images/email-template-4.jpg" },
+    "market-update": { label: "Market update", image: "../assets/images/email-template-3.jpg" },
+    "follow-up": { label: "Follow-up", image: "../assets/images/email-template-2.jpg" },
+    "event-invitation": { label: "Event invitation", image: "../assets/images/email-template-5.jpg" }
   };
 
   const content = document.getElementById("campaignPageContent");

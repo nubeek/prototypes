@@ -8658,10 +8658,10 @@ window.cstDumpData = {
     },
     {
       "publicId": "yx40",
-      "name": "Gilligan Oil",
-      "groupCode": "Gilligan Oil",
+      "name": "Gilligan Company LLC",
+      "groupCode": "Gilligan Company LLC",
       "website": "https://www.gilligan-co.com/",
-      "linkedinUrl": "",
+      "linkedinUrl": "https://www.linkedin.com/company/gilligan-company-llc/",
       "contactsCount": 2,
       "unitsCount": 124,
       "contact": {
@@ -18062,7 +18062,7 @@ window.cstDumpData = {
       "publicId": "9oq60",
       "name": "Diya & Raishaan Holdings",
       "groupCode": "Diya & Raishaan Holdings",
-      "website": "",
+      "website": "https://www.drsholdings.com/",
       "linkedinUrl": "",
       "contactsCount": 1,
       "unitsCount": 35,

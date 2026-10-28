@@ -46,7 +46,22 @@ const CAMPAIGN_DESIGN_TEMPLATES = {
   "follow-up": "Follow-up",
   "event-invitation": "Event invitation"
 };
-const CAMPAIGN_DESIGN_PREVIEW_TEMPLATE_ID = "introduction";
+const CAMPAIGN_DESIGN_TEMPLATE_IMAGES = {
+  introduction: { file: "email-template-1.jpg", alt: "Welcome to Wefranch email" },
+  "territory-opportunity": { file: "email-template-4.jpg", alt: "Chirp Photo Labs territory opportunity email" },
+  "market-update": { file: "email-template-3.jpg", alt: "Webinar registration email" },
+  "follow-up": { file: "email-template-2.jpg", alt: "Did you miss anything follow-up email" },
+  "event-invitation": { file: "email-template-5.jpg", alt: "Webinar invitation email" }
+};
+
+function getCampaignDesignTemplatePreview(templateId) {
+  const preview = CAMPAIGN_DESIGN_TEMPLATE_IMAGES[templateId];
+  if (!preview) return null;
+  return {
+    src: `${CAMPAIGN_PROTOTYPES_BASE}campaigns/assets/images/${preview.file}`,
+    alt: preview.alt
+  };
+}
 const CAMPAIGN_STEP_TRANSITION_MS = 380;
 const CAMPAIGN_WIZARD_MIN_HEIGHT = 580;
 const CAMPAIGN_REVIEW_DELAY_MS = 2000;
@@ -1559,11 +1574,12 @@ function syncCampaignDesignContinue() {
 function syncCampaignDesignPreview() {
   const selection = getCampaignDesignSelection();
   const hasTemplate = Boolean(selection);
-  const showIntroductionPreview = selection?.templateId === CAMPAIGN_DESIGN_PREVIEW_TEMPLATE_ID;
+  const preview = hasTemplate ? getCampaignDesignTemplatePreview(selection.templateId) : null;
+  const showPreviewImage = Boolean(preview);
 
   campaignDesignPreview?.classList.toggle("is-empty", !hasTemplate);
-  campaignDesignPreview?.classList.toggle("has-preview-image", showIntroductionPreview);
-  campaignDesignPreview?.classList.toggle("has-preview-unavailable", hasTemplate && !showIntroductionPreview);
+  campaignDesignPreview?.classList.toggle("has-preview-image", showPreviewImage);
+  campaignDesignPreview?.classList.toggle("has-preview-unavailable", hasTemplate && !showPreviewImage);
 
   if (campaignDesignPreviewEmpty) {
     campaignDesignPreviewEmpty.hidden = hasTemplate;
@@ -1574,11 +1590,15 @@ function syncCampaignDesignPreview() {
   }
 
   if (campaignDesignPreviewImage) {
-    campaignDesignPreviewImage.hidden = !showIntroductionPreview;
+    campaignDesignPreviewImage.hidden = !showPreviewImage;
+    if (preview && campaignDesignPreviewImage.src !== preview.src) {
+      campaignDesignPreviewImage.src = preview.src;
+      campaignDesignPreviewImage.alt = preview.alt;
+    }
   }
 
   if (campaignDesignPreviewUnavailable) {
-    campaignDesignPreviewUnavailable.hidden = !hasTemplate || showIntroductionPreview;
+    campaignDesignPreviewUnavailable.hidden = !hasTemplate || showPreviewImage;
   }
 
   if (hasTemplate && campaignDesignPreview) {

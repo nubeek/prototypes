@@ -679,10 +679,10 @@
         "profile_picture": "http://localhost:8000/media/images/user-profile/06f44dff83a84c72a5c1e41344dcadff.jpeg"
       },
       "contacts_count": 2,
-      "group_code": "Gilligan Oil",
+      "group_code": "Gilligan Company LLC",
       "id": 9684,
-      "linkedin_link": null,
-      "name": "Gilligan Oil",
+      "linkedin_link": "https://www.linkedin.com/company/gilligan-company-llc/",
+      "name": "Gilligan Company LLC",
       "public_id": "yx40",
       "units_count": 124,
       "website": "https://www.gilligan-co.com/"
@@ -3142,7 +3142,7 @@
       "name": "Diya & Raishaan Holdings",
       "public_id": "9oq60",
       "units_count": 35,
-      "website": null
+      "website": "https://www.drsholdings.com/"
     },
     {
       "concepts": [

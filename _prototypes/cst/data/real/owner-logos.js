@@ -28,6 +28,7 @@
     "denco-enterprises-inc.png",
     "devs-foods.png",
     "dhanani-group.png",
+    "diya-raishaan-holdings.jpg",
     "doherty-enterprises.png",
     "dyne-hospitality-group.png",
     "easy-mile-fitness.jpg",
@@ -35,6 +36,7 @@
     "excel-fitness-holdings.png",
     "fitness-ventures-llc.png",
     "flynn-group.jpg",
+    "gilligan-company.jpg",
     "gps-hospitality.png",
     "grand-fitness-partners.png",
     "hamra-enterprises.png",
@@ -97,6 +99,7 @@
   const OWNER_LOGO_ALIASES = {
     "american-west-restaurant-group": "american-west.png",
     "continental-superior-management-groups-l-p": "continental-superior-management-group.png",
+    "diya-and-raishaan-holdings": "diya-raishaan-holdings.jpg",
     "srg-plk-opco-llc": "srg-plk.png",
     "svkids-corp": "kidscorp.jpg"
   };

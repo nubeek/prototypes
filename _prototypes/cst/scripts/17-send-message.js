@@ -553,7 +553,8 @@ function animateSendMessageCard(isExpanded) {
 function syncSendMessageTemplate() {
   const templateId = getSendMessageTemplateId();
   const hasTemplate = Boolean(templateId);
-  const showPreviewImage = templateId === CAMPAIGN_DESIGN_PREVIEW_TEMPLATE_ID;
+  const preview = hasTemplate ? getCampaignDesignTemplatePreview(templateId) : null;
+  const showPreviewImage = Boolean(preview);
   const showOptions = sendMessageTemplatePickerOpen;
   const shouldExpand = showOptions || hasTemplate;
   const isExpanded = Boolean(sendMessageCard?.classList.contains("is-expanded"));
@@ -571,9 +572,15 @@ function syncSendMessageTemplate() {
         sendMessageTemplatePreviewFrame.scrollTop = 0;
       }
     }
-    sendMessageTemplatePreviewFrame?.classList.toggle("is-unavailable", !showPreviewImage);
-    if (sendMessageTemplateImage) sendMessageTemplateImage.hidden = !showPreviewImage;
-    if (sendMessageTemplateUnavailable) sendMessageTemplateUnavailable.hidden = showPreviewImage;
+    sendMessageTemplatePreviewFrame?.classList.toggle("is-unavailable", hasTemplate && !showPreviewImage);
+    if (sendMessageTemplateImage) {
+      sendMessageTemplateImage.hidden = !showPreviewImage;
+      if (preview && sendMessageTemplateImage.src !== preview.src) {
+        sendMessageTemplateImage.src = preview.src;
+        sendMessageTemplateImage.alt = preview.alt;
+      }
+    }
+    if (sendMessageTemplateUnavailable) sendMessageTemplateUnavailable.hidden = !hasTemplate || showPreviewImage;
   }
 
   if (isExpanded === shouldExpand && !sendMessageCard?.classList.contains("is-template-animating")) {
