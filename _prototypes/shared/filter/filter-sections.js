@@ -60,7 +60,7 @@
     }
 
     return Boolean(section.querySelector(
-      ".filter-check:not(.filter-radius-toggle) :is(input[type='checkbox'], input[type='radio']), .filter-date-field, .filter-date-input, input[type='date']"
+      ".filter-check:not(.filter-radius-toggle, .filter-scope-toggle) :is(input[type='checkbox'], input[type='radio']), .filter-date-field, .filter-date-input, input[type='date']"
     ));
   }
 
@@ -82,7 +82,7 @@
 
   function getDefaultSelectionLabel(section) {
     const checkboxLabels = Array.from(
-      section.querySelectorAll(".filter-check:not(.filter-radius-toggle) :is(input[type='checkbox'], input[type='radio']):checked")
+      section.querySelectorAll(".filter-check:not(.filter-radius-toggle, .filter-scope-toggle) :is(input[type='checkbox'], input[type='radio']):checked")
     ).map((input) => {
       const check = input.closest(".filter-check");
       return check?.querySelector(".filter-rating-label")?.textContent?.trim()

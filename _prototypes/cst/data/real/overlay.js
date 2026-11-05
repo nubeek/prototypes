@@ -43,6 +43,7 @@
       concepts.forEach((concept) => { result[concept] = category; });
       return result;
     }, {});
+  window.cstCategoryByConcept = CATEGORY_BY_CONCEPT;
 
   function getDataSource() {
     const requested = new URLSearchParams(window.location.search).get("data")

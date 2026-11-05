@@ -642,10 +642,10 @@
         "profile_picture": "http://localhost:8000/media/images/user-profile/27337b3638a14f10a269594fecf27a97.jpeg"
       },
       "contacts_count": 2,
-      "group_code": "Michael Cherney",
+      "group_code": "Grand Mere Restaurant Group",
       "id": 95,
       "linkedin_link": "https://www.linkedin.com/company/gm-restaurant-group/",
-      "name": "Michael Cherney",
+      "name": "Grand Mere Restaurant Group",
       "public_id": "g908",
       "units_count": 127,
       "website": "https://www.gmrestaurantgroup.com/"
@@ -1268,10 +1268,10 @@
         "profile_picture": null
       },
       "contacts_count": 1,
-      "group_code": "JM - Blake-Ward",
+      "group_code": "JM Lawrence, LLC",
       "id": 8685,
       "linkedin_link": null,
-      "name": "JM - Blake-Ward",
+      "name": "JM Lawrence, LLC",
       "public_id": "zvlm",
       "units_count": 90,
       "website": null
@@ -1455,10 +1455,10 @@
         "profile_picture": "http://localhost:8000/media/images/user-profile/4044c71b8849423eb08eb7c32f2196f9.jpeg"
       },
       "contacts_count": 5,
-      "group_code": "Tabbassum Mumtaz",
+      "group_code": "Ampex Brands",
       "id": 106,
       "linkedin_link": "https://www.linkedin.com/company/ampex-brands-llc/",
-      "name": "Tabbassum Mumtaz",
+      "name": "Ampex Brands",
       "public_id": "epm6",
       "units_count": 75,
       "website": "http://www.ampexbrands.com/"
@@ -1515,10 +1515,10 @@
         "profile_picture": null
       },
       "contacts_count": 2,
-      "group_code": "Michael Quinn",
+      "group_code": "JJB Brands",
       "id": 107,
       "linkedin_link": "https://www.linkedin.com/company/jjb-brands/",
-      "name": "Michael Quinn",
+      "name": "JJB Brands",
       "public_id": "dqz3",
       "units_count": 74,
       "website": "https://jjbbrands.com/"
@@ -1702,13 +1702,13 @@
         "profile_picture": null
       },
       "contacts_count": 5,
-      "group_code": "Estate Freeland",
+      "group_code": "Freeland Group Restaurants",
       "id": 108,
       "linkedin_link": "https://www.linkedin.com/company/freeland-group-restaurants/",
-      "name": "Estate Freeland",
+      "name": "Freeland Group Restaurants",
       "public_id": "groq",
       "units_count": 63,
-      "website": "https://www.pizzahutfwi.com/"
+      "website": "https://www.freelandgrouprestaurants.com/"
     },
     {
       "concepts": [
@@ -2487,10 +2487,10 @@
         "profile_picture": "http://localhost:8000/media/images/user-profile/c6f48fbc6cc44132b3fffaf23db76cf5.jpeg"
       },
       "contacts_count": 9,
-      "group_code": "Kamal Singh",
+      "group_code": "Emerge Inc.",
       "id": 115,
       "linkedin_link": "https://www.linkedin.com/company/emergeinc/",
-      "name": "Kamal Singh",
+      "name": "Emerge Inc.",
       "public_id": "e17m",
       "units_count": 42,
       "website": "https://www.emergeinc.net/"
@@ -2868,10 +2868,10 @@
         "profile_picture": null
       },
       "contacts_count": 1,
-      "group_code": "GEORGE R MICHELL_MCD",
+      "group_code": "Michell McDonald's Group",
       "id": 4714,
-      "linkedin_link": null,
-      "name": "GEORGE R MICHELL_MCD",
+      "linkedin_link": "https://www.linkedin.com/company/mcdonald's-michell-enterprises/",
+      "name": "Michell McDonald's Group",
       "public_id": "0om3",
       "units_count": 37,
       "website": null
@@ -3226,10 +3226,10 @@
         "profile_picture": null
       },
       "contacts_count": 1,
-      "group_code": "Taylor Bartels",
+      "group_code": "Sphinx Franchise Holdings",
       "id": 7976,
-      "linkedin_link": null,
-      "name": "Taylor Bartels",
+      "linkedin_link": "https://www.linkedin.com/company/galleon-holdings-inc/",
+      "name": "Sphinx Franchise Holdings",
       "public_id": "n5l8",
       "units_count": 33,
       "website": null

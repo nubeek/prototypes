@@ -35,67 +35,18 @@ function getOwnerFranchises(owner) {
   return [...new Set(franchises)];
 }
 
-function getFranchiseSlug(franchiseName) {
-  return franchiseName
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/'/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+function getVisibleOwnerFranchises(owner) {
+  const franchises = getOwnerFranchises(owner);
+  if (!hideOtherFranchisesIsActive() && !hideOtherCategoriesIsActive()) return franchises;
+  return franchises.filter((franchise) => franchiseMatchesVisibleBrandScope(franchise));
 }
 
-const franchiseLogoFileOverrides = {
-  "Club Pilates Franchise": "club-pilates.jpg",
-  "Crunch": "crunch-fitness.jpg",
-  "Anytime Fitness": "anytime-fitness.png",
-  "F45 Training": "f45-training.svg",
-  "OrangeTheory Fitness": "orangetheory.jpg",
-  "Crumbl Cookies": "crumbl-cookies.png",
-  "The Learning Experience": "the-learning-experience.png",
-  "Drybar": "drybar.png",
-  "Ace Handyman Services": "ace-handyman-services.png",
-  "StretchLab": "stretchlab.png",
-  "Mathnasium": "mathnasium.png",
-  "MaidPro": "maidpro.png",
-  "Wendy's": "wendys.jpg",
-  "Chili's": "chilis.png",
-  "Papa John's": "papa-johns.png",
-  "Five Guys": "five-guys.png",
-  "Krispy Kreme": "krispy-kreme.png",
-  "Jimmy John's": "jimmy-johns.png",
-  "Dunkin'": "dunkin.jpg",
-  "Blaze Pizza": "blaze-pizza.png",
-  "Outback Steakhouse": "outback-steakhouse.png",
-  "Smoothie King": "smoothie-king.png",
-  "Starbucks": "starbucks.png",
-  "Qdoba": "qdoba.png",
-  "Title Boxing Club": "title-boxing-club.jpg",
-  "Popeyes Louisiana Kitchen": "popeyes-louisiana-kitchen.jpg",
-  "Tropical Smoothie Cafe": "tropical-smoothie-cafe.png",
-  "Aussie Pet Mobile": "aussie-pet-mobile.png",
-  "Burger King": "burger-king.jpg",
-  "Captain D's": "captain-ds.png",
-  "Pizza Hut Traditional": "pizza-hut-traditional.png",
-  "Taco Bell Traditional": "taco-bell.png",
-  "Applebee's": "applebees.png",
-  "Buffalo Wild Wings": "buffalo-wild-wings.png",
-  "Dave's Hot Chicken": "daves-hot-chicken.png",
-  "Denny's": "dennys.png",
-  "European Wax Center": "european-wax-center.png",
-  "Firehouse Subs": "firehouse-subs.png",
-  "IHOP": "ihop.png",
-  "Jersey Mike's": "jersey-mikes.png",
-  "Massage Envy": "massage-envy.png",
-  "Panera Bread": "panera-bread.png",
-  "Phenix Salon Suites": "phenix-salon-suites.png",
-  "Slim Chicken's": "slim-chickens.png",
-  "Tim Hortons": "tim-hortons.png",
-  "Snapology": "snapology.png"
-};
+function getFranchiseSlug(franchiseName) {
+  return window.WefranchFilterCombobox.getFranchiseSlug(franchiseName);
+}
 
 function getFranchiseLogoSrc(franchiseName) {
-  const logoFileName = franchiseLogoFileOverrides[franchiseName] || `${getFranchiseSlug(franchiseName)}.jpg`;
-  return `../../assets/logos/franchises/${logoFileName}`;
+  return window.WefranchFilterCombobox.getFranchiseLogoSrc(franchiseName);
 }
 
 function getInitials(name) {
@@ -218,15 +169,7 @@ function handleOwnerHeaderViewButton(button) {
 }
 
 function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee panel", linksToDetail = false } = {}) {
-  const ownerLogoImageMarkup = owner.logoSrc
-    ? `<img src="${owner.logoSrc}" alt="" onerror="this.style.display='none'">`
-    : "";
-  const logoMarkup = `
-    <span class="owner-detail-logo" aria-hidden="true">
-      <span>${getInitials(owner.ownerName)}</span>
-      ${ownerLogoImageMarkup}
-    </span>
-  `;
+  const logoMarkup = window.WefranchFranchiseeLogo.getOwnerDetailLogoMarkup(owner);
   const titleMarkup = `<span>${owner.ownerName}</span>`;
   const identityMarkup = linksToDetail
     ? `
@@ -249,10 +192,7 @@ function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee 
       </h2>
     `
     : `
-      <div class="owner-detail-logo" aria-hidden="true">
-        <span>${getInitials(owner.ownerName)}</span>
-        ${ownerLogoImageMarkup}
-      </div>
+      ${window.WefranchFranchiseeLogo.getOwnerDetailLogoMarkup(owner)}
       <h2>${owner.ownerName}</h2>
     `;
 
@@ -358,7 +298,7 @@ function getOwnerRawRows(ownerIndex) {
     name: node.name,
     title: getProfileTitle(owner, node),
     ownerNames: [owner.ownerName],
-    franchises: getOwnerFranchises(owner),
+    franchises: getVisibleOwnerFranchises(owner),
     // A node that states its location, even as unknown, is trusted over the
     // one inferred from the owner's footprint.
     location: node.location !== undefined

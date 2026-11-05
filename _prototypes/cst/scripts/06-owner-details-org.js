@@ -7,7 +7,7 @@ function renderOwnerDetails(owner) {
   }
 
   const website = getOwnerWebsite(owner);
-  const franchises = getOwnerFranchises(owner);
+  const franchises = getVisibleOwnerFranchises(owner);
   const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
   const franchiseMarkup = franchises
     .map((franchise) => {
@@ -75,7 +75,7 @@ function renderOwnerDetails(owner) {
         <div class="owner-detail-locations-header">
           <div>
             <h3 class="ui-section-title">Locations</h3>
-            <p class="ui-body-text">${getOwnerUnitCount(owner)}</p>
+            <p class="ui-body-text">${getOwnerVisibleUnitCount(owner)}</p>
           </div>
           <button class="ui-control ui-text-button owner-detail-map-link" type="button" data-owner-index="${owner.originalIndex}">
             Filter in Map

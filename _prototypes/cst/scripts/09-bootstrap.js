@@ -316,11 +316,16 @@ if (categoryFilterSelect) {
   categoryFilterSelect.addEventListener("change", () => {
     selectedCategoryValues = getFilterSelectIncludedValues(categoryFilterSelect);
     excludedCategoryValues = getFilterSelectExcludedValues(categoryFilterSelect);
+    syncHideOtherCategoriesControl();
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
     refreshFilteredViews();
     syncOpenOrgPanelWithSelection();
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+  });
+
+  document.getElementById("hideOtherCategoriesToggle")?.addEventListener("change", (event) => {
+    setHideOtherCategories(event.currentTarget.checked, { refresh: true });
   });
 
   enhanceFilterCombobox(categoryFilterSelect, { allowExclude: true });
@@ -393,6 +398,7 @@ if (franchiseFilterSelect) {
   franchiseFilterSelect.addEventListener("change", () => {
     selectedFranchiseIndexes = getFilterSelectIncludedValues(franchiseFilterSelect);
     excludedFranchiseIndexes = getFilterSelectExcludedValues(franchiseFilterSelect);
+    syncHideOtherFranchisesControl();
     activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
     refreshFilteredViews();
@@ -400,7 +406,13 @@ if (franchiseFilterSelect) {
     tableWrap?.scrollTo({ top: 0, behavior: "auto" });
   });
 
-  enhanceFilterCombobox(franchiseFilterSelect, { allowExclude: true });
+  document.getElementById("hideOtherFranchisesToggle")?.addEventListener("change", (event) => {
+    setHideOtherFranchises(event.currentTarget.checked, { refresh: true });
+  });
+
+  enhanceFilterCombobox(franchiseFilterSelect, {
+    allowExclude: true
+  });
 }
 
 restoreSavedViewSettings();

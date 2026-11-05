@@ -208,6 +208,84 @@ function syncRadiusFilterControls(options = {}) {
   });
 }
 
+function syncHideOtherCategoriesControl() {
+  const canHide = selectedCategoryValues.length > 0;
+  if (!canHide) hideOtherCategories = false;
+
+  const section = document.getElementById("hideOtherCategoriesSection");
+  if (section) {
+    section.classList.toggle("is-visible", canHide);
+    section.setAttribute("aria-hidden", String(!canHide));
+  }
+
+  const toggle = document.getElementById("hideOtherCategoriesToggle");
+  if (!toggle) return;
+
+  toggle.checked = hideOtherCategories;
+  setFilterCheckboxState(toggle, hideOtherCategories);
+  const text = document.getElementById("hideOtherCategoriesText");
+  if (text) {
+    text.textContent = hideOtherCategories ? "Show others" : "Hide others";
+  }
+}
+
+function setHideOtherCategories(enabled, { refresh = false } = {}) {
+  hideOtherCategories = Boolean(enabled) && selectedCategoryValues.length > 0;
+  syncHideOtherCategoriesControl();
+
+  if (!refresh) return;
+
+  refreshFilteredViews();
+  const detailsOpen = typeof getCurrentPanelMode === "function"
+    && getCurrentPanelMode() === "details"
+    && activeDetailOwnerIndex !== null;
+  if (!detailsOpen) return;
+
+  const owner = owners.find((item) => item.originalIndex === activeDetailOwnerIndex);
+  if (!owner) return;
+  renderOwnerDetails(owner);
+  initializeOwnerDetailsMap(activeDetailOwnerIndex);
+}
+
+function syncHideOtherFranchisesControl() {
+  const canHide = selectedFranchiseIndexes.length > 0;
+  if (!canHide) hideOtherFranchises = false;
+
+  const section = document.getElementById("hideOtherFranchisesSection");
+  if (section) {
+    section.classList.toggle("is-visible", canHide);
+    section.setAttribute("aria-hidden", String(!canHide));
+  }
+
+  const toggle = document.getElementById("hideOtherFranchisesToggle");
+  if (!toggle) return;
+
+  toggle.checked = hideOtherFranchises;
+  setFilterCheckboxState(toggle, hideOtherFranchises);
+  const text = document.getElementById("hideOtherFranchisesText");
+  if (text) {
+    text.textContent = hideOtherFranchises ? "Show other franchises" : "Hide other franchises";
+  }
+}
+
+function setHideOtherFranchises(enabled, { refresh = false } = {}) {
+  hideOtherFranchises = Boolean(enabled) && selectedFranchiseIndexes.length > 0;
+  syncHideOtherFranchisesControl();
+
+  if (!refresh) return;
+
+  refreshFilteredViews();
+  const detailsOpen = typeof getCurrentPanelMode === "function"
+    && getCurrentPanelMode() === "details"
+    && activeDetailOwnerIndex !== null;
+  if (!detailsOpen) return;
+
+  const owner = owners.find((item) => item.originalIndex === activeDetailOwnerIndex);
+  if (!owner) return;
+  renderOwnerDetails(owner);
+  initializeOwnerDetailsMap(activeDetailOwnerIndex);
+}
+
 function syncRadiusFilterVisibility() {
   if (!radiusFilterSection) return;
 
@@ -568,6 +646,8 @@ function resetCstFilterSelections({ refresh = true } = {}) {
   userLocationCenter = null;
   radiusFilterEnabled = false;
   selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
+  hideOtherFranchises = false;
+  hideOtherCategories = false;
   activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
 
@@ -586,6 +666,8 @@ function resetCstFilterSelections({ refresh = true } = {}) {
   syncContactsFilterControls();
   syncNetWorthFilterControls();
   syncRadiusFilterControls();
+  syncHideOtherFranchisesControl();
+  syncHideOtherCategoriesControl();
 
   if (refresh) {
     refreshFilteredViews();
@@ -644,6 +726,8 @@ function refreshAfterSectionClear() {
   syncContactsFilterControls();
   syncNetWorthFilterControls();
   syncRadiusFilterControls();
+  syncHideOtherFranchisesControl();
+  syncHideOtherCategoriesControl();
   refreshFilteredViews();
   syncOpenOrgPanelWithSelection();
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });

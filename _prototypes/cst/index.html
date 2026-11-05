@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="../shared/map/map-pills.css">
   <link rel="stylesheet" href="../shared/ui/scope-tabs.css">
   <link rel="stylesheet" href="../../styles/site-header.css">
+  <script src="../shared/ui/franchisee-logo-placeholder.js"></script>
   <script src="../shared/ui/thumbnail-edge-border.js"></script>
   <script src="../../scripts/gate.js"></script>
   <script src="../../scripts/site-header.js"></script>
@@ -475,6 +476,17 @@
             </select>
             <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </div>
+          <div class="filter-scope-section" id="hideOtherCategoriesSection" aria-hidden="true">
+            <div class="filter-scope-section__content">
+              <div class="filter-check-group">
+                <label class="filter-check filter-scope-toggle" id="hideOtherCategoriesLabel">
+                  <input type="checkbox" id="hideOtherCategoriesToggle">
+                  <span class="filter-checkbox" aria-hidden="true"></span>
+                  <span id="hideOtherCategoriesText">Hide others</span>
+                </label>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section class="filter-section filter-section-collapsed" data-filter-section="franchisees">
@@ -500,6 +512,17 @@
               <option value="">Select franchise...</option>
             </select>
             <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+          </div>
+          <div class="filter-scope-section" id="hideOtherFranchisesSection" aria-hidden="true">
+            <div class="filter-scope-section__content">
+              <div class="filter-check-group">
+                <label class="filter-check filter-scope-toggle" id="hideOtherFranchisesLabel">
+                  <input type="checkbox" id="hideOtherFranchisesToggle">
+                  <span class="filter-checkbox" aria-hidden="true"></span>
+                  <span id="hideOtherFranchisesText">Hide other franchises</span>
+                </label>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -7,6 +7,7 @@
   const OWNER_LOGO_FILES = [
     "aligned-fitness-holdings.png",
     "ambrosia-qsr.png",
+    "ampex-brands.jpg",
     "american-west.png",
     "applegreen.png",
     "aramark-services-inc.png",
@@ -32,16 +33,21 @@
     "doherty-enterprises.png",
     "dyne-hospitality-group.png",
     "easy-mile-fitness.jpg",
+    "emerge-inc.jpg",
     "epic-fitness.jpg",
     "excel-fitness-holdings.png",
     "fitness-ventures-llc.png",
     "flynn-group.jpg",
+    "freeland-group-restaurants.jpg",
     "gilligan-company.jpg",
     "gps-hospitality.png",
     "grand-fitness-partners.png",
+    "grand-mere-restaurant-group.jpg",
     "hamra-enterprises.png",
     "international-restaurant-management-group.png",
     "janjer-enterprises-inc.png",
+    "jm-lawrence-llc.jpg",
+    "jjb-brands.jpg",
     "jones-petroleum.png",
     "kidscorp.jpg",
     "k-mac-enterprises-inc.png",
@@ -49,6 +55,7 @@
     "l5-fitness.jpg",
     "love-s-travel-stops.png",
     "mbn-brands.png",
+    "michell-mcdonalds-group.jpg",
     "national-fitness-partners.png",
     "north-american-wax-company.png",
     "ohana-growth-partners.jpg",
@@ -72,6 +79,7 @@
     "sizzling-platter.png",
     "sodexo-operations.png",
     "southpaw.png",
+    "sphinx-franchise-holdings.jpg",
     "spartan-fitness-holdings.jpg",
     "spin-the-planet.png",
     "sscp-management.png",
@@ -101,7 +109,8 @@
     "continental-superior-management-groups-l-p": "continental-superior-management-group.png",
     "diya-and-raishaan-holdings": "diya-raishaan-holdings.jpg",
     "srg-plk-opco-llc": "srg-plk.png",
-    "svkids-corp": "kidscorp.jpg"
+    "svkids-corp": "kidscorp.jpg",
+    "michell-mcdonald-s-group": "michell-mcdonalds-group.jpg"
   };
   const OWNER_LOGO_LEGAL_SUFFIX = /-(inc|llc|l-l-c|l-p|corp|corporation)$/;
 

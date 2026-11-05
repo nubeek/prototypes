@@ -268,22 +268,19 @@ function rowMatchesLocationFilter(row) {
 }
 
 function getMapPointFranchise(location) {
-  const assigned = String(location.franchise || "").trim();
-  if (assigned && !assigned.includes(",")) return assigned;
-  if (Array.isArray(location.franchises) && location.franchises.length === 1) {
-    return String(location.franchises[0]).trim();
-  }
-  return assigned.split(",")[0].trim();
+  return getAssignedFranchiseName(location);
 }
 
-function mapLocationMatchesSelectedFranchise(location) {
-  if (!selectedFranchiseIndexes.length && !excludedFranchiseIndexes.length) return true;
-
-  const franchise = getMapPointFranchise(location);
-  if (excludedFranchiseIndexes.includes(franchise)) return false;
-  if (!selectedFranchiseIndexes.length) return true;
-  return selectedFranchiseIndexes.includes(franchise);
+function mapLocationMatchesFranchiseScope(location) {
+  if (!hideOtherFranchisesIsActive()) return true;
+  return selectedFranchiseIndexes.includes(getMapPointFranchise(location));
 }
+
+function mapLocationMatchesCategoryScope(location) {
+  if (!hideOtherCategoriesIsActive()) return true;
+  return selectedCategoryValues.includes(getAssignedCategoryId(location));
+}
+
 
 function mapLocationMatchesSelectedFilter(location) {
   if (locationRecordIsExcluded(location)) return false;
@@ -512,10 +509,14 @@ function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
       if (ownerIndex === null && selectedMapOwnerIndexes?.size && !selectedMapOwnerIndexes.has(index)) return [];
       if (ownerIndex === null && excludedMapOwnerIndexes?.has(index)) return [];
 
+      // A brand or category filter selects operators, so every unit stays unless
+      // Hide other franchises or Hide others is on. Those options keep only the
+      // units that belong to the selection, matching the unit count in the table.
       return owner.locations
         .filter((location) => (
           mapLocationMatchesSelectedFilter(location)
-          && (ownerIndex !== null || mapLocationMatchesSelectedFranchise(location))
+          && mapLocationMatchesFranchiseScope(location)
+          && mapLocationMatchesCategoryScope(location)
         ))
         .map((location, locationIndex) => {
           const franchise = getMapPointFranchise(location);

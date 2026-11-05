@@ -2377,16 +2377,19 @@ function populateTerritoryFilterOptions(brands) {
   }
 
   if (franchiseFilterSelect) {
-    const existingFranchises = new Set(
-      Array.from(franchiseFilterSelect.options).map((option) => option.value)
+    const optionsByValue = new Map(
+      Array.from(franchiseFilterSelect.options).map((option) => [option.value, option])
     );
     brands.forEach((brand) => {
-      if (existingFranchises.has(brand.id)) return;
-
-      const option = document.createElement("option");
-      option.value = brand.id;
-      option.textContent = brand.brand;
-      franchiseFilterSelect.append(option);
+      let option = optionsByValue.get(brand.id);
+      if (!option) {
+        option = document.createElement("option");
+        option.value = brand.id;
+        option.textContent = brand.brand;
+        franchiseFilterSelect.append(option);
+        optionsByValue.set(brand.id, option);
+      }
+      if (brand.logo) option.dataset.logo = brand.logo;
     });
     franchiseFilterSelect.disabled = getComboboxOptions(franchiseFilterSelect).length === 0;
   }

@@ -88,7 +88,8 @@ function getCurrentViewSettings() {
       locationSearchesExcluded: excludedLocationSearches.map((location) => ({ ...location })),
       categories: {
         included: selectedCategoryValues,
-        excluded: excludedCategoryValues
+        excluded: excludedCategoryValues,
+        hideOthers: hideOtherCategories
       },
       franchisees: {
         included: selectedOwnerIndexes,
@@ -96,7 +97,8 @@ function getCurrentViewSettings() {
       },
       franchises: {
         included: selectedFranchiseIndexes,
-        excluded: excludedFranchiseIndexes
+        excluded: excludedFranchiseIndexes,
+        hideOthers: hideOtherFranchises
       },
       statuses: statusFilterInputs.map((checkbox) => checkbox.checked),
       units: {
@@ -204,6 +206,7 @@ function restoreSavedFilterSelections(settings) {
 
   selectedCategoryValues = getValidSavedSelectValues(categoryFilterSelect, filters.categories?.included);
   excludedCategoryValues = getValidSavedSelectValues(categoryFilterSelect, filters.categories?.excluded);
+  hideOtherCategories = Boolean(filters.categories?.hideOthers);
   setFilterSelectIncludedExcludedValues(categoryFilterSelect, selectedCategoryValues, excludedCategoryValues);
 
   selectedOwnerIndexes = getValidSavedSelectValues(ownerFilterSelect, (filters.franchisees || filters.owners)?.included);
@@ -212,6 +215,7 @@ function restoreSavedFilterSelections(settings) {
 
   selectedFranchiseIndexes = getValidSavedSelectValues(franchiseFilterSelect, filters.franchises?.included);
   excludedFranchiseIndexes = getValidSavedSelectValues(franchiseFilterSelect, filters.franchises?.excluded);
+  hideOtherFranchises = Boolean(filters.franchises?.hideOthers);
   setFilterSelectIncludedExcludedValues(franchiseFilterSelect, selectedFranchiseIndexes, excludedFranchiseIndexes);
 
   const savedStatuses = Array.isArray(filters.statuses) ? filters.statuses : [];
@@ -246,6 +250,8 @@ function restoreSavedFilterSelections(settings) {
       )
     : RADIUS_FILTER_DEFAULTS.value;
   syncRadiusFilterControls();
+  syncHideOtherFranchisesControl();
+  syncHideOtherCategoriesControl();
   restoreFilterSectionState(filters.sections);
   syncFilterComboboxes();
   syncStatusFilterStates();

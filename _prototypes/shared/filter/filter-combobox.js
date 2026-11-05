@@ -23,8 +23,108 @@
         label: option.textContent.trim(),
         value: option.value,
         meta: option.dataset.meta || "",
+        logo: option.dataset.logo || "",
         divider: option.dataset.comboboxDivider === "true"
       }));
+  }
+
+  function getFranchiseSlug(franchiseName) {
+    return String(franchiseName || "")
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/'/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  const franchiseLogoFileOverrides = {
+    "Club Pilates Franchise": "club-pilates.jpg",
+    "Crunch": "crunch-fitness.jpg",
+    "Anytime Fitness": "anytime-fitness.png",
+    "F45 Training": "f45-training.svg",
+    "OrangeTheory Fitness": "orangetheory.jpg",
+    "Crumbl Cookies": "crumbl-cookies.png",
+    "The Learning Experience": "the-learning-experience.png",
+    "Drybar": "drybar.png",
+    "Ace Handyman Services": "ace-handyman-services.png",
+    "StretchLab": "stretchlab.png",
+    "Mathnasium": "mathnasium.png",
+    "MaidPro": "maidpro.png",
+    "Wendy's": "wendys.jpg",
+    "Chili's": "chilis.png",
+    "Papa John's": "papa-johns.png",
+    "Five Guys": "five-guys.png",
+    "Krispy Kreme": "krispy-kreme.png",
+    "Jimmy John's": "jimmy-johns.png",
+    "Dunkin'": "dunkin.jpg",
+    "Blaze Pizza": "blaze-pizza.png",
+    "Outback Steakhouse": "outback-steakhouse.png",
+    "Smoothie King": "smoothie-king.png",
+    "Starbucks": "starbucks.png",
+    "Qdoba": "qdoba.png",
+    "Title Boxing Club": "title-boxing-club.jpg",
+    "Popeyes Louisiana Kitchen": "popeyes-louisiana-kitchen.jpg",
+    "Tropical Smoothie Cafe": "tropical-smoothie-cafe.png",
+    "Aussie Pet Mobile": "aussie-pet-mobile.png",
+    "Burger King": "burger-king.jpg",
+    "Captain D's": "captain-ds.png",
+    "Pizza Hut Traditional": "pizza-hut-traditional.png",
+    "Taco Bell Traditional": "taco-bell.png",
+    "Applebee's": "applebees.png",
+    "Buffalo Wild Wings": "buffalo-wild-wings.png",
+    "Dave's Hot Chicken": "daves-hot-chicken.png",
+    "Denny's": "dennys.png",
+    "European Wax Center": "european-wax-center.png",
+    "Firehouse Subs": "firehouse-subs.png",
+    "IHOP": "ihop.png",
+    "Jersey Mike's": "jersey-mikes.png",
+    "Massage Envy": "massage-envy.png",
+    "Panera Bread": "panera-bread.png",
+    "Phenix Salon Suites": "phenix-salon-suites.png",
+    "Slim Chicken's": "slim-chickens.png",
+    "Tim Hortons": "tim-hortons.png",
+    "Snapology": "snapology.png"
+  };
+
+  function getFranchiseLogoSrc(franchiseName) {
+    const name = String(franchiseName || "").trim();
+    const logoFileName = franchiseLogoFileOverrides[name] || `${getFranchiseSlug(name)}.jpg`;
+    return `../../assets/logos/franchises/${logoFileName}`;
+  }
+
+  function resolveFranchiseLogoUrl(src) {
+    if (!src) return "";
+    if (typeof window.resolvePublicAssetUrl === "function") {
+      return window.resolvePublicAssetUrl(src);
+    }
+    return src;
+  }
+
+  function createFranchiseFilterOptionMark(option) {
+    const franchiseName = String(option?.label || "").trim();
+    const mark = document.createElement("span");
+    const fallback = document.createElement("span");
+    const image = document.createElement("img");
+
+    mark.className = "filter-combobox-option-mark";
+    mark.setAttribute("aria-hidden", "true");
+    fallback.className = "filter-combobox-option-mark-fallback";
+    fallback.textContent = franchiseName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase();
+    fallback.hidden = true;
+    image.alt = "";
+    image.src = resolveFranchiseLogoUrl(option?.logo || getFranchiseLogoSrc(franchiseName));
+    image.addEventListener("error", () => {
+      image.remove();
+      fallback.hidden = false;
+    });
+    mark.append(fallback, image);
+    return mark;
   }
 
   function getFilterSelectValues(select) {
@@ -222,11 +322,12 @@
         return;
       }
 
-      const { label, value, meta } = item;
+      const { label, value, meta, logo } = item;
       const option = document.createElement("option");
       option.value = value;
       option.textContent = label;
       if (meta) option.dataset.meta = meta;
+      if (logo) option.dataset.logo = logo;
       option.selected = selectedValues.has(value);
       select.append(option);
     });
@@ -257,8 +358,12 @@
     creatable = false,
     createLabel = (query) => `Add “${query}”`,
     onCreate = null,
-    openOnQuery = false
+    openOnQuery = false,
+    getOptionMark = null
   } = {}) {
+    const resolveOptionMark = typeof getOptionMark === "function"
+      ? getOptionMark
+      : (select.id === "franchiseFilterSelect" ? createFranchiseFilterOptionMark : null);
     const field = select.closest(".filter-select-field");
     if (!field) return null;
     if (filterComboboxes.has(select)) return filterComboboxes.get(select);
@@ -792,16 +897,24 @@
           optionButton.classList.add("has-meta");
         }
 
+        const optionMark = !option.create && typeof resolveOptionMark === "function"
+          ? resolveOptionMark(option)
+          : null;
+        if (optionMark) {
+          optionButton.classList.add("has-mark");
+          optionButton.append(optionMark);
+        }
+
         if (singleSelect || option.create) {
           const optionCheck = document.createElement("span");
           optionCheck.className = option.create
             ? "filter-combobox-option-create-icon"
             : "filter-combobox-option-check";
           optionCheck.setAttribute("aria-hidden", "true");
-          optionButton.append(optionCheck, optionText);
-        } else {
-          optionButton.append(optionText);
+          optionButton.append(optionCheck);
         }
+
+        optionButton.append(optionText);
 
         if (canRemoveOption) {
           const removeAction = document.createElement("button");
@@ -1310,7 +1423,10 @@
     normalizeText: normalizeComboboxText,
     fitOpenMenus: scheduleFitOpenMenus,
     revealOpenMenu,
-    clearOpenMenuScrollRoom
+    clearOpenMenuScrollRoom,
+    getFranchiseSlug,
+    getFranchiseLogoSrc,
+    createFranchiseOptionMark: createFranchiseFilterOptionMark
   };
 
   window.normalizeComboboxText = normalizeComboboxText;

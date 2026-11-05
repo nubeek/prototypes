@@ -251,6 +251,70 @@ function getOwnerUnitCount(owner) {
   return Array.isArray(owner.units) ? owner.units.length : 0;
 }
 
+// The dump has no brand on a unit. `franchise` is a colour cycled across the
+// operator's brands so a dot can be told apart. `franchises` stays the full list.
+function getAssignedFranchiseName(record) {
+  const assigned = String(record?.franchise || "").trim();
+  if (assigned && !assigned.includes(",")) return assigned;
+
+  if (Array.isArray(record?.franchises) && record.franchises.length === 1) {
+    return String(record.franchises[0]).trim();
+  }
+
+  return assigned.split(",")[0].trim();
+}
+
+function hideOtherFranchisesIsActive() {
+  return hideOtherFranchises && selectedFranchiseIndexes.length > 0;
+}
+
+function hideOtherCategoriesIsActive() {
+  return hideOtherCategories && selectedCategoryValues.length > 0;
+}
+
+function getConceptCategoryId(franchiseName) {
+  const name = String(franchiseName || "").trim();
+  if (!name) return "";
+  return window.cstCategoryByConcept?.[name] || "";
+}
+
+function getAssignedCategoryId(record) {
+  const assigned = String(record?.assignedCategoryId || "").trim();
+  if (assigned) return assigned;
+  return getConceptCategoryId(getAssignedFranchiseName(record));
+}
+
+function recordMatchesVisibleBrandScope(record) {
+  if (hideOtherFranchisesIsActive()) {
+    const franchise = record?.assignedFranchise || getAssignedFranchiseName(record);
+    if (!selectedFranchiseIndexes.includes(franchise)) return false;
+  }
+
+  if (hideOtherCategoriesIsActive()) {
+    const categoryId = record?.assignedCategoryId || getAssignedCategoryId(record);
+    if (!selectedCategoryValues.includes(categoryId)) return false;
+  }
+
+  return true;
+}
+
+function franchiseMatchesVisibleBrandScope(franchiseName) {
+  const name = String(franchiseName || "").trim();
+  if (!name) return false;
+  if (hideOtherFranchisesIsActive() && !selectedFranchiseIndexes.includes(name)) return false;
+  if (hideOtherCategoriesIsActive() && !selectedCategoryValues.includes(getConceptCategoryId(name))) return false;
+  return true;
+}
+
+function getOwnerVisibleUnitCount(owner) {
+  if (!hideOtherFranchisesIsActive() && !hideOtherCategoriesIsActive()) return getOwnerUnitCount(owner);
+
+  const locations = window.ownerLocationsData?.[owner.originalIndex]?.locations;
+  if (!Array.isArray(locations)) return getOwnerUnitCount(owner);
+
+  return locations.filter((location) => recordMatchesVisibleBrandScope(location)).length;
+}
+
 function getOwnerNetWorth(owner) {
   const units = getOwnerUnitCount(owner);
   const maxUnits = Math.max(unitsFilterDefaults?.max || 0, 1);
@@ -292,9 +356,11 @@ let excludedLocationSearches = [];
 let filterLocationSearchControl = null;
 let selectedCategoryValues = [];
 let excludedCategoryValues = [];
+let hideOtherCategories = false;
 let selectedOwnerIndexes = [];
 let excludedOwnerIndexes = [];
 let selectedFranchiseIndexes = [];
+let hideOtherFranchises = false;
 let excludedFranchiseIndexes = [];
 let selectedUnitsMin = unitsFilterDefaults.min;
 let selectedUnitsMax = unitsFilterDefaults.max;

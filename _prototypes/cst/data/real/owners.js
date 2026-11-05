@@ -2,7 +2,7 @@
 // Field names follow the CST API; data/real/overlay.js maps them onto the
 // prototype's owner shape.
 window.cstDumpData = {
-  "generatedAt": "2026-10-07T08:47:55.872Z",
+  "generatedAt": "2026-11-05T14:48:02.172Z",
   "source": "_source",
   "ownersTableTotal": 24126,
   "ownersTablePage": 100,
@@ -8488,8 +8488,8 @@ window.cstDumpData = {
     },
     {
       "publicId": "g908",
-      "name": "Michael Cherney",
-      "groupCode": "Michael Cherney",
+      "name": "Grand Mere Restaurant Group",
+      "groupCode": "Grand Mere Restaurant Group",
       "website": "https://www.gmrestaurantgroup.com/",
       "linkedinUrl": "https://www.linkedin.com/company/gm-restaurant-group/",
       "contactsCount": 2,
@@ -11701,8 +11701,8 @@ window.cstDumpData = {
     },
     {
       "publicId": "zvlm",
-      "name": "JM - Blake-Ward",
-      "groupCode": "JM - Blake-Ward",
+      "name": "JM Lawrence, LLC",
+      "groupCode": "JM Lawrence, LLC",
       "website": "",
       "linkedinUrl": "",
       "contactsCount": 1,
@@ -12630,8 +12630,8 @@ window.cstDumpData = {
     },
     {
       "publicId": "epm6",
-      "name": "Tabbassum Mumtaz",
-      "groupCode": "Tabbassum Mumtaz",
+      "name": "Ampex Brands",
+      "groupCode": "Ampex Brands",
       "website": "http://www.ampexbrands.com/",
       "linkedinUrl": "https://www.linkedin.com/company/ampex-brands-llc/",
       "contactsCount": 5,
@@ -12927,8 +12927,8 @@ window.cstDumpData = {
     },
     {
       "publicId": "dqz3",
-      "name": "Michael Quinn",
-      "groupCode": "Michael Quinn",
+      "name": "JJB Brands",
+      "groupCode": "JJB Brands",
       "website": "https://jjbbrands.com/",
       "linkedinUrl": "https://www.linkedin.com/company/jjb-brands/",
       "contactsCount": 2,
@@ -13588,9 +13588,9 @@ window.cstDumpData = {
     },
     {
       "publicId": "groq",
-      "name": "Estate Freeland",
-      "groupCode": "Estate Freeland",
-      "website": "https://www.pizzahutfwi.com/",
+      "name": "Freeland Group Restaurants",
+      "groupCode": "Freeland Group Restaurants",
+      "website": "https://www.freelandgrouprestaurants.com/",
       "linkedinUrl": "https://www.linkedin.com/company/freeland-group-restaurants/",
       "contactsCount": 5,
       "unitsCount": 63,
@@ -16194,8 +16194,8 @@ window.cstDumpData = {
     },
     {
       "publicId": "e17m",
-      "name": "Kamal Singh",
-      "groupCode": "Kamal Singh",
+      "name": "Emerge Inc.",
+      "groupCode": "Emerge Inc.",
       "website": "https://www.emergeinc.net/",
       "linkedinUrl": "https://www.linkedin.com/company/emergeinc/",
       "contactsCount": 9,
@@ -17426,10 +17426,10 @@ window.cstDumpData = {
     },
     {
       "publicId": "0om3",
-      "name": "GEORGE R MICHELL_MCD",
-      "groupCode": "GEORGE R MICHELL_MCD",
+      "name": "Michell McDonald's Group",
+      "groupCode": "Michell McDonald's Group",
       "website": "",
-      "linkedinUrl": "",
+      "linkedinUrl": "https://www.linkedin.com/company/mcdonald's-michell-enterprises/",
       "contactsCount": 1,
       "unitsCount": 37,
       "contact": {
@@ -18331,10 +18331,10 @@ window.cstDumpData = {
     },
     {
       "publicId": "n5l8",
-      "name": "Taylor Bartels",
-      "groupCode": "Taylor Bartels",
+      "name": "Sphinx Franchise Holdings",
+      "groupCode": "Sphinx Franchise Holdings",
       "website": "",
-      "linkedinUrl": "",
+      "linkedinUrl": "https://www.linkedin.com/company/galleon-holdings-inc/",
       "contactsCount": 1,
       "unitsCount": 33,
       "contact": {

@@ -543,6 +543,8 @@ function getCurrentCstSavedSearchFilters() {
     franchiseesExcluded: [...excludedOwnerIndexes],
     franchises: [...selectedFranchiseIndexes],
     franchisesExcluded: [...excludedFranchiseIndexes],
+    hideOtherFranchises,
+    hideOtherCategories,
     statuses: statusFilterInputs.map((checkbox) => checkbox.checked),
     units: {
       min: selectedUnitsMin,
@@ -597,6 +599,8 @@ function withCstSplashFilterScope(filters, read) {
     selectedContactsMax,
     selectedContactsMin,
     selectedFranchiseIndexes,
+    hideOtherFranchises,
+    hideOtherCategories,
     selectedLocationLabels,
     selectedLocationSearches,
     selectedOwnerIndexes,
@@ -625,6 +629,8 @@ function withCstSplashFilterScope(filters, read) {
     excludedOwnerIndexes = restore.excludedOwnerIndexes;
     selectedFranchiseIndexes = restore.selectedFranchiseIndexes;
     excludedFranchiseIndexes = restore.excludedFranchiseIndexes;
+    hideOtherFranchises = restore.hideOtherFranchises;
+    hideOtherCategories = restore.hideOtherCategories;
     selectedUnitsMin = restore.selectedUnitsMin;
     selectedUnitsMax = restore.selectedUnitsMax;
     selectedContactsMin = restore.selectedContactsMin;
@@ -677,6 +683,8 @@ function applyCstSplashFilterState(filters = {}) {
   excludedOwnerIndexes = getSavedStringArray(filters.franchiseesExcluded || filters.ownersExcluded);
   selectedFranchiseIndexes = getSavedStringArray(filters.franchises);
   excludedFranchiseIndexes = getSavedStringArray(filters.franchisesExcluded);
+  hideOtherFranchises = Boolean(filters.hideOtherFranchises);
+  hideOtherCategories = Boolean(filters.hideOtherCategories);
   selectedUnitsMin = units.min;
   selectedUnitsMax = units.max;
   selectedContactsMin = contacts.min;
@@ -788,7 +796,10 @@ function getCstSplashMatchCounts(filters, { needsUnitCount = true } = {}) {
       matchedOwners.forEach((owner) => {
         const units = window.ownerLocationsData?.[owner.originalIndex]?.units || [];
         units.forEach((unit) => {
-          if (unitRowMatchesFilters(toCstSplashUnitRow(unit))) {
+          if (
+            unitRowMatchesFilters(toCstSplashUnitRow(unit))
+            && recordMatchesVisibleBrandScope(unit)
+          ) {
             unitCount += 1;
           }
         });
@@ -1437,6 +1448,8 @@ function applyCstSplashQuery(filters = {}, { view = "franchisees" } = {}) {
   syncNetWorthFilterControls();
   setFranchiseeRatingMin(selectedFranchiseeRatingMin);
   syncRadiusFilterControls();
+  syncHideOtherFranchisesControl();
+  syncHideOtherCategoriesControl();
   expandCstSplashFilterSections();
 
   if (view !== currentTableView) {
@@ -1675,6 +1688,10 @@ function syncCstSplashMapPanelForSplash(isSplashOpen) {
   }
 
   if (!isSplashOpen && !card.classList.contains("is-map-open")) {
+    // Queries always land on the map. Lock the toolbar tab so it matches the
+    // open panel; otherwise the first click only highlights Map and the
+    // second click is what actually closes it.
+    lockedToolbarMode = "map";
     openMapPanel("map");
   }
 }
@@ -1955,12 +1972,12 @@ function createCstSplashSuggestionIcon(item) {
     icon.classList.add("has-logo");
 
     const fallback = document.createElement("span");
-    fallback.className = "cst-splash__search-suggestion-logo-fallback";
-    fallback.textContent = item.logoFallback || "";
+    window.WefranchFranchiseeLogo.applySplashFallback(fallback, item);
     icon.append(fallback);
 
     if (!item.logoSrc) {
       icon.classList.add("is-logo-missing");
+      window.WefranchFranchiseeLogo.markSplashIconMissing(icon, item);
       return icon;
     }
 
@@ -1971,6 +1988,8 @@ function createCstSplashSuggestionIcon(item) {
     image.addEventListener("error", () => {
       image.remove();
       icon.classList.add("is-logo-missing");
+      window.WefranchFranchiseeLogo.markSplashIconMissing(icon, item);
+      window.WefranchFranchiseeLogo.applySplashFallback(fallback, { ...item, logoSrc: "" });
     });
     icon.append(image);
     return icon;

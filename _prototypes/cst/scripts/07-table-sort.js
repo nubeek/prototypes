@@ -109,7 +109,7 @@ function getFranchiseNameMarkup(franchise) {
 }
 
 function getFranchiseLogosColumn(owner, { showNames = false, containerTag = "div" } = {}) {
-  const franchises = getOwnerFranchises(owner);
+  const franchises = getVisibleOwnerFranchises(owner);
 
   if (!franchises.length) {
     return `<span class="franchise-text">${owner.franchise}</span>`;
@@ -133,12 +133,12 @@ function getLocationOrganizationColumn(row) {
   return `
     <span class="location-organization-cell">
       <span class="ui-tile logo location-organization-logo" aria-hidden="true">
-        <span class="owner-logo-fallback ${owner.logoSrc ? "" : "is-visible"}">${getInitials(owner.ownerName)}</span>
+        ${window.WefranchFranchiseeLogo.getFranchiseeLogoFallbackMarkup({ visible: !owner.logoSrc })}
         ${owner.logoSrc ? `
           <img
             src="${owner.logoSrc}"
             alt=""
-            onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+            onerror="${window.WefranchFranchiseeLogo.IMG_ERROR_HANDLER}"
           >
         ` : ""}
       </span>
@@ -487,12 +487,12 @@ function renderFranchisees(rows) {
           <td>
             <div class="name-cell">
               <div class="ui-tile logo">
-                <span class="owner-logo-fallback ${owner.logoSrc ? "" : "is-visible"}">${getInitials(owner.ownerName)}</span>
+                ${window.WefranchFranchiseeLogo.getFranchiseeLogoFallbackMarkup({ visible: !owner.logoSrc })}
                 ${owner.logoSrc ? `
                   <img
                     src="${owner.logoSrc}"
                     alt="${owner.logoAlt}"
-                    onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
+                    onerror="${window.WefranchFranchiseeLogo.IMG_ERROR_HANDLER}"
                   >
                 ` : ""}
               </div>
@@ -543,7 +543,7 @@ function renderFranchisees(rows) {
               aria-pressed="${activeMapOwnerIndex === owner.originalIndex}"
               aria-label="Show ${owner.ownerName} locations on the map"
             >
-              <span>${getOwnerUnitCount(owner)}</span>
+              <span>${getOwnerVisibleUnitCount(owner)}</span>
               <img class="location-chevron" src="../../assets/icons/arrows.svg" alt="" aria-hidden="true">
             </button>
           </td>
@@ -592,7 +592,9 @@ function getOwnerLocationRows(owner) {
       categoryId,
       categoryIds: categoryId ? [categoryId] : [],
       franchise,
-      franchises: unitFranchises
+      franchises: unitFranchises,
+      assignedFranchise: getAssignedFranchiseName(unit),
+      assignedCategoryId: getAssignedCategoryId(unit)
     };
   });
 }
@@ -765,11 +767,15 @@ function getFilteredLocationRows() {
     ? getProspectDatasetRows(currentTableView)
       .filter((row) => unitRowMatchesFilters(row))
       .filter((row) => locationRowMatchesSearchQuery(row))
+      .filter((row) => rowMatchesVisibleFranchiseScope(row))
+      .filter((row) => rowMatchesVisibleCategoryScope(row))
     : owners
       .filter(ownerMatchesLocationTableFilters)
       .flatMap((owner) => getOwnerLocationRows(owner))
       .filter((row) => unitRowMatchesFilters(row))
-      .filter((row) => locationRowMatchesSearchQuery(row));
+      .filter((row) => locationRowMatchesSearchQuery(row))
+      .filter((row) => rowMatchesVisibleFranchiseScope(row))
+      .filter((row) => rowMatchesVisibleCategoryScope(row));
 
   filteredLocationRowsCache = { key: cacheKey, rows: matchedRows };
   return matchedRows.slice();
@@ -780,7 +786,7 @@ function getLocationSortValue(row, key) {
   if (key === "contactName") return row.name;
   if (key === "email") return row.email;
   if (key === "franchise") return row.franchise;
-  if (key === "category") return window.WefranchCategories.getRecordLabel(row);
+  if (key === "category") return getVisibleCategoryLabel(row);
   if (key === "phone") return row.phone;
   return row.location;
 }
@@ -948,13 +954,59 @@ function getDatasetNameCellMarkup(row) {
   `;
 }
 
+function getVisibleCategoryLabel(record) {
+  if (!hideOtherCategoriesIsActive()) return window.WefranchCategories.getRecordLabel(record);
+
+  const assignedCategoryId = record?.assignedFranchise || record?.assignedCategoryId
+    ? getAssignedCategoryId(record)
+    : "";
+  if (assignedCategoryId && selectedCategoryValues.includes(assignedCategoryId)) {
+    return window.WefranchCategories.getLabel(assignedCategoryId);
+  }
+
+  return window.WefranchCategories.getRecordIds(record)
+    .filter((categoryId) => selectedCategoryValues.includes(categoryId))
+    .map((categoryId) => window.WefranchCategories.getLabel(categoryId))
+    .filter(Boolean)
+    .join(", ");
+}
+
+function getDisplayedRowFranchises(row) {
+  const scopeActive = hideOtherFranchisesIsActive() || hideOtherCategoriesIsActive();
+  if (!scopeActive) return row.franchises || [];
+  if (row.assignedFranchise && franchiseMatchesVisibleBrandScope(row.assignedFranchise)) {
+    return [row.assignedFranchise];
+  }
+  return (row.franchises || []).filter((franchise) => franchiseMatchesVisibleBrandScope(franchise));
+}
+
+function rowMatchesVisibleFranchiseScope(row) {
+  if (!hideOtherFranchisesIsActive()) return true;
+  if (row.assignedFranchise) return selectedFranchiseIndexes.includes(row.assignedFranchise);
+  return (row.franchises || []).some((franchise) => selectedFranchiseIndexes.includes(franchise));
+}
+
+function rowMatchesVisibleCategoryScope(row) {
+  if (!hideOtherCategoriesIsActive()) return true;
+  if (row.assignedFranchise || row.assignedCategoryId) {
+    return selectedCategoryValues.includes(getAssignedCategoryId(row));
+  }
+  const franchises = row.franchises || [];
+  if (franchises.length) {
+    return franchises.some((franchise) => selectedCategoryValues.includes(getConceptCategoryId(franchise)));
+  }
+  return window.WefranchCategories.getRecordIds(row)
+    .some((categoryId) => selectedCategoryValues.includes(categoryId));
+}
+
 function getDatasetFranchiseCellMarkup(row) {
-  if (!row.franchises.length) {
+  const franchises = getDisplayedRowFranchises(row);
+  if (!franchises.length) {
     return getDatasetCellValueMarkup("");
   }
 
-  const [firstFranchise, ...rest] = row.franchises;
-  const title = row.franchises.join(", ");
+  const [firstFranchise, ...rest] = franchises;
+  const title = franchises.join(", ");
   return `
     <span class="dataset-franchise-cell" title="${title}">
       ${getFranchiseLogosColumn(
@@ -1051,7 +1103,7 @@ function renderLocations(rows) {
           <td class="location-inner-hover-cell">
             ${getDatasetInstitutionCellMarkup(row)}
           </td>
-          <td>${getDatasetCellValueMarkup(window.WefranchCategories.getRecordLabel(row))}</td>
+          <td>${getDatasetCellValueMarkup(getVisibleCategoryLabel(row))}</td>
         </tr>
       `;
     })
@@ -1062,7 +1114,7 @@ function renderLocations(rows) {
 
 function getSortValue(owner, key) {
   if (key === "contacts") return getOwnerContactCount(owner);
-  if (key === "locations") return getOwnerUnitCount(owner);
+  if (key === "locations") return getOwnerVisibleUnitCount(owner);
   if (key === "franchise") return getFranchiseCount(owner);
   if (key === "category") return window.WefranchCategories.getRecordLabel(owner);
   return owner[key] || "";
@@ -1345,7 +1397,7 @@ function unitsFilterIsActive() {
 }
 
 function ownerMatchesUnitsFilter(owner) {
-  const units = getOwnerUnitCount(owner);
+  const units = getOwnerVisibleUnitCount(owner);
   return Number.isFinite(units) && units >= selectedUnitsMin && units <= selectedUnitsMax;
 }
 
@@ -1444,6 +1496,8 @@ function getCstFilterResultCacheKey(ownerIndex = null) {
     excludedOwnerIndexes.join("\u0001"),
     selectedFranchiseIndexes.join("\u0001"),
     excludedFranchiseIndexes.join("\u0001"),
+    hideOtherFranchises ? "1" : "0",
+    hideOtherCategories ? "1" : "0",
     selectedUnitsMin,
     selectedUnitsMax,
     selectedContactsMin,

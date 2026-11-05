@@ -1,5 +1,6 @@
 @import url("./proto-scrollbar.css");
 @import url("./ui-button.css");
+@import url("./franchisee-logo-placeholder.css");
 
 /* Shared prototype type, control, and table-row scale.
    Import this first from a page stylesheet (or rely on proto-modal /
@@ -117,13 +118,13 @@ table.is-franchisees-table tbody > tr > td {
 .raw-avatar,
 .org-person-avatar,
 .org-branch-avatar,
-.owner-logo-fallback,
+.owner-logo-fallback:not(.is-franchisee-placeholder),
 .owner-profile-logo-fallback,
-.owner-detail-logo:not(:has(img)),
+.owner-detail-logo:not(:has(img)):not(.is-franchisee-placeholder),
 .franchise-logo-fallback,
 .owner-detail-franchise-logo-fallback,
 .target-franchise-logo-fallback,
-.cst-splash__search-suggestion-logo-fallback,
+.cst-splash__search-suggestion-logo-fallback:not(.is-franchisee-placeholder),
 .territory-crossroad__search-suggestion-logo-fallback {
   background-color: var(--color-initials-bg);
   background-image: none;
