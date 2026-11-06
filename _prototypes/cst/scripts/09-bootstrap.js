@@ -328,6 +328,12 @@ if (categoryFilterSelect) {
     setHideOtherCategories(event.currentTarget.checked, { refresh: true });
   });
 
+  window.bindActionTooltip?.(document.getElementById("hideOtherCategoriesInfo"), {
+    tooltipText: "Hide brands outside your selection,\nincluding their units.",
+    tooltipClass: "filter-scope-info-tooltip",
+    hideDelayMs: 0
+  });
+
   enhanceFilterCombobox(categoryFilterSelect, { allowExclude: true });
 }
 
@@ -408,6 +414,12 @@ if (franchiseFilterSelect) {
 
   document.getElementById("hideOtherFranchisesToggle")?.addEventListener("change", (event) => {
     setHideOtherFranchises(event.currentTarget.checked, { refresh: true });
+  });
+
+  window.bindActionTooltip?.(document.getElementById("hideOtherFranchisesInfo"), {
+    tooltipText: "Hide brands outside your selection,\nincluding their units.",
+    tooltipClass: "filter-scope-info-tooltip",
+    hideDelayMs: 0
   });
 
   enhanceFilterCombobox(franchiseFilterSelect, {

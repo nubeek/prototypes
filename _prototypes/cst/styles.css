@@ -3867,9 +3867,18 @@ h1 {
   container-type: inline-size;
 }
 
-.table-wrap.is-empty table {
+.table-wrap.is-empty > table {
+  /* Leave table layout and the column min widths stop stretching the
+     scrollport. Otherwise the map panel's horizontal scroll stays pinned
+     right and carries the empty-state overlay off the left edge. */
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 0;
+  overflow: hidden;
   visibility: hidden;
   pointer-events: none;
+  border: 0;
 }
 
 
@@ -3910,6 +3919,10 @@ table {
 
 .table-wrap > table.locations-table {
   min-width: max(100%, 1604px);
+}
+
+.table-wrap.is-empty > table.locations-table {
+  min-width: 0;
 }
 
 th {
@@ -4727,50 +4740,6 @@ tbody tr.is-checked:hover td:first-child {
   cursor: default !important;
 }
 
-.owner-icon-link.is-disabled::after {
-  content: none;
-}
-
-.owner-icon-link::after {
-  content: attr(data-tooltip);
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  z-index: 100;
-  width: max-content;
-  max-width: 220px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
-  color: #17171c;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.25;
-  text-align: center;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -6px);
-  transition: opacity 140ms ease, transform 200ms ease;
-}
-
-.owner-icon-link:hover::after,
-.owner-icon-link:focus-visible::after {
-  display: block;
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-@starting-style {
-  .owner-icon-link:hover::after,
-  .owner-icon-link:focus-visible::after {
-    opacity: 0;
-    transform: translate(-50%, -6px);
-  }
-}
-
 .icon {
   display: block;
   flex: 0 0 auto;
@@ -5213,48 +5182,6 @@ a.franchise-name:focus-visible {
   letter-spacing: -0.04em;
 }
 
-.franchise-logo::after {
-  content: attr(data-tooltip);
-  /* Hidden with display: none, not visibility, so the tooltip box cannot widen
-     the scroll area of the table it sits in. */
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  z-index: 100;
-  width: max-content;
-  max-width: 220px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.12);
-  color: #17171c;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.25;
-  text-align: center;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -6px);
-  transition: opacity 140ms ease, transform 200ms ease;
-}
-
-.franchise-logo:hover::after,
-.franchise-logo:focus-visible::after {
-  display: block;
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-@starting-style {
-  .franchise-logo:hover::after,
-  .franchise-logo:focus-visible::after {
-    opacity: 0;
-    transform: translate(-50%, -6px);
-  }
-}
-
 .contacts-mode-cell {
   text-align: left;
 }
@@ -5343,6 +5270,10 @@ a.franchise-name:focus-visible {
   .card.is-map-open .table-wrap > table:not(.raw-data-table) {
     width: 100%;
     min-width: max(100%, 760px);
+  }
+
+  .card.is-map-open .table-wrap.is-empty > table:not(.raw-data-table) {
+    min-width: 0;
   }
 
   .card.is-map-open .name-cell {

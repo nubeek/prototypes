@@ -56,8 +56,9 @@
         return true;
       }
 
-      if (tooltipText) {
-        el.textContent = tooltipText;
+      const liveTooltipText = trigger.dataset.tooltip || tooltipText;
+      if (liveTooltipText) {
+        el.textContent = liveTooltipText;
         return true;
       }
 

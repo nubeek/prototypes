@@ -208,6 +208,25 @@ function syncRadiusFilterControls(options = {}) {
   });
 }
 
+function getHideOtherBrandsCopy(enabled) {
+  return enabled
+    ? {
+        label: "Show other brands",
+        tooltip: "Show brands outside your selection,\nincluding their units."
+      }
+    : {
+        label: "Hide other brands",
+        tooltip: "Hide brands outside your selection,\nincluding their units."
+      };
+}
+
+function syncHideOtherBrandsInfo(info, enabled) {
+  if (!info) return;
+  const tooltipText = getHideOtherBrandsCopy(enabled).tooltip;
+  info.dataset.tooltip = tooltipText;
+  info.setAttribute("aria-label", tooltipText.replace("\n", " "));
+}
+
 function syncHideOtherCategoriesControl() {
   const canHide = selectedCategoryValues.length > 0;
   if (!canHide) hideOtherCategories = false;
@@ -225,8 +244,10 @@ function syncHideOtherCategoriesControl() {
   setFilterCheckboxState(toggle, hideOtherCategories);
   const text = document.getElementById("hideOtherCategoriesText");
   if (text) {
-    text.textContent = hideOtherCategories ? "Show others" : "Hide others";
+    text.textContent = getHideOtherBrandsCopy(hideOtherCategories).label;
   }
+
+  syncHideOtherBrandsInfo(document.getElementById("hideOtherCategoriesInfo"), hideOtherCategories);
 }
 
 function setHideOtherCategories(enabled, { refresh = false } = {}) {
@@ -264,8 +285,10 @@ function syncHideOtherFranchisesControl() {
   setFilterCheckboxState(toggle, hideOtherFranchises);
   const text = document.getElementById("hideOtherFranchisesText");
   if (text) {
-    text.textContent = hideOtherFranchises ? "Show other franchises" : "Hide other franchises";
+    text.textContent = getHideOtherBrandsCopy(hideOtherFranchises).label;
   }
+
+  syncHideOtherBrandsInfo(document.getElementById("hideOtherFranchisesInfo"), hideOtherFranchises);
 }
 
 function setHideOtherFranchises(enabled, { refresh = false } = {}) {

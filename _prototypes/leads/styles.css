@@ -2551,21 +2551,8 @@ tbody tr.is-checked:hover td:nth-child(2) {
 }
 
 .filter-empty-values-info {
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--transition-fast), background-color var(--transition-fast);
 }
 
 .filter-section:hover .filter-empty-values-info,
@@ -2573,29 +2560,6 @@ tbody tr.is-checked:hover td:nth-child(2) {
 .filter-empty-values-info:focus-visible {
   opacity: 1;
   pointer-events: auto;
-}
-
-.filter-empty-values-info:hover,
-.filter-empty-values-info:focus-visible {
-  background: var(--color-surface-control);
-}
-
-.filter-empty-values-info:focus-visible {
-  outline: 2px solid var(--color-brand-primary);
-  outline-offset: 2px;
-}
-
-.filter-empty-values-info img {
-  display: block;
-  width: 16px;
-  height: 16px;
-  filter: var(--color-chevron-soft);
-  transition: filter var(--transition-fast);
-}
-
-.filter-empty-values-info:hover img,
-.filter-empty-values-info:focus-visible img {
-  filter: brightness(0) saturate(100%);
 }
 
 .filter-combobox-floating-tooltip.filter-empty-values-tooltip {

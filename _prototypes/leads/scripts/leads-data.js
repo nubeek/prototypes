@@ -1300,7 +1300,7 @@
       toSelectOptions(getFranchiseOptions()),
       selectedFranchises,
       excludedFranchises,
-      "Select franchise"
+      "Select brand"
     );
   }
 
@@ -1344,7 +1344,7 @@
   function initFilterComboboxes() {
     enhanceSelectFilter(locationFilterSelect, toSelectOptions(getLocationOptions()), "Select location");
     enhanceSelectFilter(categoryFilterSelect, getCategoryFilterOptions(), "Select category");
-    enhanceSelectFilter(franchiseFilterSelect, toSelectOptions(getFranchiseOptions()), "Select franchise");
+    enhanceSelectFilter(franchiseFilterSelect, toSelectOptions(getFranchiseOptions()), "Select brand");
     enhanceSelectFilter(companyFilterSelect, toSelectOptions(getCompanyOptions()), "Select company");
     enhanceSelectFilter(savedSearchFilterSelect, getSavedSearchFilterOptions(), "Select Prospects search");
   }

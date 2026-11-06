@@ -33,6 +33,7 @@ function placeFloatingTooltip(tooltip, target, { anchorToText = false } = {}) {
 
   tooltip.classList.add("is-visible");
   tooltip.style.width = "";
+  window.fitTooltipToContent?.(tooltip);
 
   const targetRect = anchorToText && window.getElementTextBoundingRect
     ? window.getElementTextBoundingRect(target)
@@ -153,6 +154,78 @@ async function copyTextToClipboard(text) {
     document.execCommand("copy");
     textarea.remove();
   }
+}
+
+const TABLE_ANCHOR_TOOLTIP_SELECTOR = ".franchise-logo[data-tooltip], .owner-icon-link[data-tooltip]";
+
+let tableAnchorTooltip = null;
+let tableAnchorTooltipTarget = null;
+
+function getTableAnchorTooltip() {
+  if (!tableAnchorTooltip) {
+    tableAnchorTooltip = document.createElement("div");
+    tableAnchorTooltip.className = "filter-combobox-floating-tooltip";
+    tableAnchorTooltip.setAttribute("role", "tooltip");
+  }
+
+  return tableAnchorTooltip;
+}
+
+function getTableAnchorTooltipTarget(element) {
+  if (!(element instanceof Element)) return null;
+  return element.closest(TABLE_ANCHOR_TOOLTIP_SELECTOR);
+}
+
+function showTableAnchorTooltip(target) {
+  const tooltipText = target?.dataset.tooltip;
+  if (!tooltipText) return;
+
+  tableAnchorTooltipTarget = target;
+  const tooltip = getTableAnchorTooltip();
+  tooltip.textContent = tooltipText;
+  placeFloatingTooltip(tooltip, target);
+}
+
+function hideTableAnchorTooltip() {
+  tableAnchorTooltipTarget = null;
+  tableAnchorTooltip?.classList.remove("is-visible");
+}
+
+function initTableAnchorTooltips() {
+  document.addEventListener("mouseover", (event) => {
+    const target = getTableAnchorTooltipTarget(event.target);
+    if (!target || target === tableAnchorTooltipTarget) return;
+    showTableAnchorTooltip(target);
+  });
+
+  document.addEventListener("mouseout", (event) => {
+    const target = getTableAnchorTooltipTarget(event.target);
+    if (!target || target !== tableAnchorTooltipTarget) return;
+
+    const relatedTarget = event.relatedTarget;
+    if (relatedTarget instanceof Node && target.contains(relatedTarget)) return;
+
+    hideTableAnchorTooltip();
+  });
+
+  document.addEventListener("focusin", (event) => {
+    const target = getTableAnchorTooltipTarget(event.target);
+    if (!target) return;
+    showTableAnchorTooltip(target);
+  });
+
+  document.addEventListener("focusout", (event) => {
+    const target = getTableAnchorTooltipTarget(event.target);
+    if (!target || target !== tableAnchorTooltipTarget) return;
+
+    const relatedTarget = event.relatedTarget;
+    if (relatedTarget instanceof Node && target.contains(relatedTarget)) return;
+
+    hideTableAnchorTooltip();
+  });
+
+  document.addEventListener("scroll", hideTableAnchorTooltip, { passive: true, capture: true });
+  window.addEventListener("resize", hideTableAnchorTooltip);
 }
 
 function initContactActionTooltips() {
@@ -501,4 +574,5 @@ function initContactMoreMenu() {
 
 initContactActionTooltips();
 initContactEmailSendTooltips();
+initTableAnchorTooltips();
 initContactMoreMenu();

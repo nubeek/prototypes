@@ -510,8 +510,8 @@ function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
       if (ownerIndex === null && excludedMapOwnerIndexes?.has(index)) return [];
 
       // A brand or category filter selects operators, so every unit stays unless
-      // Hide other franchises or Hide others is on. Those options keep only the
-      // units that belong to the selection, matching the unit count in the table.
+      // Hide other brands is on. That option keeps only the units in the
+      // selection, matching the unit count in the table.
       return owner.locations
         .filter((location) => (
           mapLocationMatchesSelectedFilter(location)

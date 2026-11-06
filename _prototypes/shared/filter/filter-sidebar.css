@@ -942,6 +942,7 @@
   text-align: center;
   text-wrap: balance;
   white-space: pre-line;
+  overflow-wrap: anywhere;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -2035,6 +2036,60 @@
 .filter-scope-section__content {
   min-height: 0;
   overflow: hidden;
+}
+
+.filter-scope-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filter-info {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+}
+
+.filter-info:hover,
+.filter-info:focus-visible {
+  background: var(--color-surface-control);
+}
+
+.filter-info:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.filter-info img {
+  display: block;
+  width: 16px;
+  height: 16px;
+  filter: var(--color-chevron-soft);
+  pointer-events: none;
+  transition: filter var(--transition-fast);
+}
+
+.filter-info:hover img,
+.filter-info:focus-visible img {
+  filter: brightness(0) saturate(100%);
+}
+
+.filter-combobox-floating-tooltip.filter-scope-info-tooltip {
+  max-width: 280px;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: pre-line;
+  text-wrap: wrap;
 }
 
 .filter-radius-section .filter-radius-control {
