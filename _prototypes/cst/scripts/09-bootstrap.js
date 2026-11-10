@@ -76,7 +76,9 @@ if (tableBody) {
     const locationButton = event.target.closest(".locations");
     if (locationButton) {
       event.stopPropagation();
-      toggleRowSidebarView("map", Number(locationButton.dataset.ownerIndex), { scrollTable: true });
+      // The map stays behind the info card and still shows this franchisee's
+      // units, so Units opens the card the same way the row does.
+      openFranchiseeFromTable(Number(locationButton.dataset.ownerIndex), { scrollTable: true });
       return;
     }
 
@@ -176,16 +178,7 @@ if (tableBody) {
     const row = event.target.closest("tr[data-owner-index]");
     if (!row) return;
 
-    const ownerIndex = Number(row.dataset.ownerIndex);
-    const owner = owners.find((item) => item.originalIndex === ownerIndex);
-    if (!owner) return;
-
-    const rowSidebarMode = lockedToolbarMode === "map" || lockedToolbarMode === "org"
-      ? lockedToolbarMode
-      : "raw";
-    if (rowSidebarMode === "raw" && !isRawDataAvailable(owner)) return;
-
-    toggleRowSidebarView(rowSidebarMode, ownerIndex);
+    openFranchiseeFromTable(Number(row.dataset.ownerIndex));
   });
 
   tableBody.addEventListener("keydown", (event) => {
@@ -292,7 +285,6 @@ if (ownerFilterSelect) {
   ownerFilterSelect.addEventListener("change", () => {
     selectedOwnerIndexes = getFilterSelectIncludedValues(ownerFilterSelect);
     excludedOwnerIndexes = getFilterSelectExcludedValues(ownerFilterSelect);
-    activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
     syncOwnerExcludeState();
     refreshFilteredViews();
@@ -317,7 +309,6 @@ if (categoryFilterSelect) {
     selectedCategoryValues = getFilterSelectIncludedValues(categoryFilterSelect);
     excludedCategoryValues = getFilterSelectExcludedValues(categoryFilterSelect);
     syncHideOtherCategoriesControl();
-    activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
     refreshFilteredViews();
     syncOpenOrgPanelWithSelection();
@@ -329,7 +320,7 @@ if (categoryFilterSelect) {
   });
 
   window.bindActionTooltip?.(document.getElementById("hideOtherCategoriesInfo"), {
-    tooltipText: "Hide brands outside your selection,\nincluding their units.",
+    tooltipText: "Hide categories outside your selection,\nincluding their units.",
     tooltipClass: "filter-scope-info-tooltip",
     hideDelayMs: 0
   });
@@ -405,7 +396,6 @@ if (franchiseFilterSelect) {
     selectedFranchiseIndexes = getFilterSelectIncludedValues(franchiseFilterSelect);
     excludedFranchiseIndexes = getFilterSelectExcludedValues(franchiseFilterSelect);
     syncHideOtherFranchisesControl();
-    activeMapOwnerIndex = null;
     activeOrgOwnerIndex = null;
     refreshFilteredViews();
     syncOpenOrgPanelWithSelection();
@@ -558,24 +548,42 @@ if (orgChartToggle && card) {
   orgChartToggle.addEventListener("click", () => handleToolbarTabClick("org"));
 }
 
-if (mapPanel && ownerMapHeader) {
+if (mapPanel) {
   mapPanel.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
 
-    const viewButton = event.target.closest(".owner-header-view-btn");
-    if (viewButton && ownerMapHeader.contains(viewButton)) {
-      handleOwnerHeaderViewButton(viewButton);
+    const inInfoCard = Boolean(ownerInfoCard && ownerInfoCard.contains(event.target));
+
+    const franchiseFilterButton = event.target.closest(".map-info-card__franchise-filter");
+    if (franchiseFilterButton && inInfoCard) {
+      event.preventDefault();
+      hideTableAnchorTooltip();
+      addFranchiseToBrandFilter(franchiseFilterButton.dataset.franchise);
       return;
     }
 
-    const ownerAction = event.target.closest(".owner-header-owner-action");
-    if (ownerAction && ownerMapHeader.contains(ownerAction)) {
-      openOwnerDetailsFromHeader(Number(ownerAction.dataset.ownerIndex));
+    const statButton = event.target.closest("[data-owner-stat]");
+    if (statButton && inInfoCard) {
+      const ownerIndex = Number(statButton.dataset.ownerIndex);
+      if (statButton.dataset.ownerStat === "contacts") {
+        openOwnerOrgChartFromCard(ownerIndex);
+      } else if (statButton.dataset.ownerStat === "units") {
+        focusOwnerCardUnits();
+      } else if (statButton.dataset.ownerStat === "brands") {
+        scrollOwnerInfoCardToBrands();
+      }
       return;
     }
 
-    const closeButton = event.target.closest(".owner-detail-close");
-    if (!closeButton || !ownerMapHeader.contains(closeButton)) return;
+    const contactButton = event.target.closest("[data-owner-info-contact]");
+    if (contactButton && inInfoCard) {
+      const ownerIndex = Number(contactButton.dataset.ownerIndex);
+      openPersonProfile(getPersonProfileFromOwnerContact(ownerIndex), contactButton);
+      return;
+    }
+
+    const closeButton = event.target.closest(".owner-detail-close, .map-info-card__close");
+    if (!closeButton || !inInfoCard) return;
 
     handleSidebarClose();
   });
@@ -583,6 +591,21 @@ if (mapPanel && ownerMapHeader) {
 
 if (ownerDetailsPanel) {
   ownerDetailsPanel.addEventListener("scroll", syncOwnerHeaderScrollState);
+  ownerDetailsPanel.addEventListener("change", (event) => {
+    const checkbox = event.target;
+    if (!(checkbox instanceof HTMLInputElement) || !checkbox.closest(".org-contacts-table")) return;
+
+    if (checkbox.hasAttribute("data-org-contacts-select-all")) {
+      setAllOrgContactsSelected(checkbox.checked);
+      return;
+    }
+
+    const row = checkbox.closest("tr[data-org-node-id]");
+    if (!row) return;
+    setOrgContactSelected(row.dataset.orgNodeId, checkbox.checked, row);
+  });
+  ownerDetailsPanel.addEventListener("wheel", cancelOrgLevelScroll, { passive: true });
+  ownerDetailsPanel.addEventListener("touchstart", cancelOrgLevelScroll, { passive: true });
 
   ownerDetailsPanel.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
@@ -590,6 +613,22 @@ if (ownerDetailsPanel) {
     const viewButton = event.target.closest(".owner-header-view-btn");
     if (viewButton) {
       handleOwnerHeaderViewButton(viewButton);
+      return;
+    }
+
+    const orgSortHeader = event.target.closest(".org-contacts-table .sortable-header");
+    if (orgSortHeader) {
+      cycleOrgContactsSort(orgSortHeader.dataset.orgContactsSort);
+      return;
+    }
+
+    const orgContactRow = event.target.closest(".org-contacts-table tbody tr[data-org-node-id]");
+    if (orgContactRow && !event.target.closest(".location-row-select")) {
+      const ownerIndex = Number(orgContactRow.dataset.ownerIndex);
+      const nodeId = orgContactRow.dataset.orgNodeId;
+      if (!Number.isNaN(ownerIndex) && nodeId) {
+        openPersonProfile(getPersonProfileFromOrgNode(ownerIndex, nodeId), orgContactRow);
+      }
       return;
     }
 
@@ -648,12 +687,6 @@ if (ownerDetailsPanel) {
       return;
     }
 
-    const mapLink = event.target.closest(".owner-detail-map-link");
-    if (mapLink) {
-      toggleRowSidebarView("map", Number(mapLink.dataset.ownerIndex));
-      return;
-    }
-
     const detailLeadButton = event.target.closest(".owner-detail-contact-lead-action");
     if (detailLeadButton) {
       const ownerIndex = Number(detailLeadButton.dataset.ownerIndex);
@@ -665,12 +698,7 @@ if (ownerDetailsPanel) {
     if (orgCountToggle) {
       const ownerIndex = Number(orgCountToggle.dataset.ownerIndex);
       const nodeId = orgCountToggle.dataset.orgNodeId;
-      if (!Number.isNaN(ownerIndex) && nodeId) {
-        const orgChart = getOwnerOrgChart(ownerIndex);
-        const changedNodeIds = toggleOrgNodeCollapsed(ownerIndex, nodeId, orgChart?.nodes || []);
-        changedNodeIds.forEach((changedNodeId) => syncOrgCollapsedUi(ownerIndex, changedNodeId));
-        syncOrgInactiveCards(ownerIndex, orgChart?.nodes || []);
-      }
+      if (!Number.isNaN(ownerIndex) && nodeId) revealOrgLevel(ownerIndex, nodeId);
       return;
     }
 
@@ -678,12 +706,7 @@ if (ownerDetailsPanel) {
     if (orgHeaderToggle) {
       const ownerIndex = Number(orgHeaderToggle.dataset.ownerIndex);
       const nodeId = orgHeaderToggle.dataset.orgNodeId;
-      if (!Number.isNaN(ownerIndex) && nodeId) {
-        const orgChart = getOwnerOrgChart(ownerIndex);
-        const changedNodeIds = toggleOrgNodeCollapsed(ownerIndex, nodeId, orgChart?.nodes || []);
-        changedNodeIds.forEach((changedNodeId) => syncOrgCollapsedUi(ownerIndex, changedNodeId));
-        syncOrgInactiveCards(ownerIndex, orgChart?.nodes || []);
-      }
+      if (!Number.isNaN(ownerIndex) && nodeId) revealOrgLevel(ownerIndex, nodeId);
       return;
     }
 

@@ -1425,7 +1425,6 @@ function applyCstSplashQuery(filters = {}, { view = "franchisees" } = {}) {
   view = normalizeTableView(view);
   resetCstFilterSelections({ refresh: false });
   applyCstSplashFilterState(filters);
-  activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
 
   syncFilterLocationSearchUI();

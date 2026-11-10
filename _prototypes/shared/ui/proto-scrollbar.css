@@ -23,7 +23,8 @@
   .map-panel.is-org-mode .owner-detail-panel,
   .cst-splash,
   .territory-crossroad,
-  .territory-info-card__scroll
+  .territory-info-card__scroll,
+  .map-info-card__scroll
 ) {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) transparent;
@@ -43,7 +44,8 @@
   .map-panel.is-org-mode .owner-detail-panel,
   .cst-splash,
   .territory-crossroad,
-  .territory-info-card__scroll
+  .territory-info-card__scroll,
+  .map-info-card__scroll
 )::-webkit-scrollbar {
   width: var(--scrollbar-size);
 }
@@ -62,7 +64,8 @@
   .map-panel.is-org-mode .owner-detail-panel,
   .cst-splash,
   .territory-crossroad,
-  .territory-info-card__scroll
+  .territory-info-card__scroll,
+  .map-info-card__scroll
 )::-webkit-scrollbar-track {
   background: transparent;
 }
@@ -81,7 +84,8 @@
   .map-panel.is-org-mode .owner-detail-panel,
   .cst-splash,
   .territory-crossroad,
-  .territory-info-card__scroll
+  .territory-info-card__scroll,
+  .map-info-card__scroll
 )::-webkit-scrollbar-thumb {
   border-radius: var(--radius-pill);
   background: var(--scrollbar-thumb);

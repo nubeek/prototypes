@@ -75,7 +75,6 @@ function syncStatusFilterStates() {
 }
 
 function refreshRangeFilterResults() {
-  activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
   refreshFilteredViews();
   syncOpenOrgPanelWithSelection();
@@ -208,35 +207,26 @@ function syncRadiusFilterControls(options = {}) {
   });
 }
 
-function getHideOtherBrandsCopy(enabled) {
+function getHideOtherScopeCopy(enabled, noun) {
   return enabled
     ? {
-        label: "Show other brands",
-        tooltip: "Show brands outside your selection,\nincluding their units."
+        label: `Show other ${noun}`,
+        tooltip: `Show ${noun} outside your selection,\nincluding their units.`
       }
     : {
-        label: "Hide other brands",
-        tooltip: "Hide brands outside your selection,\nincluding their units."
+        label: `Hide other ${noun}`,
+        tooltip: `Hide ${noun} outside your selection,\nincluding their units.`
       };
 }
 
-function syncHideOtherBrandsInfo(info, enabled) {
+function syncHideOtherScopeInfo(info, enabled, noun) {
   if (!info) return;
-  const tooltipText = getHideOtherBrandsCopy(enabled).tooltip;
+  const tooltipText = getHideOtherScopeCopy(enabled, noun).tooltip;
   info.dataset.tooltip = tooltipText;
   info.setAttribute("aria-label", tooltipText.replace("\n", " "));
 }
 
 function syncHideOtherCategoriesControl() {
-  const canHide = selectedCategoryValues.length > 0;
-  if (!canHide) hideOtherCategories = false;
-
-  const section = document.getElementById("hideOtherCategoriesSection");
-  if (section) {
-    section.classList.toggle("is-visible", canHide);
-    section.setAttribute("aria-hidden", String(!canHide));
-  }
-
   const toggle = document.getElementById("hideOtherCategoriesToggle");
   if (!toggle) return;
 
@@ -244,14 +234,14 @@ function syncHideOtherCategoriesControl() {
   setFilterCheckboxState(toggle, hideOtherCategories);
   const text = document.getElementById("hideOtherCategoriesText");
   if (text) {
-    text.textContent = getHideOtherBrandsCopy(hideOtherCategories).label;
+    text.textContent = getHideOtherScopeCopy(hideOtherCategories, "categories").label;
   }
 
-  syncHideOtherBrandsInfo(document.getElementById("hideOtherCategoriesInfo"), hideOtherCategories);
+  syncHideOtherScopeInfo(document.getElementById("hideOtherCategoriesInfo"), hideOtherCategories, "categories");
 }
 
 function setHideOtherCategories(enabled, { refresh = false } = {}) {
-  hideOtherCategories = Boolean(enabled) && selectedCategoryValues.length > 0;
+  hideOtherCategories = Boolean(enabled);
   syncHideOtherCategoriesControl();
 
   if (!refresh) return;
@@ -265,19 +255,30 @@ function setHideOtherCategories(enabled, { refresh = false } = {}) {
   const owner = owners.find((item) => item.originalIndex === activeDetailOwnerIndex);
   if (!owner) return;
   renderOwnerDetails(owner);
-  initializeOwnerDetailsMap(activeDetailOwnerIndex);
+}
+
+function addFranchiseToBrandFilter(franchiseName) {
+  const value = String(franchiseName || "").trim();
+  if (!franchiseFilterSelect || !value) return false;
+
+  const matchingOption = Array.from(franchiseFilterSelect.options)
+    .find((option) => option.value === value);
+  if (!matchingOption) return false;
+
+  const currentValues = getFilterSelectValues(franchiseFilterSelect);
+  if (currentValues.includes(value)) {
+    if (matchingOption.dataset.exclude !== "true") return true;
+    delete matchingOption.dataset.exclude;
+  } else {
+    setFilterSelectValues(franchiseFilterSelect, [...currentValues, value]);
+  }
+
+  syncFilterComboboxes();
+  franchiseFilterSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  return true;
 }
 
 function syncHideOtherFranchisesControl() {
-  const canHide = selectedFranchiseIndexes.length > 0;
-  if (!canHide) hideOtherFranchises = false;
-
-  const section = document.getElementById("hideOtherFranchisesSection");
-  if (section) {
-    section.classList.toggle("is-visible", canHide);
-    section.setAttribute("aria-hidden", String(!canHide));
-  }
-
   const toggle = document.getElementById("hideOtherFranchisesToggle");
   if (!toggle) return;
 
@@ -285,14 +286,14 @@ function syncHideOtherFranchisesControl() {
   setFilterCheckboxState(toggle, hideOtherFranchises);
   const text = document.getElementById("hideOtherFranchisesText");
   if (text) {
-    text.textContent = getHideOtherBrandsCopy(hideOtherFranchises).label;
+    text.textContent = getHideOtherScopeCopy(hideOtherFranchises, "brands").label;
   }
 
-  syncHideOtherBrandsInfo(document.getElementById("hideOtherFranchisesInfo"), hideOtherFranchises);
+  syncHideOtherScopeInfo(document.getElementById("hideOtherFranchisesInfo"), hideOtherFranchises, "brands");
 }
 
 function setHideOtherFranchises(enabled, { refresh = false } = {}) {
-  hideOtherFranchises = Boolean(enabled) && selectedFranchiseIndexes.length > 0;
+  hideOtherFranchises = Boolean(enabled);
   syncHideOtherFranchisesControl();
 
   if (!refresh) return;
@@ -306,7 +307,6 @@ function setHideOtherFranchises(enabled, { refresh = false } = {}) {
   const owner = owners.find((item) => item.originalIndex === activeDetailOwnerIndex);
   if (!owner) return;
   renderOwnerDetails(owner);
-  initializeOwnerDetailsMap(activeDetailOwnerIndex);
 }
 
 function syncRadiusFilterVisibility() {
@@ -447,7 +447,6 @@ function hasAppliedLocationFilters() {
 }
 
 function refreshLocationFilterResults() {
-  activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
   refreshFilteredViews();
   syncOpenOrgPanelWithSelection();
@@ -671,7 +670,6 @@ function resetCstFilterSelections({ refresh = true } = {}) {
   selectedRadiusMiles = RADIUS_FILTER_DEFAULTS.value;
   hideOtherFranchises = false;
   hideOtherCategories = false;
-  activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
 
   setFilterSelectValues(categoryFilterSelect, []);
@@ -803,7 +801,6 @@ function clearFilterSection(section) {
       return;
   }
 
-  activeMapOwnerIndex = null;
   activeOrgOwnerIndex = null;
   refreshAfterSectionClear();
 }

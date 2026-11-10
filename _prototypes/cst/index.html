@@ -151,9 +151,6 @@
               </div>
             </div>
           </details>
-          <button class="ui-control ui-button ui-button-ghost ui-icon-button filter-toggle-btn toolbar-btn" id="exportBtn" type="button" data-splash-workspace-control aria-label="Export" title="Export">
-            <img class="toolbar-asset-icon toolbar-export-icon" src="../../assets/icons/export-csv.svg" alt="" aria-hidden="true">
-          </button>
         </div>
 
         <div class="toolbar-group toolbar-actions">
@@ -163,16 +160,10 @@
               <img class="toolbar-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
             </summary>
             <div class="ui-menu toolbar-dropdown-menu" role="menu" aria-label="More options menu">
-              <div class="toolbar-submenu" id="datasetSelector" data-toolbar-submenu="dataset" data-dataset-active="false">
-                <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action toolbar-submenu-trigger" id="datasetSelectorTrigger" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" aria-controls="datasetSelectorMenu">
-                  <img class="toolbar-dropdown-icon dataset-selector-icon" src="../../assets/icons/dataset.svg?v=2" alt="" aria-hidden="true">
-                  <span class="toolbar-dropdown-label" id="datasetSelectorLabel">Select dataset</span>
-                  <img class="toolbar-submenu-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
-                </button>
-                <div class="ui-menu toolbar-submenu-menu" id="datasetSelectorMenu" role="menu" aria-label="Datasets">
-                  <div class="dataset-selector-options" id="datasetSelectorOptions"></div>
-                </div>
-              </div>
+              <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" id="exportBtn" type="button" role="menuitem">
+                <img class="toolbar-dropdown-icon" src="../../assets/icons/export-csv.svg" alt="" aria-hidden="true">
+                <span class="toolbar-dropdown-label">Export CSV</span>
+              </button>
             </div>
           </details>
           <span class="toolbar-divider" data-splash-workspace-control data-reader-hide aria-hidden="true"></span>
@@ -476,21 +467,21 @@
             </select>
             <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </div>
-          <div class="filter-scope-section" id="hideOtherCategoriesSection" aria-hidden="true">
+          <div class="filter-scope-section is-visible" id="hideOtherCategoriesSection">
             <div class="filter-scope-section__content">
               <div class="filter-check-group">
                 <div class="filter-scope-toggle-row">
                   <label class="filter-check filter-scope-toggle" id="hideOtherCategoriesLabel">
                     <input type="checkbox" id="hideOtherCategoriesToggle">
                     <span class="filter-checkbox" aria-hidden="true"></span>
-                    <span id="hideOtherCategoriesText">Hide other brands</span>
+                    <span id="hideOtherCategoriesText">Hide other categories</span>
                   </label>
                   <button
                     class="filter-info filter-scope-info"
                     id="hideOtherCategoriesInfo"
                     type="button"
-                    aria-label="Hide brands outside your selection, including their units."
-                    data-tooltip="Hide brands outside your selection,&#10;including their units."
+                    aria-label="Hide categories outside your selection, including their units."
+                    data-tooltip="Hide categories outside your selection,&#10;including their units."
                   >
                     <img src="../../assets/icons/info.svg" alt="" aria-hidden="true">
                   </button>
@@ -524,7 +515,7 @@
             </select>
             <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </div>
-          <div class="filter-scope-section" id="hideOtherFranchisesSection" aria-hidden="true">
+          <div class="filter-scope-section is-visible" id="hideOtherFranchisesSection">
             <div class="filter-scope-section__content">
               <div class="filter-check-group">
                 <div class="filter-scope-toggle-row">
@@ -845,9 +836,11 @@
         </div>
 
         <aside class="map-panel" id="mapPanel" aria-label="Franchisee details">
-          <div class="owner-map-header" id="ownerMapHeader" hidden></div>
           <div class="map-container panel-map-container">
             <div class="owners-map" id="ownersMap"></div>
+            <div class="map-info-stack owner-info-stack" id="ownerInfoStack" hidden>
+              <article class="map-info-card owner-info-card" id="ownerInfoCard" aria-labelledby="ownerInfoCardTitle" hidden></article>
+            </div>
             <div class="map-pill-busy" id="ownersMapBusy" role="status" aria-live="polite" aria-label="Updating map" hidden>
               <div class="map-pill map-pill-busy__pill">
                 <span class="map-pill-busy__spinner" aria-hidden="true"></span>

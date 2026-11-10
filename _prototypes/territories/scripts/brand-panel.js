@@ -680,8 +680,8 @@ function createTerritoryBrandItem(brand, territories, densityStyle) {
 
   filterButton.className = "ui-control ui-button-ghost territory-brand-item__filter";
   filterButton.type = "button";
-  filterButton.setAttribute("aria-label", `Add ${brand.brand} to Franchise filter`);
-  filterButton.dataset.tooltip = "Add to\nFranchise filter";
+  filterButton.setAttribute("aria-label", `Add ${brand.brand} to Brand filter`);
+  filterButton.dataset.tooltip = "Add to\nBrand filter";
 
   filterIcon.className = "territory-brand-item__filter-icon";
   filterIcon.src = resolvePublicAssetUrl("../../assets/icons/filter-single.svg");

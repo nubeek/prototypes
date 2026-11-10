@@ -485,7 +485,7 @@ function bindOwnersMapLogoImageFallback() {
 
 let mapPointFeaturesCache = null;
 
-function getMapPointFeatures(ownerIndex = activeMapOwnerIndex) {
+function getMapPointFeatures(ownerIndex = getOwnersMapFocusedOwnerIndex()) {
   const cacheKey = typeof getCstFilterResultCacheKey === "function"
     ? getCstFilterResultCacheKey(ownerIndex)
     : `${ownerIndex}|${selectedLocationLabels.join("|")}|${selectedFranchiseIndexes.join("|")}|${searchQuery}`;
@@ -622,10 +622,37 @@ function getOwnersMapFocusDuration() {
   return usesReducedMotion() ? 0 : MAP_FOCUS_DURATION;
 }
 
+function offsetCameraCenterForPadding(camera, padding) {
+  if (!camera?.center || !padding || typeof padding !== "object" || !window.mapboxgl) return camera;
+
+  const top = Number(padding.top) || 0;
+  const bottom = Number(padding.bottom) || 0;
+  const left = Number(padding.left) || 0;
+  const right = Number(padding.right) || 0;
+  const shiftX = (right - left) / 2;
+  const shiftY = (bottom - top) / 2;
+  if (!shiftX && !shiftY) return camera;
+
+  const scale = Math.pow(2, camera.zoom) * 512;
+  const mercator = mapboxgl.MercatorCoordinate.fromLngLat(camera.center);
+  mercator.x += shiftX / scale;
+  mercator.y += shiftY / scale;
+
+  return {
+    center: mercator.toLngLat(),
+    zoom: camera.zoom,
+    bearing: camera.bearing,
+    pitch: camera.pitch
+  };
+}
+
 function flyMapToBounds(mapInstance, bounds, { padding = MAP_FIT_PADDING, maxZoom = 9 } = {}) {
   if (!mapInstance || !bounds || !window.mapboxgl) return false;
 
-  const camera = mapInstance.cameraForBounds(bounds, { padding, maxZoom });
+  const camera = offsetCameraCenterForPadding(
+    mapInstance.cameraForBounds(bounds, { padding, maxZoom }),
+    padding
+  );
   if (!camera) {
     mapInstance.fitBounds(bounds, {
       padding,
@@ -638,6 +665,8 @@ function flyMapToBounds(mapInstance, bounds, { padding = MAP_FIT_PADDING, maxZoo
   mapInstance.flyTo({
     center: camera.center,
     zoom: Math.min(camera.zoom, maxZoom),
+    bearing: camera.bearing,
+    pitch: camera.pitch,
     duration: getOwnersMapFocusDuration(),
     curve: MAP_FOCUS_FLY_CURVE,
     essential: true
@@ -716,17 +745,16 @@ function focusOwnersMapOnLocationSearch(location) {
 }
 
 function isOwnersMapPanelVisible() {
+  const mode = getCurrentPanelMode();
   return Boolean(
     card?.classList.contains("is-map-open")
-    && getCurrentPanelMode() === "map"
+    && (mode === "map" || mode === "details")
     && ownersMap
   );
 }
 
 function getOwnersMapBusyTopOffset() {
-  const defaultOffset = window.WefranchMapPills?.BUSY_TOP_OFFSET ?? 32;
-  if (!ownerMapHeader || ownerMapHeader.hidden) return defaultOffset;
-  return Math.round(ownerMapHeader.getBoundingClientRect().height + 16);
+  return window.WefranchMapPills?.BUSY_TOP_OFFSET ?? 32;
 }
 
 function getOwnersMapContainerElement() {
@@ -914,8 +942,6 @@ function setOwnersMapBusy(isBusy) {
 }
 
 function getOwnersMapRowHighlightIds() {
-  if (activeMapOwnerIndex !== null) return null;
-
   if (typeof isDatasetTableView === "function" && isDatasetTableView()) {
     if (!selectedLocationRowIds.size) return null;
     return {
@@ -1392,7 +1418,10 @@ function captureOwnersMapQueryViewFromBounds(bounds, { padding = MAP_FIT_PADDING
     return;
   }
 
-  const camera = ownersMap.cameraForBounds(bounds, { padding, maxZoom });
+  const camera = offsetCameraCenterForPadding(
+    ownersMap.cameraForBounds(bounds, { padding, maxZoom }),
+    padding
+  );
   if (!camera) {
     ownersMapCaptureQueryViewOnSettle = true;
     return;
@@ -1420,6 +1449,21 @@ function settleOwnersMapFit(didFly, whenSettled) {
   finish();
 }
 
+function getOwnersMapFitPadding() {
+  if (getCurrentPanelMode() !== "details") return MAP_FIT_PADDING;
+
+  const cardHeight = ownerInfoCard && !ownerInfoCard.hidden
+    ? ownerInfoCard.getBoundingClientRect().height
+    : 0;
+
+  return {
+    top: MAP_FIT_PADDING,
+    right: 56,
+    bottom: Math.max(MAP_FIT_PADDING, Math.round(cardHeight + 28)),
+    left: MAP_FIT_PADDING
+  };
+}
+
 function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
   const runFit = () => {
     if (!ownersMap || !window.mapboxgl) {
@@ -1438,13 +1482,14 @@ function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
       return didFly;
     }
 
-    const regionBounds = getSelectedRegionFitBounds();
+    const padding = getOwnersMapFitPadding();
+    const regionBounds = getCurrentPanelMode() === "details" ? null : getSelectedRegionFitBounds();
     let didFly = false;
 
     if (regionBounds) {
-      captureOwnersMapQueryViewFromBounds(regionBounds);
+      captureOwnersMapQueryViewFromBounds(regionBounds, { padding });
       didFly = flyMapToBounds(ownersMap, regionBounds, {
-        padding: MAP_FIT_PADDING,
+        padding,
         maxZoom: 9
       });
     } else {
@@ -1466,9 +1511,9 @@ function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
         bounds.extend([lng + 0.35, lat + 0.35]);
       }
 
-      captureOwnersMapQueryViewFromBounds(bounds);
+      captureOwnersMapQueryViewFromBounds(bounds, { padding });
       didFly = flyMapToBounds(ownersMap, bounds, {
-        padding: MAP_FIT_PADDING,
+        padding,
         maxZoom: 9
       });
     }
@@ -1536,9 +1581,17 @@ function getMapPointHoverCircleRadiusExpression() {
   ];
 }
 
+function getOwnersMapFocusedOwnerIndex() {
+  if (getCurrentPanelMode() === "details" && activeDetailOwnerIndex !== null) {
+    return activeDetailOwnerIndex;
+  }
+  return null;
+}
+
 function getOwnersMapOwnerVisibilityFilter() {
-  if (activeMapOwnerIndex === null) return null;
-  return ["==", ["to-number", ["get", "ownerIndex"]], Number(activeMapOwnerIndex)];
+  const ownerIndex = getOwnersMapFocusedOwnerIndex();
+  if (ownerIndex === null) return null;
+  return ["==", ["to-number", ["get", "ownerIndex"]], Number(ownerIndex)];
 }
 
 function combineOwnersMapFilters(...filters) {
@@ -1823,8 +1876,6 @@ function createOwnersMapInteractionController(mapInstance) {
 }
 
 function syncMapLocationFilter({ pointTransition = "radial" } = {}) {
-  syncOwnerMapHeader();
-
   if (!ownersMap?.getSource("owner-points")) {
     ownersMapRevealPending = true;
     return;
@@ -1842,11 +1893,10 @@ function getActiveSidebarOwnerIndex() {
   if (mode === "raw") return activeRawOwnerIndex;
   if (mode === "org") return activeOrgOwnerIndex;
   if (mode === "details") return activeDetailOwnerIndex;
-  return activeMapOwnerIndex;
+  return null;
 }
 
 function clearSidebarOwnerState() {
-  activeMapOwnerIndex = null;
   activeDetailOwnerIndex = null;
   activeOrgOwnerIndex = null;
   activeRawOwnerIndex = null;
@@ -1882,6 +1932,8 @@ function openSidebar(mode, ownerIndex = null, { scrollTable = false, skipViewRef
     : null;
   if (mode === "details" && !owner) return;
 
+  const previousMode = getCurrentPanelMode();
+  const previousOrgOwnerIndex = activeOrgOwnerIndex;
   const wasMapVisible = isOwnersMapPanelVisible();
   clearSidebarOwnerState();
 
@@ -1891,6 +1943,10 @@ function openSidebar(mode, ownerIndex = null, { scrollTable = false, skipViewRef
     openMapPanel("raw", { scrollTable: false });
     renderRawDataSidebar(activeRawOwnerIndex);
   } else if (mode === "org") {
+    if (previousOrgOwnerIndex !== ownerIndex) {
+      orgContactsSort = { key: "", direction: "descending" };
+    }
+    orgPanelView = "chart";
     const hasOrgChart = owner ? Boolean(getOwnerOrgChart(ownerIndex)?.nodes?.length) : false;
     activeOrgOwnerIndex = hasOrgChart ? ownerIndex : null;
     if (hasOrgChart) {
@@ -1901,17 +1957,17 @@ function openSidebar(mode, ownerIndex = null, { scrollTable = false, skipViewRef
     openMapPanel("org", { scrollTable });
   } else if (mode === "details") {
     activeDetailOwnerIndex = ownerIndex;
+    if (lockedToolbarMode !== "org" && lockedToolbarMode !== "raw") {
+      lockedToolbarMode = "map";
+    }
     renderOwnerDetails(owner);
     openMapPanel("details");
-    initializeOwnerDetailsMap(ownerIndex);
   } else {
-    activeMapOwnerIndex = owner ? ownerIndex : null;
     openMapPanel("map", { scrollTable });
   }
 
   if (!skipViewRefresh) {
-    if (mode === "map" && wasMapVisible) {
-      syncOwnerMapHeader();
+    if (mode === "map" && previousMode === "map" && wasMapVisible) {
       ownersMapPointHover?.clearHover();
       syncOwnersMapOwnerVisibility();
       syncOwnersMapRowSelectionHighlight();
@@ -1939,17 +1995,17 @@ function closeSidebar({ skipViewRefresh = false } = {}) {
   updateOwnersMapResetVisibility();
 }
 
+function isToolbarTabOpen(mode, currentMode = getCurrentPanelMode()) {
+  if (mode === "map") return currentMode === "map" || currentMode === "details";
+  return currentMode === mode;
+}
+
 function handleToolbarTabClick(mode) {
   const isPanelOpen = card?.classList.contains("is-map-open");
   const currentMode = getCurrentPanelMode();
 
-  if (isPanelOpen && currentMode === mode) {
-    if (lockedToolbarMode === mode) {
-      closeSidebar();
-    } else {
-      lockedToolbarMode = mode;
-      syncToolbarTabState(currentMode);
-    }
+  if (isPanelOpen && isToolbarTabOpen(mode, currentMode)) {
+    closeSidebar();
     return;
   }
 
@@ -1973,7 +2029,28 @@ function handleSidebarClose() {
     return;
   }
 
+  if (currentMode === "details" && lockedToolbarMode === "map") {
+    openSidebar("map", null);
+    return;
+  }
+
   closeSidebar();
+}
+
+function getFranchiseeRowSidebarMode() {
+  return lockedToolbarMode === "org" || lockedToolbarMode === "raw"
+    ? lockedToolbarMode
+    : "details";
+}
+
+function openFranchiseeFromTable(ownerIndex, { scrollTable = false } = {}) {
+  const owner = owners.find((item) => item.originalIndex === ownerIndex);
+  if (!owner) return;
+
+  const rowSidebarMode = getFranchiseeRowSidebarMode();
+  if (rowSidebarMode === "raw" && !isRawDataAvailable(owner)) return;
+
+  toggleRowSidebarView(rowSidebarMode, ownerIndex, { scrollTable });
 }
 
 function toggleRowSidebarView(mode, ownerIndex, { scrollTable = false } = {}) {
@@ -1983,7 +2060,7 @@ function toggleRowSidebarView(mode, ownerIndex, { scrollTable = false } = {}) {
     getActiveSidebarOwnerIndex() === ownerIndex;
 
   if (isOpenForOwner) {
-    if (lockedToolbarMode === mode) {
+    if (lockedToolbarMode === "org" || lockedToolbarMode === "raw") {
       openSidebar(mode, null);
     } else {
       closeSidebar();
@@ -1991,29 +2068,52 @@ function toggleRowSidebarView(mode, ownerIndex, { scrollTable = false } = {}) {
     return;
   }
 
-  if (lockedToolbarMode !== mode) {
-    lockedToolbarMode = null;
+  if (lockedToolbarMode !== "org" && lockedToolbarMode !== "raw") {
+    lockedToolbarMode = "map";
   }
   openSidebar(mode, ownerIndex, { scrollTable });
 }
 
 function openOwnerDetailsFromHeader(ownerIndex) {
-  lockedToolbarMode = null;
+  if (lockedToolbarMode !== "org" && lockedToolbarMode !== "raw") {
+    lockedToolbarMode = "map";
+  }
   openSidebar("details", ownerIndex);
+}
+
+function setOwnerInfoCardOpen(isOpen) {
+  if (!ownerInfoStack || !ownerInfoCard) return;
+
+  if (!isOpen) {
+    ownerInfoStack.classList.remove("is-visible");
+    ownerInfoCard.classList.remove("is-visible");
+    ownerInfoStack.hidden = true;
+    ownerInfoCard.hidden = true;
+    return;
+  }
+
+  ownerInfoStack.hidden = false;
+  ownerInfoCard.hidden = false;
+  window.requestAnimationFrame(() => {
+    if (getCurrentPanelMode() !== "details") return;
+    ownerInfoStack.classList.add("is-visible");
+    ownerInfoCard.classList.add("is-visible");
+  });
 }
 
 function setPanelMode(mode) {
   if (!mapPanel || !ownerDetailsPanel) return;
 
-  const usesDetailsPanel = mode === "details" || mode === "org" || mode === "raw";
+  const usesDetailsPanel = mode === "org" || mode === "raw";
   mapPanel.classList.toggle("is-details-mode", usesDetailsPanel);
+  mapPanel.classList.toggle("is-info-mode", mode === "details");
   mapPanel.classList.toggle("is-org-mode", mode === "org");
   mapPanel.classList.toggle("is-raw-mode", mode === "raw");
   ownerDetailsPanel.hidden = !usesDetailsPanel;
-  if (mode !== "map") {
+  setOwnerInfoCardOpen(mode === "details");
+  if (mode !== "map" && mode !== "details") {
     cancelOwnersMapReveal({ hideBusy: true });
   }
-  syncOwnerMapHeader(mode);
   syncToolbarTabState(mode);
   updateOwnersMapResetVisibility();
 }
@@ -2040,7 +2140,8 @@ function setPanelLayout(layout) {
 
   scheduleOwnersMapResize();
   syncStickyNameColumnDivider();
-  if (getCurrentPanelMode() === "map") {
+  const panelMode = getCurrentPanelMode();
+  if (panelMode === "map" || panelMode === "details") {
     window.setTimeout(() => fitOwnersMapToVisibleLocations(), getMotionDelay(280));
   }
 
@@ -2055,7 +2156,7 @@ function setPanelLayout(layout) {
 function getCurrentPanelMode() {
   if (mapPanel?.classList.contains("is-raw-mode")) return "raw";
   if (mapPanel?.classList.contains("is-org-mode")) return "org";
-  if (mapPanel?.classList.contains("is-details-mode")) return "details";
+  if (mapPanel?.classList.contains("is-info-mode")) return "details";
   return "map";
 }
 
@@ -2072,7 +2173,7 @@ function syncToolbarTabState(mode = getCurrentPanelMode()) {
   const isPanelOpen = Boolean(card?.classList.contains("is-map-open"));
 
   filterToggle?.classList.toggle("is-active", Boolean(isFilterOpen));
-  syncToolbarTabButton(mapToggle, isPanelOpen && mode === "map", lockedToolbarMode === "map");
+  syncToolbarTabButton(mapToggle, isPanelOpen && isToolbarTabOpen("map", mode), lockedToolbarMode === "map");
   syncToolbarTabButton(orgChartToggle, isPanelOpen && mode === "org", lockedToolbarMode === "org");
   syncToolbarTabButton(contactsToggle, isPanelOpen && mode === "raw", lockedToolbarMode === "raw");
   closeToolbarTabDropdowns();
@@ -2228,7 +2329,7 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
   const wasPanelOpen = card.classList.contains("is-map-open");
 
   card.classList.add("is-map-open");
-  mapToggle.setAttribute("aria-expanded", String(mode === "map"));
+  mapToggle.setAttribute("aria-expanded", String(mode === "map" || mode === "details"));
   setPanelMode(mode);
 
   // Only scroll the table to expose the action columns when the caller
@@ -2239,7 +2340,7 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
     scrollTableToActionColumns(`openMapPanel:${mode}`);
   }
 
-  if (mode === "map") {
+  if (mode === "map" || mode === "details") {
     Promise.resolve(initializeOwnersMap()).then(() => {
       window.setTimeout(() => {
         resizeOwnersMap();
@@ -2248,8 +2349,8 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
           startOwnersMapFilterReveal(getOwnersMapPointFeatureCollection());
           return;
         }
-        if (isCstTableEnterWaitingForMap?.()) return;
-        markCstWorkspaceMapReadyToReveal?.();
+        if (mode === "map" && isCstTableEnterWaitingForMap?.()) return;
+        if (mode === "map") markCstWorkspaceMapReadyToReveal?.();
         if (!isOwnersMapUpdateInFlight()) {
           fitOwnersMapToVisibleLocations();
         }

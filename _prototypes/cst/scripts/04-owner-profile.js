@@ -9,6 +9,12 @@ function getOwnerWebsite(owner) {
   return domain ? `www.${domain}` : "";
 }
 
+function getOwnerWebsiteLabel(owner) {
+  const website = getOwnerWebsite(owner);
+  if (!website) return "";
+  return website.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+}
+
 function getOwnerWebsiteUrl(owner) {
   if (owner.websiteUrl) return owner.websiteUrl;
 
@@ -71,7 +77,11 @@ function isOwnerHeaderViewActive(view, ownerIndex) {
   }
 
   if (view === "org") {
-    return currentMode === "org" && activeOrgOwnerIndex === ownerIndex;
+    return currentMode === "org" && activeOrgOwnerIndex === ownerIndex && orgPanelView !== "contacts";
+  }
+
+  if (view === "org-contacts") {
+    return currentMode === "org" && activeOrgOwnerIndex === ownerIndex && orgPanelView === "contacts";
   }
 
   if (view === "raw") {
@@ -81,7 +91,7 @@ function isOwnerHeaderViewActive(view, ownerIndex) {
   return false;
 }
 
-function getOwnerHeaderViewControls(owner) {
+function getOwnerHeaderViewControls(owner, { views } = {}) {
   const ownerIndex = owner.originalIndex;
   const rawDataDisabled = !isRawDataAvailable(owner);
   const buttons = [
@@ -90,42 +100,46 @@ function getOwnerHeaderViewControls(owner) {
       label: "Show franchisee details",
       title: "Details",
       icon: "../../assets/icons/about.svg",
-      iconClass: "",
       imageClass: "about-toggle-icon"
     },
     {
       view: "map",
       label: "Show franchisee map",
       title: "Map",
-      icon: "../../assets/icons/map.svg",
-      iconClass: "segmented-control-btn-divider-left"
+      icon: "../../assets/icons/map.svg"
     },
     {
       view: "org",
       label: "Show franchisee organization chart",
       title: "Org chart",
-      icon: "../../assets/icons/orgchart.svg",
-      iconClass: "segmented-control-btn-divider-left"
+      icon: "../../assets/icons/orgchart.svg"
+    },
+    {
+      view: "org-contacts",
+      label: "Show franchisee contacts",
+      title: "Contacts",
+      icon: "../../assets/icons/contacts.svg",
+      imageClass: "contacts-toggle-icon"
     },
     {
       view: "raw",
       label: "Show franchisee contacts",
       title: "Contacts",
       icon: "../../assets/icons/contacts.svg",
-      iconClass: "segmented-control-btn-divider-left",
+      imageClass: "contacts-toggle-icon",
       disabled: rawDataDisabled
     }
-  ];
+  ].filter((button) => (views || ["details", "map", "org", "raw"]).includes(button.view));
 
   return `
     <div class="owner-detail-header-actions segmented-control" aria-label="Franchisee views">
-      ${buttons.map((button) => {
+      ${buttons.map((button, index) => {
         const isActive = isOwnerHeaderViewActive(button.view, ownerIndex);
-        const contactsIconClass = button.view === "raw" ? " contacts-toggle-icon" : "";
         const imageClass = button.imageClass ? ` ${button.imageClass}` : "";
+        const dividerClass = index > 0 ? " segmented-control-btn-divider-left" : "";
         return `
           <button
-            class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn segmented-control-btn owner-header-view-btn ${button.iconClass} ${isActive ? "is-active" : ""}"
+            class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn segmented-control-btn owner-header-view-btn${dividerClass} ${isActive ? "is-active" : ""}"
             type="button"
             data-owner-header-view="${button.view}"
             data-owner-index="${ownerIndex}"
@@ -134,7 +148,7 @@ function getOwnerHeaderViewControls(owner) {
             aria-pressed="${String(isActive)}"
             ${button.disabled ? "disabled aria-disabled=\"true\"" : ""}
           >
-            <img class="toolbar-asset-icon${contactsIconClass}${imageClass}" src="${button.icon}" alt="" aria-hidden="true">
+            <img class="toolbar-asset-icon${imageClass}" src="${button.icon}" alt="" aria-hidden="true">
           </button>
         `;
       }).join("")}
@@ -159,16 +173,26 @@ function handleOwnerHeaderViewButton(button) {
   const ownerIndex = Number(button.dataset.ownerIndex);
   const view = button.dataset.ownerHeaderView;
   if (Number.isNaN(ownerIndex) || button.disabled) return;
-  if (!["details", "map", "org", "raw"].includes(view)) return;
   if (isOwnerHeaderViewActive(view, ownerIndex)) return;
 
-  if (lockedToolbarMode !== view) {
-    lockedToolbarMode = null;
+  if (view === "org-contacts" || (view === "org" && getCurrentPanelMode() === "org" && activeOrgOwnerIndex === ownerIndex)) {
+    orgPanelView = view === "org-contacts" ? "contacts" : "chart";
+    renderOwnerOrgChart(ownerIndex);
+    syncOwnerHeaderViewState();
+    return;
+  }
+
+  if (!["details", "org", "raw"].includes(view)) return;
+
+  if (view === "org" || view === "raw") {
+    lockedToolbarMode = view;
+  } else if (lockedToolbarMode !== "org" && lockedToolbarMode !== "raw") {
+    lockedToolbarMode = "map";
   }
   openSidebar(view, ownerIndex);
 }
 
-function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee panel", linksToDetail = false } = {}) {
+function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee panel", linksToDetail = false, views } = {}) {
   const logoMarkup = window.WefranchFranchiseeLogo.getOwnerDetailLogoMarkup(owner);
   const titleMarkup = `<span>${owner.ownerName}</span>`;
   const identityMarkup = linksToDetail
@@ -199,33 +223,12 @@ function getOwnerHeader(owner, { className = "", closeLabel = "Close franchisee 
   return `
     <header class="owner-detail-header ${className}">
       ${identityMarkup}
-      ${getOwnerHeaderViewControls(owner)}
+      ${getOwnerHeaderViewControls(owner, { views })}
       <button class="ui-control ui-close-button owner-detail-close" type="button" aria-label="${closeLabel}">
         <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
       </button>
     </header>
   `;
-}
-
-function syncOwnerMapHeader(mode = getCurrentPanelMode()) {
-  if (!ownerMapHeader || !mapPanel) return;
-
-  const owner = activeMapOwnerIndex !== null
-    ? owners.find((item) => item.originalIndex === activeMapOwnerIndex)
-    : null;
-  const shouldShowHeader = mode === "map" && Boolean(owner);
-
-  ownerMapHeader.hidden = !shouldShowHeader;
-  mapPanel.classList.toggle("is-owner-map-filtered", shouldShowHeader);
-  ownerMapHeader.innerHTML = shouldShowHeader
-    ? getOwnerHeader(owner, {
-        className: "owner-map-heading",
-        closeLabel: "Clear franchisee map filter",
-        linksToDetail: true
-      })
-    : "";
-  getOwnersMapBusyPills()?.syncTopOffset?.();
-  syncOwnersMapResetPosition();
 }
 
 function isRawDataAvailable(owner) {

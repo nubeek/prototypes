@@ -1,0 +1,501 @@
+/* Floating map info card. Territories keeps its territory-info-card markup.
+   New cards use map-info-card. */
+
+.map-info-stack,
+.territory-info-stack {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100% - 48px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.map-info-stack.is-visible,
+.territory-info-stack.is-visible {
+  pointer-events: auto;
+}
+
+.map-info-stack:not(.is-visible) .map-info-card,
+.territory-info-stack:not(.is-visible) .territory-info-card {
+  pointer-events: none;
+}
+
+.map-info-stack[hidden],
+.territory-info-stack[hidden] {
+  display: none;
+}
+
+.map-info-stack .map-info-card,
+.territory-info-stack .territory-info-card {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  z-index: auto;
+  flex: 0 1 auto;
+  width: 400px;
+  min-width: 0;
+  max-width: 400px;
+  transform: translateY(10px);
+  pointer-events: auto;
+}
+
+.map-info-stack.is-visible .map-info-card.is-visible,
+.territory-info-stack.is-visible .territory-info-card.is-visible {
+  transform: translateY(0);
+}
+
+.map-info-card,
+.territory-info-card {
+  --map-info-padding-x: 22px;
+  --territory-info-padding-x: 22px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  max-width: min(400px, calc(100% - 48px));
+  height: auto;
+  max-height: 50vh;
+  max-height: 50cqh;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid rgba(23, 23, 28, 0.05);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: 0 14px 40px rgba(17, 17, 17, 0.14);
+  box-sizing: border-box;
+  color: var(--color-text);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 180ms ease, transform 240ms ease;
+}
+
+.map-info-card.is-visible,
+.territory-info-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.map-info-card[hidden],
+.territory-info-card[hidden] {
+  display: none;
+}
+
+.map-info-card__header,
+.territory-info-card__header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 20px var(--map-info-padding-x) 0;
+  margin-bottom: 14px;
+}
+
+.map-info-card__header {
+  padding-right: 80px;
+}
+
+.map-info-card__close,
+.territory-info-card__close {
+  position: relative;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 50ms ease;
+}
+
+.map-info-card > .map-info-card__close {
+  position: absolute;
+  top: 27px;
+  right: 16px;
+  z-index: 3;
+  margin: 0;
+}
+
+.map-info-card__close:hover,
+.territory-info-card__close:hover {
+  background: var(--color-surface-control-active);
+}
+
+.map-info-card__close:hover::before,
+.map-info-card__close:hover::after,
+.territory-info-card__close:hover::before,
+.territory-info-card__close:hover::after {
+  background: var(--color-text);
+}
+
+.map-info-card__close::before,
+.map-info-card__close::after,
+.territory-info-card__close::before,
+.territory-info-card__close::after {
+  position: absolute;
+  top: 13px;
+  left: 8px;
+  width: 12px;
+  height: 1.5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-muted);
+  content: "";
+}
+
+.map-info-card__close::before,
+.territory-info-card__close::before {
+  transform: rotate(45deg);
+}
+
+.map-info-card__close::after,
+.territory-info-card__close::after {
+  transform: rotate(-45deg);
+}
+
+.map-info-card__close:focus-visible,
+.territory-info-card__close:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.map-info-card__scroll,
+.territory-info-card__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 calc(var(--map-info-padding-x) + var(--scrollbar-size) + -4px) 4px var(--map-info-padding-x);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.map-info-card__logo,
+.territory-info-card__logo {
+  display: block;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  object-fit: cover;
+}
+
+.map-info-card__identity,
+.territory-info-card__identity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.map-info-card__title,
+.map-info-card__category,
+.territory-info-card__brand,
+.territory-info-card__state {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-info-card__title,
+.territory-info-card__brand {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.map-info-card__category,
+.territory-info-card__state {
+  margin-top: 2px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.map-info-card__section + .map-info-card__section,
+.territory-info-card__section + .territory-info-card__section {
+  margin-top: 8px;
+}
+
+.map-info-card__section-title,
+.territory-info-card__section-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 4px 0 8px;
+  border-bottom: 1px solid #e8e8e8;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.map-info-card__section[hidden],
+.territory-info-card__section[hidden] {
+  display: none;
+}
+
+.map-info-card__links {
+  display: grid;
+  padding-top: 4px;
+}
+
+.map-info-card__link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 12px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.map-info-card__link:hover,
+.map-info-card__link:focus-visible {
+  background: #f3f3f4;
+}
+
+.map-info-card__link:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: -2px;
+}
+
+.map-info-card__link-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.map-info-card__link-title,
+.map-info-card__link-label,
+.map-info-card__link-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-base);
+  line-height: 1.3;
+}
+
+.map-info-card__link-title {
+  font-weight: 600;
+}
+
+.map-info-card__link-label {
+  font-weight: 500;
+}
+
+.map-info-card__link-value {
+  color: var(--color-brand-primary);
+  font-weight: 500;
+}
+
+.map-info-card__link-value.dataset-empty-value {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.map-info-card__chevron {
+  display: block;
+  width: 11px;
+  height: 6px;
+  transform: rotate(-90deg);
+  filter: var(--color-chevron-soft);
+}
+
+.map-info-card__link:hover .map-info-card__chevron,
+.map-info-card__link:focus-visible .map-info-card__chevron {
+  filter: brightness(0) saturate(100%);
+}
+
+.map-info-card__franchises {
+  display: grid;
+  gap: 2px;
+  padding-top: 6px;
+}
+
+.map-info-card__franchise {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px 4px 6px 4px;
+  border-radius: 10px;
+}
+
+.map-info-card__franchise:hover,
+.map-info-card__franchise:focus-within {
+  background: #f3f3f4;
+}
+
+.map-info-card__franchise-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.map-info-card__franchise-logo {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.map-info-card__franchise-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.map-info-card__franchise-fallback {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.map-info-card__franchise-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-base);
+  line-height: 1.3;
+}
+
+a.map-info-card__franchise-main:hover .map-info-card__franchise-name,
+a.map-info-card__franchise-main:focus-visible .map-info-card__franchise-name {
+  text-decoration: underline;
+}
+
+.map-info-card__franchise-filter {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  padding: 0;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: background-color 50ms ease;
+}
+
+.map-info-card__franchise:hover .map-info-card__franchise-filter,
+.map-info-card__franchise:focus-within .map-info-card__franchise-filter,
+.map-info-card__franchise-filter:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.map-info-card__franchise-filter.ui-button-ghost:hover,
+.map-info-card__franchise-filter.ui-button-ghost:active {
+  background: #e9e9e9;
+}
+
+.map-info-card__franchise-filter:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.map-info-card__franchise-filter-icon {
+  display: block;
+  width: 12px;
+  height: auto;
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast);
+}
+
+.map-info-card__franchise-filter:hover .map-info-card__franchise-filter-icon,
+.map-info-card__franchise-filter:focus-visible .map-info-card__franchise-filter-icon {
+  filter: brightness(0) saturate(100%);
+}
+
+.map-info-card__empty {
+  margin: 12px 0 4px;
+  font-size: var(--font-size-base);
+}
+
+@media (max-width: 1480px) {
+  .map-info-stack,
+  .territory-info-stack {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+    transform: none;
+  }
+
+  .map-info-stack .map-info-card,
+  .territory-info-stack .territory-info-card {
+    flex: 0 1 auto;
+    width: 348px;
+    max-width: 348px;
+  }
+
+  .map-info-card,
+  .territory-info-card {
+    --map-info-padding-x: 18px;
+    --territory-info-padding-x: 18px;
+  }
+
+  .map-info-card__header,
+  .territory-info-card__header {
+    padding: 18px var(--map-info-padding-x) 0;
+    margin-bottom: 12px;
+  }
+
+  .map-info-card__header {
+    padding-right: 72px;
+  }
+
+  .map-info-card > .map-info-card__close {
+    top: 24px;
+    right: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-info-card,
+  .map-info-stack,
+  .territory-info-card,
+  .territory-info-stack {
+    transition: none;
+  }
+}

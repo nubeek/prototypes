@@ -1,93 +1,216 @@
-function renderOwnerDetails(owner) {
-  if (!ownerDetailsPanel) return;
+function escapeOwnerInfoText(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
-  if (ownerDetailsMap) {
-    ownerDetailsMap.remove();
-    ownerDetailsMap = null;
-  }
-
-  const website = getOwnerWebsite(owner);
-  const franchises = getVisibleOwnerFranchises(owner);
-  const hasSavedLead = savedLeadOwnerIndexes.has(owner.originalIndex);
-  const franchiseMarkup = franchises
-    .map((franchise) => {
-      const url = typeof getFranchiseWefranchUrl === "function" ? getFranchiseWefranchUrl(franchise) : "";
-      const inner = `
-        <span class="ui-tile owner-detail-franchise-logo">
-          <span class="owner-detail-franchise-logo-fallback">${getInitials(franchise)}</span>
-          <img
-            src="${getFranchiseLogoSrc(franchise)}"
-            alt="${franchise} logo"
-            onerror="this.style.display='none';this.previousElementSibling.style.display='inline-flex';"
-          >
-        </span>
-        <span class="owner-detail-franchise-name">${franchise}</span>
-      `;
-
-      if (!url) {
-        return `<div class="owner-detail-franchise">${inner}</div>`;
-      }
-
-      return `
-        <a
-          class="owner-detail-franchise franchise-wefranch-link"
-          href="${url}"
-          target="_blank"
-          rel="noreferrer noopener"
-          aria-label="Open ${franchise} on wefranch"
-        >${inner}</a>
-      `;
-    })
-    .join("");
-
-  ownerDetailsPanel.innerHTML = `
-    <article class="owner-detail-card">
-      ${getOwnerHeader(owner, { closeLabel: "Close franchisee details" })}
-
-      <section class="owner-detail-section owner-detail-contact">
-        <h3 class="ui-section-title">Contact</h3>
-        <p class="ui-body-text">${owner.contactName}</p>
-        <span class="ui-link owner-detail-email">${owner.email}</span>
-        <button
-          class="ui-control ui-button ui-button-primary owner-detail-contact-lead-action ${hasSavedLead ? "is-saved" : ""}"
-          type="button"
-          data-owner-index="${owner.originalIndex}"
-          aria-label="${hasSavedLead ? `Remove ${owner.contactName} from leads` : `Save ${owner.contactName} as a lead`}"
-        >
-          ${hasSavedLead ? "Remove from leads" : "Save as lead"}
-        </button>
-      </section>
-
-      <section class="owner-detail-section">
-        <h3 class="ui-section-title">Website</h3>
-        <a class="ui-link" href="${getOwnerWebsiteUrl(owner)}" target="_blank" rel="noreferrer">${website}</a>
-
-        <h3 class="ui-section-title owner-detail-subtitle">Linkedin</h3>
-        <a class="ui-link" href="${getOwnerLinkedinUrl(owner)}" target="_blank" rel="noreferrer">${owner.ownerName}</a>
-      </section>
-
-      <section class="owner-detail-section">
-        <h3 class="ui-section-title">Franchises</h3>
-        <div class="owner-detail-franchises">${franchiseMarkup}</div>
-      </section>
-
-      <section class="owner-detail-section owner-detail-location-section">
-        <div class="owner-detail-locations-header">
-          <div>
-            <h3 class="ui-section-title">Locations</h3>
-            <p class="ui-body-text">${getOwnerVisibleUnitCount(owner)}</p>
-          </div>
-          <button class="ui-control ui-text-button owner-detail-map-link" type="button" data-owner-index="${owner.originalIndex}">
-            Filter in Map
-          </button>
-        </div>
-        <div class="owner-detail-map" id="ownerDetailsMap"></div>
-      </section>
-    </article>
+function getOwnerInfoLinkMarkup({ title, label, value, valueClass = "", href, ownerIndex, ariaLabel }) {
+  const copy = `
+    <span class="map-info-card__link-copy">
+      ${title ? `<span class="map-info-card__link-title">${title}</span>` : ""}
+      ${label ? `<span class="map-info-card__link-label">${label}</span>` : ""}
+      <span class="map-info-card__link-value${valueClass ? ` ${valueClass}` : ""}">${value}</span>
+    </span>
+    <img class="map-info-card__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
   `;
 
-  ownerDetailsPanel.scrollTop = 0;
-  syncOwnerHeaderScrollState();
+  if (href) {
+    return `
+      <a class="map-info-card__link" href="${escapeOwnerInfoText(href)}" target="_blank" rel="noreferrer noopener" aria-label="${escapeOwnerInfoText(ariaLabel)}">
+        ${copy}
+      </a>
+    `;
+  }
+
+  return `
+    <button class="ui-control map-info-card__link" type="button" data-owner-info-contact data-owner-index="${ownerIndex}" aria-label="${escapeOwnerInfoText(ariaLabel)}">
+      ${copy}
+    </button>
+  `;
+}
+
+function renderOwnerDetails(owner) {
+  if (!ownerInfoCard || !owner) return;
+
+  const websiteLabel = getOwnerWebsiteLabel(owner);
+  const websiteUrl = websiteLabel ? getOwnerWebsiteUrl(owner) : "";
+  const linkedinUrl = getOwnerLinkedinUrl(owner);
+  const contactName = owner.contactName || "–";
+  const contactEmail = owner.email || "–";
+  const franchises = getVisibleOwnerFranchises(owner);
+  const primaryCategory = getOwnerPrimaryCategoryLabel(owner);
+  const franchiseMarkup = franchises.length
+    ? franchises.map((franchise) => {
+      const url = typeof getFranchiseWefranchUrl === "function" ? getFranchiseWefranchUrl(franchise) : "";
+      const safeName = escapeOwnerInfoText(franchise);
+      const inner = `
+        <span class="ui-tile map-info-card__franchise-logo">
+          <span class="map-info-card__franchise-fallback">${escapeOwnerInfoText(getInitials(franchise))}</span>
+          <img
+            src="${escapeOwnerInfoText(getFranchiseLogoSrc(franchise))}"
+            alt=""
+            onerror="this.style.display='none';this.previousElementSibling.style.display='flex';"
+          >
+        </span>
+        <span class="map-info-card__franchise-name">${safeName}</span>
+      `;
+
+      const filterButton = `
+        <button
+          class="ui-control ui-button-ghost map-info-card__franchise-filter"
+          type="button"
+          data-franchise="${safeName}"
+          aria-label="Add ${safeName} to Brand filter"
+          data-tooltip="Add to\nBrand filter"
+        >
+          <img class="map-info-card__franchise-filter-icon" src="../../assets/icons/filter-single.svg" alt="" aria-hidden="true">
+        </button>
+      `;
+      const main = url
+        ? `
+          <a
+            class="map-info-card__franchise-main franchise-wefranch-link"
+            href="${escapeOwnerInfoText(url)}"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Open ${safeName} on wefranch"
+          >${inner}</a>
+        `
+        : `<div class="map-info-card__franchise-main">${inner}</div>`;
+
+      return `<div class="map-info-card__franchise">${main}${filterButton}</div>`;
+    }).join("")
+    : `<p class="dataset-empty-value map-info-card__empty">–</p>`;
+
+  const companyLinks = [
+    websiteLabel
+      ? getOwnerInfoLinkMarkup({
+        label: "Website",
+        value: escapeOwnerInfoText(websiteLabel),
+        href: websiteUrl,
+        ariaLabel: `Open ${websiteLabel}`
+      })
+      : "",
+    linkedinUrl
+      ? getOwnerInfoLinkMarkup({
+        label: "Linkedin",
+        value: escapeOwnerInfoText(owner.ownerName),
+        href: linkedinUrl,
+        ariaLabel: `Open ${owner.ownerName} on LinkedIn`
+      })
+      : ""
+  ].filter(Boolean).join("");
+  const contactCount = getOwnerContactCount(owner);
+  const unitCount = getOwnerVisibleUnitCount(owner);
+  const brandCount = franchises.length;
+  const ownerStats = [
+    {
+      key: "contacts",
+      value: contactCount,
+      label: "Contacts",
+      ariaLabel: `Open organization chart for ${owner.ownerName}, ${contactCount.toLocaleString("en-US")} contacts`
+    },
+    {
+      key: "units",
+      value: unitCount,
+      label: "Units",
+      ariaLabel: `Show ${owner.ownerName} units on the map, ${unitCount.toLocaleString("en-US")} units`
+    },
+    {
+      key: "brands",
+      value: brandCount,
+      label: "Brands",
+      ariaLabel: `Scroll to ${owner.ownerName} brands, ${brandCount.toLocaleString("en-US")} brands`
+    }
+  ];
+
+  ownerInfoCard.innerHTML = `
+    <button class="ui-control map-info-card__close" type="button" aria-label="Close franchisee details"></button>
+    <header class="map-info-card__header">
+      ${window.WefranchFranchiseeLogo.getOwnerDetailLogoMarkup(owner)}
+      <div class="map-info-card__identity">
+        <h2 class="map-info-card__title" id="ownerInfoCardTitle">${escapeOwnerInfoText(owner.ownerName)}</h2>
+        ${primaryCategory
+          ? `<p class="map-info-card__category">${escapeOwnerInfoText(primaryCategory)}</p>`
+          : ""}
+      </div>
+    </header>
+    <div class="map-info-card__stats">
+      ${ownerStats.map((stat) => `
+        <div class="map-info-card__stat">
+          <button
+            class="ui-control map-info-card__stat-button"
+            type="button"
+            data-owner-stat="${stat.key}"
+            data-owner-index="${owner.originalIndex}"
+            aria-label="${escapeOwnerInfoText(stat.ariaLabel)}"
+          >
+            <span class="map-info-card__stat-value">${stat.value.toLocaleString("en-US")}</span>
+            <span class="map-info-card__stat-label">${stat.label}</span>
+          </button>
+        </div>
+      `).join("")}
+    </div>
+    <div class="map-info-card__scroll proto-scrollbar">
+      <section class="map-info-card__section" aria-labelledby="ownerInfoContactTitle">
+        <h3 class="map-info-card__section-title" id="ownerInfoContactTitle">Main contact</h3>
+        <div class="map-info-card__links">
+          ${getOwnerInfoLinkMarkup({
+            title: escapeOwnerInfoText(contactName),
+            value: escapeOwnerInfoText(contactEmail),
+            valueClass: owner.email ? "" : "dataset-empty-value",
+            ownerIndex: owner.originalIndex,
+            ariaLabel: `Open ${contactName}`
+          })}
+        </div>
+      </section>
+      ${companyLinks ? `
+        <section class="map-info-card__section" aria-labelledby="ownerInfoCompanyTitle">
+          <h3 class="map-info-card__section-title" id="ownerInfoCompanyTitle">Company</h3>
+          <div class="map-info-card__links">${companyLinks}</div>
+        </section>
+      ` : ""}
+      <section class="map-info-card__section" aria-labelledby="ownerInfoFranchisesTitle">
+        <h3 class="map-info-card__section-title" id="ownerInfoFranchisesTitle">Franchises</h3>
+        <div class="map-info-card__franchises">${franchiseMarkup}</div>
+      </section>
+    </div>
+  `;
+
+  ownerInfoCard.querySelector(".map-info-card__scroll")?.addEventListener("scroll", () => {
+    hideTableAnchorTooltip();
+  }, { passive: true });
+}
+
+function openOwnerOrgChartFromCard(ownerIndex) {
+  if (!Number.isFinite(ownerIndex)) return;
+  lockedToolbarMode = "org";
+  openSidebar("org", ownerIndex);
+}
+
+function focusOwnerCardUnits() {
+  if (!ownersMap) return;
+
+  if (!ownersMapQueryView) {
+    fitOwnersMapToVisibleLocations({ force: true });
+    return;
+  }
+
+  if (!isOwnersMapAtQueryView()) resetOwnersMapView();
+}
+
+function scrollOwnerInfoCardToBrands() {
+  const scroll = ownerInfoCard?.querySelector(".map-info-card__scroll");
+  const section = ownerInfoCard?.querySelector("#ownerInfoFranchisesTitle")?.closest(".map-info-card__section");
+  if (!(scroll instanceof HTMLElement) || !(section instanceof HTMLElement)) return;
+
+  const top = section.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
+  scroll.scrollTo({
+    top: Math.max(0, top),
+    behavior: usesReducedMotion() ? "auto" : "smooth"
+  });
 }
 
 function getOwnerOrgChart(ownerIndex) {
@@ -148,6 +271,69 @@ function isOrgNodeInactiveInSiblingGroup(ownerIndex, node, nodes) {
   ));
 
   return Boolean(expandedSibling && expandedSibling.id !== node.id);
+}
+
+let orgLevelScrollFrame = 0;
+
+function cancelOrgLevelScroll() {
+  if (!orgLevelScrollFrame) return;
+  cancelAnimationFrame(orgLevelScrollFrame);
+  orgLevelScrollFrame = 0;
+}
+
+// Brings a freshly opened branch up under the sticky franchisee header.
+// The move starts quickly and eases out as the level arrives.
+function scrollOrgPanelToLevel(nodeId) {
+  if (!ownerDetailsPanel || !nodeId) return;
+
+  const escapedNodeId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(nodeId) : nodeId;
+  const section = ownerDetailsPanel.querySelector(`.org-report-section[data-org-node-id="${escapedNodeId}"]`);
+  if (!(section instanceof HTMLElement)) return;
+
+  const header = ownerDetailsPanel.querySelector(".owner-detail-header");
+  const headerHeight = header instanceof HTMLElement ? header.offsetHeight : 0;
+  const panelTop = ownerDetailsPanel.getBoundingClientRect().top;
+  const sectionTop = section.getBoundingClientRect().top;
+  // The connector line sits just above the section. Leave it clear of the header.
+  const target = Math.max(0, ownerDetailsPanel.scrollTop + sectionTop - panelTop - headerHeight - 16);
+  const start = ownerDetailsPanel.scrollTop;
+  const distance = target - start;
+  if (Math.abs(distance) < 2) return;
+
+  cancelOrgLevelScroll();
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    ownerDetailsPanel.scrollTop = target;
+    return;
+  }
+
+  const duration = 480;
+  let startedAt = 0;
+
+  const step = (now) => {
+    if (!startedAt) startedAt = now;
+    const progress = Math.min(1, (now - startedAt) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    ownerDetailsPanel.scrollTop = start + distance * eased;
+
+    if (progress < 1) {
+      orgLevelScrollFrame = requestAnimationFrame(step);
+      return;
+    }
+
+    orgLevelScrollFrame = 0;
+  };
+
+  orgLevelScrollFrame = requestAnimationFrame(step);
+}
+
+function revealOrgLevel(ownerIndex, nodeId) {
+  const nodes = getOwnerOrgChart(ownerIndex)?.nodes || [];
+  const willExpand = isOrgNodeCollapsed(ownerIndex, nodeId);
+  const changedNodeIds = toggleOrgNodeCollapsed(ownerIndex, nodeId, nodes);
+  changedNodeIds.forEach((changedNodeId) => syncOrgCollapsedUi(ownerIndex, changedNodeId));
+  syncOrgInactiveCards(ownerIndex, nodes);
+  if (willExpand) scrollOrgPanelToLevel(nodeId);
 }
 
 function toggleOrgNodeCollapsed(ownerIndex, nodeId, nodes = []) {
@@ -301,13 +487,193 @@ function getOrgTreeSection(parentNode, nodes, ownerIndex, depth = 0) {
   `;
 }
 
+function getOrgContactSelection(ownerIndex) {
+  if (!orgContactSelectionByOwner.has(ownerIndex)) {
+    orgContactSelectionByOwner.set(ownerIndex, new Set());
+  }
+
+  return orgContactSelectionByOwner.get(ownerIndex);
+}
+
+function getOrgContactRows(ownerIndex) {
+  const rows = getOwnerRawRows(ownerIndex).map((row) => ({
+    nodeId: row.nodeId,
+    name: row.name || "",
+    email: row.email || "",
+    phone: row.phone || "",
+    position: row.title || "",
+    rowIndex: row.rowIndex
+  }));
+
+  const sortKey = orgContactsSort.key;
+  if (!sortKey) return rows;
+
+  const direction = orgContactsSort.direction === "ascending" ? 1 : -1;
+  return rows.slice().sort((left, right) => {
+    const leftValue = String(left[sortKey] || "").trim().toLowerCase();
+    const rightValue = String(right[sortKey] || "").trim().toLowerCase();
+    if (!leftValue && !rightValue) return left.rowIndex - right.rowIndex;
+    if (!leftValue) return 1;
+    if (!rightValue) return -1;
+
+    const compared = leftValue.localeCompare(rightValue);
+    if (!compared) return left.rowIndex - right.rowIndex;
+    return compared * direction;
+  });
+}
+
+function getOrgContactValueMarkup(value, className = "") {
+  const text = String(value ?? "").trim();
+  const classes = ["location-table-value", className, text ? "" : "dataset-empty-value"].filter(Boolean).join(" ");
+  const title = text ? ` title="${escapeOwnerInfoText(text)}"` : "";
+  return `<span class="${classes}"${title}>${text ? escapeOwnerInfoText(text) : "–"}</span>`;
+}
+
+function getOrgContactsSortHeader(label, sortKey) {
+  const ariaSort = orgContactsSort.key === sortKey ? orgContactsSort.direction : "none";
+  return `
+    <th class="sortable-header" data-org-contacts-sort="${sortKey}" aria-sort="${ariaSort}">
+      ${getSortableHeaderMarkup(label)}
+    </th>
+  `;
+}
+
+function getOrgContactsSelectHeader(rows, ownerIndex) {
+  const selected = getOrgContactSelection(ownerIndex);
+  const selectedCount = rows.filter((row) => selected.has(row.nodeId)).length;
+  const allSelected = rows.length > 0 && selectedCount === rows.length;
+  const partiallySelected = selectedCount > 0 && !allSelected;
+
+  return `
+    <th class="location-number-header">
+      <label class="location-row-select location-select-all ${partiallySelected ? "is-indeterminate" : ""}" aria-label="Select all contacts">
+        <input
+          class="location-row-checkbox location-select-all-checkbox"
+          type="checkbox"
+          data-org-contacts-select-all
+          ${allSelected ? "checked" : ""}
+        >
+        <span class="location-row-checkbox-visual" aria-hidden="true"></span>
+      </label>
+    </th>
+  `;
+}
+
+function getOrgContactRowMarkup(row, rowNumber, ownerIndex) {
+  const isSelected = getOrgContactSelection(ownerIndex).has(row.nodeId);
+  const safeId = escapeOwnerInfoText(row.nodeId);
+  const safeName = escapeOwnerInfoText(row.name || "contact");
+
+  return `
+    <tr class="${isSelected ? "is-checked" : ""}" data-owner-index="${ownerIndex}" data-org-node-id="${safeId}">
+      ${getRowSelectCellMarkup({
+        rowNumber,
+        isSelected,
+        ariaLabel: `Select ${safeName}`,
+        inputAttributes: `data-org-node-id="${safeId}"`
+      })}
+      <td>${getOrgContactValueMarkup(row.name, "org-contact-name")}</td>
+      <td>${getOrgContactValueMarkup(row.email)}</td>
+      <td>${getOrgContactValueMarkup(row.phone)}</td>
+      <td>${getOrgContactValueMarkup(row.position)}</td>
+    </tr>
+  `;
+}
+
+function getOrgContactsTableMarkup(ownerIndex) {
+  const rows = getOrgContactRows(ownerIndex);
+
+  return `
+    <div class="org-contacts-wrap proto-scrollbar">
+      <table class="org-contacts-table has-row-select" aria-label="Contacts">
+        <colgroup>
+          <col class="org-contacts-select-col">
+          <col>
+          <col>
+          <col>
+          <col>
+        </colgroup>
+        <thead>
+          <tr>
+            ${getOrgContactsSelectHeader(rows, ownerIndex)}
+            ${getOrgContactsSortHeader("Name", "name")}
+            ${getOrgContactsSortHeader("Email", "email")}
+            ${getOrgContactsSortHeader("Phone", "phone")}
+            ${getOrgContactsSortHeader("Position", "position")}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row, index) => getOrgContactRowMarkup(row, index + 1, ownerIndex)).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function syncOrgContactsSelectAll(ownerIndex) {
+  const rows = getOrgContactRows(ownerIndex);
+  const selected = getOrgContactSelection(ownerIndex);
+  const selectedCount = rows.filter((row) => selected.has(row.nodeId)).length;
+  const input = ownerDetailsPanel?.querySelector("[data-org-contacts-select-all]");
+  const label = input?.closest(".location-select-all");
+  if (!(input instanceof HTMLInputElement)) return;
+
+  input.checked = rows.length > 0 && selectedCount === rows.length;
+  input.indeterminate = selectedCount > 0 && selectedCount < rows.length;
+  label?.classList.toggle("is-indeterminate", input.indeterminate);
+}
+
+function setOrgContactSelected(nodeId, isSelected, row) {
+  const ownerIndex = activeOrgOwnerIndex;
+  if (ownerIndex === null || !nodeId) return;
+
+  const selected = getOrgContactSelection(ownerIndex);
+  if (isSelected) selected.add(nodeId);
+  else selected.delete(nodeId);
+  row?.classList.toggle("is-checked", isSelected);
+  syncOrgContactsSelectAll(ownerIndex);
+}
+
+function setAllOrgContactsSelected(isSelected) {
+  const ownerIndex = activeOrgOwnerIndex;
+  if (ownerIndex === null || !ownerDetailsPanel) return;
+
+  const selected = getOrgContactSelection(ownerIndex);
+  getOrgContactRows(ownerIndex).forEach((row) => {
+    if (isSelected) selected.add(row.nodeId);
+    else selected.delete(row.nodeId);
+  });
+
+  ownerDetailsPanel.querySelectorAll(".org-contacts-table tbody tr[data-org-node-id]").forEach((row) => {
+    const input = row.querySelector(".location-row-checkbox");
+    const checked = isSelected && selected.has(row.dataset.orgNodeId);
+    if (input instanceof HTMLInputElement) input.checked = checked;
+    row.classList.toggle("is-checked", checked);
+  });
+  syncOrgContactsSelectAll(ownerIndex);
+}
+
+function cycleOrgContactsSort(sortKey) {
+  if (!sortKey) return;
+
+  if (orgContactsSort.key !== sortKey) {
+    orgContactsSort = { key: sortKey, direction: "descending" };
+  } else if (orgContactsSort.direction === "descending") {
+    orgContactsSort = { key: sortKey, direction: "ascending" };
+  } else {
+    orgContactsSort = { key: "", direction: "descending" };
+  }
+
+  if (activeOrgOwnerIndex === null || orgPanelView !== "contacts") return;
+
+  const scrollLeft = ownerDetailsPanel?.querySelector(".org-contacts-wrap")?.scrollLeft || 0;
+  renderOwnerOrgChart(activeOrgOwnerIndex);
+  const wrap = ownerDetailsPanel?.querySelector(".org-contacts-wrap");
+  if (wrap) wrap.scrollLeft = scrollLeft;
+}
+
 function renderOwnerOrgChart(ownerIndex) {
   if (!ownerDetailsPanel) return;
-
-  if (ownerDetailsMap) {
-    ownerDetailsMap.remove();
-    ownerDetailsMap = null;
-  }
 
   const owner = owners.find((item) => item.originalIndex === ownerIndex);
   const orgChart = getOwnerOrgChart(ownerIndex);
@@ -316,24 +682,37 @@ function renderOwnerOrgChart(ownerIndex) {
   const nodes = orgChart.nodes;
   normalizeOrgExpandedSiblings(ownerIndex, nodes);
   const rootNodes = getOrgReports(nodes, null);
+  const contactsView = orgPanelView === "contacts";
+  const chartMarkup = `
+    <div class="owner-org-chart" aria-label="${owner.ownerName} organization chart">
+      <div class="org-node-row org-node-row-roots">
+        ${rootNodes.map((node) => getOrgCard(node, "root", nodes, ownerIndex)).join("")}
+      </div>
+
+      ${rootNodes.map((node) => getOrgTreeSection(node, nodes, ownerIndex)).join("")}
+    </div>
+  `;
 
   ownerDetailsPanel.innerHTML = `
-    <article class="owner-org-panel">
+    <article class="owner-org-panel${contactsView ? " is-contacts-view" : ""}">
       ${getOwnerHeader(owner, {
         className: "owner-org-header",
         closeLabel: "Close organization chart",
-        linksToDetail: true
+        linksToDetail: true,
+        views: ["org", "org-contacts"]
       })}
 
-      <div class="owner-org-chart" aria-label="${owner.ownerName} organization chart">
-        <div class="org-node-row org-node-row-roots">
-          ${rootNodes.map((node) => getOrgCard(node, "root", nodes, ownerIndex)).join("")}
-        </div>
-
-        ${rootNodes.map((node) => getOrgTreeSection(node, nodes, ownerIndex)).join("")}
-      </div>
+      ${contactsView ? getOrgContactsTableMarkup(ownerIndex) : chartMarkup}
     </article>
   `;
+
+  if (contactsView) {
+    const wrap = ownerDetailsPanel.querySelector(".org-contacts-wrap");
+    wrap?.addEventListener("scroll", () => {
+      ownerDetailsPanel.classList.toggle("is-scrolled", wrap.scrollTop > 0);
+    }, { passive: true });
+    syncOrgContactsSelectAll(ownerIndex);
+  }
 
   ownerDetailsPanel.scrollTop = 0;
   syncOwnerHeaderScrollState();
@@ -538,63 +917,4 @@ function syncOpenOrgPanelWithSelection() {
   }
 }
 
-function initializeOwnerDetailsMap(ownerIndex) {
-  if (!HAS_MAPBOX_ACCESS_TOKEN) return;
-
-  if (!window.mapboxgl || !cstMapStyle) {
-    Promise.all([ensureCstMapboxGl?.(), loadCstMapStyle()])
-      .then(() => initializeOwnerDetailsMap(ownerIndex))
-      .catch((error) => console.warn("Unable to initialize the owner details map.", error));
-    return;
-  }
-
-  const mapContainer = document.getElementById("ownerDetailsMap");
-  if (!mapContainer) return;
-
-  if (ownerDetailsMap) {
-    ownerDetailsMap.remove();
-    ownerDetailsMap = null;
-  }
-
-  ownerDetailsMapOwnerIndex = ownerIndex;
-  const coordinates = getMapPointFeatures(ownerIndex).map((feature) => feature.geometry.coordinates);
-  const bounds = getMapBoundsForCoordinates(coordinates);
-  mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
-  ownerDetailsMap = new mapboxgl.Map({
-    container: mapContainer,
-    style: cstMapStyle || MAPBOX_STYLE,
-    center: MAP_INITIAL_CENTER,
-    zoom: 3,
-    projection: "mercator",
-    bounds: bounds || undefined,
-    fitBoundsOptions: {
-      padding: 30,
-      maxZoom: 8.6
-    },
-    attributionControl: false,
-    logoPosition: "bottom-right",
-    interactive: false,
-    preserveDrawingBuffer: true
-  });
-
-  ownerDetailsMap.on("load", () => {
-    ownerDetailsMap.addSource("owner-detail-points", {
-      type: "geojson",
-      data: getOwnerMapPointFeatureCollection(ownerIndex)
-    });
-
-    ownerDetailsMap.addLayer({
-      id: "owner-detail-points",
-      type: "circle",
-      source: "owner-detail-points",
-      paint: {
-        "circle-radius": MAP_POINT_RADIUS,
-        "circle-color": ["get", "color"],
-        "circle-opacity": 0.88,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 1
-      }
-    });
-  });
-}
 

@@ -469,8 +469,8 @@ function renderFranchisees(rows) {
         const isChecked = selectedFranchiseeIndexes.has(owner.originalIndex);
         const isRowSelected = activeDetailOwnerIndex === owner.originalIndex
           || activeOrgOwnerIndex === owner.originalIndex
-          || activeMapOwnerIndex === owner.originalIndex
           || activeRawOwnerIndex === owner.originalIndex;
+        const unitsAreOnMap = activeDetailOwnerIndex === owner.originalIndex;
         const rowNumber = rowIndex + 1;
 
         return `
@@ -537,11 +537,11 @@ function renderFranchisees(rows) {
           <td class="contacts-mode-cell">${getContactsColumn(owner)}</td>
           <td class="units-mode-cell">
             <button
-              class="ui-control ui-row-action locations ${activeMapOwnerIndex === owner.originalIndex ? "is-active" : ""}"
+              class="ui-control ui-row-action locations ${unitsAreOnMap ? "is-active" : ""}"
               type="button"
               data-owner-index="${owner.originalIndex}"
-              aria-pressed="${activeMapOwnerIndex === owner.originalIndex}"
-              aria-label="Show ${owner.ownerName} locations on the map"
+              aria-pressed="${unitsAreOnMap}"
+              aria-label="Open ${owner.ownerName} details"
             >
               <span>${getOwnerVisibleUnitCount(owner)}</span>
               <img class="location-chevron" src="../../assets/icons/arrows.svg" alt="" aria-hidden="true">
@@ -1358,6 +1358,46 @@ function ownerExcludesLocationLabel(owner, locationLabels = excludedLocationLabe
 
   const ownerLocations = window.ownerLocationsData?.[owner.originalIndex]?.locations || [];
   return ownerLocations.some((location) => locationRecordIsExcluded(location));
+}
+
+function getOwnerPrimaryCategoryId(owner) {
+  const counts = new Map();
+  getOwnerFranchises(owner).forEach((franchise) => {
+    const categoryId = window.cstCategoryByConcept?.[franchise];
+    if (!categoryId) return;
+    counts.set(categoryId, (counts.get(categoryId) || 0) + 1);
+  });
+
+  if (counts.size) {
+    const preferred = [
+      owner.categoryId,
+      ...(Array.isArray(owner.categoryIds) ? owner.categoryIds : [])
+    ];
+    let bestId = "";
+    let bestCount = -1;
+
+    preferred.forEach((categoryId) => {
+      const count = counts.get(categoryId) || 0;
+      if (count > bestCount) {
+        bestId = categoryId;
+        bestCount = count;
+      }
+    });
+    counts.forEach((count, categoryId) => {
+      if (count > bestCount) {
+        bestId = categoryId;
+        bestCount = count;
+      }
+    });
+    if (bestId) return bestId;
+  }
+
+  return getOwnerCategories(owner)[0] || null;
+}
+
+function getOwnerPrimaryCategoryLabel(owner) {
+  const categoryId = getOwnerPrimaryCategoryId(owner);
+  return categoryId ? window.WefranchCategories.getLabel(categoryId) : "";
 }
 
 function getOwnerCategories(owner) {

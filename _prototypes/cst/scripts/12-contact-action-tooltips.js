@@ -156,7 +156,7 @@ async function copyTextToClipboard(text) {
   }
 }
 
-const TABLE_ANCHOR_TOOLTIP_SELECTOR = ".franchise-logo[data-tooltip], .owner-icon-link[data-tooltip]";
+const TABLE_ANCHOR_TOOLTIP_SELECTOR = ".franchise-logo[data-tooltip], .owner-icon-link[data-tooltip], .map-info-card__franchise-filter[data-tooltip]";
 
 let tableAnchorTooltip = null;
 let tableAnchorTooltipTarget = null;

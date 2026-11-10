@@ -328,6 +328,61 @@
     });
   }
 
+  function getFilterSidebarShell(panel) {
+    return panel?.closest(".card, .territory-shell") || null;
+  }
+
+  function getFilterSidebarToggle(panel) {
+    if (!panel?.id) return null;
+
+    const toggle = document.querySelector(`[aria-controls="${CSS.escape(panel.id)}"]`);
+    return toggle instanceof HTMLElement ? toggle : null;
+  }
+
+  function isFilterSidebarOpen(panel) {
+    return Boolean(getFilterSidebarShell(panel)?.classList.contains("is-filter-open"));
+  }
+
+  function changeAppliesFilter(target) {
+    if (!(target instanceof Element)) return false;
+
+    if (target instanceof HTMLSelectElement) {
+      return Array.from(target.selectedOptions).some((option) => option.value);
+    }
+
+    if (target instanceof HTMLInputElement) {
+      if (target.type === "checkbox") return target.checked;
+      if (target.type === "radio") {
+        return target.checked && target.value !== "" && target.value !== "0";
+      }
+      if (target.type === "search") return false;
+      return target.value.trim() !== "";
+    }
+
+    return false;
+  }
+
+  // A filter applied from outside the sidebar, such as a card action, opens
+  // the sidebar through the page's own toggle so its open state stays in sync.
+  function openFilterSidebarIfCollapsed(panel) {
+    if (!panel || isFilterSidebarOpen(panel)) return;
+
+    const toggle = getFilterSidebarToggle(panel);
+    if (!toggle || toggle.disabled) return;
+
+    toggle.click();
+  }
+
+  document.addEventListener("change", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const panel = target.closest(".filter-panel");
+    if (!panel || !changeAppliesFilter(target)) return;
+
+    openFilterSidebarIfCollapsed(panel);
+  });
+
   function updateClearButtons(panel, hasAppliedFilters, {
     getSelectionLabel
   } = {}) {
@@ -363,6 +418,7 @@
     syncExpandedState,
     bindCollapseToggle,
     scrollExpandedSectionIntoView: scrollExpandedFilterSectionIntoView,
+    openSidebarIfCollapsed: openFilterSidebarIfCollapsed,
     updateClearButtons,
     hideClearTooltip
   };

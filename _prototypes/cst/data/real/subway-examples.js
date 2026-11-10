@@ -6,6 +6,9 @@
  * match profiles.csv. The other owners are regional samples of unused stores
  * from that file, so each row's map pin count matches its unit count.
  *
+ * None of these lists include reporting lines. data/real/overlay.js assumes
+ * the hierarchy from the titles when it builds the org chart.
+ *
  * Sources for the published counts:
  *   Pilot, 235 — Franchise Times Multi-Brand 50, 2021
  *   Love's, 229 — Franchise Times Multi-Brand 50, 2021
@@ -86,7 +89,7 @@
         orgKey: "keshuv-aggarwal"
       },
       concepts: [subway],
-      // Leadership grid on https://kkcorp.com/. The page lists titles, not reporting lines.
+      // Leadership grid on https://kkcorp.com/. Titles only; the chart is assumed in overlay.js.
       orgChart: [
         person("Renu Aggarwal", "Founder & Chairwoman"),
         person("Bharat Aggarwal", "Chairman"),

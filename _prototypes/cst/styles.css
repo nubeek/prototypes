@@ -1,4 +1,5 @@
 @import url("../shared/ui/proto-tokens.css");
+@import url("../shared/map/map-info-card.css");
 @import url("../shared/ui/toolbar.css");
 @import url("../shared/ui/dropdown-menu.css");
 @import url("../shared/ui/ui-menu.css");
@@ -423,6 +424,8 @@ body img[src$="/chevron.svg"] {
 .panel-map-container {
   flex: 1 1 auto;
   min-height: 0;
+  container-type: size;
+  container-name: owners-map;
 }
 
 .owners-map {
@@ -528,86 +531,96 @@ body img[src$="/chevron.svg"] {
   white-space: nowrap;
 }
 
-.owner-map-header {
-  --owner-panel-padding-x: 20px;
-  --owner-panel-padding-y: 20px;
-  --owner-header-bg: rgba(244, 244, 244, 1.0);
-  --owner-header-bg-transparent: rgba(244, 244, 244, 0);
-  container: owner-detail / inline-size;
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  width: 100%;
-  z-index: 5;
-  background: transparent;
-  border-radius: 10px 10px 0 0;
-  pointer-events: none;
-}
-
-.owner-map-header > * {
-  pointer-events: auto;
-}
-
-.owner-map-header[hidden] {
-  display: none;
-}
-
-.owner-map-header .owner-detail-header {
-  position: relative;
-  margin: 0;
-  padding: var(--owner-panel-padding-y) var(--owner-panel-padding-x);
-  background: linear-gradient(
-    to bottom,
-    var(--owner-header-bg) 0%,
-    var(--owner-header-bg-transparent) 100%
-  );
-  border-radius: 10px 10px 0 0;
-  overflow: visible;
-}
-
-.owner-map-header .owner-detail-header::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: -56px;
-  left: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: rgba(255, 255, 255, 0.01);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border-radius: 10px 10px 0 0;
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    rgba(0, 0, 0, 0.7) 55%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    rgba(0, 0, 0, 0.7) 55%,
-    transparent 100%
-  );
-}
-
-.owner-map-header .owner-detail-header > * {
-  position: relative;
-  z-index: 1;
-}
-
-.owner-map-header .owner-detail-header::after {
-  display: none;
-}
-
-.map-panel.is-owner-map-filtered .panel-map-container {
-  border-radius: 10px;
-}
-
 .map-panel.is-details-mode .panel-map-container {
   display: none;
+}
+
+.owner-info-card .map-info-card__scroll {
+  padding-bottom: 18px;
+}
+
+.owner-info-card .owner-detail-logo {
+  flex: 0 0 42px;
+}
+
+.owner-info-card .map-info-card__header {
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.owner-info-card .map-info-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex: 0 0 auto;
+  margin: 20px var(--map-info-padding-x) 14px;
+}
+
+.owner-info-card .map-info-card__stat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 6px;
+}
+
+.owner-info-card .map-info-card__stat-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 4px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.owner-info-card .map-info-card__stat-button:hover,
+.owner-info-card .map-info-card__stat-button:focus-visible {
+  background: var(--color-surface-toolbar-hover);
+}
+
+.owner-info-card .map-info-card__stat-button:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: -2px;
+}
+
+.owner-info-card .map-info-card__stat + .map-info-card__stat::before {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  width: 1px;
+  background: var(--color-border);
+  content: "";
+}
+
+.owner-info-card .map-info-card__stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1480px) {
+  .owner-info-card .map-info-card__stats {
+    margin: 16px var(--map-info-padding-x) 12px;
+  }
+
+  .owner-info-card .map-info-card__stat-value {
+    font-size: 16px;
+  }
+}
+
+.owner-info-card .map-info-card__stat-label {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .owner-detail-panel {
@@ -1960,44 +1973,6 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   padding-bottom: 18px;
 }
 
-.owner-detail-locations-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.owner-detail-locations-header h3 {
-  margin-bottom: 6px;
-}
-
-.owner-detail-locations-header p {
-  color: var(--color-text);
-  font-weight: 400;
-}
-
-.owner-detail-map-link {
-  font-size: 15px;
-  line-height: 1;
-  padding: 2px 0 0;
-}
-
-.owner-detail-map {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  height: auto;
-  max-height: 260px;
-  border-radius: 10px;
-  background: #dadada;
-  overflow: hidden;
-  position: relative;
-}
-
-.owner-detail-map .mapboxgl-control-container {
-  display: none;
-}
-
 /* ==========================================================================
    Organization Chart
    ========================================================================== */
@@ -2198,7 +2173,8 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
 
 .org-node-row-roots {
   align-items: flex-start;
-  gap: 38px;
+  column-gap: 38px;
+  row-gap: 84px;
   flex-wrap: wrap;
   padding-bottom: 16px;
 }
@@ -2206,7 +2182,8 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
 .org-node-row-children {
   align-items: flex-start;
   justify-content: center;
-  gap: 38px;
+  column-gap: 38px;
+  row-gap: 84px;
   padding-top: 48px;
   padding-bottom: 16px;
   flex-wrap: wrap;
@@ -2934,11 +2911,6 @@ h1 {
   padding: 0 12px;
 }
 
-.toolbar-export-icon {
-  width: 16px;
-  height: 18px;
-}
-
 .toolbar-outreach-icon {
   width: 18px;
   height: 16px;
@@ -2970,12 +2942,6 @@ h1 {
 
 .outreach-dropdown-menu .toolbar-submenu-menu .toolbar-dropdown-label {
   white-space: nowrap;
-}
-
-#exportBtn {
-  min-width: var(--control-height);
-  width: var(--control-height);
-  padding: 0;
 }
 
 .dataset-selector-field {
@@ -4700,6 +4666,66 @@ tbody tr.is-checked:hover td:first-child {
   outline-offset: 2px;
 }
 
+.owner-org-panel.is-contacts-view {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.org-contacts-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 calc(-1 * var(--owner-panel-padding-x));
+  overflow: auto;
+  background: #fff;
+}
+
+.org-contacts-table {
+  width: 100%;
+  min-width: 0;
+  background: #fff;
+  table-layout: fixed;
+}
+
+.org-contacts-select-col,
+.org-contacts-table th:first-child,
+.org-contacts-table td:first-child {
+  width: 48px;
+}
+
+.org-contacts-table th,
+.org-contacts-table td,
+.org-contacts-table th:first-child,
+.org-contacts-table td:first-child {
+  background: #fff;
+}
+
+.org-contacts-table th {
+  top: 0;
+}
+
+.org-contacts-table td:not(:first-child) {
+  overflow: hidden;
+}
+
+.org-contacts-table .location-table-value {
+  font-weight: 400;
+}
+
+.org-contacts-table .org-contact-name {
+  font-weight: 600;
+}
+
+.org-contacts-table tbody tr:hover td,
+.org-contacts-table tbody tr:hover td:first-child,
+.org-contacts-table tbody tr.is-checked td,
+.org-contacts-table tbody tr.is-checked td:first-child,
+.org-contacts-table tbody tr.is-checked:hover td,
+.org-contacts-table tbody tr.is-checked:hover td:first-child {
+  background: #f3f3f4;
+}
+
 .location-organization-cell {
   display: flex;
   align-items: center;
@@ -5289,7 +5315,8 @@ a.franchise-name:focus-visible {
   }
 
   .org-node-row-children {
-    gap: 16px;
+    column-gap: 16px;
+    row-gap: 64px;
   }
 
   .org-person-card-root,
@@ -5343,7 +5370,8 @@ a.franchise-name:focus-visible {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 8px;
+    column-gap: 8px;
+    row-gap: 64px;
   }
 
   .org-node-row-children {
@@ -5516,57 +5544,6 @@ a.franchise-name:focus-visible {
   }
 }
 
-@container owner-detail (max-width: 440px) {
-  .owner-map-header .owner-detail-header {
-    flex-wrap: wrap;
-    align-items: center;
-    column-gap: 12px;
-    row-gap: 10px;
-  }
-
-  .owner-map-header .owner-header-logo-action,
-  .owner-map-header .owner-detail-logo {
-    order: 1;
-  }
-
-  .owner-map-header .owner-detail-header h2 {
-    order: 2;
-    font-size: 18px;
-    line-height: 1.2;
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .owner-map-header .owner-detail-close {
-    order: 3;
-    margin-left: auto;
-    align-self: center;
-  }
-
-  .owner-map-header .owner-detail-header-actions,
-  .owner-map-header .owner-detail-header-actions.segmented-control {
-    order: 4;
-    width: 100%;
-    height: 44px;
-    margin-left: 0;
-  }
-
-  .owner-map-header .owner-header-view-btn {
-    width: auto;
-    height: 44px;
-    flex: 1 1 0;
-  }
-
-  .owner-map-header .owner-detail-header-actions .owner-header-view-btn.segmented-control-btn::before {
-    inset: 7px;
-  }
-
-  .owner-map-header .owner-detail-header-actions + .owner-detail-close {
-    order: 3;
-    margin-left: auto;
-  }
-}
-
 @container org-panel (max-width: 520px) {
   .org-node-row-single,
   .org-node-row-roots {
@@ -5575,7 +5552,8 @@ a.franchise-name:focus-visible {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 8px;
+    column-gap: 8px;
+    row-gap: 52px;
   }
 
   .org-node-row-children {
@@ -5673,7 +5651,8 @@ a.franchise-name:focus-visible {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 6px;
+    column-gap: 6px;
+    row-gap: 48px;
   }
 
   .org-node-row-children {
@@ -5766,7 +5745,8 @@ a.franchise-name:focus-visible {
 
   .org-node-row-roots,
   .org-node-row-children {
-    gap: 6px;
+    column-gap: 6px;
+    row-gap: 44px;
   }
 
   .org-node-row-children {
