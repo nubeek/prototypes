@@ -488,7 +488,7 @@ let mapPointFeaturesCache = null;
 function getMapPointFeatures(ownerIndex = getOwnersMapFocusedOwnerIndex()) {
   const cacheKey = typeof getCstFilterResultCacheKey === "function"
     ? getCstFilterResultCacheKey(ownerIndex)
-    : `${ownerIndex}|${selectedLocationLabels.join("|")}|${selectedFranchiseIndexes.join("|")}|${searchQuery}`;
+    : `${ownerIndex}|${selectedLocationLabels.join("|")}|${selectedFranchiseIndexes.join("|")}|${getSearchKeywords().join("|")}`;
   if (mapPointFeaturesCache?.key === cacheKey) {
     return mapPointFeaturesCache.features;
   }

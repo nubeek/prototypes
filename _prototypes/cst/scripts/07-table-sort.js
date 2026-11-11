@@ -96,7 +96,8 @@ function getFranchiseLogoTile(franchise) {
 
 function getFranchiseNameMarkup(franchise) {
   const url = typeof getFranchiseWefranchUrl === "function" ? getFranchiseWefranchUrl(franchise) : "";
-  if (!url) return `<span class="franchise-name">${franchise}</span>`;
+  const nameMarkup = highlightSearchQueryInText(franchise);
+  if (!url) return `<span class="franchise-name">${nameMarkup}</span>`;
 
   return `
     <a
@@ -104,7 +105,7 @@ function getFranchiseNameMarkup(franchise) {
       href="${url}"
       target="_blank"
       rel="noreferrer noopener"
-    >${franchise}</a>
+    >${nameMarkup}</a>
   `;
 }
 
@@ -112,7 +113,7 @@ function getFranchiseLogosColumn(owner, { showNames = false, containerTag = "div
   const franchises = getVisibleOwnerFranchises(owner);
 
   if (!franchises.length) {
-    return `<span class="franchise-text">${owner.franchise}</span>`;
+    return `<span class="franchise-text">${highlightSearchQueryInText(owner.franchise)}</span>`;
   }
 
   return `
@@ -142,7 +143,7 @@ function getLocationOrganizationColumn(row) {
           >
         ` : ""}
       </span>
-      <span class="location-table-value location-table-organization">${owner.ownerName}</span>
+      <span class="location-table-value location-table-organization">${highlightSearchQueryInText(owner.ownerName)}</span>
     </span>
   `;
 }
@@ -497,7 +498,7 @@ function renderFranchisees(rows) {
                 ` : ""}
               </div>
               <div class="owner-meta">
-                <div class="owner-name">${owner.ownerName}</div>
+                <div class="owner-name">${highlightSearchQueryInText(owner.ownerName)}</div>
                 ${getOwnerIcons(owner)}
               </div>
             </div>
@@ -511,8 +512,8 @@ function renderFranchisees(rows) {
                 aria-label="Open profile for ${owner.contactName}"
               >
                 <span class="contact-profile-text">
-                  <span class="contact-name">${owner.contactName}</span>
-                  <span class="ui-link ui-ellipsis email contact-email-send" tabindex="0" role="button" aria-label="Send a message to ${owner.email}">${owner.email}</span>
+                  <span class="contact-name">${highlightSearchQueryInText(owner.contactName)}</span>
+                  <span class="ui-link ui-ellipsis email contact-email-send" tabindex="0" role="button" aria-label="Send a message to ${owner.email}">${highlightSearchQueryInText(owner.email)}</span>
                 </span>
               </button>
               <div class="contact-row-actions">
@@ -721,14 +722,59 @@ function getLocationSearchIndex(row) {
     .join(" ");
 }
 
-function getNormalizedSearchQuery() {
-  return String(searchQuery || "").trim().toLocaleLowerCase();
+function getNormalizedSearchKeywords() {
+  return getSearchKeywords().map((keyword) => keyword.toLocaleLowerCase());
+}
+
+function escapeTableHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
+
+function highlightSearchQueryInText(value) {
+  const text = value == null ? "" : String(value);
+  const keywords = getNormalizedSearchKeywords();
+  if (!text) return "";
+  if (!keywords.length) return escapeTableHtml(text);
+
+  const pattern = new RegExp(
+    keywords
+      .slice()
+      .sort((left, right) => right.length - left.length)
+      .map((keyword) => keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join("|"),
+    "gi"
+  );
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = pattern.exec(text))) {
+    if (match.index > lastIndex) {
+      parts.push(escapeTableHtml(text.slice(lastIndex, match.index)));
+    }
+    parts.push(`<mark class="table-search-highlight">${escapeTableHtml(match[0])}</mark>`);
+    lastIndex = match.index + match[0].length;
+    if (!match[0].length) pattern.lastIndex += 1;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(escapeTableHtml(text.slice(lastIndex)));
+  }
+
+  return parts.join("");
 }
 
 function locationRowMatchesSearchQuery(row) {
-  const query = getNormalizedSearchQuery();
-  if (!query) return true;
-  return getLocationSearchIndex(row).includes(query);
+  const keywords = getNormalizedSearchKeywords();
+  if (!keywords.length) return true;
+  const index = getLocationSearchIndex(row);
+  return keywords.some((keyword) => index.includes(keyword));
 }
 
 function ownerMatchesLocationTableFilters(owner) {
@@ -898,7 +944,7 @@ function getDatasetCellValueMarkup(value, className = "") {
   const missingClass = normalizedValue ? "" : " dataset-empty-value";
   const classAttribute = `location-table-value${className ? ` ${className}` : ""}${missingClass}`;
 
-  return `<span class="${classAttribute}">${normalizedValue || "–"}</span>`;
+  return `<span class="${classAttribute}">${normalizedValue ? highlightSearchQueryInText(normalizedValue) : "–"}</span>`;
 }
 
 function getLocationRowAttributeMarkup(row, pageRowIndex) {
@@ -924,7 +970,7 @@ function getDatasetNameCellMarkup(row) {
     return `
       <div class="contact-cell-action location-prospect-name-action ${hasSavedLead ? "is-lead-saved" : ""} ${isContactHidden ? "is-contact-hidden" : ""}">
         <span class="location-prospect-name">
-          <span class="contact-name location-table-value location-table-contact-name">${row.name}</span>
+          <span class="contact-name location-table-value location-table-contact-name">${highlightSearchQueryInText(row.name)}</span>
         </span>
         <div class="contact-row-actions">
           <button
@@ -954,7 +1000,7 @@ function getDatasetNameCellMarkup(row) {
       data-unit-index="${row.unitIndex}"
       aria-label="Open profile for ${row.name}"
     >
-      <span class="location-table-value location-table-contact-name">${row.name}</span>
+      <span class="location-table-value location-table-contact-name">${highlightSearchQueryInText(row.name)}</span>
     </button>
   `;
 }
@@ -1030,7 +1076,7 @@ function getDatasetEmailCellMarkup(row) {
   const stateKey = getProspectRowStateKey(row);
   const labelName = row.name || "this contact";
   const emailMarkup = email
-    ? `<span class="ui-link ui-ellipsis email contact-email-send location-table-value location-table-email" tabindex="0" role="button" aria-label="Send a message to ${email}">${email}</span>`
+    ? `<span class="ui-link ui-ellipsis email contact-email-send location-table-value location-table-email" tabindex="0" role="button" aria-label="Send a message to ${email}">${highlightSearchQueryInText(email)}</span>`
     : getDatasetCellValueMarkup("", "location-table-email");
 
   return `
@@ -1508,9 +1554,10 @@ function getOwnerSearchIndex(owner) {
 }
 
 function ownerMatchesSearchQuery(owner) {
-  const query = getNormalizedSearchQuery();
-  if (!query) return true;
-  return getOwnerSearchIndex(owner).includes(query);
+  const keywords = getNormalizedSearchKeywords();
+  if (!keywords.length) return true;
+  const index = getOwnerSearchIndex(owner);
+  return keywords.some((keyword) => index.includes(keyword));
 }
 
 function rawRowMatchesFilters(row) {
@@ -1531,7 +1578,7 @@ let filteredFranchiseesCache = null;
 function getCstFilterResultCacheKey(ownerIndex = null) {
   return [
     ownerIndex,
-    searchQuery,
+    getSearchKeywords().join("\u0001"),
     selectedLocationLabels.join("\u0001"),
     excludedLocationLabels.join("\u0001"),
     selectedLocationSearches.map((search) => search?.label || "").join("\u0001"),
@@ -2073,9 +2120,10 @@ function buildHeadingSummaryRatingConcept() {
 }
 
 function buildHeadingSummarySearchConcept() {
-  const query = searchQuery;
-  if (!query) return null;
-  return { id: "search", phrase: `matching “${query}”`, highlight: query };
+  const keywords = getSearchKeywords();
+  if (!keywords.length) return null;
+  const quoted = keywords.map((keyword) => `“${keyword}”`).join(" or ");
+  return { id: "search", phrase: `matching ${quoted}`, highlight: keywords };
 }
 
 function collectTableHeadingSummaryConcepts() {
@@ -2347,7 +2395,7 @@ function getAppliedFilterCount() {
     selectedFranchiseIndexes.length +
     excludedFranchiseIndexes.length;
   const selectedStatusCount = statusFilterInputs.filter((checkbox) => checkbox.checked).length;
-  const selectedSearchCount = searchQuery ? 1 : 0;
+  const selectedSearchCount = getSearchKeywords().length;
   const selectedUnitsCount = unitsFilterIsActive() ? 1 : 0;
   const selectedContactsCount = contactsFilterIsActive() ? 1 : 0;
   const selectedNetWorthCount = netWorthFilterIsActive() ? 1 : 0;

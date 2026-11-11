@@ -1372,6 +1372,9 @@
     document.querySelectorAll(".filter-search.is-suggestions-open .filter-search-options").forEach((list) => {
       fitDropdownList(list.closest(".filter-search"), list, { capPx: 280 });
     });
+    document.querySelectorAll(".filter-search-query-field.is-open .filter-combobox-options").forEach((list) => {
+      fitDropdownList(list.closest(".filter-search-query-field"), list, { capPx: 280 });
+    });
   }
 
   function scheduleFitOpenMenus() {

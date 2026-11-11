@@ -349,14 +349,38 @@
       </div>
       <div class="filter-scroll">
 
-        <section class="filter-section" data-filter-section="search" id="searchFilterSection" hidden>
-          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="true">
-            <span>Search</span>
+        <section class="filter-section filter-section-collapsed" data-filter-section="search" id="searchFilterSection">
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="false">
+            <span>Keywords</span>
             <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <div class="filter-select-field filter-search-query-field" id="searchFilterField">
             <div class="filter-combobox-control" role="presentation">
+              <img class="filter-search-query-field-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
               <div class="filter-combobox-chips" id="searchFilterChips"></div>
+              <input
+                class="filter-combobox-input"
+                id="searchFilterInput"
+                type="text"
+                inputmode="search"
+                autocomplete="off"
+                spellcheck="false"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="searchFilterSuggestions"
+                placeholder="Enter a term"
+                aria-label="Keywords"
+              >
+            </div>
+            <div class="filter-combobox-menu" id="searchFilterMenu" aria-hidden="true">
+              <div
+                class="filter-combobox-options proto-scrollbar"
+                id="searchFilterSuggestions"
+                role="listbox"
+                aria-label="Keyword suggestions"
+              ></div>
             </div>
           </div>
         </section>

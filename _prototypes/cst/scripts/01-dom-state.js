@@ -349,6 +349,26 @@ const selectedFranchiseeIndexes = new Set();
 const LOCATION_TABLE_PAGE_SIZE = 100;
 let locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
 let searchQuery = "";
+
+function normalizeSearchKeywords(value) {
+  const source = Array.isArray(value) ? value : [value];
+  const seen = new Set();
+  const keywords = [];
+
+  source.forEach((item) => {
+    const keyword = String(item ?? "").trim();
+    const key = keyword.toLocaleLowerCase();
+    if (keyword.length < 2 || seen.has(key)) return;
+    seen.add(key);
+    keywords.push(keyword);
+  });
+
+  return keywords;
+}
+
+function getSearchKeywords() {
+  return normalizeSearchKeywords(searchQuery);
+}
 const ownerSearchIndexById = new Map();
 let selectedLocationLabels = [];
 let excludedLocationLabels = [];

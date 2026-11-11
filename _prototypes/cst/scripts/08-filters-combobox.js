@@ -661,7 +661,7 @@ function createSearchFilterChip(label) {
   chipRemove.addEventListener("mousedown", (event) => event.preventDefault());
   chipRemove.addEventListener("click", (event) => {
     event.stopPropagation();
-    setSearchQuery("", { refresh: true });
+    removeSearchKeyword(label, { refresh: true });
   });
   chip.append(chipLabel, chipRemove);
   return chip;
@@ -669,25 +669,32 @@ function createSearchFilterChip(label) {
 
 function syncSearchFilterSection() {
   const section = document.getElementById("searchFilterSection");
+  const field = document.getElementById("searchFilterField");
   const chips = document.getElementById("searchFilterChips");
+  const input = document.getElementById("searchFilterInput");
   if (!section || !chips) return;
 
-  const query = String(searchQuery || "").trim();
-  section.hidden = !query;
-  chips.replaceChildren();
+  const keywords = getSearchKeywords();
+  chips.replaceChildren(...keywords.map(createSearchFilterChip));
+  field?.classList.toggle("has-selection", keywords.length > 0);
 
-  if (!query) {
-    updateFilterSectionClearButtons();
-    return;
+  if (keywords.length) {
+    window.WefranchFilterSections?.setSectionExpanded?.(section, true);
   }
 
-  chips.append(createSearchFilterChip(query));
-  window.WefranchFilterSections?.setSectionExpanded?.(section, true);
+  if (input) {
+    input.hidden = false;
+    input.placeholder = keywords.length ? "" : "Enter a term";
+  }
+
   updateFilterSectionClearButtons();
 }
 
-function setSearchQuery(value, { refresh = false } = {}) {
-  searchQuery = String(value || "").trim();
+function setSearchQuery(value, { refresh = false, append = false } = {}) {
+  const incoming = normalizeSearchKeywords(value);
+  searchQuery = append
+    ? normalizeSearchKeywords([...getSearchKeywords(), ...incoming])
+    : incoming;
   syncSearchFilterSection();
 
   if (!refresh) return;
@@ -695,6 +702,189 @@ function setSearchQuery(value, { refresh = false } = {}) {
   refreshFilteredViews();
   persistViewSettings();
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function removeSearchKeyword(keyword, { refresh = true } = {}) {
+  const key = String(keyword || "").trim().toLocaleLowerCase();
+  setSearchQuery(
+    getSearchKeywords().filter((item) => item.toLocaleLowerCase() !== key),
+    { refresh }
+  );
+}
+
+function addSearchKeyword(keyword) {
+  const next = String(keyword || "").trim();
+  if (next.length < 2) return;
+
+  if (typeof rememberCstRecentSearch === "function") {
+    rememberCstRecentSearch({
+      filters: { search: next },
+      label: next,
+      type: "text"
+    });
+  }
+
+  const input = document.getElementById("searchFilterInput");
+  if (input) input.value = "";
+  setSearchQuery(next, { refresh: true, append: true });
+  input?.focus({ preventScroll: true });
+}
+
+function bindSearchFilterInput() {
+  const field = document.getElementById("searchFilterField");
+  const input = document.getElementById("searchFilterInput");
+  const menu = document.getElementById("searchFilterMenu");
+  const suggestions = document.getElementById("searchFilterSuggestions");
+  if (!field || !input || !suggestions) return;
+
+  let activeSuggestionIndex = -1;
+  let renderedSuggestions = [];
+
+  function setSuggestionsOpen(isOpen) {
+    input.setAttribute("aria-expanded", String(isOpen));
+    menu?.setAttribute("aria-hidden", String(!isOpen));
+    field.classList.toggle("is-open", isOpen);
+    if (isOpen) {
+      window.WefranchFilterCombobox?.revealOpenMenu?.(field);
+      window.WefranchFilterCombobox?.fitOpenMenus?.();
+    } else {
+      input.removeAttribute("aria-activedescendant");
+      window.WefranchFilterCombobox?.clearOpenMenuScrollRoom?.(field);
+    }
+  }
+
+  function closeSuggestions() {
+    activeSuggestionIndex = -1;
+    renderedSuggestions = [];
+    suggestions.replaceChildren();
+    setSuggestionsOpen(false);
+  }
+
+  function syncActiveSuggestion() {
+    suggestions.querySelectorAll(".filter-search-suggestion").forEach((button, index) => {
+      const isActive = index === activeSuggestionIndex;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", String(isActive));
+      if (isActive) {
+        input.setAttribute("aria-activedescendant", button.id);
+        button.scrollIntoView({ block: "nearest" });
+      }
+    });
+
+    if (activeSuggestionIndex === -1) {
+      input.removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function renderKeywordSuggestion() {
+    const query = input.value.trim();
+    if (query.length < 2) {
+      closeSuggestions();
+      return;
+    }
+
+    const item = {
+      label: query,
+      live: true,
+      type: "text"
+    };
+    renderedSuggestions = [item];
+    activeSuggestionIndex = 0;
+    suggestions.replaceChildren();
+
+    const button = document.createElement("button");
+    const label = document.createElement("span");
+    const queryText = document.createElement("strong");
+
+    button.type = "button";
+    button.className = "filter-search-suggestion";
+    button.id = "searchFilterSuggestion-0";
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", "false");
+    button.setAttribute("aria-label", `Search for ${query} keyword`);
+
+    label.className = "filter-search-suggestion-label";
+    queryText.textContent = query;
+    label.append("Search for “", queryText, "”");
+
+    const icon = typeof createCstSplashSuggestionIcon === "function"
+      ? createCstSplashSuggestionIcon(item)
+      : document.createElement("span");
+    button.append(icon, label);
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("mouseenter", () => {
+      activeSuggestionIndex = 0;
+      syncActiveSuggestion();
+    });
+    button.addEventListener("click", () => selectSuggestion(item));
+    suggestions.append(button);
+
+    setSuggestionsOpen(true);
+    syncActiveSuggestion();
+  }
+
+  function selectSuggestion(item) {
+    closeSuggestions();
+    addSearchKeyword(item.label);
+  }
+
+  input.addEventListener("input", () => {
+    renderKeywordSuggestion();
+  });
+
+  input.addEventListener("focus", () => {
+    if (input.value.trim().length >= 2) {
+      renderKeywordSuggestion();
+    }
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" && renderedSuggestions.length) {
+      event.preventDefault();
+      activeSuggestionIndex = Math.min(activeSuggestionIndex + 1, renderedSuggestions.length - 1);
+      syncActiveSuggestion();
+      return;
+    }
+
+    if (event.key === "ArrowUp" && renderedSuggestions.length) {
+      event.preventDefault();
+      activeSuggestionIndex = Math.max(activeSuggestionIndex - 1, 0);
+      syncActiveSuggestion();
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (activeSuggestionIndex >= 0 && renderedSuggestions[activeSuggestionIndex]) {
+        selectSuggestion(renderedSuggestions[activeSuggestionIndex]);
+        return;
+      }
+      addSearchKeyword(input.value);
+      return;
+    }
+
+    if (event.key === "Backspace" && !input.value && getSearchKeywords().length) {
+      const keywords = getSearchKeywords();
+      removeSearchKeyword(keywords[keywords.length - 1], { refresh: true });
+      return;
+    }
+
+    if (event.key === "Escape") {
+      closeSuggestions();
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    window.setTimeout(() => {
+      if (!field.contains(document.activeElement)) {
+        closeSuggestions();
+      }
+    }, 0);
+  });
+
+  document.addEventListener("mousedown", (event) => {
+    if (!field.contains(event.target)) closeSuggestions();
+  });
 }
 
 function resetCstFilterSelections({ refresh = true } = {}) {
@@ -782,6 +972,8 @@ function filterSectionHasAppliedFilters(section) {
       return netWorthFilterIsActive();
     case "rating":
       return franchiseeRatingFilterIsActive();
+    case "search":
+      return getSearchKeywords().length > 0;
     default:
       return false;
   }
@@ -848,11 +1040,11 @@ function clearFilterSection(section) {
     case "rating":
       setFranchiseeRatingMin(0);
       break;
-    default:
-      return;
     case "search":
       setSearchQuery("");
       break;
+    default:
+      return;
   }
 
   activeOrgOwnerIndex = null;
@@ -885,3 +1077,6 @@ function renderFilterHistograms() {
     renderFilterHistogram(section);
   });
 }
+
+bindSearchFilterInput();
+syncSearchFilterSection();

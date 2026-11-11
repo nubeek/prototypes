@@ -619,6 +619,7 @@ function withCstSplashFilterScope(filters, read) {
     return read();
   } finally {
     searchQuery = restore.searchQuery;
+    syncSearchFilterSection();
     selectedLocationLabels = restore.selectedLocationLabels;
     excludedLocationLabels = restore.excludedLocationLabels;
     selectedLocationSearches = restore.selectedLocationSearches;
@@ -1370,12 +1371,16 @@ function isCstLocationFilterSection(section) {
     || Boolean(section.querySelector("#locationFilterSearchField"));
 }
 
+function isCstDefaultExpandedFilterSection(section) {
+  return isCstLocationFilterSection(section);
+}
+
 function resetCstFilterSectionsToDefault() {
   if (!filterPanel) return;
 
   window.WefranchFilterSections.applyExpansion(filterPanel, {
     mode: "reset",
-    shouldExpand: isCstLocationFilterSection
+    shouldExpand: isCstDefaultExpandedFilterSection
   });
 
   if (viewSettingsReadyToPersist && !isRestoringViewSettings) {
@@ -1393,7 +1398,7 @@ function expandCstSplashFilterSections() {
     if (section) activeSections.add(section);
   };
 
-  markActive(document.getElementById("searchFilterSection"), Boolean(String(searchQuery || "").trim()));
+  markActive(document.getElementById("searchFilterSection"), getSearchKeywords().length > 0);
   markActive(locationFilterSearchField, true);
   markActive(categoryFilterSelect, selectedCategoryValues.length || excludedCategoryValues.length);
   markActive(ownerFilterSelect, selectedOwnerIndexes.length || excludedOwnerIndexes.length);
@@ -1405,7 +1410,7 @@ function expandCstSplashFilterSections() {
 
   window.WefranchFilterSections.applyExpansion(filterPanel, {
     mode: "preserve",
-    shouldExpand: (section) => isCstLocationFilterSection(section) || activeSections.has(section)
+    shouldExpand: (section) => isCstDefaultExpandedFilterSection(section) || activeSections.has(section)
   });
 }
 
@@ -1618,7 +1623,13 @@ function canFocusCstSplashSearchInput() {
 
 function focusCstSplashSearchInput() {
   if (!canFocusCstSplashSearchInput()) return;
-  document.getElementById("cstSplashSearchInput")?.focus({ preventScroll: true });
+  const input = document.getElementById("cstSplashSearchInput");
+  input?.focus({ preventScroll: true });
+  // Focus does not fire again when the field is already focused, which is
+  // the usual case when the splash reopens. Show recents directly then.
+  if (!input?.value.trim()) {
+    cstSplashSearchController?.showIdleSuggestions();
+  }
 }
 
 // The splash paints over the workspace, so the table and panels behind it stay
@@ -1643,8 +1654,6 @@ function finishCstSplashEnterAnimation(splash, items) {
     item.classList.remove("cst-splash__animate-item");
     item.style.removeProperty("--enter-index");
   });
-
-  focusCstSplashSearchInput();
 }
 
 function playCstSplashEnterAnimation(splash) {
@@ -1706,6 +1715,7 @@ function showCstSplash({ animate = false } = {}) {
   if (!splash) return;
 
   cstSplashSearchController?.reset();
+  document.getElementById("cstSplashSearchInput")?.blur();
   cstSplashNewSearch?.removeAttribute("open");
   resetCstSplashNewSearchMore();
   hideCstTableLoading?.({ immediate: true });
@@ -1726,10 +1736,7 @@ function showCstSplash({ animate = false } = {}) {
 
   if (animate) {
     playCstSplashEnterAnimation(splash);
-    return;
   }
-
-  requestAnimationFrame(() => focusCstSplashSearchInput());
 }
 
 function revealCstSplashWorkspace() {
@@ -2106,6 +2113,7 @@ function applyCstQuickSearchSuggestion(item) {
 
 const CST_RECENT_SEARCHES_STORAGE_KEY = "cst.recentSearches.v1";
 const CST_RECENT_SEARCHES_LIMIT = 5;
+const CST_RECENT_SEARCHES_GROUP = "Recent searches";
 
 function readCstRecentSearches() {
   try {
@@ -2140,8 +2148,16 @@ function rememberCstRecentSearch(item) {
   }
 }
 
+function clearCstRecentSearches() {
+  try {
+    window.localStorage?.removeItem(CST_RECENT_SEARCHES_STORAGE_KEY);
+  } catch (error) {
+    console.warn("Unable to clear recent searches.", error);
+  }
+}
+
 function getCstRecentSearchSuggestions() {
-  return readCstRecentSearches().map((item) => ({ ...item, group: "Recent searches" }));
+  return readCstRecentSearches().map((item) => ({ ...item, group: CST_RECENT_SEARCHES_GROUP }));
 }
 
 function bindCstSplashSearch() {
@@ -2153,6 +2169,7 @@ function bindCstSplashSearch() {
     locateButton: document.getElementById("cstSplashLocate"),
     suggestionIdPrefix: "cstSplashSearchSuggestion",
     setFeedback: setCstSplashSearchFeedback,
+    getIdleSuggestions: getCstRecentSearchSuggestions,
     onSearch(filters, item) {
       rememberCstRecentSearch(item);
       clearCstSavedSearchSession({ persist: false });
@@ -2194,6 +2211,9 @@ function createCstSearchField({
   }
 
   function closeSuggestions() {
+    if (suggestions.querySelector(".cst-splash__search-suggestion-heading-clear:hover")) {
+      hideCstSplashSearchFloatingTooltip();
+    }
     activeSuggestionIndex = -1;
     renderedSuggestions = [];
     suggestions.replaceChildren();
@@ -2218,11 +2238,46 @@ function createCstSearchField({
     }
   }
 
-  function appendSuggestionHeading(label) {
+  function appendSuggestionHeading(label, parent, { clearable = false } = {}) {
     const heading = document.createElement("div");
+    const title = document.createElement("span");
+
     heading.className = "cst-splash__search-suggestion-heading";
-    heading.textContent = label;
-    suggestions.append(heading);
+    title.className = "cst-splash__search-suggestion-heading-label";
+    title.textContent = label;
+    heading.append(title);
+
+    if (clearable) {
+      const clearButton = document.createElement("button");
+      const clearIcon = document.createElement("img");
+      clearButton.type = "button";
+      clearButton.className = "cst-splash__search-suggestion-heading-clear";
+      clearButton.setAttribute("aria-label", "Clear all recent searches");
+      clearButton.dataset.tooltip = "Clear all";
+      clearIcon.src = "../../assets/icons/close.svg";
+      clearIcon.alt = "";
+      clearIcon.setAttribute("aria-hidden", "true");
+      clearButton.append(clearIcon);
+      clearButton.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      clearButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        clearCstRecentSearches();
+        showIdleSuggestions();
+      });
+      bindCstSplashSearchFloatingTooltip(clearButton);
+      heading.append(clearButton);
+    }
+
+    heading.addEventListener("mouseenter", () => {
+      activeSuggestionIndex = -1;
+      syncActiveSuggestion();
+    });
+
+    parent.append(heading);
   }
 
   function getTextSearchSuggestion() {
@@ -2238,7 +2293,7 @@ function createCstSearchField({
     };
   }
 
-  function appendSuggestionButton(item, index) {
+  function appendSuggestionButton(item, index, parent) {
     const button = document.createElement("button");
     const label = document.createElement("span");
     const action = document.createElement("span");
@@ -2253,7 +2308,7 @@ function createCstSearchField({
     button.setAttribute("aria-selected", "false");
     button.setAttribute(
       "aria-label",
-      isLiveTextSearch ? `Search for ${item.label}` : `Select ${item.label}`
+      isLiveTextSearch ? `Search for ${item.label} keyword` : `Select ${item.label}`
     );
 
     label.className = "cst-splash__search-suggestion-label";
@@ -2261,7 +2316,7 @@ function createCstSearchField({
       button.classList.add("is-text-search");
       const queryText = document.createElement("strong");
       queryText.textContent = item.label;
-      label.append("Search for “", queryText, "”");
+      label.append("Search for “", queryText, "” keyword");
     } else {
       label.textContent = item.label;
     }
@@ -2274,28 +2329,27 @@ function createCstSearchField({
     actionKey.alt = "";
     action.append(actionLabel, actionKey);
 
-    if (isLiveTextSearch) {
-      button.append(label, action);
-    } else {
-      button.append(createCstSplashSuggestionIcon(item), label, action);
-    }
+    button.append(createCstSplashSuggestionIcon(item), label, action);
     button.addEventListener("mousedown", (event) => event.preventDefault());
     button.addEventListener("mouseenter", () => {
       activeSuggestionIndex = index;
       syncActiveSuggestion();
     });
     button.addEventListener("click", () => selectSuggestion(item));
-    suggestions.append(button);
+    parent.append(button);
   }
 
   function renderSuggestions(items, { activeIndex = 0 } = {}) {
     const textItem = getTextSearchSuggestion();
     renderedSuggestions = textItem ? [textItem, ...items] : items;
     activeSuggestionIndex = renderedSuggestions.length ? activeIndex : -1;
+    if (suggestions.querySelector(".cst-splash__search-suggestion-heading-clear:hover")) {
+      hideCstSplashSearchFloatingTooltip();
+    }
     suggestions.replaceChildren();
 
     if (!renderedSuggestions.length) {
-      appendSuggestionHeading("Suggestions");
+      appendSuggestionHeading("Suggestions", suggestions);
       const status = document.createElement("div");
       status.className = "cst-splash__search-suggestion-status";
       status.textContent = "No franchisees, brands, categories, or locations match.";
@@ -2305,12 +2359,19 @@ function createCstSearchField({
     }
 
     let currentGroup = "";
+    let currentGroupEl = suggestions;
     renderedSuggestions.forEach((item, index) => {
       if (item.group && item.group !== currentGroup) {
         currentGroup = item.group;
-        appendSuggestionHeading(currentGroup);
+        currentGroupEl = document.createElement("div");
+        currentGroupEl.className = "cst-splash__search-suggestion-group";
+        currentGroupEl.dataset.suggestionGroup = currentGroup;
+        suggestions.append(currentGroupEl);
+        appendSuggestionHeading(currentGroup, currentGroupEl, {
+          clearable: currentGroup === CST_RECENT_SEARCHES_GROUP
+        });
       }
-      appendSuggestionButton(item, index);
+      appendSuggestionButton(item, index, item.group ? currentGroupEl : suggestions);
     });
 
     setSuggestionsOpen(true);
@@ -2374,7 +2435,7 @@ function createCstSearchField({
 
   function renderSearchingSuggestions(query) {
     renderSuggestions(getCstSplashLocalSuggestions(query));
-    appendSuggestionHeading("Locations");
+    appendSuggestionHeading("Locations", suggestions);
     const status = document.createElement("div");
     status.className = "cst-splash__search-suggestion-status";
     status.textContent = "Searching…";
