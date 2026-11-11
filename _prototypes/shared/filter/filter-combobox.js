@@ -127,6 +127,73 @@
     return mark;
   }
 
+  function createFranchiseeFilterOptionMark(option) {
+    const mark = document.createElement("span");
+    const fallback = document.createElement("span");
+    const logo = String(option?.logo || "").trim();
+
+    mark.className = "filter-combobox-option-mark";
+    mark.setAttribute("aria-hidden", "true");
+    fallback.className = "filter-combobox-option-mark-fallback is-franchisee-placeholder";
+    fallback.hidden = Boolean(logo);
+    mark.append(fallback);
+
+    if (!logo) {
+      fallback.classList.add("is-visible");
+      return mark;
+    }
+
+    const image = document.createElement("img");
+    image.alt = "";
+    image.src = resolveFranchiseLogoUrl(logo);
+    image.addEventListener("error", () => {
+      image.remove();
+      fallback.hidden = false;
+      fallback.classList.add("is-visible");
+    });
+    mark.append(image);
+    return mark;
+  }
+
+  const categoryIconIds = new Set([
+    "business-services",
+    "cleaning-maintenance",
+    "ecommerce",
+    "education-training",
+    "fitness",
+    "food-beverage",
+    "health-wellness",
+    "healthcare",
+    "home-building-services",
+    "pet-services",
+    "retail-consumer-services",
+    "senior-care",
+    "youth-enrichment"
+  ]);
+
+  function getCategoryIconSrc(categoryId) {
+    const id = String(categoryId || "").trim();
+    const file = categoryIconIds.has(id) ? id : "category";
+    return `../../assets/icons/categories/${file}.svg`;
+  }
+
+  function createCategoryFilterOptionMark(option) {
+    const mark = document.createElement("span");
+    const image = document.createElement("img");
+    const fallbackSrc = resolveFranchiseLogoUrl(getCategoryIconSrc(""));
+
+    mark.className = "filter-combobox-option-mark is-icon";
+    mark.setAttribute("aria-hidden", "true");
+    image.alt = "";
+    image.src = resolveFranchiseLogoUrl(getCategoryIconSrc(option?.value));
+    image.addEventListener("error", () => {
+      if (image.getAttribute("src") === fallbackSrc) return;
+      image.src = fallbackSrc;
+    });
+    mark.append(image);
+    return mark;
+  }
+
   function getFilterSelectValues(select) {
     if (!select) return [];
 
@@ -363,7 +430,11 @@
   } = {}) {
     const resolveOptionMark = typeof getOptionMark === "function"
       ? getOptionMark
-      : (select.id === "franchiseFilterSelect" ? createFranchiseFilterOptionMark : null);
+      : (select.id === "franchiseFilterSelect"
+        ? createFranchiseFilterOptionMark
+        : (select.id === "ownerFilterSelect"
+          ? createFranchiseeFilterOptionMark
+          : (select.id === "categoryFilterSelect" ? createCategoryFilterOptionMark : null)));
     const field = select.closest(".filter-select-field");
     if (!field) return null;
     if (filterComboboxes.has(select)) return filterComboboxes.get(select);
@@ -1429,6 +1500,7 @@
     clearOpenMenuScrollRoom,
     getFranchiseSlug,
     getFranchiseLogoSrc,
+    getCategoryIconSrc,
     createFranchiseOptionMark: createFranchiseFilterOptionMark
   };
 

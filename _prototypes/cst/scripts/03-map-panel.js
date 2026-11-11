@@ -141,6 +141,14 @@ function locationRecordMatchesStateCap(location, stateCodes = getIncludedLocatio
   ));
 }
 
+function getUnfilteredMainlandFitBounds() {
+  if (!window.mapboxgl || getCurrentPanelMode() === "details") return null;
+  if (typeof getAppliedFilterCount === "function" && getAppliedFilterCount() > 0) return null;
+
+  const [southwest, northeast] = MAP_MAINLAND_US_BOUNDS;
+  return new mapboxgl.LngLatBounds(southwest, northeast);
+}
+
 function getSelectedRegionFitBounds() {
   if (isRadiusFilterActive()) return null;
 
@@ -488,7 +496,7 @@ let mapPointFeaturesCache = null;
 function getMapPointFeatures(ownerIndex = getOwnersMapFocusedOwnerIndex()) {
   const cacheKey = typeof getCstFilterResultCacheKey === "function"
     ? getCstFilterResultCacheKey(ownerIndex)
-    : `${ownerIndex}|${selectedLocationLabels.join("|")}|${selectedFranchiseIndexes.join("|")}|${getSearchKeywords().join("|")}`;
+    : `${ownerIndex}|${selectedLocationLabels.join("|")}|${selectedFranchiseIndexes.join("|")}|${getSearchKeywords().join("|")}|${getExcludedSearchKeywords().join("|")}`;
   if (mapPointFeaturesCache?.key === cacheKey) {
     return mapPointFeaturesCache.features;
   }
@@ -1484,11 +1492,12 @@ function fitOwnersMapToVisibleLocations({ force = false, whenSettled } = {}) {
 
     const padding = getOwnersMapFitPadding();
     const regionBounds = getCurrentPanelMode() === "details" ? null : getSelectedRegionFitBounds();
+    const framedBounds = regionBounds || getUnfilteredMainlandFitBounds();
     let didFly = false;
 
-    if (regionBounds) {
-      captureOwnersMapQueryViewFromBounds(regionBounds, { padding });
-      didFly = flyMapToBounds(ownersMap, regionBounds, {
+    if (framedBounds) {
+      captureOwnersMapQueryViewFromBounds(framedBounds, { padding });
+      didFly = flyMapToBounds(ownersMap, framedBounds, {
         padding,
         maxZoom: 9
       });

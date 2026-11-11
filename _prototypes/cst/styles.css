@@ -6553,8 +6553,9 @@ body.reduce-motion :is(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  justify-self: center;
+  width: 22px;
+  height: 22px;
   color: #aeafb2;
   flex: 0 0 auto;
 }
@@ -6767,6 +6768,10 @@ body:has(.cst-spotlight:not([hidden])) .filter-combobox-floating-tooltip {
 .filter-select-field.filter-search-query-field:has(.filter-combobox-chip) .filter-combobox-control {
   cursor: default;
   padding-left: 10px;
+}
+
+.filter-select-field.filter-search-query-field:has(.filter-combobox-chip) .filter-search-query-field-icon {
+  display: none;
 }
 
 .filter-select-field.filter-search-query-field:has(.filter-combobox-chip) .filter-combobox-control:hover {

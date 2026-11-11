@@ -646,25 +646,15 @@ function setLocationFilterSelections(included = [], excluded = [], searches = []
   syncFilterLocationSearchUI();
 }
 
-function createSearchFilterChip(label) {
-  const chip = document.createElement("span");
-  const chipLabel = document.createElement("span");
-  const chipRemove = document.createElement("button");
-
-  chip.className = "filter-combobox-chip";
-  chipLabel.className = "filter-combobox-chip-label";
-  chipLabel.textContent = label;
-  chipRemove.className = "filter-combobox-chip-remove";
-  chipRemove.type = "button";
-  chipRemove.setAttribute("aria-label", `Remove ${label}`);
-  chipRemove.textContent = "×";
-  chipRemove.addEventListener("mousedown", (event) => event.preventDefault());
-  chipRemove.addEventListener("click", (event) => {
-    event.stopPropagation();
-    removeSearchKeyword(label, { refresh: true });
+function createSearchFilterChip(label, { excluded = false } = {}) {
+  return renderFilterChip({
+    label,
+    excluded,
+    allowToggle: true,
+    chipClickable: false,
+    onToggleExclude: () => toggleSearchKeywordExcluded(label),
+    onRemove: () => removeSearchKeyword(label, { refresh: true })
   });
-  chip.append(chipLabel, chipRemove);
-  return chip;
 }
 
 function syncSearchFilterSection() {
@@ -674,27 +664,40 @@ function syncSearchFilterSection() {
   const input = document.getElementById("searchFilterInput");
   if (!section || !chips) return;
 
-  const keywords = getSearchKeywords();
-  chips.replaceChildren(...keywords.map(createSearchFilterChip));
-  field?.classList.toggle("has-selection", keywords.length > 0);
+  const included = getSearchKeywords();
+  const excluded = getExcludedSearchKeywords();
+  chips.replaceChildren(
+    ...included.map((label) => createSearchFilterChip(label)),
+    ...excluded.map((label) => createSearchFilterChip(label, { excluded: true }))
+  );
+  field?.classList.toggle("has-selection", included.length + excluded.length > 0);
 
-  if (keywords.length) {
+  if (included.length || excluded.length) {
     window.WefranchFilterSections?.setSectionExpanded?.(section, true);
   }
 
   if (input) {
     input.hidden = false;
-    input.placeholder = keywords.length ? "" : "Enter a term";
+    input.placeholder = included.length || excluded.length ? "" : "Enter a term";
   }
 
   updateFilterSectionClearButtons();
 }
 
-function setSearchQuery(value, { refresh = false, append = false } = {}) {
+function setSearchQuery(value, { refresh = false, append = false, ...options } = {}) {
   const incoming = normalizeSearchKeywords(value);
-  searchQuery = append
+  const included = append
     ? normalizeSearchKeywords([...getSearchKeywords(), ...incoming])
     : incoming;
+  const includedKeys = new Set(included.map((item) => item.toLocaleLowerCase()));
+  const replaceExcluded = Object.prototype.hasOwnProperty.call(options, "excluded");
+  const nextExcluded = (replaceExcluded
+    ? normalizeSearchKeywords(options.excluded)
+    : getExcludedSearchKeywords()
+  ).filter((item) => !includedKeys.has(item.toLocaleLowerCase()));
+
+  searchQuery = included;
+  excludedSearchKeywords = nextExcluded;
   syncSearchFilterSection();
 
   if (!refresh) return;
@@ -708,7 +711,33 @@ function removeSearchKeyword(keyword, { refresh = true } = {}) {
   const key = String(keyword || "").trim().toLocaleLowerCase();
   setSearchQuery(
     getSearchKeywords().filter((item) => item.toLocaleLowerCase() !== key),
-    { refresh }
+    {
+      refresh,
+      excluded: getExcludedSearchKeywords().filter((item) => item.toLocaleLowerCase() !== key)
+    }
+  );
+}
+
+function toggleSearchKeywordExcluded(keyword) {
+  const key = String(keyword || "").trim().toLocaleLowerCase();
+  const included = getSearchKeywords();
+  const excluded = getExcludedSearchKeywords();
+  const isExcluded = excluded.some((item) => item.toLocaleLowerCase() === key);
+
+  if (isExcluded) {
+    setSearchQuery(
+      [...included, keyword],
+      {
+        refresh: true,
+        excluded: excluded.filter((item) => item.toLocaleLowerCase() !== key)
+      }
+    );
+    return;
+  }
+
+  setSearchQuery(
+    included.filter((item) => item.toLocaleLowerCase() !== key),
+    { refresh: true, excluded: [...excluded, keyword] }
   );
 }
 
@@ -863,8 +892,8 @@ function bindSearchFilterInput() {
       return;
     }
 
-    if (event.key === "Backspace" && !input.value && getSearchKeywords().length) {
-      const keywords = getSearchKeywords();
+    if (event.key === "Backspace" && !input.value && hasSearchKeywords()) {
+      const keywords = [...getSearchKeywords(), ...getExcludedSearchKeywords()];
       removeSearchKeyword(keywords[keywords.length - 1], { refresh: true });
       return;
     }
@@ -898,7 +927,7 @@ function resetCstFilterSelections({ refresh = true } = {}) {
   excludedOwnerIndexes = [];
   selectedFranchiseIndexes = [];
   excludedFranchiseIndexes = [];
-  setSearchQuery("");
+  setSearchQuery("", { excluded: [] });
   selectedUnitsMin = unitsFilterDefaults.min;
   selectedUnitsMax = unitsFilterDefaults.max;
   selectedContactsMin = contactsFilterDefaults.min;
@@ -973,7 +1002,7 @@ function filterSectionHasAppliedFilters(section) {
     case "rating":
       return franchiseeRatingFilterIsActive();
     case "search":
-      return getSearchKeywords().length > 0;
+      return hasSearchKeywords();
     default:
       return false;
   }
@@ -1041,7 +1070,7 @@ function clearFilterSection(section) {
       setFranchiseeRatingMin(0);
       break;
     case "search":
-      setSearchQuery("");
+      setSearchQuery("", { excluded: [] });
       break;
     default:
       return;

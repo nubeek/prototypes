@@ -279,6 +279,7 @@ if (ownerFilterSelect) {
     const option = document.createElement("option");
     option.value = String(owner.originalIndex);
     option.textContent = owner.ownerName;
+    if (owner.logoSrc) option.dataset.logo = owner.logoSrc;
     ownerFilterSelect.append(option);
   });
 

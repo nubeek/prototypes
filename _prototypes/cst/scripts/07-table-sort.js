@@ -726,6 +726,19 @@ function getNormalizedSearchKeywords() {
   return getSearchKeywords().map((keyword) => keyword.toLocaleLowerCase());
 }
 
+function getNormalizedExcludedSearchKeywords() {
+  return getExcludedSearchKeywords().map((keyword) => keyword.toLocaleLowerCase());
+}
+
+function textMatchesSearchKeywords(indexText) {
+  const excluded = getNormalizedExcludedSearchKeywords();
+  if (excluded.some((keyword) => indexText.includes(keyword))) return false;
+
+  const included = getNormalizedSearchKeywords();
+  if (!included.length) return true;
+  return included.some((keyword) => indexText.includes(keyword));
+}
+
 function escapeTableHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -771,10 +784,8 @@ function highlightSearchQueryInText(value) {
 }
 
 function locationRowMatchesSearchQuery(row) {
-  const keywords = getNormalizedSearchKeywords();
-  if (!keywords.length) return true;
-  const index = getLocationSearchIndex(row);
-  return keywords.some((keyword) => index.includes(keyword));
+  if (!hasSearchKeywords()) return true;
+  return textMatchesSearchKeywords(getLocationSearchIndex(row));
 }
 
 function ownerMatchesLocationTableFilters(owner) {
@@ -1554,10 +1565,8 @@ function getOwnerSearchIndex(owner) {
 }
 
 function ownerMatchesSearchQuery(owner) {
-  const keywords = getNormalizedSearchKeywords();
-  if (!keywords.length) return true;
-  const index = getOwnerSearchIndex(owner);
-  return keywords.some((keyword) => index.includes(keyword));
+  if (!hasSearchKeywords()) return true;
+  return textMatchesSearchKeywords(getOwnerSearchIndex(owner));
 }
 
 function rawRowMatchesFilters(row) {
@@ -1579,6 +1588,7 @@ function getCstFilterResultCacheKey(ownerIndex = null) {
   return [
     ownerIndex,
     getSearchKeywords().join("\u0001"),
+    getExcludedSearchKeywords().join("\u0001"),
     selectedLocationLabels.join("\u0001"),
     excludedLocationLabels.join("\u0001"),
     selectedLocationSearches.map((search) => search?.label || "").join("\u0001"),
@@ -2120,10 +2130,20 @@ function buildHeadingSummaryRatingConcept() {
 }
 
 function buildHeadingSummarySearchConcept() {
-  const keywords = getSearchKeywords();
-  if (!keywords.length) return null;
-  const quoted = keywords.map((keyword) => `“${keyword}”`).join(" or ");
-  return { id: "search", phrase: `matching ${quoted}`, highlight: keywords };
+  const included = getSearchKeywords();
+  const excluded = getExcludedSearchKeywords();
+
+  if (included.length) {
+    const quoted = included.map((keyword) => `“${keyword}”`).join(" or ");
+    return { id: "search", phrase: `matching ${quoted}`, highlight: quoted };
+  }
+
+  if (!excluded.length) return null;
+  const { phrase, highlight } = buildHeadingSummaryExclusionPhrase(
+    excluded.map((keyword) => `“${keyword}”`),
+    "keywords"
+  );
+  return { id: "search", phrase, highlight };
 }
 
 function collectTableHeadingSummaryConcepts() {
@@ -2395,7 +2415,7 @@ function getAppliedFilterCount() {
     selectedFranchiseIndexes.length +
     excludedFranchiseIndexes.length;
   const selectedStatusCount = statusFilterInputs.filter((checkbox) => checkbox.checked).length;
-  const selectedSearchCount = getSearchKeywords().length;
+  const selectedSearchCount = getSearchKeywords().length + getExcludedSearchKeywords().length;
   const selectedUnitsCount = unitsFilterIsActive() ? 1 : 0;
   const selectedContactsCount = contactsFilterIsActive() ? 1 : 0;
   const selectedNetWorthCount = netWorthFilterIsActive() ? 1 : 0;

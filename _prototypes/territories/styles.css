@@ -2230,8 +2230,9 @@ a.territory-info-card__action.is-disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  justify-self: center;
+  width: 22px;
+  height: 22px;
   color: #aeafb2;
   flex: 0 0 auto;
 }

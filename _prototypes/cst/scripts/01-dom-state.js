@@ -204,6 +204,9 @@ function loadCstMapStyle() {
 }
 
 const MAP_INITIAL_CENTER = [-98.5795, 39.8283];
+// Lower 48. An unfiltered query frames this box so Alaska, Hawaii, and the
+// few Canada and Mexico units do not pull the camera out to the whole continent.
+const MAP_MAINLAND_US_BOUNDS = [[-125, 24.4], [-66.5, 49.4]];
 const MAP_FIT_PADDING = 32;
 const MAP_FOCUS_DURATION = 1000;
 const MAP_FOCUS_FLY_CURVE = 1.62;
@@ -349,6 +352,7 @@ const selectedFranchiseeIndexes = new Set();
 const LOCATION_TABLE_PAGE_SIZE = 100;
 let locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
 let searchQuery = "";
+let excludedSearchKeywords = [];
 
 function normalizeSearchKeywords(value) {
   const source = Array.isArray(value) ? value : [value];
@@ -368,6 +372,14 @@ function normalizeSearchKeywords(value) {
 
 function getSearchKeywords() {
   return normalizeSearchKeywords(searchQuery);
+}
+
+function getExcludedSearchKeywords() {
+  return normalizeSearchKeywords(excludedSearchKeywords);
+}
+
+function hasSearchKeywords() {
+  return getSearchKeywords().length > 0 || getExcludedSearchKeywords().length > 0;
 }
 const ownerSearchIndexById = new Map();
 let selectedLocationLabels = [];

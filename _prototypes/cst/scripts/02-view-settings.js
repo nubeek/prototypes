@@ -80,6 +80,7 @@ function getCurrentViewSettings() {
       open: Boolean(card?.classList.contains("is-filter-open")),
       sections: getFilterSectionSettings(),
       search: searchQuery,
+      searchExcluded: getExcludedSearchKeywords(),
       locations: {
         included: selectedLocationLabels,
         excluded: excludedLocationLabels
@@ -195,7 +196,7 @@ function restoreSavedOptionSettings(settings) {
 function restoreSavedFilterSelections(settings) {
   const filters = settings?.filters || {};
 
-  setSearchQuery(filters.search);
+  setSearchQuery(filters.search, { excluded: filters.searchExcluded });
 
   setLocationFilterSelections(
     filters.locations?.included,

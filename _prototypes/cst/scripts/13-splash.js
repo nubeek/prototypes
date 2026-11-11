@@ -533,6 +533,7 @@ function serializeCstSavedLocationSearch(search) {
 function getCurrentCstSavedSearchFilters() {
   return {
     search: searchQuery,
+    searchExcluded: getExcludedSearchKeywords(),
     locations: [...selectedLocationLabels],
     locationsExcluded: [...excludedLocationLabels],
     locationSearches: selectedLocationSearches.map(serializeCstSavedLocationSearch).filter(Boolean),
@@ -594,6 +595,7 @@ function withCstSplashFilterScope(filters, read) {
     excludedOwnerIndexes,
     radiusFilterEnabled,
     searchQuery,
+    excludedSearchKeywords: getExcludedSearchKeywords(),
     selectedRadiusMiles,
     selectedCategoryValues,
     selectedContactsMax,
@@ -619,6 +621,7 @@ function withCstSplashFilterScope(filters, read) {
     return read();
   } finally {
     searchQuery = restore.searchQuery;
+    excludedSearchKeywords = restore.excludedSearchKeywords;
     syncSearchFilterSection();
     selectedLocationLabels = restore.selectedLocationLabels;
     excludedLocationLabels = restore.excludedLocationLabels;
@@ -659,7 +662,7 @@ function applyCstSplashFilterState(filters = {}) {
     ? filters.locationSearchesExcluded
     : [];
 
-  setSearchQuery(filters.search);
+  setSearchQuery(filters.search, { excluded: filters.searchExcluded });
   selectedLocationLabels = getSavedStringArray(filters.locations);
   excludedLocationLabels = getSavedStringArray(filters.locationsExcluded);
   selectedLocationSearches = includedLocationSearches
@@ -1398,7 +1401,7 @@ function expandCstSplashFilterSections() {
     if (section) activeSections.add(section);
   };
 
-  markActive(document.getElementById("searchFilterSection"), getSearchKeywords().length > 0);
+  markActive(document.getElementById("searchFilterSection"), hasSearchKeywords());
   markActive(locationFilterSearchField, true);
   markActive(categoryFilterSelect, selectedCategoryValues.length || excludedCategoryValues.length);
   markActive(ownerFilterSelect, selectedOwnerIndexes.length || excludedOwnerIndexes.length);
@@ -1962,10 +1965,6 @@ async function getCstSplashSuggestions(query, { signal } = {}) {
   return [...localSuggestions, ...locationSuggestions];
 }
 
-const CST_SPLASH_SUGGESTION_ICON_SRCS = {
-  category: "assets/categories.png"
-};
-
 const CST_SPLASH_SUGGESTION_ICONS = {
   location: `<svg viewBox="0 0 16 20" focusable="false"><path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/></svg>`
 };
@@ -2002,10 +2001,13 @@ function createCstSplashSuggestionIcon(item) {
     return icon;
   }
 
-  const assetSrc = CST_SPLASH_SUGGESTION_ICON_SRCS[item.type];
-  if (assetSrc) {
+  if (item.type === "category") {
+    const categoryId = item.filters?.categories?.[0] || "";
+    const iconSrc = window.WefranchFilterCombobox?.getCategoryIconSrc?.(categoryId)
+      || "../../assets/icons/categories/category.svg";
+    const resolvedSrc = window.resolvePublicAssetUrl?.(iconSrc) || iconSrc;
     icon.classList.add("is-category");
-    icon.style.setProperty("--suggestion-icon", `url("${assetSrc}")`);
+    icon.style.setProperty("--suggestion-icon", `url("${resolvedSrc}")`);
     return icon;
   }
 

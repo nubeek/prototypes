@@ -84,7 +84,7 @@ function runCstSpotlightSearch(filters, item) {
 
   if (item?.type === "text") {
     setFilterPanelOpen(true);
-    setSearchQuery(item.label || filters?.search, { refresh: true });
+    setSearchQuery(item.label || filters?.search, { refresh: true, excluded: [] });
     return;
   }
 

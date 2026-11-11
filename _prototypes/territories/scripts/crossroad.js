@@ -1824,10 +1824,6 @@ async function getCrossroadSearchSuggestions(query, { signal } = {}) {
   return [...localSuggestions, ...locationSuggestions];
 }
 
-const CROSSROAD_SEARCH_SUGGESTION_ICON_SRCS = {
-  category: "assets/categories.png"
-};
-
 const CROSSROAD_SEARCH_SUGGESTION_ICONS = {
   location: `<svg viewBox="0 0 16 20" focusable="false"><path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/></svg>`
 };
@@ -1857,10 +1853,12 @@ function createCrossroadSuggestionIcon(item) {
     return icon;
   }
 
-  const assetSrc = CROSSROAD_SEARCH_SUGGESTION_ICON_SRCS[item.type];
-  if (assetSrc) {
+  if (item.type === "category") {
+    const categoryId = item.filters?.categories?.[0] || item.values?.[0] || "";
+    const iconSrc = window.WefranchFilterCombobox?.getCategoryIconSrc?.(categoryId)
+      || "../../assets/icons/categories/category.svg";
     icon.classList.add("is-category");
-    icon.style.setProperty("--suggestion-icon", `url("${assetSrc}")`);
+    icon.style.setProperty("--suggestion-icon", `url("${resolvePublicAssetUrl(iconSrc)}")`);
     return icon;
   }
 
