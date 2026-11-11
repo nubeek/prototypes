@@ -427,13 +427,7 @@ if (filterToggle && card) {
 
 window.WefranchFilterQuickSearch?.bindToolbarQuickSearchLauncher({
   trigger: toolbarSearchBtn,
-  isPanelOpen: () => Boolean(card?.classList.contains("is-filter-open")),
-  setPanelOpen: setFilterPanelOpen,
-  onBeforeOpen() {
-    if (readerModeActive) {
-      exitReaderMode();
-    }
-  }
+  openOverride: () => Boolean(window.cstSpotlightSearch?.handleOpenRequest())
 });
 
 if (readerEditQueryBtn) {

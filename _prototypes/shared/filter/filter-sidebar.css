@@ -89,6 +89,10 @@
   line-height: 1;
 }
 
+.filter-header h2:last-child {
+  margin-bottom: 0;
+}
+
 .filter-header p {
   margin: 0;
   color: #ababab;

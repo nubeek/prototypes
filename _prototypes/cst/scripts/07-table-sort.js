@@ -721,9 +721,14 @@ function getLocationSearchIndex(row) {
     .join(" ");
 }
 
+function getNormalizedSearchQuery() {
+  return String(searchQuery || "").trim().toLocaleLowerCase();
+}
+
 function locationRowMatchesSearchQuery(row) {
-  if (!searchQuery) return true;
-  return getLocationSearchIndex(row).includes(searchQuery);
+  const query = getNormalizedSearchQuery();
+  if (!query) return true;
+  return getLocationSearchIndex(row).includes(query);
 }
 
 function ownerMatchesLocationTableFilters(owner) {
@@ -1503,8 +1508,9 @@ function getOwnerSearchIndex(owner) {
 }
 
 function ownerMatchesSearchQuery(owner) {
-  if (!searchQuery) return true;
-  return getOwnerSearchIndex(owner).includes(searchQuery);
+  const query = getNormalizedSearchQuery();
+  if (!query) return true;
+  return getOwnerSearchIndex(owner).includes(query);
 }
 
 function rawRowMatchesFilters(row) {
@@ -1660,7 +1666,8 @@ const TABLE_HEADING_SUMMARY_FILTER_SECTIONS = {
   units: "units",
   contacts: "contacts",
   netWorth: "net-worth",
-  rating: "rating"
+  rating: "rating",
+  search: "search"
 };
 
 function getTableHeadingSummaryFilterSection(conceptId) {

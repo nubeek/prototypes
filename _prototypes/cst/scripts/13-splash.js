@@ -658,7 +658,7 @@ function applyCstSplashFilterState(filters = {}) {
     ? filters.locationSearchesExcluded
     : [];
 
-  searchQuery = String(filters.search || "").trim().toLocaleLowerCase();
+  setSearchQuery(filters.search);
   selectedLocationLabels = getSavedStringArray(filters.locations);
   excludedLocationLabels = getSavedStringArray(filters.locationsExcluded);
   selectedLocationSearches = includedLocationSearches
@@ -1393,6 +1393,7 @@ function expandCstSplashFilterSections() {
     if (section) activeSections.add(section);
   };
 
+  markActive(document.getElementById("searchFilterSection"), Boolean(String(searchQuery || "").trim()));
   markActive(locationFilterSearchField, true);
   markActive(categoryFilterSelect, selectedCategoryValues.length || excludedCategoryValues.length);
   markActive(ownerFilterSelect, selectedOwnerIndexes.length || excludedOwnerIndexes.length);
@@ -2001,6 +2002,14 @@ function createCstSplashSuggestionIcon(item) {
     return icon;
   }
 
+  if (item.type === "text") {
+    const image = document.createElement("img");
+    image.src = "../../assets/icons/search.svg";
+    image.alt = "";
+    icon.append(image);
+    return icon;
+  }
+
   icon.innerHTML = CST_SPLASH_SUGGESTION_ICONS[item.type] || CST_SPLASH_SUGGESTION_ICONS.location;
   return icon;
 }
@@ -2095,29 +2104,82 @@ function applyCstQuickSearchSuggestion(item) {
   }
 }
 
-function bindCstFilterQuickSearch() {
-  const quickSearch = window.WefranchFilterQuickSearch;
-  if (!quickSearch) return;
+const CST_RECENT_SEARCHES_STORAGE_KEY = "cst.recentSearches.v1";
+const CST_RECENT_SEARCHES_LIMIT = 5;
 
-  quickSearch.create({
-    root: document.getElementById("filterQuickSearch"),
-    input: document.getElementById("filterQuickSearchInput"),
-    clearButton: document.getElementById("filterQuickSearchClear"),
-    menu: document.getElementById("filterQuickSearchMenu"),
-    menuList: document.getElementById("filterQuickSearchSuggestions"),
-    emptyMessage: "No franchisees, brands, categories, or locations match.",
-    getSuggestions: getCstSplashSuggestions,
-    onSelect: applyCstQuickSearchSuggestion
-  });
+function readCstRecentSearches() {
+  try {
+    const parsed = JSON.parse(window.localStorage?.getItem(CST_RECENT_SEARCHES_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item) => item?.label && item?.filters) : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function rememberCstRecentSearch(item) {
+  if (!item?.label || !item?.filters) return;
+
+  const entry = {
+    filters: item.filters,
+    label: item.label,
+    logoFallback: item.logoFallback,
+    logoSrc: item.logoSrc,
+    type: item.type
+  };
+  const recents = readCstRecentSearches().filter((recent) => (
+    recent.type !== entry.type || recent.label !== entry.label
+  ));
+
+  try {
+    window.localStorage?.setItem(
+      CST_RECENT_SEARCHES_STORAGE_KEY,
+      JSON.stringify([entry, ...recents].slice(0, CST_RECENT_SEARCHES_LIMIT))
+    );
+  } catch (error) {
+    console.warn("Unable to save recent searches.", error);
+  }
+}
+
+function getCstRecentSearchSuggestions() {
+  return readCstRecentSearches().map((item) => ({ ...item, group: "Recent searches" }));
 }
 
 function bindCstSplashSearch() {
-  const form = document.getElementById("cstSplashSearch");
-  const input = document.getElementById("cstSplashSearchInput");
-  const suggestions = document.getElementById("cstSplashSearchSuggestions");
-  const clearButton = document.getElementById("cstSplashSearchClear");
-  const locateButton = document.getElementById("cstSplashLocate");
-  if (!form || !input || !suggestions) return;
+  cstSplashSearchController = createCstSearchField({
+    form: document.getElementById("cstSplashSearch"),
+    input: document.getElementById("cstSplashSearchInput"),
+    suggestions: document.getElementById("cstSplashSearchSuggestions"),
+    clearButton: document.getElementById("cstSplashSearchClear"),
+    locateButton: document.getElementById("cstSplashLocate"),
+    suggestionIdPrefix: "cstSplashSearchSuggestion",
+    setFeedback: setCstSplashSearchFeedback,
+    onSearch(filters, item) {
+      rememberCstRecentSearch(item);
+      clearCstSavedSearchSession({ persist: false });
+      dismissCstSplash({ refresh: false });
+      applyCstSplashQuery(filters);
+    },
+    onLocate: locateUserFromFilters
+  });
+}
+
+// Shared by the start screen search and the spotlight search. `onSearch`
+// receives the filters to apply and the picked suggestion; `getIdleSuggestions`
+// fills the list while the query is empty.
+function createCstSearchField({
+  form,
+  input,
+  suggestions,
+  clearButton,
+  locateButton,
+  suggestionIdPrefix,
+  setFeedback = () => {},
+  getIdleSuggestions = null,
+  onSearch,
+  onLocate,
+  onEscape = null
+}) {
+  if (!form || !input || !suggestions) return null;
 
   let activeSuggestionIndex = -1;
   let renderedSuggestions = [];
@@ -2163,23 +2225,46 @@ function bindCstSplashSearch() {
     suggestions.append(heading);
   }
 
+  function getTextSearchSuggestion() {
+    const query = input.value.trim();
+    if (query.length < 2) return null;
+
+    return {
+      filters: { search: query },
+      group: "",
+      label: query,
+      live: true,
+      type: "text"
+    };
+  }
+
   function appendSuggestionButton(item, index) {
     const button = document.createElement("button");
-    const icon = createCstSplashSuggestionIcon(item);
     const label = document.createElement("span");
     const action = document.createElement("span");
     const actionLabel = document.createElement("span");
     const actionKey = document.createElement("img");
+    const isLiveTextSearch = item.type === "text" && item.live;
 
     button.type = "button";
     button.className = "cst-splash__search-suggestion";
-    button.id = `cstSplashSearchSuggestion-${index}`;
+    button.id = `${suggestionIdPrefix}-${index}`;
     button.setAttribute("role", "option");
     button.setAttribute("aria-selected", "false");
-    button.setAttribute("aria-label", `Select ${item.label}`);
+    button.setAttribute(
+      "aria-label",
+      isLiveTextSearch ? `Search for ${item.label}` : `Select ${item.label}`
+    );
 
     label.className = "cst-splash__search-suggestion-label";
-    label.textContent = item.label;
+    if (isLiveTextSearch) {
+      button.classList.add("is-text-search");
+      const queryText = document.createElement("strong");
+      queryText.textContent = item.label;
+      label.append("Search for “", queryText, "”");
+    } else {
+      label.textContent = item.label;
+    }
 
     action.className = "cst-splash__search-suggestion-action";
     action.setAttribute("aria-hidden", "true");
@@ -2189,7 +2274,11 @@ function bindCstSplashSearch() {
     actionKey.alt = "";
     action.append(actionLabel, actionKey);
 
-    button.append(icon, label, action);
+    if (isLiveTextSearch) {
+      button.append(label, action);
+    } else {
+      button.append(createCstSplashSuggestionIcon(item), label, action);
+    }
     button.addEventListener("mousedown", (event) => event.preventDefault());
     button.addEventListener("mouseenter", () => {
       activeSuggestionIndex = index;
@@ -2199,12 +2288,13 @@ function bindCstSplashSearch() {
     suggestions.append(button);
   }
 
-  function renderSuggestions(items) {
-    renderedSuggestions = items;
-    activeSuggestionIndex = items.length ? 0 : -1;
+  function renderSuggestions(items, { activeIndex = 0 } = {}) {
+    const textItem = getTextSearchSuggestion();
+    renderedSuggestions = textItem ? [textItem, ...items] : items;
+    activeSuggestionIndex = renderedSuggestions.length ? activeIndex : -1;
     suggestions.replaceChildren();
 
-    if (!items.length) {
+    if (!renderedSuggestions.length) {
       appendSuggestionHeading("Suggestions");
       const status = document.createElement("div");
       status.className = "cst-splash__search-suggestion-status";
@@ -2215,8 +2305,8 @@ function bindCstSplashSearch() {
     }
 
     let currentGroup = "";
-    items.forEach((item, index) => {
-      if (item.group !== currentGroup) {
+    renderedSuggestions.forEach((item, index) => {
+      if (item.group && item.group !== currentGroup) {
         currentGroup = item.group;
         appendSuggestionHeading(currentGroup);
       }
@@ -2233,20 +2323,28 @@ function bindCstSplashSearch() {
     if (locateButton) locateButton.hidden = hasQuery;
   }
 
+  function showIdleSuggestions() {
+    const items = input.value.trim() ? [] : (getIdleSuggestions?.() || []);
+    if (!items.length) {
+      closeSuggestions();
+      return;
+    }
+
+    renderSuggestions(items, { activeIndex: -1 });
+  }
+
   function selectSuggestion(item) {
     input.value = item.label;
     syncSearchActions();
     closeSuggestions();
-    setCstSplashSearchFeedback();
-    clearCstSavedSearchSession({ persist: false });
-    dismissCstSplash({ refresh: false });
-    applyCstSplashQuery(item.filters);
+    setFeedback();
+    onSearch?.(item.filters, item);
   }
 
   async function submitFreeTextSearch() {
     const query = input.value.trim();
     if (!query) {
-      setCstSplashSearchFeedback("Enter a franchisee, brand, category, or location to begin.");
+      setFeedback("Enter a franchisee, brand, category, or location to begin.");
       input.focus();
       return;
     }
@@ -2270,31 +2368,17 @@ function bindCstSplashSearch() {
     }
 
     closeSuggestions();
-    setCstSplashSearchFeedback();
-    clearCstSavedSearchSession({ persist: false });
-    dismissCstSplash({ refresh: false });
-    applyCstSplashQuery({ search: query });
+    setFeedback();
+    onSearch?.({ search: query }, { filters: { search: query }, label: query, type: "text" });
   }
 
   function renderSearchingSuggestions(query) {
-    const localSuggestions = getCstSplashLocalSuggestions(query);
-    if (localSuggestions.length) {
-      renderSuggestions(localSuggestions);
-      appendSuggestionHeading("Locations");
-      const status = document.createElement("div");
-      status.className = "cst-splash__search-suggestion-status";
-      status.textContent = "Searching…";
-      suggestions.append(status);
-      return;
-    }
-
-    suggestions.replaceChildren();
+    renderSuggestions(getCstSplashLocalSuggestions(query));
     appendSuggestionHeading("Locations");
     const status = document.createElement("div");
     status.className = "cst-splash__search-suggestion-status";
     status.textContent = "Searching…";
     suggestions.append(status);
-    setSuggestionsOpen(true);
   }
 
   async function requestSuggestions(query) {
@@ -2324,7 +2408,7 @@ function bindCstSplashSearch() {
 
     if (!query.trim()) {
       fetchController?.abort();
-      closeSuggestions();
+      showIdleSuggestions();
       return;
     }
 
@@ -2334,7 +2418,7 @@ function bindCstSplashSearch() {
   }
 
   input.addEventListener("input", () => {
-    setCstSplashSearchFeedback();
+    setFeedback();
     syncSearchActions();
     scheduleSuggestions(input.value);
   });
@@ -2342,6 +2426,8 @@ function bindCstSplashSearch() {
   input.addEventListener("focus", () => {
     if (renderedSuggestions.length) {
       setSuggestionsOpen(true);
+    } else if (!input.value.trim()) {
+      showIdleSuggestions();
     }
   });
 
@@ -2361,6 +2447,11 @@ function bindCstSplashSearch() {
     }
 
     if (event.key === "Escape") {
+      if (onEscape?.()) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       closeSuggestions();
     }
   });
@@ -2389,22 +2480,22 @@ function bindCstSplashSearch() {
     window.clearTimeout(debounceTimer);
     fetchController?.abort();
     input.value = "";
-    closeSuggestions();
-    setCstSplashSearchFeedback();
+    setFeedback();
     syncSearchActions();
+    showIdleSuggestions();
     input.focus();
   });
 
   locateButton?.addEventListener("click", () => {
     closeSuggestions();
-    setCstSplashSearchFeedback();
+    setFeedback();
 
     if (!navigator.geolocation) {
-      setCstSplashSearchFeedback("Location access is unavailable in this browser.");
+      setFeedback("Location access is unavailable in this browser.");
       return;
     }
 
-    locateUserFromFilters();
+    onLocate?.();
   });
 
   document.addEventListener("mousedown", (event) => {
@@ -2418,13 +2509,17 @@ function bindCstSplashSearch() {
   bindCstSplashSearchFloatingTooltip(clearButton);
   bindCstSplashSearchFloatingTooltip(locateButton);
 
-  cstSplashSearchController = {
+  return {
+    focus() {
+      input.focus({ preventScroll: true });
+    },
+    showIdleSuggestions,
     reset() {
       window.clearTimeout(debounceTimer);
       fetchController?.abort();
       input.value = "";
       closeSuggestions();
-      setCstSplashSearchFeedback();
+      setFeedback();
       syncSearchActions();
     }
   };
@@ -2557,7 +2652,6 @@ function initCstSplash() {
 
   try {
     bindCstSplashSearch();
-    bindCstFilterQuickSearch();
     bindCstSplashSavedTabs();
     bindCstSplashSavedEmptyActions();
     bindCstSplashEntryPoints();

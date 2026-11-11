@@ -496,8 +496,15 @@
         return;
       }
       if (isQuickSearchShortcutBlocked()) return;
-      openFilterQuickSearch(options);
+      requestQuickSearch(options);
     }, true);
+  }
+
+  // A page can take over the launcher (e.g. a spotlight search) by passing
+  // `openOverride`, which returns true when it handled the request.
+  function requestQuickSearch(options = {}) {
+    if (options.openOverride?.()) return;
+    openFilterQuickSearch(options);
   }
 
   function bindToolbarQuickSearchLauncher(options = {}) {
@@ -510,7 +517,7 @@
     trigger.addEventListener("click", (event) => {
       event.preventDefault();
       trigger.blur();
-      openFilterQuickSearch(options);
+      requestQuickSearch(options);
     });
 
     return { focus: () => openFilterQuickSearch(options) };

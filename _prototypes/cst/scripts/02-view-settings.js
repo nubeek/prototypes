@@ -195,7 +195,7 @@ function restoreSavedOptionSettings(settings) {
 function restoreSavedFilterSelections(settings) {
   const filters = settings?.filters || {};
 
-  searchQuery = String(filters.search || "").trim().toLocaleLowerCase();
+  setSearchQuery(filters.search);
 
   setLocationFilterSelections(
     filters.locations?.included,

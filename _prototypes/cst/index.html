@@ -110,15 +110,13 @@
             <img class="toolbar-asset-icon reader-back-btn__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
-          <div class="toolbar-split" data-splash-workspace-control>
-            <button class="toolbar-split__search" id="toolbarSearchBtn" type="button" aria-label="Quick search" title="Quick search">
-              <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
-            </button>
-            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn toolbar-split__action" id="filterToggle" type="button" data-reader-hide aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
-              <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
-              <span id="filterToggleLabel">Filters</span>
-            </button>
-          </div>
+          <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn" id="toolbarSearchBtn" type="button" data-splash-workspace-control aria-label="Search" title="Search">
+            <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+          </button>
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" data-splash-workspace-control data-reader-hide aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+            <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
+            <span id="filterToggleLabel">Filters</span>
+          </button>
           <details class="toolbar-dropdown" id="outreachBtn" data-splash-workspace-control>
             <summary class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" aria-label="Email" title="Email">
               <img class="toolbar-asset-icon toolbar-outreach-icon" src="../../assets/icons/mail.svg" alt="" aria-hidden="true">
@@ -348,35 +346,20 @@
     <aside class="filter-panel" id="filterPanel" aria-label="Filters">
       <div class="filter-header">
         <h2>Filters</h2>
-        <form class="filter-search" id="filterQuickSearch" role="search" autocomplete="off" novalidate>
-          <img class="filter-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
-          <input
-            class="filter-search-input"
-            id="filterQuickSearchInput"
-            type="search"
-            inputmode="search"
-            autocomplete="off"
-            spellcheck="false"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-haspopup="listbox"
-            aria-expanded="false"
-            aria-controls="filterQuickSearchSuggestions"
-            placeholder="Quick search"
-            aria-label="Quick search"
-          >
-          <button class="filter-search-clear" id="filterQuickSearchClear" type="button" aria-label="Clear search" hidden></button>
-          <div class="filter-search-menu" id="filterQuickSearchMenu" aria-hidden="true">
-            <div
-              class="filter-search-options proto-scrollbar"
-              id="filterQuickSearchSuggestions"
-              role="listbox"
-              aria-label="Quick search suggestions"
-            ></div>
-          </div>
-        </form>
       </div>
       <div class="filter-scroll">
+
+        <section class="filter-section" data-filter-section="search" id="searchFilterSection" hidden>
+          <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="true">
+            <span>Search</span>
+            <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+          </button>
+          <div class="filter-select-field filter-search-query-field" id="searchFilterField">
+            <div class="filter-combobox-control" role="presentation">
+              <div class="filter-combobox-chips" id="searchFilterChips"></div>
+            </div>
+          </div>
+        </section>
 
         <section class="filter-section" data-filter-section="location">
           <button class="ui-control ui-button-ghost filter-section-title" type="button" aria-expanded="true">
@@ -941,6 +924,42 @@
     </section>
   </main>
 
+  <div class="cst-spotlight" id="cstSpotlight" hidden>
+    <div class="cst-spotlight__panel" role="dialog" aria-label="Search">
+      <form class="cst-splash__search cst-spotlight__search" id="cstSpotlightSearch" role="search" autocomplete="off" novalidate>
+        <img class="cst-splash__search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+        <input
+          class="cst-splash__search-input"
+          id="cstSpotlightSearchInput"
+          type="search"
+          inputmode="search"
+          autocomplete="off"
+          spellcheck="false"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-controls="cstSpotlightSearchSuggestions"
+          placeholder="Search by location, category or brand..."
+          aria-label="Search franchisees, brands, categories, and locations"
+          aria-describedby="cstSpotlightFeedback"
+        >
+        <div
+          class="cst-splash__search-suggestions cst-spotlight__suggestions proto-scrollbar"
+          id="cstSpotlightSearchSuggestions"
+          role="listbox"
+          aria-label="Search suggestions"
+          aria-hidden="true"
+        ></div>
+        <button class="cst-splash__search-clear" id="cstSpotlightSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
+        <button class="cst-splash__locate" id="cstSpotlightLocate" type="button" aria-label="Find prospects near my location" data-tooltip="Find my location">
+          <img src="../../assets/icons/target-me.svg" alt="" aria-hidden="true">
+        </button>
+      </form>
+      <p class="cst-splash__search-feedback cst-spotlight__feedback" id="cstSpotlightFeedback" role="status" aria-live="polite" hidden></p>
+    </div>
+  </div>
+
   <button class="map-pill map-pill-reset" id="ownersMapReset" type="button" hidden>
     <span class="map-pill-reset__label">Reset map view</span>
   </button>
@@ -1182,6 +1201,7 @@
   <script src="scripts/12-contact-action-tooltips.js"></script>
   <script src="scripts/09-bootstrap.js"></script>
   <script src="scripts/13-splash.js"></script>
+  <script src="scripts/18-spotlight-search.js"></script>
   <script src="../shared/data/campaigns-store.js"></script>
   <script src="../shared/campaign/campaign-wizard-markup.js"></script>
   <script src="scripts/15-campaign-audience.js"></script>

@@ -646,6 +646,57 @@ function setLocationFilterSelections(included = [], excluded = [], searches = []
   syncFilterLocationSearchUI();
 }
 
+function createSearchFilterChip(label) {
+  const chip = document.createElement("span");
+  const chipLabel = document.createElement("span");
+  const chipRemove = document.createElement("button");
+
+  chip.className = "filter-combobox-chip";
+  chipLabel.className = "filter-combobox-chip-label";
+  chipLabel.textContent = label;
+  chipRemove.className = "filter-combobox-chip-remove";
+  chipRemove.type = "button";
+  chipRemove.setAttribute("aria-label", `Remove ${label}`);
+  chipRemove.textContent = "×";
+  chipRemove.addEventListener("mousedown", (event) => event.preventDefault());
+  chipRemove.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setSearchQuery("", { refresh: true });
+  });
+  chip.append(chipLabel, chipRemove);
+  return chip;
+}
+
+function syncSearchFilterSection() {
+  const section = document.getElementById("searchFilterSection");
+  const chips = document.getElementById("searchFilterChips");
+  if (!section || !chips) return;
+
+  const query = String(searchQuery || "").trim();
+  section.hidden = !query;
+  chips.replaceChildren();
+
+  if (!query) {
+    updateFilterSectionClearButtons();
+    return;
+  }
+
+  chips.append(createSearchFilterChip(query));
+  window.WefranchFilterSections?.setSectionExpanded?.(section, true);
+  updateFilterSectionClearButtons();
+}
+
+function setSearchQuery(value, { refresh = false } = {}) {
+  searchQuery = String(value || "").trim();
+  syncSearchFilterSection();
+
+  if (!refresh) return;
+
+  refreshFilteredViews();
+  persistViewSettings();
+  tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+}
+
 function resetCstFilterSelections({ refresh = true } = {}) {
   selectedLocationLabels = [];
   excludedLocationLabels = [];
@@ -657,7 +708,7 @@ function resetCstFilterSelections({ refresh = true } = {}) {
   excludedOwnerIndexes = [];
   selectedFranchiseIndexes = [];
   excludedFranchiseIndexes = [];
-  searchQuery = "";
+  setSearchQuery("");
   selectedUnitsMin = unitsFilterDefaults.min;
   selectedUnitsMax = unitsFilterDefaults.max;
   selectedContactsMin = contactsFilterDefaults.min;
@@ -799,6 +850,9 @@ function clearFilterSection(section) {
       break;
     default:
       return;
+    case "search":
+      setSearchQuery("");
+      break;
   }
 
   activeOrgOwnerIndex = null;
