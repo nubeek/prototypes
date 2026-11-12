@@ -131,6 +131,26 @@ table.is-franchisees-table tbody > tr > td {
   color: var(--color-initials-fg);
 }
 
+.ui-avatar.has-headshot,
+.profile-avatar.has-headshot,
+.org-person-avatar.has-headshot,
+.org-branch-avatar.has-headshot {
+  background-color: #dedede;
+  background-image: none;
+  overflow: hidden;
+  color: transparent;
+}
+
+.ui-avatar.has-headshot img,
+.profile-avatar.has-headshot img,
+.org-person-avatar.has-headshot img,
+.org-branch-avatar.has-headshot img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
 /* Missing field values: render an en dash "–" with this class. Stays muted
    even inside profile/table value rules that set a stronger text color. */
 .dataset-empty-value,

@@ -683,7 +683,11 @@
 
     return `
       <div class="profile-modal-hero">
-        <span class="profile-avatar" aria-hidden="true">${page.escapeHtml(page.getInitials(lead.name) || "?")}</span>
+        ${window.getPersonAvatarMarkup({
+          className: "profile-avatar",
+          name: lead.name,
+          ownerName: page.getCompanyName(lead)
+        })}
         <h2 id="leadDetailName">${page.escapeHtml(lead.name)}</h2>
         <p>${page.escapeHtml(page.getCompanyName(lead) || lead.list || "Lead")}</p>
       </div>

@@ -593,7 +593,11 @@
           aria-label="Open profile for ${escapeHtml(lead.name)}"
         >
           <span class="name-cell">
-            <span class="ui-avatar raw-avatar" aria-hidden="true">${escapeHtml(getInitials(lead.name) || "?")}</span>
+            ${window.getPersonAvatarMarkup({
+              className: "ui-avatar raw-avatar",
+              name: lead.name,
+              ownerName: getCompanyName(lead)
+            })}
             <span class="owner-meta">
               <span class="contact-name">${escapeHtml(lead.name)}</span>
             </span>

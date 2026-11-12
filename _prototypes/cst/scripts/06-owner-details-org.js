@@ -408,6 +408,10 @@ function syncOrgCollapsedUi(ownerIndex, nodeId) {
   }
 }
 
+function getOwnerNameByIndex(ownerIndex) {
+  return owners.find((item) => item.originalIndex === ownerIndex)?.ownerName || "";
+}
+
 function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
   const directReportCount = getOrgDirectReportCount(nodes, node.id);
   const isCollapsed = ownerIndex !== null && isOrgNodeCollapsed(ownerIndex, node.id);
@@ -422,7 +426,12 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
       tabindex="0"
       aria-label="Open ${node.name} profile"
     >
-      <div class="ui-avatar org-person-avatar" aria-hidden="true">${getInitials(node.name)}</div>
+      ${window.getPersonAvatarMarkup({
+        className: "ui-avatar org-person-avatar",
+        name: node.name,
+        ownerName: getOwnerNameByIndex(ownerIndex),
+        tag: "div"
+      })}
       <h3>${node.name}</h3>
       <p>${getOrgNodeDisplayTitle(node)}</p>
       ${directReportCount > 0 ? `
@@ -448,7 +457,11 @@ function getOrgBranchHeader(node, ownerIndex) {
   return `
     <div class="org-branch-header">
       <div class="org-branch-person">
-        <span class="ui-avatar org-branch-avatar" aria-hidden="true">${getInitials(node.name)}</span>
+        ${window.getPersonAvatarMarkup({
+          className: "ui-avatar org-branch-avatar",
+          name: node.name,
+          ownerName: getOwnerNameByIndex(ownerIndex)
+        })}
         <span>${node.name}</span>
       </div>
       <button

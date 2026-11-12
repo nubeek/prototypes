@@ -6558,6 +6558,11 @@ body.reduce-motion :is(
   height: 22px;
   color: #aeafb2;
   flex: 0 0 auto;
+  transition: color 120ms ease;
+}
+
+.cst-splash__search-suggestion.is-active .cst-splash__search-suggestion-icon:not(.has-logo) {
+  color: var(--color-text);
 }
 
 .cst-splash__search-suggestion-icon.has-logo {
@@ -6595,6 +6600,14 @@ body.reduce-motion :is(
   display: block;
   width: 16px;
   height: 16px;
+}
+
+.cst-splash__search-suggestion-icon:not(.has-logo) img {
+  transition: filter 120ms ease;
+}
+
+.cst-splash__search-suggestion.is-active .cst-splash__search-suggestion-icon:not(.has-logo) img {
+  filter: brightness(0) saturate(100%);
 }
 
 .cst-splash__search-suggestion-icon svg {

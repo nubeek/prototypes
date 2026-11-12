@@ -157,7 +157,11 @@ function getRawContactRowMarkup(row, rowIndex) {
       <td class="raw-index-cell">${rowIndex + 1}</td>
       <td>
         <div class="raw-name-cell ${isLeadSaved ? "is-lead-saved" : ""} ${isHidden ? "is-contact-hidden" : ""}">
-          <span class="ui-avatar raw-avatar" aria-hidden="true">${getInitials(row.name)}</span>
+          ${window.getPersonAvatarMarkup({
+            className: "ui-avatar raw-avatar",
+            name: row.name,
+            ownerName: row.ownerNames?.[0] || ""
+          })}
           <span class="raw-name">${row.name}</span>
           <div class="contact-row-actions raw-row-actions">
             <button

@@ -457,7 +457,11 @@ function renderPersonProfile(profile) {
 
   profileModalContent.innerHTML = `
     <div class="profile-modal-hero">
-      <span class="profile-avatar" aria-hidden="true">${getInitials(profile.name)}</span>
+      ${window.getPersonAvatarMarkup({
+        className: "profile-avatar",
+        name: profile.name,
+        ownerName: profile.ownerName
+      })}
       <h2 id="profileModalName">${profile.name}</h2>
       <p>${profile.ownerName}</p>
     </div>
