@@ -970,7 +970,9 @@ function resetCstFilterSelections({ refresh = true } = {}) {
 function clearAllFilterSelections() {
   clearCstSavedSearchSession({ persist: false });
   resetCstFilterSelections({ refresh: true });
-  returnToCstSplash?.();
+  resetCstFilterSectionsToDefault?.();
+  filterPanel?.querySelector(".filter-scroll")?.scrollTo({ top: 0, behavior: "auto" });
+  window.syncSiteHeaderBreadcrumb?.();
 }
 
 const FILTER_HISTOGRAM_BINS = 24;

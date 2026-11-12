@@ -1,10 +1,6 @@
 function openUnfilteredDatasetView() {
-  clearCstSavedSearchSession({ persist: false });
-  resetCstFilterSelections({ refresh: true });
-  resetCstFilterSectionsToDefault?.();
+  clearAllFilterSelections();
   setFilterPanelOpen(true);
-  persistViewSettings();
-  window.syncSiteHeaderBreadcrumb?.();
 }
 
 function syncSiteHeaderBreadcrumb() {

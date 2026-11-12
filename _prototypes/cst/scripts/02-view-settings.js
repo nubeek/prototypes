@@ -509,6 +509,7 @@ function resetViewSettings() {
     syncReduceMotionStateClass();
     refreshOwnersMapPointData();
     clearAllFilterSelections();
+    returnToCstSplash?.();
     restoreFilterSectionState({});
     setPanelLayout("right");
     setFilterPanelOpen(true);

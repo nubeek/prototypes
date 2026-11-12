@@ -455,8 +455,13 @@ function selectCstQueryDataset(view) {
   resetCstSplashNewSearchMore();
   if (!view || view === currentTableView) return;
 
+  // Match picking this dataset on the home screen: empty filters, the default
+  // collapsed sections, the filter rail open, and the map showing.
   clearCstSavedSearchSession({ persist: false });
+  setFilterPanelOpen(true);
+  activateSavedSearchMapTab();
   applyCstSplashQuery({}, { view });
+  filterPanel?.querySelector(".filter-scroll")?.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function openCstSplashNewQuery(view = "franchisees") {
@@ -1463,6 +1468,7 @@ function applyCstSplashQuery(filters = {}, { view = "franchisees" } = {}) {
   syncRadiusFilterControls();
   syncHideOtherFranchisesControl();
   syncHideOtherCategoriesControl();
+  resetCstFilterSectionsToDefault();
   expandCstSplashFilterSections();
 
   if (view !== currentTableView) {
