@@ -68,6 +68,18 @@
   display: block;
 }
 
+/* Icon buttons use the shared floating tooltip. Labeled buttons skip it. */
+.filter-combobox-floating-tooltip.is-toolbar-tooltip {
+  max-width: none;
+  white-space: nowrap;
+  text-wrap: nowrap;
+  transform: translateY(6px);
+}
+
+.filter-combobox-floating-tooltip.is-toolbar-tooltip.is-visible {
+  transform: translateY(0);
+}
+
 .toolbar-selection {
   display: contents;
 }
@@ -88,5 +100,26 @@
 @media (max-width: 1480px) {
   .header {
     gap: 12px;
+  }
+}
+
+/* Narrow toolbars keep the icon and drop the word. The hover tooltip
+   carries the name, including a filters count when the label has one. */
+@media (max-width: 980px) {
+  .header .toolbar-btn > span {
+    display: none;
+  }
+
+  .header .toolbar-btn:has(> span):not(:has(> .toolbar-chevron)) {
+    width: var(--control-height);
+    min-width: 0;
+    padding: 0;
+  }
+
+  .header .toolbar-btn:has(> span):has(> .toolbar-chevron) {
+    width: auto;
+    min-width: 0;
+    padding: 0 12px;
+    gap: 8px;
   }
 }

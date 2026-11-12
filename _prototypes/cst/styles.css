@@ -3254,6 +3254,7 @@ h1 {
   height: 16px;
   flex: 0 0 auto;
   cursor: pointer;
+  filter: brightness(0);
   transition: filter var(--transition-fast);
 }
 
@@ -5995,6 +5996,41 @@ a.franchise-name:focus-visible {
   width: 100%;
 }
 
+@media (max-width: 980px) {
+  /* Expanded tabs keep their highlight, but the word moves to the tooltip. */
+  .toolbar-tabs .segmented-control-btn.is-expanded {
+    width: var(--control-height);
+    grid-template-columns: var(--control-height);
+    padding: 0;
+  }
+
+  /* Dataset switcher shrinks to the icon plus its chevron. The menu stays
+     wide enough for the dataset names. */
+  .cst-splash-new-search.is-query {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .cst-splash-new-search.is-query .cst-splash-new-search__trigger {
+    width: calc(var(--control-height) + 42px);
+    padding: 0;
+    gap: 0;
+  }
+
+  .cst-splash-new-search.is-query .cst-splash-new-search__label {
+    display: none;
+  }
+
+  .cst-splash-new-search.is-query .cst-splash-new-search__icon {
+    margin-left: calc((var(--control-height) - 16px) / 2);
+  }
+
+  .cst-splash-new-search.is-query > .cst-splash-new-search__menu {
+    width: max-content;
+    min-width: 260px;
+  }
+}
+
 .cst-splash-new-search .toolbar-dropdown-divider[hidden],
 .cst-splash-new-search__toggle-panel[hidden],
 .cst-splash-new-search__more-panel[hidden] {
@@ -6691,7 +6727,7 @@ body.reduce-motion :is(
   width: min(640px, 100%);
   overflow: hidden;
   border: 1px solid #ececef;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   background: var(--color-surface);
   box-shadow: var(--shadow-menu);
   opacity: 0;
@@ -6750,8 +6786,12 @@ body.reduce-motion :is(
   max-height: min(420px, calc(100vh - var(--cst-spotlight-top) - 110px));
   padding-bottom: 8px;
   border: 0;
-  border-top: 1px solid #f1f1f2;
   border-radius: 0;
+  background-color: var(--color-surface);
+  background-image: linear-gradient(#f1f1f2, #f1f1f2);
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: calc(100% - 40px) 1px;
   box-shadow: none;
   opacity: 1;
   visibility: visible;

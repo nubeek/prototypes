@@ -431,9 +431,11 @@ function syncCstSplashNewSearchTrigger() {
     if (icon) icon.src = option.icon;
     if (selectedLabel) selectedLabel.textContent = option.label;
     trigger?.setAttribute("aria-label", option.label);
+    trigger?.setAttribute("data-tooltip", option.label);
   } else {
     if (icon) icon.src = CST_SPLASH_NEW_SEARCH_ICON;
     trigger?.setAttribute("aria-label", `Search ${option.label}`);
+    trigger?.setAttribute("data-tooltip", `Search ${option.label}`);
   }
 
   cstSplashNewSearch.querySelectorAll("[data-table-view]").forEach((button) => {
@@ -622,7 +624,6 @@ function withCstSplashFilterScope(filters, read) {
   } finally {
     searchQuery = restore.searchQuery;
     excludedSearchKeywords = restore.excludedSearchKeywords;
-    syncSearchFilterSection();
     selectedLocationLabels = restore.selectedLocationLabels;
     excludedLocationLabels = restore.excludedLocationLabels;
     selectedLocationSearches = restore.selectedLocationSearches;
@@ -648,6 +649,10 @@ function withCstSplashFilterScope(filters, read) {
     statusFilterInputs.forEach((checkbox, index) => {
       checkbox.checked = restore.statusSelections[index];
     });
+    // Refresh the sidebar only after every value is back. Doing it earlier
+    // paints a saved search's range onto the live controls, and the clear
+    // button then no-ops because the live range is already the default.
+    syncSearchFilterSection();
   }
 }
 

@@ -430,7 +430,9 @@
 
     if (options.trigger) {
       options.trigger.setAttribute("aria-keyshortcuts", keyshortcuts);
-      options.trigger.title = `Quick search (${shortcutLabel})`;
+      options.trigger.dataset.tooltip = "Quick search";
+      options.trigger.dataset.tooltipShortcut = shortcutLabel;
+      options.trigger.removeAttribute("title");
     }
   }
 

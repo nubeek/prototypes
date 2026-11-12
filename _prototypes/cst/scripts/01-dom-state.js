@@ -14,6 +14,7 @@ const readerEditQueryCount = document.getElementById("readerEditQueryCount");
 const filterToggleLabel = document.getElementById("filterToggleLabel");
 const toolbarSearchBtn = document.getElementById("toolbarSearchBtn");
 const filterPanel = document.getElementById("filterPanel");
+const filterResultCount = document.getElementById("filterResultCount");
 const clearAllFilters = document.getElementById("clearAllFilters");
 const locationFilterSelect = document.getElementById("locationFilterSelect");
 const locationFilterSearchField = document.getElementById("locationFilterSearchField");

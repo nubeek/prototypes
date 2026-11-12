@@ -1027,7 +1027,11 @@ function refreshAfterSectionClear() {
 }
 
 function clearFilterSection(section) {
-  if (!section || !filterSectionHasAppliedFilters(section)) return;
+  if (!section) return;
+  if (!filterSectionHasAppliedFilters(section)) {
+    updateFilterSectionClearButtons();
+    return;
+  }
 
   switch (getFilterSectionKey(section)) {
     case "location":

@@ -1053,7 +1053,9 @@
       clearAllFilters.textContent = `Clear all (${appliedCount})`;
     }
     if (filterToggleLabel) {
-      filterToggleLabel.textContent = appliedCount ? `Filters (${appliedCount})` : "Filters";
+      const filtersLabel = appliedCount ? `Filters (${appliedCount})` : "Filters";
+      filterToggleLabel.textContent = filtersLabel;
+      filterToggleLabel.closest("button")?.setAttribute("data-tooltip", filtersLabel);
     }
     window.WefranchFilterSections?.updateClearButtons?.(filterPanel, (section) => {
       const key = section.dataset.filterSection;

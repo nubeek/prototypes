@@ -67,7 +67,7 @@
       <div class="header" aria-label="Franchisees toolbar">
         <div class="toolbar-group toolbar-primary">
           <details class="toolbar-dropdown cst-splash-new-search" id="cstSplashNewSearch" data-reader-hide>
-            <summary class="cst-splash-new-search__trigger" aria-haspopup="menu" aria-controls="cstSplashNewSearchMenu" aria-label="Start new search">
+            <summary class="cst-splash-new-search__trigger" aria-haspopup="menu" aria-controls="cstSplashNewSearchMenu" aria-label="Start new search" data-tooltip="Franchisees">
               <img class="cst-splash-new-search__icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
               <span class="cst-splash-new-search__label">
                 <span class="cst-splash-new-search__label-idle">Search <span class="cst-splash-new-search__label-dataset">Franchisees</span></span>
@@ -106,19 +106,19 @@
               </div>
             </div>
           </details>
-          <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn reader-back-btn" id="readerBackBtn" type="button" data-reader-only aria-label="Back to saved searches" title="Back to saved searches">
+          <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn reader-back-btn" id="readerBackBtn" type="button" data-reader-only aria-label="Back to saved searches" data-tooltip="Back">
             <img class="toolbar-asset-icon reader-back-btn__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
           <span class="toolbar-divider" data-splash-workspace-control aria-hidden="true"></span>
-          <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn" id="toolbarSearchBtn" type="button" data-splash-workspace-control aria-label="Search" title="Search">
+          <button class="ui-control ui-button ui-button-ghost ui-icon-button toolbar-btn" id="toolbarSearchBtn" type="button" data-splash-workspace-control aria-label="Quick search" data-tooltip="Quick search">
             <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
           </button>
-          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" data-splash-workspace-control data-reader-hide aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+          <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" id="filterToggle" type="button" data-splash-workspace-control data-reader-hide aria-label="Toggle filters" data-tooltip="Filters" aria-controls="filterPanel" aria-expanded="false">
             <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
             <span id="filterToggleLabel">Filters</span>
           </button>
           <details class="toolbar-dropdown" id="outreachBtn" data-splash-workspace-control>
-            <summary class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" aria-label="Email" title="Email">
+            <summary class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn" aria-label="Email" data-tooltip="Email">
               <img class="toolbar-asset-icon toolbar-outreach-icon" src="../../assets/icons/mail.svg" alt="" aria-hidden="true">
               <span>Email</span>
               <img class="toolbar-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
@@ -139,12 +139,12 @@
                   <img class="toolbar-submenu-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
                 </button>
                 <div class="ui-menu toolbar-submenu-menu" id="campaignsSubmenuMenu" role="menu" aria-label="Campaigns">
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                  <a class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" role="menuitem" href="../campaigns/">
                     <span class="toolbar-dropdown-label">Browse all...</span>
-                  </button>
-                  <button class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" type="button" role="menuitem">
+                  </a>
+                  <a class="ui-menu-item toolbar-dropdown-option toolbar-dropdown-action" role="menuitem" href="../campaigns/#templates">
                     <span class="toolbar-dropdown-label">Templates</span>
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
@@ -153,7 +153,7 @@
 
         <div class="toolbar-group toolbar-actions">
           <details class="toolbar-dropdown" id="toolbarMenuDropdown" data-reader-hide data-splash-hide>
-            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" data-tooltip="More options">
               <img class="toolbar-asset-icon" src="../../assets/icons/menu.svg" alt="" aria-hidden="true">
               <img class="toolbar-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
             </summary>
@@ -167,7 +167,7 @@
           <span class="toolbar-divider" data-splash-workspace-control data-reader-hide aria-hidden="true"></span>
           <div class="toolbar-tabs segmented-control" data-splash-workspace-control>
             <div class="toolbar-tab-item">
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" aria-controls="mapPanel" aria-expanded="false">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn" id="mapToggle" type="button" aria-label="Toggle map" data-tooltip="Map" aria-controls="mapPanel" aria-expanded="false">
                 <img class="toolbar-asset-icon" src="../../assets/icons/map.svg" alt="" aria-hidden="true">
                 <span class="toolbar-tab-label">Map</span>
               </button>
@@ -197,7 +197,7 @@
               </div>
             </div>
             <div class="toolbar-tab-item">
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="orgChartToggle" type="button" aria-label="Hierarchy view" aria-controls="mapPanel" aria-pressed="false">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="orgChartToggle" type="button" aria-label="Hierarchy view" data-tooltip="Org. Chart" aria-controls="mapPanel" aria-pressed="false">
                 <img class="toolbar-asset-icon" src="../../assets/icons/orgchart.svg" alt="" aria-hidden="true">
                 <span class="toolbar-tab-label">Org. Chart</span>
               </button>
@@ -227,7 +227,7 @@
               </div>
             </div>
             <div class="toolbar-tab-item">
-              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="contactsToggle" type="button" aria-label="Toggle contacts view" aria-pressed="false">
+              <button class="ui-control ui-button ui-button-ghost ui-icon-button circle-btn toolbar-btn segmented-control-btn segmented-control-btn-divider-left" id="contactsToggle" type="button" aria-label="Toggle contacts view" data-tooltip="Contacts" aria-pressed="false">
                 <img class="toolbar-asset-icon contacts-toggle-icon" src="../../assets/icons/contacts.svg" alt="" aria-hidden="true">
                 <span class="toolbar-tab-label">Contacts</span>
               </button>
@@ -346,6 +346,7 @@
     <aside class="filter-panel" id="filterPanel" aria-label="Filters">
       <div class="filter-header">
         <h2>Filters</h2>
+        <p id="filterResultCount" aria-live="polite">Showing 0 results</p>
       </div>
       <div class="filter-scroll">
 
@@ -1204,6 +1205,7 @@
   <script src="../shared/ui/proto-confirm-modal.js"></script>
   <script src="../shared/ui/proto-toast.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
+  <script src="../shared/ui/toolbar-tooltips.js"></script>
   <script src="../shared/ui/action-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>
   <script src="../shared/filter/filter-quick-search.js"></script>

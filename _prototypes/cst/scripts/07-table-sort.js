@@ -2393,8 +2393,72 @@ function updateTableHeading() {
   }
 }
 
+function isOwnerMainOrgNode(owner, node) {
+  const mainName = String(owner?.contactName || "").trim().toLocaleLowerCase();
+  const nodeName = String(node?.name || "").trim().toLocaleLowerCase();
+  if (mainName && nodeName === mainName) return true;
+
+  const mainEmail = String(owner?.email || "").trim().toLocaleLowerCase();
+  const nodeEmail = String(node?.email || "").trim().toLocaleLowerCase();
+  return Boolean(mainEmail && nodeEmail && nodeEmail === mainEmail);
+}
+
+// A result is the franchisee's main contact plus everyone else on the org chart.
+// The main contact is already a node on most charts, so they are counted once.
+function getOwnerResultContactCount(owner) {
+  const nodes = getOwnerOrgChart(owner?.originalIndex)?.nodes || [];
+  const mainInChart = nodes.some((node) => isOwnerMainOrgNode(owner, node));
+  const hasMainContact = Boolean(String(owner?.contactName || "").trim()) || mainInChart;
+  const relatedCount = mainInChart ? Math.max(0, nodes.length - 1) : nodes.length;
+
+  if (hasMainContact || relatedCount) {
+    return (hasMainContact ? 1 : 0) + relatedCount;
+  }
+
+  return getOwnerContactCount(owner);
+}
+
+function getLocationResultOwners() {
+  const seen = new Set();
+  const matched = [];
+
+  getFilteredLocationRows().forEach((row) => {
+    const owner = row.owner;
+    if (!owner || seen.has(owner.originalIndex)) return;
+    seen.add(owner.originalIndex);
+    matched.push(owner);
+  });
+
+  return matched;
+}
+
+function getFilterResultCount() {
+  if (currentTableView === "locations") {
+    return getLocationResultOwners().reduce((total, owner) => (
+      total + getOwnerResultContactCount(owner)
+    ), 0);
+  }
+
+  if (isDatasetTableView()) {
+    return getFilteredLocationRows().length;
+  }
+
+  return getFilteredFranchisees().reduce((total, owner) => (
+    total + getOwnerResultContactCount(owner)
+  ), 0);
+}
+
+function updateFilterResultCount() {
+  if (!filterResultCount) return;
+
+  const count = getFilterResultCount();
+  const label = pluralizeTableHeadingCount(count, "result");
+  filterResultCount.textContent = `Showing ${formatTableHeadingCount(count)} ${label}`;
+}
+
 function updateFilterSummary() {
   updateTableHeading();
+  updateFilterResultCount();
   updateClearFiltersButton();
 }
 
@@ -2449,9 +2513,11 @@ function updateClearFiltersButton() {
   }
 
   if (filterToggleLabel) {
-    filterToggleLabel.textContent = hasAppliedFilters
+    const filtersLabel = hasAppliedFilters
       ? `Filters (${appliedFilterCount})`
       : "Filters";
+    filterToggleLabel.textContent = filtersLabel;
+    filterToggle?.setAttribute("data-tooltip", filtersLabel);
   }
 
   if (readerEditQueryLabel) {

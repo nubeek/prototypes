@@ -59,16 +59,16 @@
       <div class="header" aria-label="Leads toolbar">
         <div class="toolbar-group toolbar-primary">
           <div class="toolbar-split">
-            <button class="toolbar-split__search" id="toolbarSearchBtn" type="button" aria-label="Quick search" title="Quick search">
+            <button class="toolbar-split__search" id="toolbarSearchBtn" type="button" aria-label="Quick search" data-tooltip="Quick search">
               <img class="toolbar-asset-icon toolbar-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
             </button>
-            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn toolbar-split__action" id="filterToggle" type="button" aria-label="Toggle filters" title="Toggle filters" aria-controls="filterPanel" aria-expanded="false">
+            <button class="ui-control ui-button ui-button-ghost filter-toggle-btn toolbar-btn toolbar-split__action" id="filterToggle" type="button" aria-label="Toggle filters" data-tooltip="Filters" aria-controls="filterPanel" aria-expanded="false">
               <img class="toolbar-asset-icon filter-toggle-icon" src="../../assets/icons/filters.svg" alt="" aria-hidden="true">
               <span id="filterToggleLabel">Filters</span>
             </button>
           </div>
           <span class="toolbar-divider" aria-hidden="true"></span>
-          <button class="ui-control ui-button ui-button-ghost ui-icon-button filter-toggle-btn toolbar-btn" id="exportBtn" type="button" aria-label="Export" title="Export">
+          <button class="ui-control ui-button ui-button-ghost ui-icon-button filter-toggle-btn toolbar-btn" id="exportBtn" type="button" aria-label="Export" data-tooltip="Export">
             <img class="toolbar-asset-icon toolbar-export-icon" src="../../assets/icons/export-csv.svg" alt="" aria-hidden="true">
           </button>
           <div class="toolbar-selection" id="leadSelectionActions" hidden>
@@ -89,7 +89,7 @@
 
         <div class="toolbar-group toolbar-actions">
           <details class="toolbar-dropdown" id="leadsToolbarMenuDropdown">
-            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" title="More options">
+            <summary class="ui-control ui-button ui-button-ghost toolbar-menu toolbar-btn" aria-label="More options" data-tooltip="More options">
               <img class="toolbar-asset-icon" src="../../assets/icons/menu.svg" alt="" aria-hidden="true">
               <img class="toolbar-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
             </summary>
@@ -582,6 +582,7 @@
   <script src="../shared/ui/proto-field-captions.js"></script>
   <script src="../shared/ui/proto-field-error.js"></script>
   <script src="../shared/ui/fit-tooltip.js"></script>
+  <script src="../shared/ui/toolbar-tooltips.js"></script>
   <script src="../shared/ui/action-tooltip.js"></script>
   <script src="../shared/filter/filter-combobox.js"></script>
   <script src="../shared/filter/filter-quick-search.js"></script>
