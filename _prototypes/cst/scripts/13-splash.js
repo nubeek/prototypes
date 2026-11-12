@@ -25,7 +25,7 @@ const CST_SPLASH_ENTER_STAGGER_MS = 65;
 const CST_SPLASH_ENTER_DURATION_MS = 320;
 const CST_SPLASH_LEAVE_DURATION_MS = 300;
 const CST_SPLASH_WORKSPACE_HIDE_MS = 240;
-const CST_SPLASH_SUGGESTION_GROUPS = ["Categories", "Franchises", "Franchisees", "Locations"];
+const CST_SPLASH_SUGGESTION_GROUPS = ["Categories", "Brands", "Franchisees", "People", "Locations"];
 const CST_SPLASH_SUGGESTION_GROUP_LIMIT = 3;
 const CST_SPLASH_SAVED_INSERT_SHIFT_DURATION_MS = 680;
 const CST_SPLASH_SAVED_INSERT_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
@@ -1892,7 +1892,7 @@ function getCstSplashLocalSuggestionPool() {
     })),
     ...brandNames.map((brandName) => ({
       filters: { franchises: [brandName] },
-      group: "Franchises",
+      group: "Brands",
       label: brandName,
       logoFallback: getInitials(brandName),
       logoSrc: getFranchiseLogoSrc(brandName),
@@ -1903,7 +1903,19 @@ function getCstSplashLocalSuggestionPool() {
       group: "Categories",
       label: window.WefranchCategories.getLabel(categoryId),
       type: "category"
-    }))
+    })),
+    ...owners.flatMap((owner) => {
+      const name = String(owner.contactName || "").trim();
+      if (!name) return [];
+
+      return [{
+        filters: { franchisees: [String(owner.originalIndex)] },
+        group: "People",
+        label: name,
+        logoSrc: window.resolvePersonHeadshotSrc?.(owner.ownerName, name) || "",
+        type: "person"
+      }];
+    })
   ];
 }
 
@@ -1933,6 +1945,49 @@ function getCstSplashLocalSuggestions(query) {
     ));
 }
 
+function getCstSplashCandidateSuggestions(query) {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  if (normalizedQuery.length < 2) return [];
+
+  const seen = new Set();
+  const matches = [];
+
+  (window.prospectDatasetsData?.candidates?.rows || []).forEach((row) => {
+    const name = String(row.name || "").trim();
+    if (!name) return;
+
+    const key = name.toLocaleLowerCase();
+    if (seen.has(key)) return;
+
+    const matchIndex = key.indexOf(normalizedQuery);
+    if (matchIndex === -1) return;
+
+    seen.add(key);
+    matches.push({
+      filters: { search: name },
+      group: "Candidates",
+      label: name,
+      matchIndex,
+      type: "person",
+      view: "candidates"
+    });
+  });
+
+  return matches
+    .sort((a, b) => a.matchIndex - b.matchIndex || a.label.localeCompare(b.label))
+    .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT);
+}
+
+// Home page search lists franchisee contacts under Franchisees and candidate
+// names under Candidates. The workspace spotlight keeps a single People group.
+function getCstSplashHomeLocalSuggestions(query) {
+  const suggestions = getCstSplashLocalSuggestions(query).map((item) => (
+    item.type === "person" ? { ...item, group: "Franchisees" } : item
+  ));
+
+  return [...suggestions, ...getCstSplashCandidateSuggestions(query)];
+}
+
 function toCstSplashLocationSuggestion(result) {
   if (!result?.label) return null;
 
@@ -1948,8 +2003,8 @@ function toCstSplashLocationSuggestion(result) {
   };
 }
 
-async function getCstSplashSuggestions(query, { signal } = {}) {
-  const localSuggestions = getCstSplashLocalSuggestions(query);
+async function getCstSplashSuggestions(query, { signal, getLocalSuggestions = getCstSplashLocalSuggestions } = {}) {
+  const localSuggestions = getLocalSuggestions(query);
 
   let locationResults = [];
   try {
@@ -1971,13 +2026,34 @@ async function getCstSplashSuggestions(query, { signal } = {}) {
 }
 
 const CST_SPLASH_SUGGESTION_ICONS = {
-  location: `<svg viewBox="0 0 16 20" focusable="false"><path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/></svg>`
+  location: `<svg viewBox="0 0 16 20" focusable="false"><path d="M8 0a8 8 0 0 0-8 8c0 5.7 8 12 8 12s8-6.3 8-12a8 8 0 0 0-8-8Zm0 11.1A3.1 3.1 0 1 1 8 4.9a3.1 3.1 0 0 1 0 6.2Z"/></svg>`,
+  person: `<svg viewBox="0 0 16 16" focusable="false"><path d="M8 8.15a2.85 2.85 0 1 0 0-5.7 2.85 2.85 0 0 0 0 5.7ZM2.55 13.55c.18-2.45 2.28-4.1 5.45-4.1s5.27 1.65 5.45 4.1c.04.48-.34.8-.8.8H3.35c-.46 0-.84-.32-.8-.8Z"/></svg>`
 };
 
 function createCstSplashSuggestionIcon(item) {
   const icon = document.createElement("span");
   icon.className = "cst-splash__search-suggestion-icon";
   icon.setAttribute("aria-hidden", "true");
+
+  if (item.type === "person") {
+    if (!item.logoSrc) {
+      icon.classList.add("is-person");
+      return icon;
+    }
+
+    icon.classList.add("has-logo", "is-headshot");
+    const image = document.createElement("img");
+    image.src = item.logoSrc;
+    image.alt = "";
+    image.loading = "lazy";
+    image.addEventListener("error", () => {
+      image.remove();
+      icon.classList.remove("has-logo", "is-headshot");
+      icon.classList.add("is-person");
+    });
+    icon.append(image);
+    return icon;
+  }
 
   if (item.logoSrc || item.logoFallback) {
     icon.classList.add("has-logo");
@@ -2091,7 +2167,7 @@ function applyCstQuickSearchSuggestion(item) {
   const quickSearch = window.WefranchFilterQuickSearch;
   if (!item || !quickSearch) return;
 
-  if (item.type === "franchisee") {
+  if (item.type === "franchisee" || item.type === "person") {
     quickSearch.addSelectValues(ownerFilterSelect, item.filters?.franchisees || []);
     quickSearch.expandSection(ownerFilterSelect);
     return;
@@ -2139,7 +2215,8 @@ function rememberCstRecentSearch(item) {
     label: item.label,
     logoFallback: item.logoFallback,
     logoSrc: item.logoSrc,
-    type: item.type
+    type: item.type,
+    view: item.view || ""
   };
   const recents = readCstRecentSearches().filter((recent) => (
     recent.type !== entry.type || recent.label !== entry.label
@@ -2177,11 +2254,12 @@ function bindCstSplashSearch() {
     suggestionIdPrefix: "cstSplashSearchSuggestion",
     setFeedback: setCstSplashSearchFeedback,
     getIdleSuggestions: getCstRecentSearchSuggestions,
+    getLocalSuggestions: getCstSplashHomeLocalSuggestions,
     onSearch(filters, item) {
       rememberCstRecentSearch(item);
       clearCstSavedSearchSession({ persist: false });
       dismissCstSplash({ refresh: false });
-      applyCstSplashQuery(filters);
+      applyCstSplashQuery(filters, { view: item?.view || "franchisees" });
     },
     onLocate: locateUserFromFilters
   });
@@ -2199,6 +2277,7 @@ function createCstSearchField({
   suggestionIdPrefix,
   setFeedback = () => {},
   getIdleSuggestions = null,
+  getLocalSuggestions = getCstSplashLocalSuggestions,
   onSearch,
   onLocate,
   onEscape = null
@@ -2359,7 +2438,7 @@ function createCstSearchField({
       appendSuggestionHeading("Suggestions", suggestions);
       const status = document.createElement("div");
       status.className = "cst-splash__search-suggestion-status";
-      status.textContent = "No franchisees, brands, categories, or locations match.";
+      status.textContent = "No franchisees, brands, people, categories, or locations match.";
       suggestions.append(status);
       setSuggestionsOpen(true);
       return;
@@ -2412,12 +2491,12 @@ function createCstSearchField({
   async function submitFreeTextSearch() {
     const query = input.value.trim();
     if (!query) {
-      setFeedback("Enter a franchisee, brand, category, or location to begin.");
+      setFeedback("Enter a franchisee, brand, person, category, or location to begin.");
       input.focus();
       return;
     }
 
-    const localSuggestions = getCstSplashLocalSuggestions(query);
+    const localSuggestions = getLocalSuggestions(query);
     const exactLocalMatch = localSuggestions.find((item) => isExactCstSplashSuggestion(item, query));
     if (exactLocalMatch) {
       selectSuggestion(exactLocalMatch);
@@ -2441,7 +2520,7 @@ function createCstSearchField({
   }
 
   function renderSearchingSuggestions(query) {
-    renderSuggestions(getCstSplashLocalSuggestions(query));
+    renderSuggestions(getLocalSuggestions(query));
     appendSuggestionHeading("Locations", suggestions);
     const status = document.createElement("div");
     status.className = "cst-splash__search-suggestion-status";
@@ -2462,12 +2541,15 @@ function createCstSearchField({
     renderSearchingSuggestions(trimmedQuery);
 
     try {
-      const items = await getCstSplashSuggestions(trimmedQuery, { signal: fetchController.signal });
+      const items = await getCstSplashSuggestions(trimmedQuery, {
+        signal: fetchController.signal,
+        getLocalSuggestions
+      });
       if (input.value.trim() !== trimmedQuery) return;
       renderSuggestions(items);
     } catch (error) {
       if (error?.name === "AbortError") return;
-      renderSuggestions(getCstSplashLocalSuggestions(trimmedQuery));
+      renderSuggestions(getLocalSuggestions(trimmedQuery));
     }
   }
 

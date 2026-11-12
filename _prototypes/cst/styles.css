@@ -6567,7 +6567,7 @@ body.reduce-motion :is(
 
 .cst-splash__search-suggestion {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   min-height: 46px;
@@ -6602,8 +6602,8 @@ body.reduce-motion :is(
 }
 
 .cst-splash__search-suggestion-icon.has-logo {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
   overflow: hidden;
   background: #f3f3f5;
@@ -6614,6 +6614,18 @@ body.reduce-motion :is(
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.cst-splash__search-suggestion-icon.is-headshot img {
+  object-fit: cover;
+}
+
+.cst-splash__search-suggestion-icon.is-person {
+  width: 10px;
+  height: 18px;
+  background-color: currentColor;
+  -webkit-mask: url("../../assets/icons/user.svg") center / contain no-repeat;
+  mask: url("../../assets/icons/user.svg") center / contain no-repeat;
 }
 
 .cst-splash__search-suggestion-logo-fallback {
@@ -6714,7 +6726,17 @@ body.reduce-motion :is(
   align-items: flex-start;
   justify-content: center;
   padding: var(--cst-spotlight-top) 24px 24px;
+  background-color: rgba(255, 255, 255, 0);
   pointer-events: none;
+  transition: background-color 160ms ease;
+}
+
+.cst-spotlight:not([hidden]) {
+  pointer-events: auto;
+}
+
+.cst-spotlight.is-open {
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 .cst-spotlight[hidden] {
@@ -6767,6 +6789,10 @@ body.reduce-motion :is(
 .cst-spotlight__search > .cst-splash__search-icon {
   grid-area: 1 / 1;
   margin-left: 20px;
+}
+
+.cst-spotlight__search:focus-within > .cst-splash__search-icon {
+  filter: none;
 }
 
 .cst-spotlight__search > .cst-splash__search-input {
