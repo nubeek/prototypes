@@ -1014,7 +1014,30 @@ function updateFilterSectionClearButtons() {
   window.WefranchFilterSections.updateClearButtons(filterPanel, filterSectionHasAppliedFilters);
 }
 
-function refreshAfterSectionClear() {
+// Prospect rows only carry a name, location, brand, and category, so the
+// franchisee-level filters have nothing to match there.
+const PROSPECT_FILTER_SECTIONS = new Set(["search", "location", "category", "franchise", "status"]);
+
+function filterSectionAppliesToView(section, tableView = currentTableView) {
+  return !isProspectTableView(tableView) || PROSPECT_FILTER_SECTIONS.has(getFilterSectionKey(section));
+}
+
+// Hidden sections must not keep values, or they would still count as applied
+// filters and come back when switching to a dataset that uses them.
+function syncFilterSectionsForView(tableView = currentTableView) {
+  if (!filterPanel) return;
+
+  let didReset = false;
+  filterPanel.querySelectorAll(".filter-section[data-filter-section]").forEach((section) => {
+    const applies = filterSectionAppliesToView(section, tableView);
+    section.hidden = !applies;
+    if (!applies && resetFilterSectionState(section)) didReset = true;
+  });
+
+  if (didReset) syncFilterControls();
+}
+
+function syncFilterControls() {
   syncFilterComboboxes();
   syncStatusFilterStates();
   syncUnitsFilterControls();
@@ -1023,6 +1046,10 @@ function refreshAfterSectionClear() {
   syncRadiusFilterControls();
   syncHideOtherFranchisesControl();
   syncHideOtherCategoriesControl();
+}
+
+function refreshAfterSectionClear() {
+  syncFilterControls();
   refreshFilteredViews();
   syncOpenOrgPanelWithSelection();
   tableWrap?.scrollTo({ top: 0, behavior: "auto" });
@@ -1030,10 +1057,18 @@ function refreshAfterSectionClear() {
 
 function clearFilterSection(section) {
   if (!section) return;
-  if (!filterSectionHasAppliedFilters(section)) {
+  if (!resetFilterSectionState(section)) {
     updateFilterSectionClearButtons();
     return;
   }
+
+  activeOrgOwnerIndex = null;
+  refreshAfterSectionClear();
+}
+
+// Returns true when the section had values to clear.
+function resetFilterSectionState(section) {
+  if (!filterSectionHasAppliedFilters(section)) return false;
 
   switch (getFilterSectionKey(section)) {
     case "location":
@@ -1079,11 +1114,10 @@ function clearFilterSection(section) {
       setSearchQuery("", { excluded: [] });
       break;
     default:
-      return;
+      return false;
   }
 
-  activeOrgOwnerIndex = null;
-  refreshAfterSectionClear();
+  return true;
 }
 
 function getFilterHistogramValues(section) {

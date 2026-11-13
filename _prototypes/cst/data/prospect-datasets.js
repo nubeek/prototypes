@@ -1,4 +1,5 @@
 const PROSPECT_DATASET_SIZE = 150;
+const CANDIDATE_DATASET_SIZE = PROSPECT_DATASET_SIZE + 324;
 
 const PERSONAL_EMAIL_DOMAINS = [
   "gmail.com",
@@ -141,6 +142,138 @@ const PROSPECT_LOCATIONS = [
   "Seattle, Washington",
   "Tampa, Florida"
 ];
+
+const PROSPECT_LOCATION_COORDINATES = {
+  "Atlanta, Georgia": { lat: 33.749, lng: -84.388 },
+  "Austin, Texas": { lat: 30.2672, lng: -97.7431 },
+  "Baltimore, Maryland": { lat: 39.2904, lng: -76.6122 },
+  "Carlsbad, California": { lat: 33.1581, lng: -117.3506 },
+  "Charlotte, North Carolina": { lat: 35.2271, lng: -80.8431 },
+  "Chicago, Illinois": { lat: 41.8781, lng: -87.6298 },
+  "Cincinnati, Ohio": { lat: 39.1031, lng: -84.512 },
+  "Columbus, Ohio": { lat: 39.9612, lng: -82.9988 },
+  "Dallas, Texas": { lat: 32.7767, lng: -96.797 },
+  "Del Mar, California": { lat: 32.9595, lng: -117.2653 },
+  "Denver, Colorado": { lat: 39.7392, lng: -104.9903 },
+  "Detroit, Michigan": { lat: 42.3314, lng: -83.0458 },
+  "Indianapolis, Indiana": { lat: 39.7684, lng: -86.1581 },
+  "Las Vegas, Nevada": { lat: 36.1699, lng: -115.1398 },
+  "Lexington, Kentucky": { lat: 38.0406, lng: -84.5037 },
+  "Los Angeles, California": { lat: 34.0522, lng: -118.2437 },
+  "Louisville, Kentucky": { lat: 38.2527, lng: -85.7585 },
+  "Miami, Florida": { lat: 25.7617, lng: -80.1918 },
+  "Nashville, Tennessee": { lat: 36.1627, lng: -86.7816 },
+  "New Orleans, Louisiana": { lat: 29.9511, lng: -90.0715 },
+  "Oklahoma City, Oklahoma": { lat: 35.4676, lng: -97.5164 },
+  "Omaha, Nebraska": { lat: 41.2565, lng: -95.9345 },
+  "Orlando, Florida": { lat: 28.5383, lng: -81.3792 },
+  "Phoenix, Arizona": { lat: 33.4484, lng: -112.074 },
+  "Raleigh, North Carolina": { lat: 35.7796, lng: -78.6382 },
+  "Richmond, Virginia": { lat: 37.5407, lng: -77.436 },
+  "Salt Lake City, Utah": { lat: 40.7608, lng: -111.891 },
+  "San Diego, California": { lat: 32.7157, lng: -117.1611 },
+  "Seattle, Washington": { lat: 47.6062, lng: -122.3321 },
+  "Tampa, Florida": { lat: 27.9506, lng: -82.4572 }
+};
+
+// Candidates cluster in the Northeast, the Southeast, and California/Nevada,
+// with a few elsewhere so the map is not empty outside those regions.
+const CANDIDATE_PLACES = {
+  northeast: [
+    { label: "Boston, Massachusetts", lat: 42.3601, lng: -71.0589 },
+    { label: "Cambridge, Massachusetts", lat: 42.3736, lng: -71.1097 },
+    { label: "Brookline, Massachusetts", lat: 42.3318, lng: -71.1212 },
+    { label: "Worcester, Massachusetts", lat: 42.2626, lng: -71.8023 },
+    { label: "Providence, Rhode Island", lat: 41.824, lng: -71.4128 },
+    { label: "Hartford, Connecticut", lat: 41.7658, lng: -72.6734 },
+    { label: "New Haven, Connecticut", lat: 41.3083, lng: -72.9279 },
+    { label: "Stamford, Connecticut", lat: 41.0534, lng: -73.5387 },
+    { label: "New York, New York", lat: 40.7128, lng: -74.006 },
+    { label: "Brooklyn, New York", lat: 40.6782, lng: -73.9442 },
+    { label: "Queens, New York", lat: 40.7282, lng: -73.7949 },
+    { label: "White Plains, New York", lat: 41.034, lng: -73.7629 },
+    { label: "Jersey City, New Jersey", lat: 40.7178, lng: -74.0431 },
+    { label: "Newark, New Jersey", lat: 40.7357, lng: -74.1724 },
+    { label: "Hoboken, New Jersey", lat: 40.744, lng: -74.0324 },
+    { label: "Princeton, New Jersey", lat: 40.3573, lng: -74.6672 },
+    { label: "Philadelphia, Pennsylvania", lat: 39.9526, lng: -75.1652 },
+    { label: "Pittsburgh, Pennsylvania", lat: 40.4406, lng: -79.9959 },
+    { label: "Baltimore, Maryland", lat: 39.2904, lng: -76.6122 },
+    { label: "Bethesda, Maryland", lat: 38.9847, lng: -77.0947 },
+    { label: "Arlington, Virginia", lat: 38.8816, lng: -77.091 },
+    { label: "Alexandria, Virginia", lat: 38.8048, lng: -77.0469 },
+    { label: "Richmond, Virginia", lat: 37.5407, lng: -77.436 },
+    { label: "Norfolk, Virginia", lat: 36.8508, lng: -76.2859 }
+  ],
+  southeast: [
+    { label: "Atlanta, Georgia", lat: 33.749, lng: -84.388 },
+    { label: "Decatur, Georgia", lat: 33.7748, lng: -84.2963 },
+    { label: "Marietta, Georgia", lat: 33.9526, lng: -84.5499 },
+    { label: "Savannah, Georgia", lat: 32.0809, lng: -81.0912 },
+    { label: "Charlotte, North Carolina", lat: 35.2271, lng: -80.8431 },
+    { label: "Raleigh, North Carolina", lat: 35.7796, lng: -78.6382 },
+    { label: "Durham, North Carolina", lat: 35.994, lng: -78.8986 },
+    { label: "Wilmington, North Carolina", lat: 34.2257, lng: -77.9447 },
+    { label: "Charleston, South Carolina", lat: 32.7765, lng: -79.9311 },
+    { label: "Columbia, South Carolina", lat: 34.0007, lng: -81.0348 },
+    { label: "Greenville, South Carolina", lat: 34.8526, lng: -82.394 },
+    { label: "Jacksonville, Florida", lat: 30.3322, lng: -81.6557 },
+    { label: "Orlando, Florida", lat: 28.5383, lng: -81.3792 },
+    { label: "Tampa, Florida", lat: 27.9506, lng: -82.4572 },
+    { label: "St. Petersburg, Florida", lat: 27.7676, lng: -82.6403 },
+    { label: "Miami, Florida", lat: 25.7617, lng: -80.1918 },
+    { label: "Fort Lauderdale, Florida", lat: 26.1224, lng: -80.1373 },
+    { label: "West Palm Beach, Florida", lat: 26.7153, lng: -80.0534 },
+    { label: "Nashville, Tennessee", lat: 36.1627, lng: -86.7816 },
+    { label: "Memphis, Tennessee", lat: 35.1495, lng: -90.049 },
+    { label: "Knoxville, Tennessee", lat: 35.9606, lng: -83.9207 },
+    { label: "Birmingham, Alabama", lat: 33.5186, lng: -86.8104 },
+    { label: "Louisville, Kentucky", lat: 38.2527, lng: -85.7585 },
+    { label: "New Orleans, Louisiana", lat: 29.9511, lng: -90.0715 }
+  ],
+  californiaNevada: [
+    { label: "Los Angeles, California", lat: 34.0522, lng: -118.2437 },
+    { label: "Santa Monica, California", lat: 34.0195, lng: -118.4912 },
+    { label: "Pasadena, California", lat: 34.1478, lng: -118.1445 },
+    { label: "Long Beach, California", lat: 33.7701, lng: -118.1937 },
+    { label: "Irvine, California", lat: 33.6846, lng: -117.8265 },
+    { label: "San Diego, California", lat: 32.7157, lng: -117.1611 },
+    { label: "La Jolla, California", lat: 32.8328, lng: -117.2713 },
+    { label: "San Francisco, California", lat: 37.7749, lng: -122.4194 },
+    { label: "Oakland, California", lat: 37.8044, lng: -122.2712 },
+    { label: "San Jose, California", lat: 37.3382, lng: -121.8863 },
+    { label: "Sacramento, California", lat: 38.5816, lng: -121.4944 },
+    { label: "Fresno, California", lat: 36.7378, lng: -119.7871 },
+    { label: "Las Vegas, Nevada", lat: 36.1699, lng: -115.1398 },
+    { label: "Henderson, Nevada", lat: 36.0395, lng: -114.9817 },
+    { label: "Reno, Nevada", lat: 39.5296, lng: -119.8138 }
+  ],
+  elsewhere: [
+    { label: "Chicago, Illinois", lat: 41.8781, lng: -87.6298 },
+    { label: "Dallas, Texas", lat: 32.7767, lng: -96.797 },
+    { label: "Houston, Texas", lat: 29.7604, lng: -95.3698 },
+    { label: "Austin, Texas", lat: 30.2672, lng: -97.7431 },
+    { label: "Denver, Colorado", lat: 39.7392, lng: -104.9903 },
+    { label: "Phoenix, Arizona", lat: 33.4484, lng: -112.074 },
+    { label: "Seattle, Washington", lat: 47.6062, lng: -122.3321 },
+    { label: "Minneapolis, Minnesota", lat: 44.9778, lng: -93.265 }
+  ]
+};
+
+function getCandidatePlace(index) {
+  const band = index % 10;
+  const places = band < 4
+    ? CANDIDATE_PLACES.southeast
+    : band < 7
+      ? CANDIDATE_PLACES.northeast
+      : band < 9
+        ? CANDIDATE_PLACES.californiaNevada
+        : CANDIDATE_PLACES.elsewhere;
+
+  // Step through the whole list, so later cities (New York, Miami, Nashville)
+  // are used alongside the first ones.
+  return places[(Math.floor(index / 10) * 7) % places.length];
+}
 
 const USER_PROFILE_FRANCHISES = [
   { franchise: "OrangeTheory Fitness", categoryId: "fitness" },
@@ -534,15 +667,19 @@ function getSyntheticAthleteProfile(index) {
 }
 
 function createCandidates() {
-  return Array.from({ length: PROSPECT_DATASET_SIZE }, (_, index) => {
+  return Array.from({ length: CANDIDATE_DATASET_SIZE }, (_, index) => {
     const name = getProspectName(index);
     const franchiseProfile = USER_PROFILE_FRANCHISES[index % USER_PROFILE_FRANCHISES.length];
     const franchise = franchiseProfile.franchise;
 
+    const place = getCandidatePlace(index);
+
     return {
       id: `candidate-${prospectSlug(name)}-${index + 1}`,
       name,
-      location: PROSPECT_LOCATIONS[(index * 5) % PROSPECT_LOCATIONS.length],
+      location: place.label,
+      lat: place.lat,
+      lng: place.lng,
       email: getProspectEmail(name, index, franchise, { preferFranchiseDomain: Boolean(franchise) }),
       phone: getProspectPhone(index + 3),
       franchise,
@@ -588,17 +725,41 @@ function createAthletes() {
   });
 }
 
+// Several people share each city, so each one sits a few miles from the
+// center instead of stacking on a single map pin.
+function placeProspectRows(rows) {
+  return rows.map((row, index) => {
+    const center = Number.isFinite(row.lat) && Number.isFinite(row.lng)
+      ? { lat: row.lat, lng: row.lng }
+      : PROSPECT_LOCATION_COORDINATES[row.location];
+    if (!center) return row;
+
+    // Stay within about a mile of the city so people in the same place
+    // separate on the map without leaving it.
+    const angle = index * 2.39996;
+    const distance = 0.006 + (index % 4) * 0.004;
+    return {
+      ...row,
+      lat: Number((center.lat + Math.sin(angle) * distance).toFixed(5)),
+      lng: Number((center.lng + Math.cos(angle) * distance * 1.25).toFixed(5))
+    };
+  });
+}
+
 window.prospectDatasetsData = {
   candidates: {
     label: "Candidates",
-    rows: createCandidates()
+    roleLabel: "Candidate",
+    rows: placeProspectRows(createCandidates())
   },
   searchers: {
     label: "Searchers",
-    rows: createSearchers()
+    roleLabel: "Searcher",
+    rows: placeProspectRows(createSearchers())
   },
   athletes: {
     label: "Athletes",
-    rows: createAthletes()
+    roleLabel: "Athlete",
+    rows: placeProspectRows(createAthletes())
   }
 };

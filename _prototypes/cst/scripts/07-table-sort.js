@@ -250,6 +250,10 @@ function isDatasetSelectorView(tableView = currentTableView) {
   return DATASET_SELECTOR_VIEWS.has(tableView);
 }
 
+function isProspectTableView(tableView = currentTableView) {
+  return Object.hasOwn(prospectDatasetTableOptions, tableView);
+}
+
 const LOCATION_TABLE_HEADERS = [
   { header: locationNumberColumnHeader, label: "", sortKey: "", width: "48px" },
   { header: ownerColumnHeader, label: "Name", sortKey: "contactName", width: "220px" },
@@ -444,6 +448,7 @@ function setMainTableView(nextView) {
   if (isDatasetTableView()) {
     locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
   }
+  if (typeof syncFilterSectionsForView === "function") syncFilterSectionsForView();
   syncDatasetSelectorState();
   syncToolbarViewState();
   applySort();
@@ -689,6 +694,8 @@ function getProspectDatasetRows(tableView = currentTableView) {
       email: normalizeDatasetCellValue(row.email),
       phone: normalizeDatasetCellValue(row.phone),
       location: normalizeDatasetCellValue(row.location),
+      lat: Number.isFinite(row.lat) ? row.lat : undefined,
+      lng: Number.isFinite(row.lng) ? row.lng : undefined,
       franchise,
       institution: normalizeDatasetCellValue(row.institution),
       categoryId,
@@ -792,6 +799,7 @@ function ownerMatchesLocationTableFilters(owner) {
   if (!ownerMatchesOwnerFilter(owner)) return false;
   if (!ownerMatchesUnitsFilter(owner)) return false;
   if (!ownerMatchesContactsFilter(owner)) return false;
+  if (!ownerMatchesNetWorthFilter(owner)) return false;
   if (!ownerMatchesRatingFilter(owner)) return false;
   return true;
 }
@@ -814,6 +822,14 @@ function getAllLocationRows() {
   return rows;
 }
 
+function getFilteredProspectRows(tableView) {
+  return getProspectDatasetRows(tableView)
+    .filter((row) => unitRowMatchesFilters(row))
+    .filter((row) => locationRowMatchesSearchQuery(row))
+    .filter((row) => rowMatchesVisibleFranchiseScope(row))
+    .filter((row) => rowMatchesVisibleCategoryScope(row));
+}
+
 let filteredLocationRowsCache = null;
 
 function getFilteredLocationRows() {
@@ -826,11 +842,7 @@ function getFilteredLocationRows() {
   }
 
   const matchedRows = currentTableView !== "locations"
-    ? getProspectDatasetRows(currentTableView)
-      .filter((row) => unitRowMatchesFilters(row))
-      .filter((row) => locationRowMatchesSearchQuery(row))
-      .filter((row) => rowMatchesVisibleFranchiseScope(row))
-      .filter((row) => rowMatchesVisibleCategoryScope(row))
+    ? getFilteredProspectRows(currentTableView)
     : owners
       .filter(ownerMatchesLocationTableFilters)
       .flatMap((owner) => getOwnerLocationRows(owner))

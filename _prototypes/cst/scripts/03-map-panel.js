@@ -493,12 +493,61 @@ function bindOwnersMapLogoImageFallback() {
 
 let mapPointFeaturesCache = null;
 
-function getMapPointFeatures(ownerIndex = getOwnersMapFocusedOwnerIndex()) {
-  const cacheKey = typeof getCstFilterResultCacheKey === "function"
+function getMapPointFeatureForLocation({ featureId, ownerIndex, locationRowId, name, locationLabel, franchise, lat, lng }) {
+  const logoImageId = getMapLogoImageId(franchise);
+  ownersMapLogoFranchiseByImageId.set(logoImageId, franchise);
+
+  return {
+    type: "Feature",
+    properties: {
+      featureId,
+      ownerIndex,
+      locationRowId,
+      ownerName: name,
+      locationLabel,
+      franchise,
+      logoImageId,
+      color: (typeof getFranchiseAccentColor === "function"
+        ? getFranchiseAccentColor(franchise)
+        : null) || FRANCHISE_ACCENT_COLOR_FALLBACK
+    },
+    geometry: {
+      type: "Point",
+      coordinates: [lng, lat]
+    }
+  };
+}
+
+// Prospect datasets map their own filtered rows, one pin per person.
+function getProspectMapPointFeatures(view) {
+  return getFilteredProspectRows(view)
+    .filter((row) => Number.isFinite(row.lat) && Number.isFinite(row.lng))
+    .map((row) => getMapPointFeatureForLocation({
+      featureId: `${view}-${row.id}`,
+      ownerIndex: -1,
+      locationRowId: row.id,
+      name: row.name,
+      locationLabel: row.location,
+      franchise: getDisplayedRowFranchises(row)[0] || "",
+      lat: row.lat,
+      lng: row.lng
+    }));
+}
+
+function getMapPointFeatures(ownerIndex = getOwnersMapFocusedOwnerIndex(), { view = currentTableView } = {}) {
+  const filterKey = typeof getCstFilterResultCacheKey === "function"
     ? getCstFilterResultCacheKey(ownerIndex)
     : `${ownerIndex}|${selectedLocationLabels.join("|")}|${selectedFranchiseIndexes.join("|")}|${getSearchKeywords().join("|")}|${getExcludedSearchKeywords().join("|")}`;
+  const isProspectView = typeof isProspectTableView === "function" && isProspectTableView(view);
+  const cacheKey = `${isProspectView ? view : "franchisees"}\u0004${filterKey}`;
   if (mapPointFeaturesCache?.key === cacheKey) {
     return mapPointFeaturesCache.features;
+  }
+
+  if (isProspectView) {
+    const features = getProspectMapPointFeatures(view);
+    mapPointFeaturesCache = { key: cacheKey, features };
+    return features;
   }
   const selectedMapOwnerIndexes = selectedOwnerIndexes.length
     ? new Set(selectedOwnerIndexes.map(Number))
@@ -526,31 +575,16 @@ function getMapPointFeatures(ownerIndex = getOwnersMapFocusedOwnerIndex()) {
           && mapLocationMatchesFranchiseScope(location)
           && mapLocationMatchesCategoryScope(location)
         ))
-        .map((location, locationIndex) => {
-          const franchise = getMapPointFranchise(location);
-          const logoImageId = getMapLogoImageId(franchise);
-          ownersMapLogoFranchiseByImageId.set(logoImageId, franchise);
-
-          return {
-            type: "Feature",
-            properties: {
-              featureId: `${index}-${locationIndex}-${location.lng}-${location.lat}`,
-              ownerIndex: index,
-              locationRowId: location.id || `${index}-${locationIndex}`,
-              ownerName: owner.ownerName,
-              locationLabel: location.label,
-              franchise,
-              logoImageId,
-              color: (typeof getFranchiseAccentColor === "function"
-                ? getFranchiseAccentColor(franchise)
-                : location.color) || FRANCHISE_ACCENT_COLOR_FALLBACK
-            },
-            geometry: {
-              type: "Point",
-              coordinates: [location.lng, location.lat]
-            }
-          };
-        });
+        .map((location, locationIndex) => getMapPointFeatureForLocation({
+          featureId: `${index}-${locationIndex}-${location.lng}-${location.lat}`,
+          ownerIndex: index,
+          locationRowId: location.id || `${index}-${locationIndex}`,
+          name: owner.ownerName,
+          locationLabel: location.label,
+          franchise: getMapPointFranchise(location),
+          lat: location.lat,
+          lng: location.lng
+        }));
     });
   mapPointFeaturesCache = { key: cacheKey, features };
   return features;

@@ -25,7 +25,7 @@ const CST_SPLASH_ENTER_STAGGER_MS = 65;
 const CST_SPLASH_ENTER_DURATION_MS = 320;
 const CST_SPLASH_LEAVE_DURATION_MS = 300;
 const CST_SPLASH_WORKSPACE_HIDE_MS = 240;
-const CST_SPLASH_SUGGESTION_GROUPS = ["Categories", "Brands", "Franchisees", "People", "Locations"];
+const CST_SPLASH_SUGGESTION_GROUPS = ["People", "Franchisees", "Categories", "Brands", "Locations"];
 const CST_SPLASH_SUGGESTION_GROUP_LIMIT = 3;
 const CST_SPLASH_SAVED_INSERT_SHIFT_DURATION_MS = 680;
 const CST_SPLASH_SAVED_INSERT_SHIFT_EASING = "cubic-bezier(0.05, 0.95, 0.12, 1)";
@@ -155,8 +155,8 @@ function computeCstSplashViewFromBounds({ west, south, east, north }) {
   };
 }
 
-function getCstSplashMapPoints() {
-  return getMapPointFeatures(null).map((feature) => ({
+function getCstSplashMapPoints(view) {
+  return getMapPointFeatures(null, { view: normalizeTableView(view) }).map((feature) => ({
     color: feature.properties.color,
     franchise: feature.properties.franchise,
     lat: feature.geometry.coordinates[1],
@@ -848,7 +848,7 @@ function getCstSplashDynamicPreview(savedSearch) {
   if (cachedPreview) return cachedPreview;
 
   const preview = withCstSplashFilterScope(savedSearch.filters || {}, () => {
-    const points = getCstSplashMapPoints();
+    const points = getCstSplashMapPoints(savedSearch.view);
     const view = computeCstSplashView(points);
     let pointsUrl = "";
 
@@ -1015,7 +1015,7 @@ function createRenderedCstSplashTile(savedSearch) {
 function renderCstSplashGenerateTiles() {
   getCstSplashSavedSearches().forEach((savedSearch) => {
     const tileData = withCstSplashFilterScope(savedSearch.filters || {}, () => {
-      const points = getCstSplashMapPoints();
+      const points = getCstSplashMapPoints(savedSearch.view);
       const matchedOwners = getFilteredFranchisees();
       return {
         metric: getCstSplashTileMetric(savedSearch, {
@@ -1884,7 +1884,29 @@ function getCstSplashCategoryPool() {
     ));
 }
 
-function getCstSplashLocalSuggestionPool() {
+function toCstBrandSuggestion(brandName, view) {
+  return {
+    filters: { franchises: [brandName] },
+    group: "Brands",
+    label: brandName,
+    logoFallback: getInitials(brandName),
+    logoSrc: getFranchiseLogoSrc(brandName),
+    type: "brand",
+    view
+  };
+}
+
+function toCstCategorySuggestion(categoryId, view) {
+  return {
+    filters: { categories: [categoryId] },
+    group: "Categories",
+    label: window.WefranchCategories.getLabel(categoryId),
+    type: "category",
+    view
+  };
+}
+
+function getCstFranchiseeSuggestionPool() {
   const brandNames = [...new Set(owners.flatMap((owner) => getOwnerFranchises(owner)))];
 
   return [
@@ -1894,35 +1916,107 @@ function getCstSplashLocalSuggestionPool() {
       label: owner.ownerName,
       logoFallback: getInitials(owner.ownerName),
       logoSrc: owner.logoSrc,
-      type: "franchisee"
+      type: "franchisee",
+      view: "franchisees"
     })),
-    ...brandNames.map((brandName) => ({
-      filters: { franchises: [brandName] },
-      group: "Brands",
-      label: brandName,
-      logoFallback: getInitials(brandName),
-      logoSrc: getFranchiseLogoSrc(brandName),
-      type: "brand"
-    })),
-    ...getCstSplashCategoryPool().map((categoryId) => ({
-      filters: { categories: [categoryId] },
-      group: "Categories",
-      label: window.WefranchCategories.getLabel(categoryId),
-      type: "category"
-    })),
+    ...brandNames.map((brandName) => toCstBrandSuggestion(brandName, "franchisees")),
+    ...getCstSplashCategoryPool().map((categoryId) => toCstCategorySuggestion(categoryId, "franchisees")),
     ...owners.flatMap((owner) => {
       const name = String(owner.contactName || "").trim();
       if (!name) return [];
 
       return [{
+        contextLabel: String(owner.ownerName || "").trim(),
         filters: { franchisees: [String(owner.originalIndex)] },
         group: "People",
         label: name,
         logoSrc: window.resolvePersonHeadshotSrc?.(owner.ownerName, name) || "",
-        type: "person"
+        roleLabel: "Franchisee",
+        type: "person",
+        view: "franchisees"
       }];
     })
   ];
+}
+
+// Prospect rows have no franchisee, so these datasets only offer the people,
+// brands, and categories their rows carry.
+function getCstProspectSuggestionPool(view) {
+  const roleLabel = window.prospectDatasetsData?.[view]?.roleLabel || "";
+  const people = new Map();
+  const brandNames = new Set();
+  const categoryIds = new Set();
+
+  getProspectDatasetRows(view).forEach((row) => {
+    const personKey = row.name.toLocaleLowerCase();
+    if (row.name && !people.has(personKey)) {
+      people.set(personKey, {
+        contextLabel: row.location,
+        filters: { search: row.name },
+        group: "People",
+        label: row.name,
+        roleLabel,
+        type: "person",
+        view
+      });
+    }
+    row.franchises.forEach((brandName) => brandNames.add(brandName));
+    if (row.categoryId) categoryIds.add(row.categoryId);
+  });
+
+  return [
+    ...people.values(),
+    ...[...brandNames].map((brandName) => toCstBrandSuggestion(brandName, view)),
+    ...[...categoryIds].map((categoryId) => toCstCategorySuggestion(categoryId, view))
+  ];
+}
+
+// Suggestions come from the dataset being searched, so every pick matches rows
+// there. Home search covers Franchisees plus Candidate people.
+function getCstSplashLocalSuggestionPool() {
+  if (isCstSplashOpen()) {
+    return [
+      ...getCstFranchiseeSuggestionPool(),
+      ...getCstProspectSuggestionPool("candidates").filter((item) => item.type === "person")
+    ];
+  }
+
+  return isCstSearchingProspects()
+    ? getCstProspectSuggestionPool(getCstSearchDatasetView())
+    : getCstFranchiseeSuggestionPool();
+}
+
+function isCstSearchingProspects() {
+  return !isCstSplashOpen() && isProspectTableView(getCstSearchDatasetView());
+}
+
+// Home search keeps the dataset role. Inside a dataset, the suffix names the
+// franchisee's institution or the candidate's location.
+function getCstSplashPersonSuffix(item) {
+  if (!item) return "";
+  if (!isCstSplashOpen() && item.contextLabel) return item.contextLabel;
+  return item.roleLabel || "";
+}
+
+// Spotlight can preview the other of the two primary datasets before a result
+// is chosen. Everywhere else, suggestions follow the open table.
+function getCstSearchDatasetView() {
+  if (typeof isCstSpotlightOpen === "function" && isCstSpotlightOpen()) {
+    const scope = typeof getCstSpotlightDatasetScope === "function" ? getCstSpotlightDatasetScope() : "";
+    if (scope) return scope;
+  }
+  return currentTableView;
+}
+
+function compareCstSplashSuggestions(a, b) {
+  return a.matchIndex - b.matchIndex || a.label.localeCompare(b.label);
+}
+
+function takeCstSplashSuggestionGroup(matches) {
+  return matches
+    .slice()
+    .sort(compareCstSplashSuggestions)
+    .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT);
 }
 
 function getCstSplashLocalSuggestions(query) {
@@ -1942,56 +2036,17 @@ function getCstSplashLocalSuggestions(query) {
     matchesByGroup.set(item.group, groupMatches);
   });
 
+  // The limit applies per dataset, so home search lists franchisee and
+  // candidate people side by side.
   return CST_SPLASH_SUGGESTION_GROUPS
     .filter((group) => group !== "Locations")
-    .flatMap((group) => (
-      (matchesByGroup.get(group) || [])
-        .sort((a, b) => a.matchIndex - b.matchIndex || a.label.localeCompare(b.label))
-        .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT)
-    ));
-}
-
-function getCstSplashCandidateSuggestions(query) {
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  if (normalizedQuery.length < 2) return [];
-
-  const seen = new Set();
-  const matches = [];
-
-  (window.prospectDatasetsData?.candidates?.rows || []).forEach((row) => {
-    const name = String(row.name || "").trim();
-    if (!name) return;
-
-    const key = name.toLocaleLowerCase();
-    if (seen.has(key)) return;
-
-    const matchIndex = key.indexOf(normalizedQuery);
-    if (matchIndex === -1) return;
-
-    seen.add(key);
-    matches.push({
-      filters: { search: name },
-      group: "Candidates",
-      label: name,
-      matchIndex,
-      type: "person",
-      view: "candidates"
+    .flatMap((group) => {
+      const matches = matchesByGroup.get(group) || [];
+      const views = [...new Set(matches.map((item) => item.view))];
+      return views
+        .flatMap((view) => takeCstSplashSuggestionGroup(matches.filter((item) => item.view === view)))
+        .sort(compareCstSplashSuggestions);
     });
-  });
-
-  return matches
-    .sort((a, b) => a.matchIndex - b.matchIndex || a.label.localeCompare(b.label))
-    .slice(0, CST_SPLASH_SUGGESTION_GROUP_LIMIT);
-}
-
-// Home page search lists franchisee contacts under Franchisees and candidate
-// names under Candidates. The workspace spotlight keeps a single People group.
-function getCstSplashHomeLocalSuggestions(query) {
-  const suggestions = getCstSplashLocalSuggestions(query).map((item) => (
-    item.type === "person" ? { ...item, group: "Franchisees" } : item
-  ));
-
-  return [...suggestions, ...getCstSplashCandidateSuggestions(query)];
 }
 
 function toCstSplashLocationSuggestion(result) {
@@ -2221,11 +2276,15 @@ function rememberCstRecentSearch(item) {
     label: item.label,
     logoFallback: item.logoFallback,
     logoSrc: item.logoSrc,
+    roleLabel: item.roleLabel || "",
     type: item.type,
     view: item.view || ""
   };
   const recents = readCstRecentSearches().filter((recent) => (
-    recent.type !== entry.type || recent.label !== entry.label
+    recent.type !== entry.type
+      || recent.label !== entry.label
+      || (recent.roleLabel || "") !== entry.roleLabel
+      || (recent.view || "") !== entry.view
   ));
 
   try {
@@ -2246,8 +2305,22 @@ function clearCstRecentSearches() {
   }
 }
 
-function getCstRecentSearchSuggestions() {
-  return readCstRecentSearches().map((item) => ({ ...item, group: CST_RECENT_SEARCHES_GROUP }));
+// Locations and the Franchisees table share the franchisee records.
+function getCstSuggestionSource(view) {
+  return isProspectTableView(view) ? view : "franchisees";
+}
+
+// Without a view (home search), every recent is listed. Inside a dataset, only
+// recents from that dataset come back. Keywords and locations fit anywhere.
+function getCstRecentSearchSuggestions({ view = "" } = {}) {
+  return readCstRecentSearches()
+    .filter((item) => (
+      !view
+        || item.type === "text"
+        || item.type === "location"
+        || getCstSuggestionSource(item.view) === getCstSuggestionSource(view)
+    ))
+    .map((item) => ({ ...item, group: CST_RECENT_SEARCHES_GROUP }));
 }
 
 function bindCstSplashSearch() {
@@ -2260,7 +2333,6 @@ function bindCstSplashSearch() {
     suggestionIdPrefix: "cstSplashSearchSuggestion",
     setFeedback: setCstSplashSearchFeedback,
     getIdleSuggestions: getCstRecentSearchSuggestions,
-    getLocalSuggestions: getCstSplashHomeLocalSuggestions,
     onSearch(filters, item) {
       rememberCstRecentSearch(item);
       clearCstSavedSearchSession({ persist: false });
@@ -2286,7 +2358,8 @@ function createCstSearchField({
   getLocalSuggestions = getCstSplashLocalSuggestions,
   onSearch,
   onLocate,
-  onEscape = null
+  onEscape = null,
+  onQueryChange = null
 }) {
   if (!form || !input || !suggestions) return null;
 
@@ -2398,9 +2471,11 @@ function createCstSearchField({
     button.id = `${suggestionIdPrefix}-${index}`;
     button.setAttribute("role", "option");
     button.setAttribute("aria-selected", "false");
+    const personSuffix = getCstSplashPersonSuffix(item);
+    const visibleLabel = personSuffix ? `${item.label} - ${personSuffix}` : item.label;
     button.setAttribute(
       "aria-label",
-      isLiveTextSearch ? `Search for ${item.label} keyword` : `Select ${item.label}`
+      isLiveTextSearch ? `Search for ${item.label} keyword` : `Select ${visibleLabel}`
     );
 
     label.className = "cst-splash__search-suggestion-label";
@@ -2409,6 +2484,15 @@ function createCstSearchField({
       const queryText = document.createElement("strong");
       queryText.textContent = item.label;
       label.append("Search for “", queryText, "” keyword");
+    } else if (personSuffix) {
+      const name = document.createElement("span");
+      const role = document.createElement("span");
+      label.classList.add("has-role");
+      name.className = "cst-splash__search-suggestion-name";
+      name.textContent = item.label;
+      role.className = "cst-splash__search-suggestion-role";
+      role.textContent = personSuffix;
+      label.append(name, role);
     } else {
       label.textContent = item.label;
     }
@@ -2431,7 +2515,54 @@ function createCstSearchField({
     parent.append(button);
   }
 
+  let spotlightSuggestionsFromHeight = null;
+  let spotlightSuggestionsResizeFrame = 0;
+  let spotlightSuggestionsHeightAnimation = null;
+
+  function scheduleSpotlightSuggestionsResize() {
+    if (!suggestions.classList.contains("cst-spotlight__suggestions")) return;
+    if (!form.classList.contains("is-suggestions-open")) return;
+    if (spotlightSuggestionsFromHeight == null) {
+      spotlightSuggestionsFromHeight = suggestions.getBoundingClientRect().height;
+    }
+    if (spotlightSuggestionsResizeFrame) return;
+
+    spotlightSuggestionsResizeFrame = requestAnimationFrame(() => {
+      const from = spotlightSuggestionsFromHeight;
+      spotlightSuggestionsFromHeight = null;
+      spotlightSuggestionsResizeFrame = 0;
+      animateSpotlightSuggestionsHeight(from);
+    });
+  }
+
+  function animateSpotlightSuggestionsHeight(from) {
+    suggestions.style.height = "auto";
+    const maxHeight = parseFloat(getComputedStyle(suggestions).maxHeight);
+    const contentHeight = suggestions.scrollHeight;
+    const to = Number.isFinite(maxHeight) ? Math.min(contentHeight, maxHeight) : contentHeight;
+
+    if (from == null || Math.abs(from - to) < 1 || usesReducedMotion()) {
+      suggestions.style.height = "";
+      return;
+    }
+
+    spotlightSuggestionsHeightAnimation?.cancel();
+    suggestions.style.height = `${from}px`;
+    const animation = suggestions.animate(
+      [{ height: `${from}px` }, { height: `${to}px` }],
+      { duration: 240, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
+    );
+    spotlightSuggestionsHeightAnimation = animation;
+    animation.onfinish = () => {
+      if (spotlightSuggestionsHeightAnimation !== animation) return;
+      suggestions.style.height = "";
+      animation.cancel();
+      spotlightSuggestionsHeightAnimation = null;
+    };
+  }
+
   function renderSuggestions(items, { activeIndex = 0 } = {}) {
+    scheduleSpotlightSuggestionsResize();
     const textItem = getTextSearchSuggestion();
     renderedSuggestions = textItem ? [textItem, ...items] : items;
     activeSuggestionIndex = renderedSuggestions.length ? activeIndex : -1;
@@ -2444,7 +2575,9 @@ function createCstSearchField({
       appendSuggestionHeading("Suggestions", suggestions);
       const status = document.createElement("div");
       status.className = "cst-splash__search-suggestion-status";
-      status.textContent = "No franchisees, brands, people, categories, or locations match.";
+      status.textContent = isCstSearchingProspects()
+        ? "No people, brands, categories, or locations match."
+        : "No franchisees, brands, people, categories, or locations match.";
       suggestions.append(status);
       setSuggestionsOpen(true);
       return;
@@ -2471,6 +2604,7 @@ function createCstSearchField({
   }
 
   function syncSearchActions() {
+    onQueryChange?.();
     const hasQuery = input.value.trim().length > 0;
     if (clearButton) clearButton.hidden = !hasQuery;
     if (locateButton) locateButton.hidden = hasQuery;
@@ -2497,7 +2631,9 @@ function createCstSearchField({
   async function submitFreeTextSearch() {
     const query = input.value.trim();
     if (!query) {
-      setFeedback("Enter a franchisee, brand, person, category, or location to begin.");
+      setFeedback(isCstSearchingProspects()
+        ? "Enter a person, brand, category, or location to begin."
+        : "Enter a franchisee, brand, person, category, or location to begin.");
       input.focus();
       return;
     }
@@ -2677,7 +2813,18 @@ function createCstSearchField({
       closeSuggestions();
       setFeedback();
       syncSearchActions();
-    }
+    },
+    refresh() {
+      const query = input.value;
+      window.clearTimeout(debounceTimer);
+      syncSearchActions();
+      if (!query.trim()) {
+        showIdleSuggestions();
+        return;
+      }
+      void requestSuggestions(query);
+    },
+    syncActions: syncSearchActions
   };
 }
 

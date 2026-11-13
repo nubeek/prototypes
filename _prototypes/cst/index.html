@@ -969,6 +969,16 @@
           aria-label="Search franchisees, brands, categories, and locations"
           aria-describedby="cstSpotlightFeedback"
         >
+        <div class="cst-spotlight__trailing">
+          <div class="cst-spotlight__datasets" id="cstSpotlightDatasets" role="tablist" aria-label="Search dataset" hidden>
+            <button class="cst-spotlight__dataset" id="cstSpotlightDatasetFranchisees" type="button" role="tab" data-dataset="franchisees" aria-selected="false">Franchisees</button>
+            <button class="cst-spotlight__dataset" id="cstSpotlightDatasetCandidates" type="button" role="tab" data-dataset="candidates" aria-selected="false">Candidates</button>
+          </div>
+          <button class="cst-splash__search-clear" id="cstSpotlightSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
+          <button class="cst-splash__locate" id="cstSpotlightLocate" type="button" aria-label="Find prospects near my location" data-tooltip="Find my location">
+            <img src="../../assets/icons/target-me.svg" alt="" aria-hidden="true">
+          </button>
+        </div>
         <div
           class="cst-splash__search-suggestions cst-spotlight__suggestions proto-scrollbar"
           id="cstSpotlightSearchSuggestions"
@@ -976,10 +986,6 @@
           aria-label="Search suggestions"
           aria-hidden="true"
         ></div>
-        <button class="cst-splash__search-clear" id="cstSpotlightSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
-        <button class="cst-splash__locate" id="cstSpotlightLocate" type="button" aria-label="Find prospects near my location" data-tooltip="Find my location">
-          <img src="../../assets/icons/target-me.svg" alt="" aria-hidden="true">
-        </button>
       </form>
       <p class="cst-splash__search-feedback cst-spotlight__feedback" id="cstSpotlightFeedback" role="status" aria-live="polite" hidden></p>
     </div>

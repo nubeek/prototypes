@@ -1,10 +1,15 @@
 const CST_SPOTLIGHT_LEAVE_DURATION_MS = 160;
+const CST_SPOTLIGHT_DATASET_VIEWS = ["franchisees", "candidates"];
 
 const cstSpotlight = document.getElementById("cstSpotlight");
 const cstSpotlightInput = document.getElementById("cstSpotlightSearchInput");
+const cstSpotlightDatasets = document.getElementById("cstSpotlightDatasets");
 let cstSpotlightController = null;
 let cstSpotlightReturnFocus = null;
 let cstSpotlightHideTimer = 0;
+let cstSpotlightDatasetScope = "";
+let cstSpotlightDatasetsHideTimer = 0;
+const CST_SPOTLIGHT_DATASETS_MOTION_MS = 240;
 
 function setCstSpotlightFeedback(message = "") {
   const feedback = document.getElementById("cstSpotlightFeedback");
@@ -18,6 +23,81 @@ function isCstSpotlightOpen() {
   return Boolean(cstSpotlight && !cstSpotlight.hidden && cstSpotlight.classList.contains("is-open"));
 }
 
+function getCstSpotlightDatasetScope() {
+  return cstSpotlightDatasetScope;
+}
+
+function spotlightSupportsDatasetSwitch() {
+  return CST_SPOTLIGHT_DATASET_VIEWS.includes(currentTableView);
+}
+
+function setCstSpotlightDatasetsShown(show) {
+  if (!cstSpotlightDatasets) return;
+
+  window.clearTimeout(cstSpotlightDatasetsHideTimer);
+  const supported = spotlightSupportsDatasetSwitch();
+
+  if (!supported) {
+    cstSpotlightDatasets.classList.remove("is-shown");
+    cstSpotlightDatasets.hidden = true;
+    cstSpotlightDatasets.setAttribute("aria-hidden", "true");
+    return;
+  }
+
+  if (show) {
+    cstSpotlightDatasets.hidden = false;
+    cstSpotlightDatasets.setAttribute("aria-hidden", "false");
+    // Let the collapsed state paint so the expand transition can run.
+    void cstSpotlightDatasets.offsetWidth;
+    requestAnimationFrame(() => {
+      if (!cstSpotlightDatasets.hidden) cstSpotlightDatasets.classList.add("is-shown");
+    });
+    return;
+  }
+
+  cstSpotlightDatasets.classList.remove("is-shown");
+  cstSpotlightDatasets.setAttribute("aria-hidden", "true");
+  cstSpotlightDatasetsHideTimer = window.setTimeout(() => {
+    if (!cstSpotlightDatasets.classList.contains("is-shown")) {
+      cstSpotlightDatasets.hidden = true;
+    }
+  }, getMotionDelay(CST_SPOTLIGHT_DATASETS_MOTION_MS));
+}
+
+function syncCstSpotlightDatasetSwitch() {
+  const supported = spotlightSupportsDatasetSwitch();
+  const hasResults = (cstSpotlightInput?.value || "").trim().length >= 2;
+
+  if (!cstSpotlightDatasets) return;
+
+  if (!supported) {
+    cstSpotlightDatasetScope = "";
+    setCstSpotlightDatasetsShown(false);
+    return;
+  }
+
+  if (!CST_SPOTLIGHT_DATASET_VIEWS.includes(cstSpotlightDatasetScope)) {
+    cstSpotlightDatasetScope = currentTableView;
+  }
+
+  cstSpotlightDatasets.querySelectorAll("[data-dataset]").forEach((button) => {
+    const active = button.dataset.dataset === cstSpotlightDatasetScope;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+  setCstSpotlightDatasetsShown(hasResults);
+}
+
+function selectCstSpotlightDataset(view) {
+  if (!CST_SPOTLIGHT_DATASET_VIEWS.includes(view) || view === cstSpotlightDatasetScope) return;
+
+  cstSpotlightDatasetScope = view;
+  syncCstSpotlightDatasetSwitch();
+  cstSpotlightController?.refresh?.();
+  cstSpotlightInput?.focus({ preventScroll: true });
+}
+
 function openCstSpotlight() {
   if (!cstSpotlight || !cstSpotlightController || isCstSpotlightOpen()) return;
 
@@ -26,6 +106,8 @@ function openCstSpotlight() {
   closeToolbarDropdowns();
   closeToolbarTabDropdowns();
   cstSpotlightController.reset();
+  cstSpotlightDatasetScope = spotlightSupportsDatasetSwitch() ? currentTableView : "";
+  syncCstSpotlightDatasetSwitch();
 
   cstSpotlight.hidden = false;
   cstSpotlightController.focus();
@@ -73,6 +155,8 @@ function handleCstSpotlightOpenRequest() {
 }
 
 function runCstSpotlightSearch(filters, item) {
+  const scope = cstSpotlightDatasetScope;
+  const switchingDataset = Boolean(scope && scope !== currentTableView);
   rememberCstRecentSearch(item);
   closeCstSpotlight({ restoreFocus: false });
 
@@ -82,9 +166,25 @@ function runCstSpotlightSearch(filters, item) {
     exitReaderMode();
   }
 
+  // A pick from the other dataset pill starts a fresh query in that dataset.
+  if (switchingDataset) {
+    clearCstSavedSearchSession({ persist: false });
+    setFilterPanelOpen(true);
+    applyCstSplashQuery(filters || {}, { view: scope });
+    return;
+  }
+
   if (item?.type === "text") {
     setFilterPanelOpen(true);
     setSearchQuery(item.label || filters?.search, { refresh: true, excluded: [] });
+    return;
+  }
+
+  // Prospect people have no filter of their own, so they match by name and
+  // add to the current keywords.
+  if (item?.type === "person" && isProspectTableView(item.view)) {
+    setFilterPanelOpen(true);
+    setSearchQuery(item.label, { refresh: true, append: true });
     return;
   }
 
@@ -103,7 +203,7 @@ function bindCstSpotlight() {
     locateButton: document.getElementById("cstSpotlightLocate"),
     suggestionIdPrefix: "cstSpotlightSearchSuggestion",
     setFeedback: setCstSpotlightFeedback,
-    getIdleSuggestions: getCstRecentSearchSuggestions,
+    getIdleSuggestions: () => getCstRecentSearchSuggestions({ view: getCstSearchDatasetView() }),
     onSearch: runCstSpotlightSearch,
     onLocate() {
       closeCstSpotlight({ restoreFocus: false });
@@ -113,7 +213,29 @@ function bindCstSpotlight() {
     onEscape() {
       closeCstSpotlight();
       return true;
+    },
+    onQueryChange() {
+      syncCstSpotlightDatasetSwitch();
     }
+  });
+
+  cstSpotlightDatasets?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-dataset]");
+    if (!button || !cstSpotlightDatasets.contains(button)) return;
+    event.preventDefault();
+    selectCstSpotlightDataset(button.dataset.dataset);
+  });
+
+  cstSpotlightDatasets?.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    const buttons = [...cstSpotlightDatasets.querySelectorAll("[data-dataset]")];
+    const currentIndex = buttons.findIndex((button) => button.dataset.dataset === cstSpotlightDatasetScope);
+    if (currentIndex === -1) return;
+    const nextIndex = event.key === "ArrowRight"
+      ? Math.min(currentIndex + 1, buttons.length - 1)
+      : Math.max(currentIndex - 1, 0);
+    event.preventDefault();
+    selectCstSpotlightDataset(buttons[nextIndex].dataset.dataset);
   });
 
   const panel = cstSpotlight.querySelector(".cst-spotlight__panel");

@@ -250,6 +250,7 @@ function restoreSavedFilterSelections(settings) {
         Math.max(RADIUS_FILTER_DEFAULTS.min, Math.round(savedRadiusMiles))
       )
     : RADIUS_FILTER_DEFAULTS.value;
+  syncFilterSectionsForView();
   syncRadiusFilterControls();
   syncHideOtherFranchisesControl();
   syncHideOtherCategoriesControl();

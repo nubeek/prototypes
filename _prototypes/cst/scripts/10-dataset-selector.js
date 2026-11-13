@@ -61,6 +61,7 @@ function initDatasetSelector() {
 
       optionButton.addEventListener("click", () => {
         setMainTableView(option.viewKey);
+        syncMapLocationFilter();
         if (typeof dismissOpenCstSplash === "function") {
           dismissOpenCstSplash();
         }
