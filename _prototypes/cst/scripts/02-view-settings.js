@@ -81,6 +81,8 @@ function getCurrentViewSettings() {
       sections: getFilterSectionSettings(),
       search: searchQuery,
       searchExcluded: getExcludedSearchKeywords(),
+      contactNames: getContactNames(),
+      contactNamesExcluded: getExcludedContactNames(),
       locations: {
         included: selectedLocationLabels,
         excluded: excludedLocationLabels
@@ -197,6 +199,7 @@ function restoreSavedFilterSelections(settings) {
   const filters = settings?.filters || {};
 
   setSearchQuery(filters.search, { excluded: filters.searchExcluded });
+  setContactNames(filters.contactNames, { excluded: filters.contactNamesExcluded });
 
   setLocationFilterSelections(
     filters.locations?.included,

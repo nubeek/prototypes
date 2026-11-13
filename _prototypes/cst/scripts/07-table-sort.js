@@ -797,6 +797,7 @@ function locationRowMatchesSearchQuery(row) {
 
 function ownerMatchesLocationTableFilters(owner) {
   if (!ownerMatchesOwnerFilter(owner)) return false;
+  if (!ownerMatchesContactNameFilter(owner)) return false;
   if (!ownerMatchesUnitsFilter(owner)) return false;
   if (!ownerMatchesContactsFilter(owner)) return false;
   if (!ownerMatchesNetWorthFilter(owner)) return false;
@@ -822,10 +823,23 @@ function getAllLocationRows() {
   return rows;
 }
 
+function rowMatchesContactNameFilter(row) {
+  if (!hasContactNames()) return true;
+
+  const indexText = String(row?.name || "").trim().toLocaleLowerCase();
+  const excluded = getExcludedContactNames().map((name) => name.toLocaleLowerCase());
+  if (excluded.some((name) => indexText.includes(name))) return false;
+
+  const included = getContactNames().map((name) => name.toLocaleLowerCase());
+  if (!included.length) return true;
+  return included.some((name) => indexText.includes(name));
+}
+
 function getFilteredProspectRows(tableView) {
   return getProspectDatasetRows(tableView)
     .filter((row) => unitRowMatchesFilters(row))
     .filter((row) => locationRowMatchesSearchQuery(row))
+    .filter((row) => rowMatchesContactNameFilter(row))
     .filter((row) => rowMatchesVisibleFranchiseScope(row))
     .filter((row) => rowMatchesVisibleCategoryScope(row));
 }
@@ -1519,6 +1533,11 @@ function contactsFilterIsActive() {
   return selectedContactsMin !== contactsFilterDefaults.min || selectedContactsMax !== contactsFilterDefaults.max;
 }
 
+// Datasets without org charts keep the name search and drop the count range.
+function contactsRangeFilterApplies(tableView = currentTableView) {
+  return !isProspectTableView(tableView) && contactsFilterIsActive();
+}
+
 function netWorthFilterIsActive() {
   return selectedNetWorthMin !== netWorthFilterDefaults.min || selectedNetWorthMax !== netWorthFilterDefaults.max;
 }
@@ -1581,6 +1600,41 @@ function ownerMatchesSearchQuery(owner) {
   return textMatchesSearchKeywords(getOwnerSearchIndex(owner));
 }
 
+// Every person in the franchisee's org chart, so a contact-name search reaches
+// past the primary contact into the full hierarchy.
+function getOwnerContactNameIndex(owner) {
+  const cachedValue = ownerContactNameIndexById.get(owner.originalIndex);
+  if (cachedValue) return cachedValue;
+
+  const contacts = Array.isArray(owner.contacts) ? owner.contacts : [];
+  const orgNodes = window.ownerOrgChartData?.[owner.originalIndex]?.nodes || [];
+  const names = [
+    owner.contactName,
+    ...contacts.map((contact) => contact?.name),
+    ...orgNodes.map((node) => node?.name)
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).trim().toLocaleLowerCase())
+    .filter(Boolean);
+  // A separator keeps one person's name from bleeding into the next when a
+  // keyword is matched with `includes`.
+  const indexedText = [...new Set(names)].join(" \u0001 ");
+  ownerContactNameIndexById.set(owner.originalIndex, indexedText);
+  return indexedText;
+}
+
+function ownerMatchesContactNameFilter(owner) {
+  if (!hasContactNames()) return true;
+
+  const indexText = getOwnerContactNameIndex(owner);
+  const excluded = getExcludedContactNames().map((keyword) => keyword.toLocaleLowerCase());
+  if (excluded.some((keyword) => indexText.includes(keyword))) return false;
+
+  const included = getContactNames().map((keyword) => keyword.toLocaleLowerCase());
+  if (!included.length) return true;
+  return included.some((keyword) => indexText.includes(keyword));
+}
+
 function rawRowMatchesFilters(row) {
   if (!rowMatchesLocationFilter(row)) return false;
   const rowCategories = window.WefranchCategories.getRecordIds(row);
@@ -1601,6 +1655,8 @@ function getCstFilterResultCacheKey(ownerIndex = null) {
     ownerIndex,
     getSearchKeywords().join("\u0001"),
     getExcludedSearchKeywords().join("\u0001"),
+    getContactNames().join("\u0001"),
+    getExcludedContactNames().join("\u0001"),
     selectedLocationLabels.join("\u0001"),
     excludedLocationLabels.join("\u0001"),
     selectedLocationSearches.map((search) => search?.label || "").join("\u0001"),
@@ -1635,6 +1691,7 @@ function getFilteredFranchisees() {
 
   const matchedFranchisees = owners.filter((owner) => {
     if (!ownerMatchesSearchQuery(owner)) return false;
+    if (!ownerMatchesContactNameFilter(owner)) return false;
     if (!ownerHasLocationLabel(owner)) return false;
     if (ownerExcludesLocationLabel(owner)) return false;
     if (!ownerMatchesCategoryFilter(owner)) return false;
@@ -1708,6 +1765,7 @@ const TABLE_HEADING_SUMMARY_PRIORITY = [
   "owner",
   "units",
   "contacts",
+  "contactName",
   "netWorth",
   "rating",
   "search"
@@ -2095,7 +2153,7 @@ function buildHeadingSummaryUnitsConcept() {
 }
 
 function buildHeadingSummaryContactsConcept() {
-  if (!contactsFilterIsActive()) return null;
+  if (!contactsRangeFilterApplies()) return null;
 
   if (selectedContactsMin !== contactsFilterDefaults.min && selectedContactsMax === contactsFilterDefaults.max) {
     const highlight = `${formatTableHeadingCount(selectedContactsMin)}+ contacts`;
@@ -2158,6 +2216,23 @@ function buildHeadingSummarySearchConcept() {
   return { id: "search", phrase, highlight };
 }
 
+function buildHeadingSummaryContactNameConcept() {
+  const included = getContactNames();
+  const excluded = getExcludedContactNames();
+
+  if (included.length) {
+    const quoted = included.map((name) => `“${name}”`).join(" or ");
+    return { id: "contactName", phrase: `with contact ${quoted}`, highlight: quoted };
+  }
+
+  if (!excluded.length) return null;
+  const { phrase, highlight } = buildHeadingSummaryExclusionPhrase(
+    excluded.map((name) => `“${name}”`),
+    "contacts"
+  );
+  return { id: "contactName", phrase, highlight };
+}
+
 function collectTableHeadingSummaryConcepts() {
   const builders = {
     status: buildHeadingSummaryStatusConcept,
@@ -2167,6 +2242,7 @@ function collectTableHeadingSummaryConcepts() {
     owner: buildHeadingSummaryOwnerConcept,
     units: buildHeadingSummaryUnitsConcept,
     contacts: buildHeadingSummaryContactsConcept,
+    contactName: buildHeadingSummaryContactNameConcept,
     netWorth: buildHeadingSummaryNetWorthConcept,
     rating: buildHeadingSummaryRatingConcept,
     search: buildHeadingSummarySearchConcept
@@ -2208,6 +2284,7 @@ function getSuggestedSavedViewTitle(tableView = currentTableView) {
     byId.owner,
     byId.units,
     byId.contacts,
+    byId.contactName,
     byId.netWorth,
     byId.rating,
     byId.search,
@@ -2308,6 +2385,7 @@ function formatTableHeadingSummary(count, singular, plural) {
     byId.owner,
     byId.units,
     byId.contacts,
+    byId.contactName,
     byId.netWorth,
     byId.rating,
     byId.search,
@@ -2492,8 +2570,9 @@ function getAppliedFilterCount() {
     excludedFranchiseIndexes.length;
   const selectedStatusCount = statusFilterInputs.filter((checkbox) => checkbox.checked).length;
   const selectedSearchCount = getSearchKeywords().length + getExcludedSearchKeywords().length;
+  const selectedContactNameCount = getContactNames().length + getExcludedContactNames().length;
   const selectedUnitsCount = unitsFilterIsActive() ? 1 : 0;
-  const selectedContactsCount = contactsFilterIsActive() ? 1 : 0;
+  const selectedContactsCount = contactsRangeFilterApplies() ? 1 : 0;
   const selectedNetWorthCount = netWorthFilterIsActive() ? 1 : 0;
   const selectedRatingCount = franchiseeRatingFilterIsActive() ? 1 : 0;
   const selectedUserLocationCount = userLocationCenter || radiusFilterEnabled ? 1 : 0;
@@ -2501,6 +2580,7 @@ function getAppliedFilterCount() {
   return selectedFilterCount
     + selectedStatusCount
     + selectedSearchCount
+    + selectedContactNameCount
     + selectedUnitsCount
     + selectedContactsCount
     + selectedNetWorthCount

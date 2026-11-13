@@ -420,6 +420,7 @@
     scrollExpandedSectionIntoView: scrollExpandedFilterSectionIntoView,
     openSidebarIfCollapsed: openFilterSidebarIfCollapsed,
     updateClearButtons,
+    getDefaultSelectionLabel,
     hideClearTooltip
   };
 })();

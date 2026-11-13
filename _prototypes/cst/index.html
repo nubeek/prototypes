@@ -283,6 +283,16 @@
               aria-label="Search franchisees, brands, categories, and locations"
               aria-describedby="cstSplashSearchFeedback"
             >
+            <div class="cst-splash__search-trailing">
+              <div class="cst-spotlight__datasets" id="cstSplashDatasets" role="tablist" aria-label="Search dataset" hidden>
+                <button class="cst-spotlight__dataset" id="cstSplashDatasetFranchisees" type="button" role="tab" data-dataset="franchisees" aria-selected="true">Franchisees</button>
+                <button class="cst-spotlight__dataset" id="cstSplashDatasetCandidates" type="button" role="tab" data-dataset="candidates" aria-selected="false">Candidates</button>
+              </div>
+              <button class="cst-splash__search-clear" id="cstSplashSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
+              <button class="cst-splash__locate" id="cstSplashLocate" type="button" aria-label="Find prospects near my location" data-tooltip="Find my location">
+                <img src="../../assets/icons/target-me.svg" alt="" aria-hidden="true">
+              </button>
+            </div>
             <div
               class="cst-splash__search-suggestions proto-scrollbar"
               id="cstSplashSearchSuggestions"
@@ -290,10 +300,6 @@
               aria-label="Search suggestions"
               aria-hidden="true"
             ></div>
-            <button class="cst-splash__search-clear" id="cstSplashSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
-            <button class="cst-splash__locate" id="cstSplashLocate" type="button" aria-label="Find prospects near my location" data-tooltip="Find my location">
-              <img src="../../assets/icons/target-me.svg" alt="" aria-hidden="true">
-            </button>
           </form>
           <p class="cst-splash__search-feedback" id="cstSplashSearchFeedback" role="status" aria-live="polite" hidden></p>
         </div>
@@ -579,25 +585,56 @@
             <span>Contacts</span>
             <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
           </button>
-          <div class="filter-range-histogram-wrap">
-            <div class="filter-range-histogram" aria-hidden="true">
-              <div class="filter-range-histogram-bars"></div>
+          <div class="filter-select-field filter-search-query-field filter-contact-name-field" id="contactFilterField">
+            <div class="filter-combobox-control" role="presentation">
+              <img class="filter-search-query-field-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+              <div class="filter-combobox-chips" id="contactFilterChips"></div>
+              <input
+                class="filter-combobox-input"
+                id="contactFilterInput"
+                type="text"
+                inputmode="search"
+                autocomplete="off"
+                spellcheck="false"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="contactFilterSuggestions"
+                placeholder="Enter a name"
+                aria-label="Search contacts by name"
+              >
             </div>
-            <div class="range-track filter-range-slider filter-range-slider--histogram" aria-label="Contacts range">
-              <span class="range-line"></span>
-              <span class="range-fill" id="contactsRangeFill"></span>
-              <input class="range-input range-input-min" id="contactsMinRange" type="range" min="0" max="0" value="0" aria-label="Minimum contacts">
-              <input class="range-input range-input-max" id="contactsMaxRange" type="range" min="0" max="0" value="0" aria-label="Maximum contacts">
+            <div class="filter-combobox-menu" id="contactFilterMenu" aria-hidden="true">
+              <div
+                class="filter-combobox-options proto-scrollbar"
+                id="contactFilterSuggestions"
+                role="listbox"
+                aria-label="Contact suggestions"
+              ></div>
             </div>
           </div>
-          <div class="filter-range-labels">
-            <span>Minimum</span>
-            <span>Maximum</span>
-          </div>
-          <div class="filter-input-row">
-            <input class="filter-value filter-number-input" id="contactsMinInput" type="number" inputmode="numeric" aria-label="Minimum contacts">
-            <span class="filter-range-separator">-</span>
-            <input class="filter-value filter-number-input" id="contactsMaxInput" type="number" inputmode="numeric" aria-label="Maximum contacts">
+          <div class="filter-contacts-range" id="contactsRangeControls">
+            <div class="filter-range-histogram-wrap">
+              <div class="filter-range-histogram" aria-hidden="true">
+                <div class="filter-range-histogram-bars"></div>
+              </div>
+              <div class="range-track filter-range-slider filter-range-slider--histogram" aria-label="Contacts range">
+                <span class="range-line"></span>
+                <span class="range-fill" id="contactsRangeFill"></span>
+                <input class="range-input range-input-min" id="contactsMinRange" type="range" min="0" max="0" value="0" aria-label="Minimum contacts">
+                <input class="range-input range-input-max" id="contactsMaxRange" type="range" min="0" max="0" value="0" aria-label="Maximum contacts">
+              </div>
+            </div>
+            <div class="filter-range-labels">
+              <span>Minimum</span>
+              <span>Maximum</span>
+            </div>
+            <div class="filter-input-row">
+              <input class="filter-value filter-number-input" id="contactsMinInput" type="number" inputmode="numeric" aria-label="Minimum contacts">
+              <span class="filter-range-separator">-</span>
+              <input class="filter-value filter-number-input" id="contactsMaxInput" type="number" inputmode="numeric" aria-label="Maximum contacts">
+            </div>
           </div>
         </section>
 

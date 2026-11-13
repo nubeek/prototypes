@@ -541,6 +541,8 @@ function getCurrentCstSavedSearchFilters() {
   return {
     search: searchQuery,
     searchExcluded: getExcludedSearchKeywords(),
+    contactNames: getContactNames(),
+    contactNamesExcluded: getExcludedContactNames(),
     locations: [...selectedLocationLabels],
     locationsExcluded: [...excludedLocationLabels],
     locationSearches: selectedLocationSearches.map(serializeCstSavedLocationSearch).filter(Boolean),
@@ -603,6 +605,8 @@ function withCstSplashFilterScope(filters, read) {
     radiusFilterEnabled,
     searchQuery,
     excludedSearchKeywords: getExcludedSearchKeywords(),
+    contactNameQuery,
+    excludedContactNames: getExcludedContactNames(),
     selectedRadiusMiles,
     selectedCategoryValues,
     selectedContactsMax,
@@ -629,6 +633,8 @@ function withCstSplashFilterScope(filters, read) {
   } finally {
     searchQuery = restore.searchQuery;
     excludedSearchKeywords = restore.excludedSearchKeywords;
+    contactNameQuery = restore.contactNameQuery;
+    excludedContactNames = restore.excludedContactNames;
     selectedLocationLabels = restore.selectedLocationLabels;
     excludedLocationLabels = restore.excludedLocationLabels;
     selectedLocationSearches = restore.selectedLocationSearches;
@@ -658,6 +664,7 @@ function withCstSplashFilterScope(filters, read) {
     // paints a saved search's range onto the live controls, and the clear
     // button then no-ops because the live range is already the default.
     syncSearchFilterSection();
+    syncContactFilterSection();
   }
 }
 
@@ -673,6 +680,7 @@ function applyCstSplashFilterState(filters = {}) {
     : [];
 
   setSearchQuery(filters.search, { excluded: filters.searchExcluded });
+  setContactNames(filters.contactNames, { excluded: filters.contactNamesExcluded });
   selectedLocationLabels = getSavedStringArray(filters.locations);
   excludedLocationLabels = getSavedStringArray(filters.locationsExcluded);
   selectedLocationSearches = includedLocationSearches
@@ -1417,7 +1425,7 @@ function expandCstSplashFilterSections() {
   markActive(ownerFilterSelect, selectedOwnerIndexes.length || excludedOwnerIndexes.length);
   markActive(franchiseFilterSelect, selectedFranchiseIndexes.length || excludedFranchiseIndexes.length);
   markActive(unitsMinRange, unitsFilterIsActive());
-  markActive(contactsMinRange, contactsFilterIsActive());
+  markActive(contactsMinRange, contactsRangeFilterApplies() || hasContactNames());
   markActive(netWorthMinRange, netWorthFilterIsActive());
   markActive(document.getElementById("franchiseeRatingFilterSection"), franchiseeRatingFilterIsActive());
 
@@ -1728,6 +1736,7 @@ function showCstSplash({ animate = false } = {}) {
   const splash = getCstSplashElement();
   if (!splash) return;
 
+  cstSplashDatasetScope = "franchisees";
   cstSplashSearchController?.reset();
   document.getElementById("cstSplashSearchInput")?.blur();
   cstSplashNewSearch?.removeAttribute("open");
@@ -1921,22 +1930,42 @@ function getCstFranchiseeSuggestionPool() {
     })),
     ...brandNames.map((brandName) => toCstBrandSuggestion(brandName, "franchisees")),
     ...getCstSplashCategoryPool().map((categoryId) => toCstCategorySuggestion(categoryId, "franchisees")),
-    ...owners.flatMap((owner) => {
-      const name = String(owner.contactName || "").trim();
-      if (!name) return [];
-
-      return [{
-        contextLabel: String(owner.ownerName || "").trim(),
-        filters: { franchisees: [String(owner.originalIndex)] },
-        group: "People",
-        label: name,
-        logoSrc: window.resolvePersonHeadshotSrc?.(owner.ownerName, name) || "",
-        roleLabel: "Franchisee",
-        type: "person",
-        view: "franchisees"
-      }];
-    })
+    ...owners.flatMap((owner) => getCstOwnerPersonSuggestions(owner))
   ];
+}
+
+// People come from the whole org chart, not just the primary contact, so a
+// name search reaches every contact a franchisee has. Each pick feeds the
+// shared contact-name filter.
+function getCstOwnerPersonSuggestions(owner) {
+  const ownerName = String(owner.ownerName || "").trim();
+  const primaryName = String(owner.contactName || "").trim();
+  const contacts = Array.isArray(owner.contacts) ? owner.contacts : [];
+  const orgNodes = window.ownerOrgChartData?.[owner.originalIndex]?.nodes || [];
+  const seen = new Set();
+
+  return [
+    { name: primaryName, title: "Franchisee" },
+    ...contacts.map((contact) => ({ name: contact?.name, title: contact?.title })),
+    ...orgNodes.map((node) => ({ name: node?.name, title: node?.title }))
+  ].flatMap(({ name, title }) => {
+    const label = String(name || "").trim();
+    if (!label) return [];
+    const key = label.toLocaleLowerCase();
+    if (seen.has(key)) return [];
+    seen.add(key);
+
+    return [{
+      contextLabel: ownerName,
+      filters: { contactNames: [label] },
+      group: "People",
+      label,
+      logoSrc: window.resolvePersonHeadshotSrc?.(ownerName, label) || "",
+      roleLabel: String(title || "").trim() || "Contact",
+      type: "person",
+      view: "franchisees"
+    }];
+  });
 }
 
 // Prospect rows have no franchisee, so these datasets only offer the people,
@@ -1952,7 +1981,7 @@ function getCstProspectSuggestionPool(view) {
     if (row.name && !people.has(personKey)) {
       people.set(personKey, {
         contextLabel: row.location,
-        filters: { search: row.name },
+        filters: { contactNames: [row.name] },
         group: "People",
         label: row.name,
         roleLabel,
@@ -1971,31 +2000,157 @@ function getCstProspectSuggestionPool(view) {
   ];
 }
 
-// Suggestions come from the dataset being searched, so every pick matches rows
-// there. Home search covers Franchisees plus Candidate people.
-function getCstSplashLocalSuggestionPool() {
-  if (isCstSplashOpen()) {
-    return [
-      ...getCstFranchiseeSuggestionPool(),
-      ...getCstProspectSuggestionPool("candidates").filter((item) => item.type === "person")
-    ];
+const CST_SPLASH_DATASET_VIEWS = ["franchisees", "candidates"];
+const CST_SPLASH_DATASETS_MOTION_MS = 240;
+const CST_SPLASH_DATASETS_SHOW_DELAY_MS = 350;
+let cstSplashDatasetScope = "franchisees";
+let cstSplashDatasetsHideTimer = 0;
+let cstSplashDatasetsShowTimer = 0;
+let cstSplashDatasetsFrame = 0;
+
+function getCstSplashDatasetScope() {
+  return CST_SPLASH_DATASET_VIEWS.includes(cstSplashDatasetScope) ? cstSplashDatasetScope : "franchisees";
+}
+
+function revealCstSplashDatasets(datasets, frame) {
+  datasets.hidden = false;
+  datasets.setAttribute("aria-hidden", "false");
+  // Let the collapsed state paint so the expand transition can run.
+  void datasets.offsetWidth;
+  requestAnimationFrame(() => {
+    if (frame !== cstSplashDatasetsFrame || datasets.hidden) return;
+    datasets.classList.add("is-shown");
+  });
+}
+
+function setCstSplashDatasetsShown(show) {
+  const datasets = document.getElementById("cstSplashDatasets");
+  if (!datasets) return;
+
+  if (show) {
+    const alreadyVisible = !datasets.hidden && datasets.classList.contains("is-shown");
+    if (alreadyVisible || cstSplashDatasetsShowTimer) return;
+
+    window.clearTimeout(cstSplashDatasetsHideTimer);
+    const frame = ++cstSplashDatasetsFrame;
+    cstSplashDatasetsShowTimer = window.setTimeout(() => {
+      cstSplashDatasetsShowTimer = 0;
+      if (frame !== cstSplashDatasetsFrame) return;
+      revealCstSplashDatasets(datasets, frame);
+    }, CST_SPLASH_DATASETS_SHOW_DELAY_MS);
+    return;
   }
 
-  return isCstSearchingProspects()
-    ? getCstProspectSuggestionPool(getCstSearchDatasetView())
+  window.clearTimeout(cstSplashDatasetsShowTimer);
+  cstSplashDatasetsShowTimer = 0;
+  window.clearTimeout(cstSplashDatasetsHideTimer);
+  cstSplashDatasetsFrame += 1;
+
+  datasets.classList.remove("is-shown");
+  datasets.setAttribute("aria-hidden", "true");
+  cstSplashDatasetsHideTimer = window.setTimeout(() => {
+    if (!datasets.classList.contains("is-shown")) {
+      datasets.hidden = true;
+    }
+  }, getMotionDelay(CST_SPLASH_DATASETS_MOTION_MS));
+}
+
+function personNameMatchesQuery(name, normalizedQuery) {
+  return String(name || "").toLocaleLowerCase().includes(normalizedQuery);
+}
+
+// Home shows the dataset tabs 350ms after the query matches a person on either side.
+// The query itself waits until both sides match, because it is already inside
+// one dataset. Home always starts on Franchisees.
+function cstSplashQueryShouldShowDatasetTabs(query) {
+  const normalizedQuery = String(query || "").trim().toLocaleLowerCase();
+  if (normalizedQuery.length < 2) return false;
+
+  const franchiseeMatch = owners.some((owner) => {
+    const names = [
+      owner.contactName,
+      ...(Array.isArray(owner.contacts) ? owner.contacts.map((contact) => contact?.name) : []),
+      ...(window.ownerOrgChartData?.[owner.originalIndex]?.nodes || []).map((node) => node?.name)
+    ];
+    return names.some((name) => personNameMatchesQuery(name, normalizedQuery));
+  });
+  if (franchiseeMatch) return true;
+
+  return getProspectDatasetRows("candidates").some((row) => (
+    personNameMatchesQuery(row.name, normalizedQuery)
+  ));
+}
+
+function syncCstSplashDatasetSwitch() {
+  const datasets = document.getElementById("cstSplashDatasets");
+  const input = document.getElementById("cstSplashSearchInput");
+  const showTabs = cstSplashQueryShouldShowDatasetTabs(input?.value || "");
+
+  if (!showTabs) {
+    const scopeDrifted = getCstSplashDatasetScope() !== "franchisees";
+    cstSplashDatasetScope = "franchisees";
+    setCstSplashDatasetsShown(false);
+    if (scopeDrifted) cstSplashSearchController?.refresh?.();
+    return;
+  }
+
+  if (!CST_SPLASH_DATASET_VIEWS.includes(cstSplashDatasetScope)) {
+    cstSplashDatasetScope = "franchisees";
+  }
+
+  datasets?.querySelectorAll("[data-dataset]").forEach((button) => {
+    const active = button.dataset.dataset === cstSplashDatasetScope;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+  setCstSplashDatasetsShown(true);
+}
+
+function selectCstSplashDataset(view) {
+  if (!CST_SPLASH_DATASET_VIEWS.includes(view) || view === cstSplashDatasetScope) return;
+
+  cstSplashDatasetScope = view;
+  syncCstSplashDatasetSwitch();
+  cstSplashSearchController?.refresh?.();
+  document.getElementById("cstSplashSearchInput")?.focus({ preventScroll: true });
+}
+
+// Suggestions come from the dataset being searched, so every pick matches rows
+// there. Home defaults to Franchisees and switches to Candidates with the tabs.
+function getCstSplashLocalSuggestionPool() {
+  const view = isCstSplashOpen() ? getCstSplashDatasetScope() : getCstSearchDatasetView();
+  return isProspectTableView(view)
+    ? getCstProspectSuggestionPool(view)
     : getCstFranchiseeSuggestionPool();
 }
 
 function isCstSearchingProspects() {
-  return !isCstSplashOpen() && isProspectTableView(getCstSearchDatasetView());
+  const view = isCstSplashOpen() ? getCstSplashDatasetScope() : getCstSearchDatasetView();
+  return isProspectTableView(view);
 }
 
-// Home search keeps the dataset role. Inside a dataset, the suffix names the
-// franchisee's institution or the candidate's location.
+// The dataset tabs are only useful when the same query finds a person on each
+// side, so a brand or city match in one dataset does not surface them.
+function cstQueryMatchesPeopleInBothDatasets(query) {
+  const normalizedQuery = String(query || "").trim().toLocaleLowerCase();
+  if (normalizedQuery.length < 2) return false;
+
+  const franchiseeMatch = owners.some((owner) => (
+    String(owner.contactName || "").toLocaleLowerCase().includes(normalizedQuery)
+  ));
+  if (!franchiseeMatch) return false;
+
+  return getProspectDatasetRows("candidates").some((row) => (
+    row.name.toLocaleLowerCase().includes(normalizedQuery)
+  ));
+}
+
+// Both searches look inside one dataset, so the suffix names the franchisee's
+// institution or the candidate's location.
 function getCstSplashPersonSuffix(item) {
   if (!item) return "";
-  if (!isCstSplashOpen() && item.contextLabel) return item.contextLabel;
-  return item.roleLabel || "";
+  return item.contextLabel || item.roleLabel || "";
 }
 
 // Spotlight can preview the other of the two primary datasets before a result
@@ -2036,17 +2191,9 @@ function getCstSplashLocalSuggestions(query) {
     matchesByGroup.set(item.group, groupMatches);
   });
 
-  // The limit applies per dataset, so home search lists franchisee and
-  // candidate people side by side.
   return CST_SPLASH_SUGGESTION_GROUPS
     .filter((group) => group !== "Locations")
-    .flatMap((group) => {
-      const matches = matchesByGroup.get(group) || [];
-      const views = [...new Set(matches.map((item) => item.view))];
-      return views
-        .flatMap((view) => takeCstSplashSuggestionGroup(matches.filter((item) => item.view === view)))
-        .sort(compareCstSplashSuggestions);
-    });
+    .flatMap((group) => takeCstSplashSuggestionGroup(matchesByGroup.get(group) || []));
 }
 
 function toCstSplashLocationSuggestion(result) {
@@ -2224,45 +2371,78 @@ function bindCstSplashSearchFloatingTooltip(button) {
   button.addEventListener("click", hideCstSplashSearchFloatingTooltip);
 }
 
+function getCstSuggestionFilterTarget(item) {
+  if (!item) return null;
+  if (item.type === "text") return document.getElementById("searchFilterSection");
+  if (item.type === "person" && Array.isArray(item.filters?.contactNames)) return contactFilterField;
+  if (item.type === "franchisee" || item.type === "person") return ownerFilterSelect;
+  if (item.type === "brand") return franchiseFilterSelect;
+  if (item.type === "category") return categoryFilterSelect;
+  if (item.type === "location") return locationFilterSearchField;
+  return null;
+}
+
+// A search pick can land in a section the sidebar has scrolled past. Bring
+// that section into view so the new chip is the thing that just changed.
+function revealCstAppliedFilter(item) {
+  const target = getCstSuggestionFilterTarget(item);
+  if (!target) return;
+  window.WefranchFilterQuickSearch?.expandSection(target);
+}
+
 function applyCstQuickSearchSuggestion(item) {
   const quickSearch = window.WefranchFilterQuickSearch;
   if (!item || !quickSearch) return;
 
-  if (item.type === "franchisee" || item.type === "person") {
+  if (item.type === "person" && Array.isArray(item.filters?.contactNames)) {
+    item.filters.contactNames.forEach((name) => addContactName(name));
+  } else if (item.type === "franchisee" || item.type === "person") {
     quickSearch.addSelectValues(ownerFilterSelect, item.filters?.franchisees || []);
-    quickSearch.expandSection(ownerFilterSelect);
-    return;
-  }
-
-  if (item.type === "brand") {
+  } else if (item.type === "brand") {
     quickSearch.addSelectValues(franchiseFilterSelect, item.filters?.franchises || []);
-    quickSearch.expandSection(franchiseFilterSelect);
-    return;
-  }
-
-  if (item.type === "category") {
+  } else if (item.type === "category") {
     quickSearch.addSelectValues(categoryFilterSelect, item.filters?.categories || []);
-    quickSearch.expandSection(categoryFilterSelect);
-    return;
+  } else if (item.type === "location") {
+    const locationResult = item.locationResult || item.filters?.locationSearches?.[0];
+    if (locationResult) applyLocationInclude(locationResult);
   }
 
-  if (item.type === "location") {
-    const locationResult = item.locationResult || item.filters?.locationSearches?.[0];
-    if (locationResult) {
-      applyLocationInclude(locationResult);
-    }
-    quickSearch.expandSection(locationFilterSearchField);
-  }
+  revealCstAppliedFilter(item);
 }
 
 const CST_RECENT_SEARCHES_STORAGE_KEY = "cst.recentSearches.v1";
 const CST_RECENT_SEARCHES_LIMIT = 5;
 const CST_RECENT_SEARCHES_GROUP = "Recent searches";
 
+// A person is the same record when the name, dataset, and institution or
+// location match. Job title and a missing institution on older entries do not
+// make a second recent.
+function getCstRecentPersonContext(item) {
+  const context = String(item?.contextLabel || "").trim();
+  if (item?.type !== "person" || isProspectTableView(item?.view)) return context;
+  return context || getFranchiseeInstitutionForContact(item?.label);
+}
+
+function getCstRecentSearchKey(item) {
+  const type = item?.type || "";
+  const source = type === "text" || type === "location"
+    ? ""
+    : getCstSuggestionSource(item?.view || "");
+  const context = type === "person" ? getCstRecentPersonContext(item) : "";
+  return [type, String(item?.label || ""), context, source].join("\u0000");
+}
+
 function readCstRecentSearches() {
   try {
     const parsed = JSON.parse(window.localStorage?.getItem(CST_RECENT_SEARCHES_STORAGE_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed.filter((item) => item?.label && item?.filters) : [];
+    const items = Array.isArray(parsed) ? parsed.filter((item) => item?.label && item?.filters) : [];
+    const seen = new Set();
+    return items.filter((item) => {
+      const key = getCstRecentSearchKey(item);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   } catch (_error) {
     return [];
   }
@@ -2272,6 +2452,7 @@ function rememberCstRecentSearch(item) {
   if (!item?.label || !item?.filters) return;
 
   const entry = {
+    contextLabel: item.type === "person" ? getCstRecentPersonContext(item) : (item.contextLabel || ""),
     filters: item.filters,
     label: item.label,
     logoFallback: item.logoFallback,
@@ -2280,12 +2461,8 @@ function rememberCstRecentSearch(item) {
     type: item.type,
     view: item.view || ""
   };
-  const recents = readCstRecentSearches().filter((recent) => (
-    recent.type !== entry.type
-      || recent.label !== entry.label
-      || (recent.roleLabel || "") !== entry.roleLabel
-      || (recent.view || "") !== entry.view
-  ));
+  const entryKey = getCstRecentSearchKey(entry);
+  const recents = readCstRecentSearches().filter((recent) => getCstRecentSearchKey(recent) !== entryKey);
 
   try {
     window.localStorage?.setItem(
@@ -2310,6 +2487,22 @@ function getCstSuggestionSource(view) {
   return isProspectTableView(view) ? view : "franchisees";
 }
 
+function getFranchiseeInstitutionForContact(name) {
+  const key = String(name || "").trim().toLocaleLowerCase();
+  if (!key) return "";
+
+  const owner = owners.find((candidate) => {
+    const names = [
+      candidate.contactName,
+      ...(Array.isArray(candidate.contacts) ? candidate.contacts.map((contact) => contact?.name) : []),
+      ...(window.ownerOrgChartData?.[candidate.originalIndex]?.nodes || []).map((node) => node?.name)
+    ];
+    return names.some((value) => String(value || "").trim().toLocaleLowerCase() === key);
+  });
+
+  return String(owner?.ownerName || "").trim();
+}
+
 // Without a view (home search), every recent is listed. Inside a dataset, only
 // recents from that dataset come back. Keywords and locations fit anywhere.
 function getCstRecentSearchSuggestions({ view = "" } = {}) {
@@ -2320,10 +2513,23 @@ function getCstRecentSearchSuggestions({ view = "" } = {}) {
         || item.type === "location"
         || getCstSuggestionSource(item.view) === getCstSuggestionSource(view)
     ))
-    .map((item) => ({ ...item, group: CST_RECENT_SEARCHES_GROUP }));
+    .map((item) => {
+      const recent = { ...item, group: CST_RECENT_SEARCHES_GROUP };
+      if (recent.type !== "person" || isProspectTableView(recent.view)) return recent;
+
+      // Franchisee recents name the institution only. Older entries stored the
+      // job title, sometimes with a brand, so resolve the institution again.
+      return {
+        ...recent,
+        contextLabel: recent.contextLabel || getFranchiseeInstitutionForContact(recent.label),
+        roleLabel: ""
+      };
+    });
 }
 
 function bindCstSplashSearch() {
+  const datasets = document.getElementById("cstSplashDatasets");
+
   cstSplashSearchController = createCstSearchField({
     form: document.getElementById("cstSplashSearch"),
     input: document.getElementById("cstSplashSearchInput"),
@@ -2337,9 +2543,36 @@ function bindCstSplashSearch() {
       rememberCstRecentSearch(item);
       clearCstSavedSearchSession({ persist: false });
       dismissCstSplash({ refresh: false });
-      applyCstSplashQuery(filters, { view: item?.view || "franchisees" });
+      applyCstSplashQuery(filters, { view: item?.view || getCstSplashDatasetScope() });
+      revealCstAppliedFilter(item);
     },
-    onLocate: locateUserFromFilters
+    onLocate: locateUserFromFilters,
+    onQueryChange() {
+      syncCstSplashDatasetSwitch();
+    }
+  });
+
+  datasets?.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+  });
+
+  datasets?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-dataset]");
+    if (!button || !datasets.contains(button)) return;
+    event.preventDefault();
+    selectCstSplashDataset(button.dataset.dataset);
+  });
+
+  datasets?.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    const buttons = [...datasets.querySelectorAll("[data-dataset]")];
+    const currentIndex = buttons.findIndex((button) => button.dataset.dataset === cstSplashDatasetScope);
+    if (currentIndex === -1) return;
+    const nextIndex = event.key === "ArrowRight"
+      ? Math.min(currentIndex + 1, buttons.length - 1)
+      : Math.max(currentIndex - 1, 0);
+    event.preventDefault();
+    selectCstSplashDataset(buttons[nextIndex].dataset.dataset);
   });
 }
 
@@ -2382,6 +2615,7 @@ function createCstSearchField({
     activeSuggestionIndex = -1;
     renderedSuggestions = [];
     suggestions.replaceChildren();
+    suggestions.classList.remove("is-scrollable");
     input.removeAttribute("aria-activedescendant");
     setSuggestionsOpen(false);
   }
@@ -2580,6 +2814,7 @@ function createCstSearchField({
         : "No franchisees, brands, people, categories, or locations match.";
       suggestions.append(status);
       setSuggestionsOpen(true);
+      syncSpotlightSuggestionScrolling();
       return;
     }
 
@@ -2601,6 +2836,18 @@ function createCstSearchField({
 
     setSuggestionsOpen(true);
     syncActiveSuggestion();
+    syncSpotlightSuggestionScrolling();
+  }
+
+  // Recent searches fit, so they keep no scrollbar gutter. The gutter is only
+  // added once the list is taller than the panel.
+  function syncSpotlightSuggestionScrolling() {
+    if (!suggestions.classList.contains("cst-spotlight__suggestions")) return;
+
+    suggestions.classList.remove("is-scrollable");
+    const maxHeight = parseFloat(getComputedStyle(suggestions).maxHeight);
+    const overflows = Number.isFinite(maxHeight) && suggestions.scrollHeight > maxHeight + 1;
+    suggestions.classList.toggle("is-scrollable", overflows);
   }
 
   function syncSearchActions() {

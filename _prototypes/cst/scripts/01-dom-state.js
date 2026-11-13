@@ -32,6 +32,11 @@ const contactsMaxRange = document.getElementById("contactsMaxRange");
 const contactsMinInput = document.getElementById("contactsMinInput");
 const contactsMaxInput = document.getElementById("contactsMaxInput");
 const contactsRangeFill = document.getElementById("contactsRangeFill");
+const contactFilterField = document.getElementById("contactFilterField");
+const contactFilterInput = document.getElementById("contactFilterInput");
+const contactFilterChips = document.getElementById("contactFilterChips");
+const contactFilterMenu = document.getElementById("contactFilterMenu");
+const contactFilterSuggestions = document.getElementById("contactFilterSuggestions");
 const netWorthMinRange = document.getElementById("netWorthMinRange");
 const netWorthMaxRange = document.getElementById("netWorthMaxRange");
 const netWorthMinInput = document.getElementById("netWorthMinInput");
@@ -354,6 +359,8 @@ const LOCATION_TABLE_PAGE_SIZE = 100;
 let locationsVisibleCount = LOCATION_TABLE_PAGE_SIZE;
 let searchQuery = "";
 let excludedSearchKeywords = [];
+let contactNameQuery = "";
+let excludedContactNames = [];
 
 function normalizeSearchKeywords(value) {
   const source = Array.isArray(value) ? value : [value];
@@ -382,7 +389,20 @@ function getExcludedSearchKeywords() {
 function hasSearchKeywords() {
   return getSearchKeywords().length > 0 || getExcludedSearchKeywords().length > 0;
 }
+
+function getContactNames() {
+  return normalizeSearchKeywords(contactNameQuery);
+}
+
+function getExcludedContactNames() {
+  return normalizeSearchKeywords(excludedContactNames);
+}
+
+function hasContactNames() {
+  return getContactNames().length > 0 || getExcludedContactNames().length > 0;
+}
 const ownerSearchIndexById = new Map();
+const ownerContactNameIndexById = new Map();
 let selectedLocationLabels = [];
 let excludedLocationLabels = [];
 let selectedLocationSearches = [];

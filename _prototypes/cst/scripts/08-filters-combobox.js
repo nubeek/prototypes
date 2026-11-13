@@ -916,6 +916,357 @@ function bindSearchFilterInput() {
   });
 }
 
+function createContactFilterChip(label, { excluded = false } = {}) {
+  return renderFilterChip({
+    label,
+    excluded,
+    allowToggle: true,
+    chipClickable: false,
+    onToggleExclude: () => toggleContactNameExcluded(label),
+    onRemove: () => removeContactName(label, { refresh: true })
+  });
+}
+
+function syncContactFilterSection() {
+  if (!contactFilterField || !contactFilterChips) return;
+
+  const included = getContactNames();
+  const excluded = getExcludedContactNames();
+  contactFilterChips.replaceChildren(
+    ...included.map((label) => createContactFilterChip(label)),
+    ...excluded.map((label) => createContactFilterChip(label, { excluded: true }))
+  );
+
+  const hasSelection = included.length + excluded.length > 0;
+  contactFilterField.classList.toggle("has-selection", hasSelection);
+
+  if (hasSelection) {
+    const section = contactFilterField.closest(".filter-section");
+    window.WefranchFilterSections?.setSectionExpanded?.(section, true);
+  }
+
+  if (contactFilterInput) {
+    contactFilterInput.hidden = false;
+    contactFilterInput.placeholder = hasSelection ? "" : "Enter a name";
+  }
+
+  updateFilterSectionClearButtons();
+}
+
+function setContactNames(value, { refresh = false, append = false, ...options } = {}) {
+  const incoming = normalizeSearchKeywords(value);
+  const included = append
+    ? normalizeSearchKeywords([...getContactNames(), ...incoming])
+    : incoming;
+  const includedKeys = new Set(included.map((item) => item.toLocaleLowerCase()));
+  const replaceExcluded = Object.prototype.hasOwnProperty.call(options, "excluded");
+  const nextExcluded = (replaceExcluded
+    ? normalizeSearchKeywords(options.excluded)
+    : getExcludedContactNames()
+  ).filter((item) => !includedKeys.has(item.toLocaleLowerCase()));
+
+  contactNameQuery = included;
+  excludedContactNames = nextExcluded;
+  syncContactFilterSection();
+
+  if (!refresh) return;
+
+  refreshFilteredViews();
+  persistViewSettings();
+  tableWrap?.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function removeContactName(name, { refresh = true } = {}) {
+  const key = String(name || "").trim().toLocaleLowerCase();
+  setContactNames(
+    getContactNames().filter((item) => item.toLocaleLowerCase() !== key),
+    {
+      refresh,
+      excluded: getExcludedContactNames().filter((item) => item.toLocaleLowerCase() !== key)
+    }
+  );
+}
+
+function toggleContactNameExcluded(name) {
+  const key = String(name || "").trim().toLocaleLowerCase();
+  const included = getContactNames();
+  const excluded = getExcludedContactNames();
+  const isExcluded = excluded.some((item) => item.toLocaleLowerCase() === key);
+
+  if (isExcluded) {
+    setContactNames(
+      [...included, name],
+      {
+        refresh: true,
+        excluded: excluded.filter((item) => item.toLocaleLowerCase() !== key)
+      }
+    );
+    return;
+  }
+
+  setContactNames(
+    included.filter((item) => item.toLocaleLowerCase() !== key),
+    { refresh: true, excluded: [...excluded, name] }
+  );
+}
+
+// Shared by the sidebar field and the spotlight person picks, so both add to
+// the same contact-name filter state.
+function addContactName(name, { excluded = false } = {}) {
+  const next = String(name || "").trim();
+  if (next.length < 2) return;
+
+  if (excluded) {
+    setContactNames(
+      getContactNames().filter((item) => item.toLocaleLowerCase() !== next.toLocaleLowerCase()),
+      { refresh: true, excluded: [...getExcludedContactNames(), next] }
+    );
+  } else {
+    setContactNames(next, { refresh: true, append: true });
+  }
+
+  if (contactFilterInput) contactFilterInput.value = "";
+}
+
+// De-duped pool of every contact name across the roster's org charts, used to
+// suggest real people as the user types in the sidebar field.
+function getContactNameSuggestionPool() {
+  if (isProspectTableView()) return getProspectContactNameSuggestionPool();
+
+  const pool = new Map();
+
+  (owners || []).forEach((owner) => {
+    const contacts = Array.isArray(owner.contacts) ? owner.contacts : [];
+    const orgNodes = window.ownerOrgChartData?.[owner.originalIndex]?.nodes || [];
+    const seen = new Set();
+
+    [
+      { name: owner.contactName, title: "" },
+      ...contacts.map((contact) => ({ name: contact?.name, title: contact?.title })),
+      ...orgNodes.map((node) => ({ name: node?.name, title: node?.title }))
+    ].forEach(({ name, title }) => {
+      const label = String(name || "").trim();
+      if (!label) return;
+      const key = label.toLocaleLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+
+      if (!pool.has(key)) {
+        pool.set(key, {
+          label,
+          contextLabel: String(owner.ownerName || "").trim(),
+          roleLabel: String(title || "").trim()
+        });
+      }
+    });
+  });
+
+  return [...pool.values()];
+}
+
+// Prospect tables are a flat list of people, so suggestions come from the
+// rows on screen rather than an org chart.
+function getProspectContactNameSuggestionPool() {
+  const pool = new Map();
+
+  getProspectDatasetRows(currentTableView).forEach((row) => {
+    const label = String(row.name || "").trim();
+    if (!label) return;
+    const key = label.toLocaleLowerCase();
+    if (pool.has(key)) return;
+
+    pool.set(key, {
+      label,
+      contextLabel: String(row.location || row.institution || "").trim(),
+      roleLabel: ""
+    });
+  });
+
+  return [...pool.values()];
+}
+
+const CONTACT_NAME_SUGGESTION_LIMIT = 8;
+
+function getContactNameSuggestions(query) {
+  const normalizedQuery = String(query || "").trim().toLocaleLowerCase();
+  if (normalizedQuery.length < 2) return [];
+
+  const activeKeys = new Set(
+    [...getContactNames(), ...getExcludedContactNames()].map((name) => name.toLocaleLowerCase())
+  );
+
+  return getContactNameSuggestionPool()
+    .map((item) => ({ ...item, matchIndex: item.label.toLocaleLowerCase().indexOf(normalizedQuery) }))
+    .filter((item) => item.matchIndex !== -1 && !activeKeys.has(item.label.toLocaleLowerCase()))
+    .sort((a, b) => a.matchIndex - b.matchIndex || a.label.localeCompare(b.label))
+    .slice(0, CONTACT_NAME_SUGGESTION_LIMIT);
+}
+
+function bindContactFilterInput() {
+  const field = contactFilterField;
+  const input = contactFilterInput;
+  const menu = contactFilterMenu;
+  const suggestions = contactFilterSuggestions;
+  if (!field || !input || !suggestions) return;
+
+  let activeSuggestionIndex = -1;
+  let renderedSuggestions = [];
+
+  function setSuggestionsOpen(isOpen) {
+    input.setAttribute("aria-expanded", String(isOpen));
+    menu?.setAttribute("aria-hidden", String(!isOpen));
+    field.classList.toggle("is-open", isOpen);
+    if (isOpen) {
+      window.WefranchFilterCombobox?.revealOpenMenu?.(field);
+      window.WefranchFilterCombobox?.fitOpenMenus?.();
+    } else {
+      input.removeAttribute("aria-activedescendant");
+      window.WefranchFilterCombobox?.clearOpenMenuScrollRoom?.(field);
+    }
+  }
+
+  function closeSuggestions() {
+    activeSuggestionIndex = -1;
+    renderedSuggestions = [];
+    suggestions.replaceChildren();
+    setSuggestionsOpen(false);
+  }
+
+  function syncActiveSuggestion() {
+    suggestions.querySelectorAll(".filter-search-suggestion").forEach((button, index) => {
+      const isActive = index === activeSuggestionIndex;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", String(isActive));
+      if (isActive) {
+        input.setAttribute("aria-activedescendant", button.id);
+        button.scrollIntoView({ block: "nearest" });
+      }
+    });
+
+    if (activeSuggestionIndex === -1) {
+      input.removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function appendSuggestionButton(item, index) {
+    const button = document.createElement("button");
+    const label = document.createElement("span");
+
+    button.type = "button";
+    button.className = "filter-search-suggestion";
+    button.id = `contactFilterSuggestion-${index}`;
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", "false");
+    button.setAttribute("aria-label", `Filter contacts by ${item.label}`);
+
+    label.className = "filter-search-suggestion-label";
+
+    if (item.type === "text") {
+      const queryText = document.createElement("strong");
+      queryText.textContent = item.label;
+      label.append("Search for “", queryText, "”");
+    } else {
+      const nameText = document.createElement("strong");
+      nameText.textContent = item.label;
+      label.append(nameText);
+      const suffix = item.roleLabel || item.contextLabel;
+      if (suffix) {
+        const role = document.createElement("span");
+        role.className = "filter-search-suggestion-role";
+        role.textContent = suffix;
+        label.append(role);
+      }
+    }
+
+    const icon = typeof createCstSplashSuggestionIcon === "function"
+      ? createCstSplashSuggestionIcon({ type: item.type === "text" ? "text" : "person" })
+      : document.createElement("span");
+    button.append(icon, label);
+    button.addEventListener("mousedown", (event) => event.preventDefault());
+    button.addEventListener("mouseenter", () => {
+      activeSuggestionIndex = index;
+      syncActiveSuggestion();
+    });
+    button.addEventListener("click", () => selectSuggestion(item));
+    suggestions.append(button);
+  }
+
+  function renderSuggestions() {
+    const query = input.value.trim();
+    if (query.length < 2) {
+      closeSuggestions();
+      return;
+    }
+
+    const matches = getContactNameSuggestions(query).map((item) => ({ ...item, type: "person" }));
+    renderedSuggestions = matches.length ? matches : [{ label: query, type: "text" }];
+    activeSuggestionIndex = 0;
+    suggestions.replaceChildren();
+    renderedSuggestions.forEach((item, index) => appendSuggestionButton(item, index));
+
+    setSuggestionsOpen(true);
+    syncActiveSuggestion();
+  }
+
+  function selectSuggestion(item) {
+    closeSuggestions();
+    addContactName(item.label);
+    input.focus({ preventScroll: true });
+  }
+
+  input.addEventListener("input", renderSuggestions);
+
+  input.addEventListener("focus", () => {
+    if (input.value.trim().length >= 2) renderSuggestions();
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" && renderedSuggestions.length) {
+      event.preventDefault();
+      activeSuggestionIndex = Math.min(activeSuggestionIndex + 1, renderedSuggestions.length - 1);
+      syncActiveSuggestion();
+      return;
+    }
+
+    if (event.key === "ArrowUp" && renderedSuggestions.length) {
+      event.preventDefault();
+      activeSuggestionIndex = Math.max(activeSuggestionIndex - 1, 0);
+      syncActiveSuggestion();
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (activeSuggestionIndex >= 0 && renderedSuggestions[activeSuggestionIndex]) {
+        selectSuggestion(renderedSuggestions[activeSuggestionIndex]);
+        return;
+      }
+      addContactName(input.value);
+      return;
+    }
+
+    if (event.key === "Backspace" && !input.value && hasContactNames()) {
+      const names = [...getContactNames(), ...getExcludedContactNames()];
+      removeContactName(names[names.length - 1], { refresh: true });
+      return;
+    }
+
+    if (event.key === "Escape") {
+      closeSuggestions();
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    window.setTimeout(() => {
+      if (!field.contains(document.activeElement)) closeSuggestions();
+    }, 0);
+  });
+
+  document.addEventListener("mousedown", (event) => {
+    if (!field.contains(event.target)) closeSuggestions();
+  });
+}
+
 function resetCstFilterSelections({ refresh = true } = {}) {
   selectedLocationLabels = [];
   excludedLocationLabels = [];
@@ -928,6 +1279,7 @@ function resetCstFilterSelections({ refresh = true } = {}) {
   selectedFranchiseIndexes = [];
   excludedFranchiseIndexes = [];
   setSearchQuery("", { excluded: [] });
+  setContactNames("", { excluded: [] });
   selectedUnitsMin = unitsFilterDefaults.min;
   selectedUnitsMax = unitsFilterDefaults.max;
   selectedContactsMin = contactsFilterDefaults.min;
@@ -996,7 +1348,7 @@ function filterSectionHasAppliedFilters(section) {
     case "units":
       return unitsFilterIsActive();
     case "contacts":
-      return contactsFilterIsActive();
+      return contactsRangeFilterApplies() || hasContactNames();
     case "status":
       return statusFilterInputs.some((checkbox) => checkbox.checked);
     case "net-worth":
@@ -1011,12 +1363,18 @@ function filterSectionHasAppliedFilters(section) {
 }
 
 function updateFilterSectionClearButtons() {
-  window.WefranchFilterSections.updateClearButtons(filterPanel, filterSectionHasAppliedFilters);
+  window.WefranchFilterSections.updateClearButtons(filterPanel, filterSectionHasAppliedFilters, {
+    getSelectionLabel(section) {
+      if (getFilterSectionKey(section) === "contacts" && !contactsRangeFilterApplies()) return "";
+      return window.WefranchFilterSections.getDefaultSelectionLabel(section);
+    }
+  });
 }
 
-// Prospect rows only carry a name, location, brand, and category, so the
-// franchisee-level filters have nothing to match there.
-const PROSPECT_FILTER_SECTIONS = new Set(["search", "location", "category", "franchise", "status"]);
+// Prospect rows carry a person, location, brand, and category. The Contacts
+// section stays, but only as a name search — these datasets have no org chart
+// and no contact-count range.
+const PROSPECT_FILTER_SECTIONS = new Set(["search", "location", "category", "franchise", "contacts", "status"]);
 
 function filterSectionAppliesToView(section, tableView = currentTableView) {
   return !isProspectTableView(tableView) || PROSPECT_FILTER_SECTIONS.has(getFilterSectionKey(section));
@@ -1034,7 +1392,15 @@ function syncFilterSectionsForView(tableView = currentTableView) {
     if (!applies && resetFilterSectionState(section)) didReset = true;
   });
 
+  syncContactsRangeForView(tableView);
   if (didReset) syncFilterControls();
+}
+
+function syncContactsRangeForView(tableView = currentTableView) {
+  const range = document.getElementById("contactsRangeControls");
+  const nameOnly = isProspectTableView(tableView);
+  if (range) range.hidden = nameOnly;
+  range?.closest(".filter-section")?.classList.toggle("is-contacts-name-only", nameOnly);
 }
 
 function syncFilterControls() {
@@ -1095,8 +1461,11 @@ function resetFilterSectionState(section) {
       selectedUnitsMax = unitsFilterDefaults.max;
       break;
     case "contacts":
-      selectedContactsMin = contactsFilterDefaults.min;
-      selectedContactsMax = contactsFilterDefaults.max;
+      if (!isProspectTableView()) {
+        selectedContactsMin = contactsFilterDefaults.min;
+        selectedContactsMax = contactsFilterDefaults.max;
+      }
+      setContactNames("", { excluded: [] });
       break;
     case "status":
       statusFilterInputs.forEach((checkbox) => {
@@ -1149,3 +1518,5 @@ function renderFilterHistograms() {
 
 bindSearchFilterInput();
 syncSearchFilterSection();
+bindContactFilterInput();
+syncContactFilterSection();

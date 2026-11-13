@@ -9,7 +9,10 @@ let cstSpotlightReturnFocus = null;
 let cstSpotlightHideTimer = 0;
 let cstSpotlightDatasetScope = "";
 let cstSpotlightDatasetsHideTimer = 0;
+let cstSpotlightDatasetsShowTimer = 0;
+let cstSpotlightDatasetsFrame = 0;
 const CST_SPOTLIGHT_DATASETS_MOTION_MS = 240;
+const CST_SPOTLIGHT_DATASETS_SHOW_DELAY_MS = 350;
 
 function setCstSpotlightFeedback(message = "") {
   const feedback = document.getElementById("cstSpotlightFeedback");
@@ -31,48 +34,69 @@ function spotlightSupportsDatasetSwitch() {
   return CST_SPOTLIGHT_DATASET_VIEWS.includes(currentTableView);
 }
 
+function revealCstSpotlightDatasets(frame) {
+  cstSpotlightDatasets.hidden = false;
+  cstSpotlightDatasets.setAttribute("aria-hidden", "false");
+  // Let the collapsed state paint so the expand transition can run.
+  void cstSpotlightDatasets.offsetWidth;
+  requestAnimationFrame(() => {
+    if (frame !== cstSpotlightDatasetsFrame || cstSpotlightDatasets.hidden) return;
+    cstSpotlightDatasets.classList.add("is-shown");
+  });
+}
+
 function setCstSpotlightDatasetsShown(show) {
   if (!cstSpotlightDatasets) return;
 
-  window.clearTimeout(cstSpotlightDatasetsHideTimer);
   const supported = spotlightSupportsDatasetSwitch();
 
-  if (!supported) {
+  if (!supported || !show) {
+    window.clearTimeout(cstSpotlightDatasetsShowTimer);
+    cstSpotlightDatasetsShowTimer = 0;
+    window.clearTimeout(cstSpotlightDatasetsHideTimer);
+    cstSpotlightDatasetsFrame += 1;
+
     cstSpotlightDatasets.classList.remove("is-shown");
-    cstSpotlightDatasets.hidden = true;
     cstSpotlightDatasets.setAttribute("aria-hidden", "true");
-    return;
-  }
 
-  if (show) {
-    cstSpotlightDatasets.hidden = false;
-    cstSpotlightDatasets.setAttribute("aria-hidden", "false");
-    // Let the collapsed state paint so the expand transition can run.
-    void cstSpotlightDatasets.offsetWidth;
-    requestAnimationFrame(() => {
-      if (!cstSpotlightDatasets.hidden) cstSpotlightDatasets.classList.add("is-shown");
-    });
-    return;
-  }
-
-  cstSpotlightDatasets.classList.remove("is-shown");
-  cstSpotlightDatasets.setAttribute("aria-hidden", "true");
-  cstSpotlightDatasetsHideTimer = window.setTimeout(() => {
-    if (!cstSpotlightDatasets.classList.contains("is-shown")) {
+    if (!supported) {
       cstSpotlightDatasets.hidden = true;
+      return;
     }
-  }, getMotionDelay(CST_SPOTLIGHT_DATASETS_MOTION_MS));
+
+    cstSpotlightDatasetsHideTimer = window.setTimeout(() => {
+      if (!cstSpotlightDatasets.classList.contains("is-shown")) {
+        cstSpotlightDatasets.hidden = true;
+      }
+    }, getMotionDelay(CST_SPOTLIGHT_DATASETS_MOTION_MS));
+    return;
+  }
+
+  const alreadyVisible = !cstSpotlightDatasets.hidden && cstSpotlightDatasets.classList.contains("is-shown");
+  if (alreadyVisible || cstSpotlightDatasetsShowTimer) return;
+
+  window.clearTimeout(cstSpotlightDatasetsHideTimer);
+  const frame = ++cstSpotlightDatasetsFrame;
+  cstSpotlightDatasetsShowTimer = window.setTimeout(() => {
+    cstSpotlightDatasetsShowTimer = 0;
+    if (frame !== cstSpotlightDatasetsFrame) return;
+    revealCstSpotlightDatasets(frame);
+  }, CST_SPOTLIGHT_DATASETS_SHOW_DELAY_MS);
 }
 
 function syncCstSpotlightDatasetSwitch() {
   const supported = spotlightSupportsDatasetSwitch();
-  const hasResults = (cstSpotlightInput?.value || "").trim().length >= 2;
+  const showTabs = supported && cstQueryMatchesPeopleInBothDatasets(cstSpotlightInput?.value || "");
 
   if (!cstSpotlightDatasets) return;
 
-  if (!supported) {
-    cstSpotlightDatasetScope = "";
+  if (!supported || !showTabs) {
+    const scopeDrifted = Boolean(cstSpotlightDatasetScope) && cstSpotlightDatasetScope !== currentTableView;
+    cstSpotlightDatasetScope = supported ? currentTableView : "";
     setCstSpotlightDatasetsShown(false);
+    // A pill may have been previewing the other dataset. Once the tabs go
+    // away, suggestions follow the dataset that is actually open.
+    if (scopeDrifted) cstSpotlightController?.refresh?.();
     return;
   }
 
@@ -86,7 +110,7 @@ function syncCstSpotlightDatasetSwitch() {
     button.setAttribute("aria-selected", String(active));
     button.tabIndex = active ? 0 : -1;
   });
-  setCstSpotlightDatasetsShown(hasResults);
+  setCstSpotlightDatasetsShown(true);
 }
 
 function selectCstSpotlightDataset(view) {
@@ -171,20 +195,22 @@ function runCstSpotlightSearch(filters, item) {
     clearCstSavedSearchSession({ persist: false });
     setFilterPanelOpen(true);
     applyCstSplashQuery(filters || {}, { view: scope });
+    revealCstAppliedFilter(item);
     return;
   }
 
   if (item?.type === "text") {
     setFilterPanelOpen(true);
     setSearchQuery(item.label || filters?.search, { refresh: true, excluded: [] });
+    revealCstAppliedFilter(item);
     return;
   }
 
-  // Prospect people have no filter of their own, so they match by name and
-  // add to the current keywords.
+  // Prospect people share the Contacts name filter with the sidebar field.
   if (item?.type === "person" && isProspectTableView(item.view)) {
     setFilterPanelOpen(true);
-    setSearchQuery(item.label, { refresh: true, append: true });
+    addContactName(item.filters?.contactNames?.[0] || item.label);
+    revealCstAppliedFilter(item);
     return;
   }
 

@@ -6347,6 +6347,12 @@ body.reduce-motion :is(
   -webkit-appearance: none;
 }
 
+.cst-splash__search-trailing {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
 .cst-splash__search-clear {
   position: relative;
   display: inline-flex;
@@ -6887,9 +6893,7 @@ body.reduce-motion :is(
   display: none;
   max-height: min(420px, calc(100vh - var(--cst-spotlight-top) - 110px));
   padding-bottom: 8px;
-  padding-right: calc(var(--scrollbar-size) + 4px);
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   background-color: var(--color-surface);
@@ -6906,6 +6910,11 @@ body.reduce-motion :is(
 
 .cst-spotlight__search.is-suggestions-open .cst-spotlight__suggestions {
   display: block;
+}
+
+.cst-spotlight__suggestions.is-scrollable {
+  padding-right: calc(var(--scrollbar-size) + 4px);
+  overflow-y: scroll;
 }
 
 .cst-spotlight__feedback {
@@ -6977,6 +6986,16 @@ body:has(.cst-spotlight:not([hidden])) .filter-combobox-floating-tooltip {
 
 .filter-search-query-field .filter-search-suggestion-label strong {
   font-weight: 600;
+}
+
+.filter-search-query-field .filter-search-suggestion-role {
+  margin-left: 8px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.filter-contacts-range[hidden] {
+  display: none;
 }
 
 .cst-splash__saved {
