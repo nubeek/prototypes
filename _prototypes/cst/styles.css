@@ -6927,6 +6927,31 @@ body:has(.cst-spotlight:not([hidden])) .filter-combobox-floating-tooltip {
   z-index: 1150;
 }
 
+/* Looks like the sidebar quick search, but only opens the spotlight. */
+.filter-search-launcher {
+  appearance: none;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.filter-search-placeholder {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.filter-search-launcher .filter-search-shortcut {
+  cursor: inherit;
+}
+
 .filter-select-field.filter-search-query-field .filter-combobox-control {
   padding-left: 12px;
   padding-right: 6px;

@@ -4,6 +4,7 @@ const CST_SPOTLIGHT_DATASET_VIEWS = ["franchisees", "candidates"];
 const cstSpotlight = document.getElementById("cstSpotlight");
 const cstSpotlightInput = document.getElementById("cstSpotlightSearchInput");
 const cstSpotlightDatasets = document.getElementById("cstSpotlightDatasets");
+const filterQuickSearchLauncher = document.getElementById("filterQuickSearchLauncher");
 let cstSpotlightController = null;
 let cstSpotlightReturnFocus = null;
 let cstSpotlightHideTimer = 0;
@@ -122,6 +123,14 @@ function selectCstSpotlightDataset(view) {
   cstSpotlightInput?.focus({ preventScroll: true });
 }
 
+function setFilterQuickSearchLauncherExpanded(expanded) {
+  filterQuickSearchLauncher?.setAttribute("aria-expanded", String(expanded));
+}
+
+function isFilterQuickSearchLauncherEvent(event) {
+  return Boolean(filterQuickSearchLauncher?.contains(event.target) || filterQuickSearchLauncher?.contains(event.relatedTarget));
+}
+
 function openCstSpotlight() {
   if (!cstSpotlight || !cstSpotlightController || isCstSpotlightOpen()) return;
 
@@ -134,6 +143,7 @@ function openCstSpotlight() {
   syncCstSpotlightDatasetSwitch();
 
   cstSpotlight.hidden = false;
+  setFilterQuickSearchLauncherExpanded(true);
   cstSpotlightController.focus();
   cstSpotlightController.showIdleSuggestions();
   requestAnimationFrame(() => cstSpotlight.classList.add("is-open"));
@@ -143,6 +153,7 @@ function closeCstSpotlight({ restoreFocus = true } = {}) {
   if (!cstSpotlight || cstSpotlight.hidden) return;
 
   cstSpotlight.classList.remove("is-open");
+  setFilterQuickSearchLauncherExpanded(false);
   window.clearTimeout(cstSpotlightHideTimer);
   hideCstSplashSearchFloatingTooltip();
 
@@ -274,14 +285,41 @@ function bindCstSpotlight() {
   document.addEventListener("mousedown", (event) => {
     if (!isCstSpotlightOpen()) return;
     if (panel?.contains(event.target) || toolbarSearchBtn?.contains(event.target)) return;
+    if (isFilterQuickSearchLauncherEvent(event)) return;
     closeCstSpotlight({ restoreFocus: false });
   });
 
   cstSpotlight.addEventListener("focusout", (event) => {
+    if (isFilterQuickSearchLauncherEvent(event)) return;
     if (event.relatedTarget && !cstSpotlight.contains(event.relatedTarget)) {
       closeCstSpotlight({ restoreFocus: false });
     }
   });
+
+  if (filterQuickSearchLauncher) {
+    const applePlatform = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent || "");
+    if (!applePlatform) {
+      filterQuickSearchLauncher.setAttribute("aria-keyshortcuts", "Control+K");
+      const commandKey = filterQuickSearchLauncher.querySelector(".filter-search-shortcut-command");
+      if (commandKey) {
+        commandKey.textContent = "Ctrl";
+        commandKey.classList.remove("filter-search-shortcut-command");
+        commandKey.classList.add("filter-search-shortcut-key--text");
+      }
+    }
+
+    filterQuickSearchLauncher.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+    });
+
+    filterQuickSearchLauncher.addEventListener("click", () => {
+      if (isCstSpotlightOpen()) {
+        cstSpotlightController?.focus();
+        return;
+      }
+      openCstSpotlight();
+    });
+  }
 
 }
 

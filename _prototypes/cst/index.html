@@ -352,7 +352,14 @@
     <aside class="filter-panel" id="filterPanel" aria-label="Filters">
       <div class="filter-header">
         <h2>Filters</h2>
-        <p id="filterResultCount" aria-live="polite">Showing 0 results</p>
+        <button class="filter-search filter-search-launcher" id="filterQuickSearchLauncher" type="button" aria-haspopup="dialog" aria-controls="cstSpotlight" aria-expanded="false" aria-keyshortcuts="Meta+K">
+          <img class="filter-search-icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
+          <span class="filter-search-placeholder">Quick search</span>
+          <span class="filter-search-shortcut" aria-hidden="true">
+            <span class="filter-search-shortcut-key filter-search-shortcut-command">⌘</span>
+            <span class="filter-search-shortcut-key">K</span>
+          </span>
+        </button>
       </div>
       <div class="filter-scroll">
 
