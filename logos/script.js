@@ -1,70 +1,11 @@
 (() => {
-  const COLLECTIONS = window.LOGO_COLLECTION || { franchisees: [], franchises: [] };
-  const LOGO_ROOT = "../assets/logos";
-  const ACRONYMS = new Set([
-    "llc", "qsr", "srg", "plk", "pcrk", "sscp", "wks", "gps", "mbn", "ta", "fp", "cr", "ihop", "ups", "sbj", "kk", "pmg", "usa"
-  ]);
-  const LABEL_OVERRIDES = {
-    "7eleven": "7-Eleven",
-    "b-and-g-food-enterprises-llc": "B&G Food Enterprises LLC",
-    "k-mac-enterprises-inc": "K-Mac Enterprises Inc",
-    "captain-ds": "Captain D's",
-    "chick-fil-a": "Chick-fil-A",
-    "chilis": "Chili's",
-    "coffee-bean-tea-leaf": "Coffee Bean & Tea Leaf",
-    "daves-hot-chicken": "Dave's Hot Chicken",
-    "dennys": "Denny's",
-    "diya-raishaan-holdings": "Diya & Raishaan Holdings",
-    "dunkin": "Dunkin'",
-    "f45-training": "F45 Training",
-    "gilligan-company": "Gilligan Company LLC",
-    "golds-gym": "Gold's Gym",
-    "i9-sports": "i9 Sports",
-    "jersey-mikes": "Jersey Mike's",
-    "love-s-travel-stops": "Love's Travel Stops",
-    "jimmy-johns": "Jimmy John's",
-    "mcdonalds": "McDonald's",
-    "papa-johns": "Papa John's",
-    "qdoba": "QDOBA",
-    "remax": "RE/MAX",
-    "romulus-restaurants-l-l-c": "Romulus Restaurants LLC",
-    "see-and-be-kitchen": "See & Be Kitchen",
-    "tommy-pollina": "Tommy Pollina Landscape Co",
-    "tony-romas": "Tony Roma's",
-    "tony-romas-bones-burgers": "Tony Roma's Bones & Burgers",
-    "wendys": "Wendy's"
-  };
+  const API_URL = "api.json";
 
   const select = document.querySelector("[data-logo-collection]");
   const grid = document.querySelector("[data-logo-grid]");
   const searchInput = document.querySelector("[data-logo-search]");
   const searchClear = document.querySelector("[data-logo-search-clear]");
   const empty = document.querySelector("[data-logo-empty]");
-
-  const titleCaseLabel = (file) => {
-    const stem = file.replace(/\.[^.]+$/, "");
-    if (LABEL_OVERRIDES[stem]) {
-      return LABEL_OVERRIDES[stem];
-    }
-
-    return stem
-      .replace(/-l-l-c$/, "-llc")
-      .split("-")
-      .filter(Boolean)
-      .map((part, index) => {
-        if (ACRONYMS.has(part)) {
-          return part.toUpperCase();
-        }
-        if (index > 0 && (part === "and" || part === "of")) {
-          return part;
-        }
-        if (part === "inc") {
-          return "Inc";
-        }
-        return part.charAt(0).toUpperCase() + part.slice(1);
-      })
-      .join(" ");
-  };
 
   const readCollection = () => {
     const requested = new URLSearchParams(window.location.search).get("collection");
@@ -114,16 +55,19 @@
     syncSearchChrome();
   };
 
+  let catalog = [];
+
   const render = (collection) => {
-    const files = COLLECTIONS[collection] || [];
-    const items = files
-      .map((file) => {
-        const label = titleCaseLabel(file);
+    const items = catalog
+      .filter((logo) => logo.collection === collection)
+      .map((logo) => {
+        const label = logo.name || logo.file;
+        const file = logo.file;
         return {
           file,
           label,
           search: normalizeSearch(`${label} ${file}`),
-          src: `${LOGO_ROOT}/${collection}/${encodeURIComponent(file)}`
+          src: new URL(logo.url, new URL(API_URL, window.location.href)).href
         };
       })
       .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
@@ -164,14 +108,40 @@
   );
 
   const initial = readCollection();
-  window.WefranchFilterCombobox?.enhance(select, {
+  const combobox = window.WefranchFilterCombobox?.enhance(select, {
     singleSelect: true,
     clearable: false,
     searchable: false
   });
-  window.WefranchFilterCombobox?.setValue(select, initial, { dispatch: false });
+  if (combobox) {
+    combobox.setValue(initial, { dispatch: false });
+  } else {
+    select.value = initial;
+  }
   window.WefranchFilterCombobox?.bindOutsideClick();
-  render(initial);
+
+  const showLoadError = () => {
+    if (!empty) return;
+    empty.hidden = false;
+    empty.textContent = "Couldn't load logos.";
+  };
+
+  window.wefranchPageLoading?.hold();
+  fetch(API_URL)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Logo API responded ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((api) => {
+      catalog = Array.isArray(api?.logos) ? api.logos : [];
+      render(readSelectedCollection());
+    })
+    .catch(showLoadError)
+    .finally(() => {
+      window.wefranchPageLoading?.done();
+    });
 
   select.addEventListener("change", () => {
     const collection = readSelectedCollection();

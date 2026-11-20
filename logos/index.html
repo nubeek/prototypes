@@ -24,16 +24,7 @@
   <script src="../scripts/proto-nav.js"></script>
   <link rel="stylesheet" href="../styles/gate.css" />
 </head>
-<body class="access-locked">
-  <div class="access-gate" data-access-gate>
-    <form class="access-gate__panel" data-access-form autocomplete="off" method="get" action="./">
-      <label class="access-gate__label" for="accessPassword">To access this page enter password:</label>
-      <input class="access-gate__input" id="accessPassword" data-access-password type="text" name="accessKey" autocomplete="off" />
-      <button class="ui-control ui-button ui-button-primary access-gate__button" type="submit">Access</button>
-      <p class="access-gate__error" data-access-error role="alert" hidden>Incorrect password.</p>
-    </form>
-  </div>
-
+<body>
   <div class="logo-page">
     <header class="logo-toolbar">
       <h1 class="logo-toolbar-title">Logo Collection</h1>
@@ -74,7 +65,6 @@
   </div>
 
   <script src="../_prototypes/shared/filter/filter-combobox.js"></script>
-  <script src="collection.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

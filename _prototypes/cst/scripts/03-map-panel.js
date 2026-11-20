@@ -1969,7 +1969,9 @@ function resetPanelModeAfterClose(closingMode) {
 
 // `skipViewRefresh` is for callers that already ran the filter/sort/map pipeline
 // for this same change, so the table and map points are not rebuilt twice.
-function openSidebar(mode, ownerIndex = null, { scrollTable = false, skipViewRefresh = false } = {}) {
+function openSidebar(mode, ownerIndex = null, { scrollTable = false, skipViewRefresh = false, keepCardReturn = false } = {}) {
+  if (!keepCardReturn) detailCardOrgReturnIndex = null;
+
   const owner = ownerIndex !== null
     ? owners.find((item) => item.originalIndex === ownerIndex)
     : null;
@@ -2027,6 +2029,7 @@ function openSidebar(mode, ownerIndex = null, { scrollTable = false, skipViewRef
 function closeSidebar({ skipViewRefresh = false } = {}) {
   const closingMode = getCurrentPanelMode();
 
+  detailCardOrgReturnIndex = null;
   lockedToolbarMode = null;
   clearSidebarOwnerState();
   card?.classList.remove("is-map-open");
@@ -2043,9 +2046,14 @@ function isToolbarTabOpen(mode, currentMode = getCurrentPanelMode()) {
   return currentMode === mode;
 }
 
+function getToolbarPanelMode(mode = getCurrentPanelMode()) {
+  if (detailCardOrgReturnIndex !== null && mode === "org") return "details";
+  return mode;
+}
+
 function handleToolbarTabClick(mode) {
   const isPanelOpen = card?.classList.contains("is-map-open");
-  const currentMode = getCurrentPanelMode();
+  const currentMode = getToolbarPanelMode();
 
   if (isPanelOpen && isToolbarTabOpen(mode, currentMode)) {
     closeSidebar();
@@ -2066,6 +2074,14 @@ function handleToolbarTabClick(mode) {
 
 function handleSidebarClose() {
   const currentMode = getCurrentPanelMode();
+
+  if (currentMode === "org" && detailCardOrgReturnIndex !== null && lockedToolbarMode !== "org") {
+    const ownerIndex = detailCardOrgReturnIndex;
+    detailCardOrgReturnIndex = null;
+    if (lockedToolbarMode !== "raw") lockedToolbarMode = "map";
+    openSidebar("details", ownerIndex);
+    return;
+  }
 
   if (lockedToolbarMode === currentMode) {
     openSidebar(currentMode, null);
@@ -2214,11 +2230,12 @@ function syncToolbarTabButton(button, isOpen, isLocked) {
 function syncToolbarTabState(mode = getCurrentPanelMode()) {
   const isFilterOpen = card?.classList.contains("is-filter-open");
   const isPanelOpen = Boolean(card?.classList.contains("is-map-open"));
+  const toolbarMode = getToolbarPanelMode(mode);
 
   filterToggle?.classList.toggle("is-active", Boolean(isFilterOpen));
-  syncToolbarTabButton(mapToggle, isPanelOpen && isToolbarTabOpen("map", mode), lockedToolbarMode === "map");
-  syncToolbarTabButton(orgChartToggle, isPanelOpen && mode === "org", lockedToolbarMode === "org");
-  syncToolbarTabButton(contactsToggle, isPanelOpen && mode === "raw", lockedToolbarMode === "raw");
+  syncToolbarTabButton(mapToggle, isPanelOpen && isToolbarTabOpen("map", toolbarMode), lockedToolbarMode === "map");
+  syncToolbarTabButton(orgChartToggle, isPanelOpen && toolbarMode === "org", lockedToolbarMode === "org");
+  syncToolbarTabButton(contactsToggle, isPanelOpen && toolbarMode === "raw", lockedToolbarMode === "raw");
   closeToolbarTabDropdowns();
   syncOwnerHeaderViewState();
   persistViewSettings();
@@ -2372,7 +2389,8 @@ function openMapPanel(mode = "map", { scrollTable = false } = {}) {
   const wasPanelOpen = card.classList.contains("is-map-open");
 
   card.classList.add("is-map-open");
-  mapToggle.setAttribute("aria-expanded", String(mode === "map" || mode === "details"));
+  const toolbarMode = getToolbarPanelMode(mode);
+  mapToggle.setAttribute("aria-expanded", String(toolbarMode === "map" || toolbarMode === "details"));
   setPanelMode(mode);
 
   // Only scroll the table to expose the action columns when the caller

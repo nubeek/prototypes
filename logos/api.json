@@ -1,0 +1,1341 @@
+{
+  "name": "Logo Collection",
+  "description": "Resolve each logo url against this file's URL.",
+  "collections": [
+    {
+      "id": "franchisees",
+      "label": "Franchisees",
+      "count": 87
+    },
+    {
+      "id": "franchises",
+      "label": "Franchises",
+      "count": 102
+    }
+  ],
+  "logos": [
+    {
+      "id": "franchisees/aligned-fitness-holdings",
+      "collection": "franchisees",
+      "name": "Aligned Fitness Holdings",
+      "file": "aligned-fitness-holdings.png",
+      "url": "../assets/logos/franchisees/aligned-fitness-holdings.png"
+    },
+    {
+      "id": "franchisees/ambrosia-qsr",
+      "collection": "franchisees",
+      "name": "Ambrosia QSR",
+      "file": "ambrosia-qsr.png",
+      "url": "../assets/logos/franchisees/ambrosia-qsr.png"
+    },
+    {
+      "id": "franchisees/american-west",
+      "collection": "franchisees",
+      "name": "American West",
+      "file": "american-west.png",
+      "url": "../assets/logos/franchisees/american-west.png"
+    },
+    {
+      "id": "franchisees/applegreen",
+      "collection": "franchisees",
+      "name": "Applegreen",
+      "file": "applegreen.png",
+      "url": "../assets/logos/franchisees/applegreen.png"
+    },
+    {
+      "id": "franchisees/aramark-services-inc",
+      "collection": "franchisees",
+      "name": "Aramark Services Inc",
+      "file": "aramark-services-inc.png",
+      "url": "../assets/logos/franchisees/aramark-services-inc.png"
+    },
+    {
+      "id": "franchisees/argonne-capital",
+      "collection": "franchisees",
+      "name": "Argonne Capital",
+      "file": "argonne-capital.jpg",
+      "url": "../assets/logos/franchisees/argonne-capital.jpg"
+    },
+    {
+      "id": "franchisees/artemis-wax",
+      "collection": "franchisees",
+      "name": "Artemis Wax",
+      "file": "artemis-wax.png",
+      "url": "../assets/logos/franchisees/artemis-wax.png"
+    },
+    {
+      "id": "franchisees/atticus-franchise-group",
+      "collection": "franchisees",
+      "name": "Atticus Franchise Group",
+      "file": "atticus-franchise-group.png",
+      "url": "../assets/logos/franchisees/atticus-franchise-group.png"
+    },
+    {
+      "id": "franchisees/aurify-kingstar",
+      "collection": "franchisees",
+      "name": "Aurify Kingstar",
+      "file": "aurify-kingstar.png",
+      "url": "../assets/logos/franchisees/aurify-kingstar.png"
+    },
+    {
+      "id": "franchisees/b-and-g-food-enterprises-llc",
+      "collection": "franchisees",
+      "name": "B&G Food Enterprises LLC",
+      "file": "b-and-g-food-enterprises-llc.png",
+      "url": "../assets/logos/franchisees/b-and-g-food-enterprises-llc.png"
+    },
+    {
+      "id": "franchisees/bandon-holdings",
+      "collection": "franchisees",
+      "name": "Bandon Holdings",
+      "file": "bandon-holdings.png",
+      "url": "../assets/logos/franchisees/bandon-holdings.png"
+    },
+    {
+      "id": "franchisees/baseline-mayfair",
+      "collection": "franchisees",
+      "name": "Baseline Mayfair",
+      "file": "baseline-mayfair.jpg",
+      "url": "../assets/logos/franchisees/baseline-mayfair.jpg"
+    },
+    {
+      "id": "franchisees/black-duck-partners",
+      "collection": "franchisees",
+      "name": "Black Duck Partners",
+      "file": "black-duck-partners.jpg",
+      "url": "../assets/logos/franchisees/black-duck-partners.jpg"
+    },
+    {
+      "id": "franchisees/bluemont-group-llc",
+      "collection": "franchisees",
+      "name": "Bluemont Group LLC",
+      "file": "bluemont-group-llc.png",
+      "url": "../assets/logos/franchisees/bluemont-group-llc.png"
+    },
+    {
+      "id": "franchisees/chaac-foods-restaurants",
+      "collection": "franchisees",
+      "name": "Chaac Foods Restaurants",
+      "file": "chaac-foods-restaurants.png",
+      "url": "../assets/logos/franchisees/chaac-foods-restaurants.png"
+    },
+    {
+      "id": "franchisees/chenega-corporation",
+      "collection": "franchisees",
+      "name": "Chenega Corporation",
+      "file": "chenega-corporation.png",
+      "url": "../assets/logos/franchisees/chenega-corporation.png"
+    },
+    {
+      "id": "franchisees/chunara-group-of-companies",
+      "collection": "franchisees",
+      "name": "Chunara Group of Companies",
+      "file": "chunara-group-of-companies.png",
+      "url": "../assets/logos/franchisees/chunara-group-of-companies.png"
+    },
+    {
+      "id": "franchisees/compass-group-usa",
+      "collection": "franchisees",
+      "name": "Compass Group USA",
+      "file": "compass-group-usa.png",
+      "url": "../assets/logos/franchisees/compass-group-usa.png"
+    },
+    {
+      "id": "franchisees/continental-superior-management-group",
+      "collection": "franchisees",
+      "name": "Continental Superior Management Group",
+      "file": "continental-superior-management-group.png",
+      "url": "../assets/logos/franchisees/continental-superior-management-group.png"
+    },
+    {
+      "id": "franchisees/cr-fitness-holdings",
+      "collection": "franchisees",
+      "name": "CR Fitness Holdings",
+      "file": "cr-fitness-holdings.png",
+      "url": "../assets/logos/franchisees/cr-fitness-holdings.png"
+    },
+    {
+      "id": "franchisees/denco-enterprises-inc",
+      "collection": "franchisees",
+      "name": "Denco Enterprises Inc",
+      "file": "denco-enterprises-inc.png",
+      "url": "../assets/logos/franchisees/denco-enterprises-inc.png"
+    },
+    {
+      "id": "franchisees/devs-foods",
+      "collection": "franchisees",
+      "name": "Devs Foods",
+      "file": "devs-foods.png",
+      "url": "../assets/logos/franchisees/devs-foods.png"
+    },
+    {
+      "id": "franchisees/dhanani-group",
+      "collection": "franchisees",
+      "name": "Dhanani Group",
+      "file": "dhanani-group.png",
+      "url": "../assets/logos/franchisees/dhanani-group.png"
+    },
+    {
+      "id": "franchisees/diya-raishaan-holdings",
+      "collection": "franchisees",
+      "name": "Diya & Raishaan Holdings",
+      "file": "diya-raishaan-holdings.jpg",
+      "url": "../assets/logos/franchisees/diya-raishaan-holdings.jpg"
+    },
+    {
+      "id": "franchisees/doherty-enterprises",
+      "collection": "franchisees",
+      "name": "Doherty Enterprises",
+      "file": "doherty-enterprises.png",
+      "url": "../assets/logos/franchisees/doherty-enterprises.png"
+    },
+    {
+      "id": "franchisees/dyne-hospitality-group",
+      "collection": "franchisees",
+      "name": "Dyne Hospitality Group",
+      "file": "dyne-hospitality-group.png",
+      "url": "../assets/logos/franchisees/dyne-hospitality-group.png"
+    },
+    {
+      "id": "franchisees/easy-mile-fitness",
+      "collection": "franchisees",
+      "name": "Easy Mile Fitness",
+      "file": "easy-mile-fitness.jpg",
+      "url": "../assets/logos/franchisees/easy-mile-fitness.jpg"
+    },
+    {
+      "id": "franchisees/epic-fitness",
+      "collection": "franchisees",
+      "name": "Epic Fitness",
+      "file": "epic-fitness.jpg",
+      "url": "../assets/logos/franchisees/epic-fitness.jpg"
+    },
+    {
+      "id": "franchisees/excel-fitness-holdings",
+      "collection": "franchisees",
+      "name": "Excel Fitness Holdings",
+      "file": "excel-fitness-holdings.png",
+      "url": "../assets/logos/franchisees/excel-fitness-holdings.png"
+    },
+    {
+      "id": "franchisees/fitness-ventures-llc",
+      "collection": "franchisees",
+      "name": "Fitness Ventures LLC",
+      "file": "fitness-ventures-llc.png",
+      "url": "../assets/logos/franchisees/fitness-ventures-llc.png"
+    },
+    {
+      "id": "franchisees/flynn-fitness",
+      "collection": "franchisees",
+      "name": "Flynn Fitness",
+      "file": "flynn-fitness.jpg",
+      "url": "../assets/logos/franchisees/flynn-fitness.jpg"
+    },
+    {
+      "id": "franchisees/flynn-group",
+      "collection": "franchisees",
+      "name": "Flynn Group",
+      "file": "flynn-group.jpg",
+      "url": "../assets/logos/franchisees/flynn-group.jpg"
+    },
+    {
+      "id": "franchisees/gilligan-company",
+      "collection": "franchisees",
+      "name": "Gilligan Company LLC",
+      "file": "gilligan-company.jpg",
+      "url": "../assets/logos/franchisees/gilligan-company.jpg"
+    },
+    {
+      "id": "franchisees/gps-hospitality",
+      "collection": "franchisees",
+      "name": "GPS Hospitality",
+      "file": "gps-hospitality.png",
+      "url": "../assets/logos/franchisees/gps-hospitality.png"
+    },
+    {
+      "id": "franchisees/grand-fitness-partners",
+      "collection": "franchisees",
+      "name": "Grand Fitness Partners",
+      "file": "grand-fitness-partners.png",
+      "url": "../assets/logos/franchisees/grand-fitness-partners.png"
+    },
+    {
+      "id": "franchisees/hamra-enterprises",
+      "collection": "franchisees",
+      "name": "Hamra Enterprises",
+      "file": "hamra-enterprises.png",
+      "url": "../assets/logos/franchisees/hamra-enterprises.png"
+    },
+    {
+      "id": "franchisees/international-restaurant-management-group",
+      "collection": "franchisees",
+      "name": "International Restaurant Management Group",
+      "file": "international-restaurant-management-group.png",
+      "url": "../assets/logos/franchisees/international-restaurant-management-group.png"
+    },
+    {
+      "id": "franchisees/janjer-enterprises-inc",
+      "collection": "franchisees",
+      "name": "Janjer Enterprises Inc",
+      "file": "janjer-enterprises-inc.png",
+      "url": "../assets/logos/franchisees/janjer-enterprises-inc.png"
+    },
+    {
+      "id": "franchisees/jones-petroleum",
+      "collection": "franchisees",
+      "name": "Jones Petroleum",
+      "file": "jones-petroleum.png",
+      "url": "../assets/logos/franchisees/jones-petroleum.png"
+    },
+    {
+      "id": "franchisees/k-mac-enterprises-inc",
+      "collection": "franchisees",
+      "name": "K-Mac Enterprises Inc",
+      "file": "k-mac-enterprises-inc.png",
+      "url": "../assets/logos/franchisees/k-mac-enterprises-inc.png"
+    },
+    {
+      "id": "franchisees/kidscorp",
+      "collection": "franchisees",
+      "name": "Kidscorp",
+      "file": "kidscorp.jpg",
+      "url": "../assets/logos/franchisees/kidscorp.jpg"
+    },
+    {
+      "id": "franchisees/kk-corporation",
+      "collection": "franchisees",
+      "name": "KK Corporation",
+      "file": "kk-corporation.png",
+      "url": "../assets/logos/franchisees/kk-corporation.png"
+    },
+    {
+      "id": "franchisees/l5-fitness",
+      "collection": "franchisees",
+      "name": "L5 Fitness",
+      "file": "l5-fitness.jpg",
+      "url": "../assets/logos/franchisees/l5-fitness.jpg"
+    },
+    {
+      "id": "franchisees/love-s-travel-stops",
+      "collection": "franchisees",
+      "name": "Love's Travel Stops",
+      "file": "love-s-travel-stops.png",
+      "url": "../assets/logos/franchisees/love-s-travel-stops.png"
+    },
+    {
+      "id": "franchisees/mbn-brands",
+      "collection": "franchisees",
+      "name": "MBN Brands",
+      "file": "mbn-brands.png",
+      "url": "../assets/logos/franchisees/mbn-brands.png"
+    },
+    {
+      "id": "franchisees/national-fitness-partners",
+      "collection": "franchisees",
+      "name": "National Fitness Partners",
+      "file": "national-fitness-partners.png",
+      "url": "../assets/logos/franchisees/national-fitness-partners.png"
+    },
+    {
+      "id": "franchisees/north-american-wax-company",
+      "collection": "franchisees",
+      "name": "North American Wax Company",
+      "file": "north-american-wax-company.png",
+      "url": "../assets/logos/franchisees/north-american-wax-company.png"
+    },
+    {
+      "id": "franchisees/ohana-growth-partners",
+      "collection": "franchisees",
+      "name": "Ohana Growth Partners",
+      "file": "ohana-growth-partners.jpg",
+      "url": "../assets/logos/franchisees/ohana-growth-partners.jpg"
+    },
+    {
+      "id": "franchisees/olympus-partners",
+      "collection": "franchisees",
+      "name": "Olympus Partners",
+      "file": "olympus-partners.jpg",
+      "url": "../assets/logos/franchisees/olympus-partners.jpg"
+    },
+    {
+      "id": "franchisees/omega-fitness",
+      "collection": "franchisees",
+      "name": "Omega Fitness",
+      "file": "omega-fitness.png",
+      "url": "../assets/logos/franchisees/omega-fitness.png"
+    },
+    {
+      "id": "franchisees/pacific-bells",
+      "collection": "franchisees",
+      "name": "Pacific Bells",
+      "file": "pacific-bells.png",
+      "url": "../assets/logos/franchisees/pacific-bells.png"
+    },
+    {
+      "id": "franchisees/pcrk-group",
+      "collection": "franchisees",
+      "name": "PCRK Group",
+      "file": "pcrk-group.png",
+      "url": "../assets/logos/franchisees/pcrk-group.png"
+    },
+    {
+      "id": "franchisees/pilot-travel-centers",
+      "collection": "franchisees",
+      "name": "Pilot Travel Centers",
+      "file": "pilot-travel-centers.png",
+      "url": "../assets/logos/franchisees/pilot-travel-centers.png"
+    },
+    {
+      "id": "franchisees/pinnacle",
+      "collection": "franchisees",
+      "name": "Pinnacle",
+      "file": "pinnacle.jpg",
+      "url": "../assets/logos/franchisees/pinnacle.jpg"
+    },
+    {
+      "id": "franchisees/planet-fitness-corporate",
+      "collection": "franchisees",
+      "name": "Planet Fitness Corporate",
+      "file": "planet-fitness-corporate.jpg",
+      "url": "../assets/logos/franchisees/planet-fitness-corporate.jpg"
+    },
+    {
+      "id": "franchisees/pmg-travel-plaza",
+      "collection": "franchisees",
+      "name": "PMG Travel Plaza",
+      "file": "pmg-travel-plaza.png",
+      "url": "../assets/logos/franchisees/pmg-travel-plaza.png"
+    },
+    {
+      "id": "franchisees/premium-loaves",
+      "collection": "franchisees",
+      "name": "Premium Loaves",
+      "file": "premium-loaves.png",
+      "url": "../assets/logos/franchisees/premium-loaves.png"
+    },
+    {
+      "id": "franchisees/princess-street-partners",
+      "collection": "franchisees",
+      "name": "Princess Street Partners",
+      "file": "princess-street-partners.png",
+      "url": "../assets/logos/franchisees/princess-street-partners.png"
+    },
+    {
+      "id": "franchisees/quality-brand-group",
+      "collection": "franchisees",
+      "name": "Quality Brand Group",
+      "file": "quality-brand-group.png",
+      "url": "../assets/logos/franchisees/quality-brand-group.png"
+    },
+    {
+      "id": "franchisees/rackson-restaurants-llc",
+      "collection": "franchisees",
+      "name": "Rackson Restaurants LLC",
+      "file": "rackson-restaurants-llc.png",
+      "url": "../assets/logos/franchisees/rackson-restaurants-llc.png"
+    },
+    {
+      "id": "franchisees/riser-fitness",
+      "collection": "franchisees",
+      "name": "Riser Fitness",
+      "file": "riser-fitness.png",
+      "url": "../assets/logos/franchisees/riser-fitness.png"
+    },
+    {
+      "id": "franchisees/romulus-restaurants-l-l-c",
+      "collection": "franchisees",
+      "name": "Romulus Restaurants LLC",
+      "file": "romulus-restaurants-l-l-c.png",
+      "url": "../assets/logos/franchisees/romulus-restaurants-l-l-c.png"
+    },
+    {
+      "id": "franchisees/sailormen",
+      "collection": "franchisees",
+      "name": "Sailormen",
+      "file": "sailormen.png",
+      "url": "../assets/logos/franchisees/sailormen.png"
+    },
+    {
+      "id": "franchisees/sbj",
+      "collection": "franchisees",
+      "name": "SBJ",
+      "file": "sbj.jpg",
+      "url": "../assets/logos/franchisees/sbj.jpg"
+    },
+    {
+      "id": "franchisees/sizzling-platter",
+      "collection": "franchisees",
+      "name": "Sizzling Platter",
+      "file": "sizzling-platter.png",
+      "url": "../assets/logos/franchisees/sizzling-platter.png"
+    },
+    {
+      "id": "franchisees/sodexo-operations",
+      "collection": "franchisees",
+      "name": "Sodexo Operations",
+      "file": "sodexo-operations.png",
+      "url": "../assets/logos/franchisees/sodexo-operations.png"
+    },
+    {
+      "id": "franchisees/southpaw",
+      "collection": "franchisees",
+      "name": "Southpaw",
+      "file": "southpaw.png",
+      "url": "../assets/logos/franchisees/southpaw.png"
+    },
+    {
+      "id": "franchisees/spartan-fitness-holdings",
+      "collection": "franchisees",
+      "name": "Spartan Fitness Holdings",
+      "file": "spartan-fitness-holdings.jpg",
+      "url": "../assets/logos/franchisees/spartan-fitness-holdings.jpg"
+    },
+    {
+      "id": "franchisees/spin-the-planet",
+      "collection": "franchisees",
+      "name": "Spin The Planet",
+      "file": "spin-the-planet.png",
+      "url": "../assets/logos/franchisees/spin-the-planet.png"
+    },
+    {
+      "id": "franchisees/srg-plk",
+      "collection": "franchisees",
+      "name": "SRG PLK",
+      "file": "srg-plk.png",
+      "url": "../assets/logos/franchisees/srg-plk.png"
+    },
+    {
+      "id": "franchisees/sscp-management",
+      "collection": "franchisees",
+      "name": "SSCP Management",
+      "file": "sscp-management.png",
+      "url": "../assets/logos/franchisees/sscp-management.png"
+    },
+    {
+      "id": "franchisees/sun-holdings",
+      "collection": "franchisees",
+      "name": "Sun Holdings",
+      "file": "sun-holdings.png",
+      "url": "../assets/logos/franchisees/sun-holdings.png"
+    },
+    {
+      "id": "franchisees/sunshine-restaurant-partners",
+      "collection": "franchisees",
+      "name": "Sunshine Restaurant Partners",
+      "file": "sunshine-restaurant-partners.png",
+      "url": "../assets/logos/franchisees/sunshine-restaurant-partners.png"
+    },
+    {
+      "id": "franchisees/ta-operating-llc",
+      "collection": "franchisees",
+      "name": "TA Operating LLC",
+      "file": "ta-operating-llc.png",
+      "url": "../assets/logos/franchisees/ta-operating-llc.png"
+    },
+    {
+      "id": "franchisees/taymax-group",
+      "collection": "franchisees",
+      "name": "Taymax Group",
+      "file": "taymax-group.png",
+      "url": "../assets/logos/franchisees/taymax-group.png"
+    },
+    {
+      "id": "franchisees/team-lyders",
+      "collection": "franchisees",
+      "name": "Team Lyders",
+      "file": "team-lyders.png",
+      "url": "../assets/logos/franchisees/team-lyders.png"
+    },
+    {
+      "id": "franchisees/team-schostak-family-restaurants",
+      "collection": "franchisees",
+      "name": "Team Schostak Family Restaurants",
+      "file": "team-schostak-family-restaurants.png",
+      "url": "../assets/logos/franchisees/team-schostak-family-restaurants.png"
+    },
+    {
+      "id": "franchisees/the-phoenix-organization",
+      "collection": "franchisees",
+      "name": "The Phoenix Organization",
+      "file": "the-phoenix-organization.png",
+      "url": "../assets/logos/franchisees/the-phoenix-organization.png"
+    },
+    {
+      "id": "franchisees/the-rose-group",
+      "collection": "franchisees",
+      "name": "The Rose Group",
+      "file": "the-rose-group.png",
+      "url": "../assets/logos/franchisees/the-rose-group.png"
+    },
+    {
+      "id": "franchisees/the-wolak-group",
+      "collection": "franchisees",
+      "name": "The Wolak Group",
+      "file": "the-wolak-group.png",
+      "url": "../assets/logos/franchisees/the-wolak-group.png"
+    },
+    {
+      "id": "franchisees/tomey-group-llc",
+      "collection": "franchisees",
+      "name": "Tomey Group LLC",
+      "file": "tomey-group-llc.png",
+      "url": "../assets/logos/franchisees/tomey-group-llc.png"
+    },
+    {
+      "id": "franchisees/towerbrook",
+      "collection": "franchisees",
+      "name": "Towerbrook",
+      "file": "towerbrook.jpg",
+      "url": "../assets/logos/franchisees/towerbrook.jpg"
+    },
+    {
+      "id": "franchisees/trilantic-capital-management",
+      "collection": "franchisees",
+      "name": "Trilantic Capital Management",
+      "file": "trilantic-capital-management.jpg",
+      "url": "../assets/logos/franchisees/trilantic-capital-management.jpg"
+    },
+    {
+      "id": "franchisees/united-fp",
+      "collection": "franchisees",
+      "name": "United FP",
+      "file": "united-fp.jpg",
+      "url": "../assets/logos/franchisees/united-fp.jpg"
+    },
+    {
+      "id": "franchisees/victory-marketing",
+      "collection": "franchisees",
+      "name": "Victory Marketing",
+      "file": "victory-marketing.png",
+      "url": "../assets/logos/franchisees/victory-marketing.png"
+    },
+    {
+      "id": "franchisees/wks-restaurant-group",
+      "collection": "franchisees",
+      "name": "WKS Restaurant Group",
+      "file": "wks-restaurant-group.png",
+      "url": "../assets/logos/franchisees/wks-restaurant-group.png"
+    },
+    {
+      "id": "franchisees/york-capital-management",
+      "collection": "franchisees",
+      "name": "York Capital Management",
+      "file": "york-capital-management.jpg",
+      "url": "../assets/logos/franchisees/york-capital-management.jpg"
+    },
+    {
+      "id": "franchises/7eleven",
+      "collection": "franchises",
+      "name": "7-Eleven",
+      "file": "7eleven.jpg",
+      "url": "../assets/logos/franchises/7eleven.jpg"
+    },
+    {
+      "id": "franchises/ace-handyman-services",
+      "collection": "franchises",
+      "name": "Ace Handyman Services",
+      "file": "ace-handyman-services.png",
+      "url": "../assets/logos/franchises/ace-handyman-services.png"
+    },
+    {
+      "id": "franchises/aire-serv",
+      "collection": "franchises",
+      "name": "Aire Serv",
+      "file": "aire-serv.png",
+      "url": "../assets/logos/franchises/aire-serv.png"
+    },
+    {
+      "id": "franchises/anytime-fitness",
+      "collection": "franchises",
+      "name": "Anytime Fitness",
+      "file": "anytime-fitness.png",
+      "url": "../assets/logos/franchises/anytime-fitness.png"
+    },
+    {
+      "id": "franchises/applebees",
+      "collection": "franchises",
+      "name": "Applebees",
+      "file": "applebees.png",
+      "url": "../assets/logos/franchises/applebees.png"
+    },
+    {
+      "id": "franchises/area-2-farms",
+      "collection": "franchises",
+      "name": "Area 2 Farms",
+      "file": "area-2-farms.jpg",
+      "url": "../assets/logos/franchises/area-2-farms.jpg"
+    },
+    {
+      "id": "franchises/aussie-pet-mobile",
+      "collection": "franchises",
+      "name": "Aussie Pet Mobile",
+      "file": "aussie-pet-mobile.png",
+      "url": "../assets/logos/franchises/aussie-pet-mobile.png"
+    },
+    {
+      "id": "franchises/bay-area-kids-rentals",
+      "collection": "franchises",
+      "name": "Bay Area Kids Rentals",
+      "file": "bay-area-kids-rentals.jpg",
+      "url": "../assets/logos/franchises/bay-area-kids-rentals.jpg"
+    },
+    {
+      "id": "franchises/black-sheep-coffee",
+      "collection": "franchises",
+      "name": "Black Sheep Coffee",
+      "file": "black-sheep-coffee.jpg",
+      "url": "../assets/logos/franchises/black-sheep-coffee.jpg"
+    },
+    {
+      "id": "franchises/blaze-pizza",
+      "collection": "franchises",
+      "name": "Blaze Pizza",
+      "file": "blaze-pizza.png",
+      "url": "../assets/logos/franchises/blaze-pizza.png"
+    },
+    {
+      "id": "franchises/buffalo-wild-wings",
+      "collection": "franchises",
+      "name": "Buffalo Wild Wings",
+      "file": "buffalo-wild-wings.png",
+      "url": "../assets/logos/franchises/buffalo-wild-wings.png"
+    },
+    {
+      "id": "franchises/burger-king",
+      "collection": "franchises",
+      "name": "Burger King",
+      "file": "burger-king.jpg",
+      "url": "../assets/logos/franchises/burger-king.jpg"
+    },
+    {
+      "id": "franchises/captain-ds",
+      "collection": "franchises",
+      "name": "Captain D's",
+      "file": "captain-ds.png",
+      "url": "../assets/logos/franchises/captain-ds.png"
+    },
+    {
+      "id": "franchises/chick-fil-a",
+      "collection": "franchises",
+      "name": "Chick-fil-A",
+      "file": "chick-fil-a.jpg",
+      "url": "../assets/logos/franchises/chick-fil-a.jpg"
+    },
+    {
+      "id": "franchises/chilis",
+      "collection": "franchises",
+      "name": "Chili's",
+      "file": "chilis.png",
+      "url": "../assets/logos/franchises/chilis.png"
+    },
+    {
+      "id": "franchises/club-pilates",
+      "collection": "franchises",
+      "name": "Club Pilates",
+      "file": "club-pilates.jpg",
+      "url": "../assets/logos/franchises/club-pilates.jpg"
+    },
+    {
+      "id": "franchises/coffee-bean-tea-leaf",
+      "collection": "franchises",
+      "name": "Coffee Bean & Tea Leaf",
+      "file": "coffee-bean-tea-leaf.png",
+      "url": "../assets/logos/franchises/coffee-bean-tea-leaf.png"
+    },
+    {
+      "id": "franchises/college-hunks-hauling-junk-and-moving",
+      "collection": "franchises",
+      "name": "College Hunks Hauling Junk and Moving",
+      "file": "college-hunks-hauling-junk-and-moving.png",
+      "url": "../assets/logos/franchises/college-hunks-hauling-junk-and-moving.png"
+    },
+    {
+      "id": "franchises/crumbl-cookies",
+      "collection": "franchises",
+      "name": "Crumbl Cookies",
+      "file": "crumbl-cookies.png",
+      "url": "../assets/logos/franchises/crumbl-cookies.png"
+    },
+    {
+      "id": "franchises/crunch-fitness",
+      "collection": "franchises",
+      "name": "Crunch Fitness",
+      "file": "crunch-fitness.jpg",
+      "url": "../assets/logos/franchises/crunch-fitness.jpg"
+    },
+    {
+      "id": "franchises/daves-hot-chicken",
+      "collection": "franchises",
+      "name": "Dave's Hot Chicken",
+      "file": "daves-hot-chicken.png",
+      "url": "../assets/logos/franchises/daves-hot-chicken.png"
+    },
+    {
+      "id": "franchises/dennys",
+      "collection": "franchises",
+      "name": "Denny's",
+      "file": "dennys.png",
+      "url": "../assets/logos/franchises/dennys.png"
+    },
+    {
+      "id": "franchises/dominos",
+      "collection": "franchises",
+      "name": "Dominos",
+      "file": "dominos.jpg",
+      "url": "../assets/logos/franchises/dominos.jpg"
+    },
+    {
+      "id": "franchises/drybar",
+      "collection": "franchises",
+      "name": "Drybar",
+      "file": "drybar.png",
+      "url": "../assets/logos/franchises/drybar.png"
+    },
+    {
+      "id": "franchises/dryer-vent-wizard",
+      "collection": "franchises",
+      "name": "Dryer Vent Wizard",
+      "file": "dryer-vent-wizard.png",
+      "url": "../assets/logos/franchises/dryer-vent-wizard.png"
+    },
+    {
+      "id": "franchises/dunkin",
+      "collection": "franchises",
+      "name": "Dunkin'",
+      "file": "dunkin.jpg",
+      "url": "../assets/logos/franchises/dunkin.jpg"
+    },
+    {
+      "id": "franchises/european-wax-center",
+      "collection": "franchises",
+      "name": "European Wax Center",
+      "file": "european-wax-center.png",
+      "url": "../assets/logos/franchises/european-wax-center.png"
+    },
+    {
+      "id": "franchises/f45-training",
+      "collection": "franchises",
+      "name": "F45 Training",
+      "file": "f45-training.svg",
+      "url": "../assets/logos/franchises/f45-training.svg"
+    },
+    {
+      "id": "franchises/farmer-boys",
+      "collection": "franchises",
+      "name": "Farmer Boys",
+      "file": "farmer-boys.png",
+      "url": "../assets/logos/franchises/farmer-boys.png"
+    },
+    {
+      "id": "franchises/firehouse-subs",
+      "collection": "franchises",
+      "name": "Firehouse Subs",
+      "file": "firehouse-subs.png",
+      "url": "../assets/logos/franchises/firehouse-subs.png"
+    },
+    {
+      "id": "franchises/five-guys",
+      "collection": "franchises",
+      "name": "Five Guys",
+      "file": "five-guys.png",
+      "url": "../assets/logos/franchises/five-guys.png"
+    },
+    {
+      "id": "franchises/five-star-painting",
+      "collection": "franchises",
+      "name": "Five Star Painting",
+      "file": "five-star-painting.jpg",
+      "url": "../assets/logos/franchises/five-star-painting.jpg"
+    },
+    {
+      "id": "franchises/glass-doctor",
+      "collection": "franchises",
+      "name": "Glass Doctor",
+      "file": "glass-doctor.png",
+      "url": "../assets/logos/franchises/glass-doctor.png"
+    },
+    {
+      "id": "franchises/golds-gym",
+      "collection": "franchises",
+      "name": "Gold's Gym",
+      "file": "golds-gym.jpg",
+      "url": "../assets/logos/franchises/golds-gym.jpg"
+    },
+    {
+      "id": "franchises/housemaster",
+      "collection": "franchises",
+      "name": "Housemaster",
+      "file": "housemaster.png",
+      "url": "../assets/logos/franchises/housemaster.png"
+    },
+    {
+      "id": "franchises/i9-sports",
+      "collection": "franchises",
+      "name": "i9 Sports",
+      "file": "i9-sports.png",
+      "url": "../assets/logos/franchises/i9-sports.png"
+    },
+    {
+      "id": "franchises/ihop",
+      "collection": "franchises",
+      "name": "IHOP",
+      "file": "ihop.png",
+      "url": "../assets/logos/franchises/ihop.png"
+    },
+    {
+      "id": "franchises/jantize-america",
+      "collection": "franchises",
+      "name": "Jantize America",
+      "file": "jantize-america.png",
+      "url": "../assets/logos/franchises/jantize-america.png"
+    },
+    {
+      "id": "franchises/jersey-mikes",
+      "collection": "franchises",
+      "name": "Jersey Mike's",
+      "file": "jersey-mikes.png",
+      "url": "../assets/logos/franchises/jersey-mikes.png"
+    },
+    {
+      "id": "franchises/jimmy-johns",
+      "collection": "franchises",
+      "name": "Jimmy John's",
+      "file": "jimmy-johns.png",
+      "url": "../assets/logos/franchises/jimmy-johns.png"
+    },
+    {
+      "id": "franchises/junk-king",
+      "collection": "franchises",
+      "name": "Junk King",
+      "file": "junk-king.png",
+      "url": "../assets/logos/franchises/junk-king.png"
+    },
+    {
+      "id": "franchises/krispy-kreme",
+      "collection": "franchises",
+      "name": "Krispy Kreme",
+      "file": "krispy-kreme.png",
+      "url": "../assets/logos/franchises/krispy-kreme.png"
+    },
+    {
+      "id": "franchises/launch-family-entertainment",
+      "collection": "franchises",
+      "name": "Launch Family Entertainment",
+      "file": "launch-family-entertainment.png",
+      "url": "../assets/logos/franchises/launch-family-entertainment.png"
+    },
+    {
+      "id": "franchises/lawn-pride",
+      "collection": "franchises",
+      "name": "Lawn Pride",
+      "file": "lawn-pride.jpg",
+      "url": "../assets/logos/franchises/lawn-pride.jpg"
+    },
+    {
+      "id": "franchises/liftology",
+      "collection": "franchises",
+      "name": "Liftology",
+      "file": "liftology.jpg",
+      "url": "../assets/logos/franchises/liftology.jpg"
+    },
+    {
+      "id": "franchises/luxe-pet-care",
+      "collection": "franchises",
+      "name": "Luxe Pet Care",
+      "file": "luxe-pet-care.png",
+      "url": "../assets/logos/franchises/luxe-pet-care.png"
+    },
+    {
+      "id": "franchises/maidpro",
+      "collection": "franchises",
+      "name": "Maidpro",
+      "file": "maidpro.png",
+      "url": "../assets/logos/franchises/maidpro.png"
+    },
+    {
+      "id": "franchises/manna-coffee",
+      "collection": "franchises",
+      "name": "Manna Coffee",
+      "file": "manna-coffee.jpg",
+      "url": "../assets/logos/franchises/manna-coffee.jpg"
+    },
+    {
+      "id": "franchises/massage-envy",
+      "collection": "franchises",
+      "name": "Massage Envy",
+      "file": "massage-envy.png",
+      "url": "../assets/logos/franchises/massage-envy.png"
+    },
+    {
+      "id": "franchises/mathnasium",
+      "collection": "franchises",
+      "name": "Mathnasium",
+      "file": "mathnasium.png",
+      "url": "../assets/logos/franchises/mathnasium.png"
+    },
+    {
+      "id": "franchises/mcdonalds",
+      "collection": "franchises",
+      "name": "McDonald's",
+      "file": "mcdonalds.jpg",
+      "url": "../assets/logos/franchises/mcdonalds.jpg"
+    },
+    {
+      "id": "franchises/modo-yoga-international",
+      "collection": "franchises",
+      "name": "Modo Yoga International",
+      "file": "modo-yoga-international.png",
+      "url": "../assets/logos/franchises/modo-yoga-international.png"
+    },
+    {
+      "id": "franchises/molly-maid",
+      "collection": "franchises",
+      "name": "Molly Maid",
+      "file": "molly-maid.png",
+      "url": "../assets/logos/franchises/molly-maid.png"
+    },
+    {
+      "id": "franchises/mosquito-joe",
+      "collection": "franchises",
+      "name": "Mosquito Joe",
+      "file": "mosquito-joe.png",
+      "url": "../assets/logos/franchises/mosquito-joe.png"
+    },
+    {
+      "id": "franchises/mr-appliance",
+      "collection": "franchises",
+      "name": "Mr Appliance",
+      "file": "mr-appliance.png",
+      "url": "../assets/logos/franchises/mr-appliance.png"
+    },
+    {
+      "id": "franchises/mr-electric",
+      "collection": "franchises",
+      "name": "Mr Electric",
+      "file": "mr-electric.png",
+      "url": "../assets/logos/franchises/mr-electric.png"
+    },
+    {
+      "id": "franchises/mr-handyman",
+      "collection": "franchises",
+      "name": "Mr Handyman",
+      "file": "mr-handyman.png",
+      "url": "../assets/logos/franchises/mr-handyman.png"
+    },
+    {
+      "id": "franchises/mr-rooter",
+      "collection": "franchises",
+      "name": "Mr Rooter",
+      "file": "mr-rooter.png",
+      "url": "../assets/logos/franchises/mr-rooter.png"
+    },
+    {
+      "id": "franchises/orangetheory",
+      "collection": "franchises",
+      "name": "Orangetheory",
+      "file": "orangetheory.jpg",
+      "url": "../assets/logos/franchises/orangetheory.jpg"
+    },
+    {
+      "id": "franchises/outback-steakhouse",
+      "collection": "franchises",
+      "name": "Outback Steakhouse",
+      "file": "outback-steakhouse.png",
+      "url": "../assets/logos/franchises/outback-steakhouse.png"
+    },
+    {
+      "id": "franchises/panera-bread",
+      "collection": "franchises",
+      "name": "Panera Bread",
+      "file": "panera-bread.png",
+      "url": "../assets/logos/franchises/panera-bread.png"
+    },
+    {
+      "id": "franchises/papa-johns",
+      "collection": "franchises",
+      "name": "Papa John's",
+      "file": "papa-johns.png",
+      "url": "../assets/logos/franchises/papa-johns.png"
+    },
+    {
+      "id": "franchises/pepitos-paletas",
+      "collection": "franchises",
+      "name": "Pepitos Paletas",
+      "file": "pepitos-paletas.jpg",
+      "url": "../assets/logos/franchises/pepitos-paletas.jpg"
+    },
+    {
+      "id": "franchises/phenix-salon-suites",
+      "collection": "franchises",
+      "name": "Phenix Salon Suites",
+      "file": "phenix-salon-suites.png",
+      "url": "../assets/logos/franchises/phenix-salon-suites.png"
+    },
+    {
+      "id": "franchises/pizza-factory",
+      "collection": "franchises",
+      "name": "Pizza Factory",
+      "file": "pizza-factory.jpg",
+      "url": "../assets/logos/franchises/pizza-factory.jpg"
+    },
+    {
+      "id": "franchises/pizza-hut-traditional",
+      "collection": "franchises",
+      "name": "Pizza Hut Traditional",
+      "file": "pizza-hut-traditional.png",
+      "url": "../assets/logos/franchises/pizza-hut-traditional.png"
+    },
+    {
+      "id": "franchises/planet-fitness",
+      "collection": "franchises",
+      "name": "Planet Fitness",
+      "file": "planet-fitness.jpg",
+      "url": "../assets/logos/franchises/planet-fitness.jpg"
+    },
+    {
+      "id": "franchises/play-street-museum",
+      "collection": "franchises",
+      "name": "Play Street Museum",
+      "file": "play-street-museum.png",
+      "url": "../assets/logos/franchises/play-street-museum.png"
+    },
+    {
+      "id": "franchises/popeyes-louisiana-kitchen",
+      "collection": "franchises",
+      "name": "Popeyes Louisiana Kitchen",
+      "file": "popeyes-louisiana-kitchen.jpg",
+      "url": "../assets/logos/franchises/popeyes-louisiana-kitchen.jpg"
+    },
+    {
+      "id": "franchises/precision-door-service",
+      "collection": "franchises",
+      "name": "Precision Door Service",
+      "file": "precision-door-service.png",
+      "url": "../assets/logos/franchises/precision-door-service.png"
+    },
+    {
+      "id": "franchises/primrose-schools",
+      "collection": "franchises",
+      "name": "Primrose Schools",
+      "file": "primrose-schools.png",
+      "url": "../assets/logos/franchises/primrose-schools.png"
+    },
+    {
+      "id": "franchises/pure-barre",
+      "collection": "franchises",
+      "name": "Pure Barre",
+      "file": "pure-barre.jpg",
+      "url": "../assets/logos/franchises/pure-barre.jpg"
+    },
+    {
+      "id": "franchises/qdoba",
+      "collection": "franchises",
+      "name": "QDOBA",
+      "file": "qdoba.png",
+      "url": "../assets/logos/franchises/qdoba.png"
+    },
+    {
+      "id": "franchises/rainbow-intl-restoration",
+      "collection": "franchises",
+      "name": "Rainbow Intl Restoration",
+      "file": "rainbow-intl-restoration.png",
+      "url": "../assets/logos/franchises/rainbow-intl-restoration.png"
+    },
+    {
+      "id": "franchises/remax",
+      "collection": "franchises",
+      "name": "RE/MAX",
+      "file": "remax.jpg",
+      "url": "../assets/logos/franchises/remax.jpg"
+    },
+    {
+      "id": "franchises/real-property-management",
+      "collection": "franchises",
+      "name": "Real Property Management",
+      "file": "real-property-management.png",
+      "url": "../assets/logos/franchises/real-property-management.png"
+    },
+    {
+      "id": "franchises/see-and-be-kitchen",
+      "collection": "franchises",
+      "name": "See & Be Kitchen",
+      "file": "see-and-be-kitchen.jpg",
+      "url": "../assets/logos/franchises/see-and-be-kitchen.jpg"
+    },
+    {
+      "id": "franchises/shelfgenie",
+      "collection": "franchises",
+      "name": "Shelfgenie",
+      "file": "shelfgenie.png",
+      "url": "../assets/logos/franchises/shelfgenie.png"
+    },
+    {
+      "id": "franchises/slim-chickens",
+      "collection": "franchises",
+      "name": "Slim Chickens",
+      "file": "slim-chickens.png",
+      "url": "../assets/logos/franchises/slim-chickens.png"
+    },
+    {
+      "id": "franchises/smoothie-king",
+      "collection": "franchises",
+      "name": "Smoothie King",
+      "file": "smoothie-king.png",
+      "url": "../assets/logos/franchises/smoothie-king.png"
+    },
+    {
+      "id": "franchises/snap-fitness",
+      "collection": "franchises",
+      "name": "Snap Fitness",
+      "file": "snap-fitness.jpg",
+      "url": "../assets/logos/franchises/snap-fitness.jpg"
+    },
+    {
+      "id": "franchises/snapology",
+      "collection": "franchises",
+      "name": "Snapology",
+      "file": "snapology.png",
+      "url": "../assets/logos/franchises/snapology.png"
+    },
+    {
+      "id": "franchises/speed-queen-laundry",
+      "collection": "franchises",
+      "name": "Speed Queen Laundry",
+      "file": "speed-queen-laundry.png",
+      "url": "../assets/logos/franchises/speed-queen-laundry.png"
+    },
+    {
+      "id": "franchises/starbucks",
+      "collection": "franchises",
+      "name": "Starbucks",
+      "file": "starbucks.png",
+      "url": "../assets/logos/franchises/starbucks.png"
+    },
+    {
+      "id": "franchises/stretchlab",
+      "collection": "franchises",
+      "name": "Stretchlab",
+      "file": "stretchlab.png",
+      "url": "../assets/logos/franchises/stretchlab.png"
+    },
+    {
+      "id": "franchises/subway",
+      "collection": "franchises",
+      "name": "Subway",
+      "file": "subway.jpg",
+      "url": "../assets/logos/franchises/subway.jpg"
+    },
+    {
+      "id": "franchises/synergy-homecare",
+      "collection": "franchises",
+      "name": "Synergy Homecare",
+      "file": "synergy-homecare.png",
+      "url": "../assets/logos/franchises/synergy-homecare.png"
+    },
+    {
+      "id": "franchises/taco-bell",
+      "collection": "franchises",
+      "name": "Taco Bell",
+      "file": "taco-bell.png",
+      "url": "../assets/logos/franchises/taco-bell.png"
+    },
+    {
+      "id": "franchises/the-grounds-guys",
+      "collection": "franchises",
+      "name": "The Grounds Guys",
+      "file": "the-grounds-guys.jpg",
+      "url": "../assets/logos/franchises/the-grounds-guys.jpg"
+    },
+    {
+      "id": "franchises/the-learning-experience",
+      "collection": "franchises",
+      "name": "The Learning Experience",
+      "file": "the-learning-experience.png",
+      "url": "../assets/logos/franchises/the-learning-experience.png"
+    },
+    {
+      "id": "franchises/tim-hortons",
+      "collection": "franchises",
+      "name": "Tim Hortons",
+      "file": "tim-hortons.png",
+      "url": "../assets/logos/franchises/tim-hortons.png"
+    },
+    {
+      "id": "franchises/title-boxing-club",
+      "collection": "franchises",
+      "name": "Title Boxing Club",
+      "file": "title-boxing-club.jpg",
+      "url": "../assets/logos/franchises/title-boxing-club.jpg"
+    },
+    {
+      "id": "franchises/tommy-pollina",
+      "collection": "franchises",
+      "name": "Tommy Pollina Landscape Co",
+      "file": "tommy-pollina.jpg",
+      "url": "../assets/logos/franchises/tommy-pollina.jpg"
+    },
+    {
+      "id": "franchises/tony-romas",
+      "collection": "franchises",
+      "name": "Tony Roma's",
+      "file": "tony-romas.png",
+      "url": "../assets/logos/franchises/tony-romas.png"
+    },
+    {
+      "id": "franchises/tony-romas-bones-burgers",
+      "collection": "franchises",
+      "name": "Tony Roma's Bones & Burgers",
+      "file": "tony-romas-bones-burgers.jpg",
+      "url": "../assets/logos/franchises/tony-romas-bones-burgers.jpg"
+    },
+    {
+      "id": "franchises/tradewell",
+      "collection": "franchises",
+      "name": "Tradewell",
+      "file": "tradewell.jpg",
+      "url": "../assets/logos/franchises/tradewell.jpg"
+    },
+    {
+      "id": "franchises/tropical-smoothie-cafe",
+      "collection": "franchises",
+      "name": "Tropical Smoothie Cafe",
+      "file": "tropical-smoothie-cafe.png",
+      "url": "../assets/logos/franchises/tropical-smoothie-cafe.png"
+    },
+    {
+      "id": "franchises/ups",
+      "collection": "franchises",
+      "name": "UPS",
+      "file": "ups.jpg",
+      "url": "../assets/logos/franchises/ups.jpg"
+    },
+    {
+      "id": "franchises/wendys",
+      "collection": "franchises",
+      "name": "Wendy's",
+      "file": "wendys.jpg",
+      "url": "../assets/logos/franchises/wendys.jpg"
+    },
+    {
+      "id": "franchises/window-genie",
+      "collection": "franchises",
+      "name": "Window Genie",
+      "file": "window-genie.png",
+      "url": "../assets/logos/franchises/window-genie.png"
+    },
+    {
+      "id": "franchises/wonder-family",
+      "collection": "franchises",
+      "name": "Wonder Family",
+      "file": "wonder-family.jpg",
+      "url": "../assets/logos/franchises/wonder-family.jpg"
+    },
+    {
+      "id": "franchises/workout-anytime",
+      "collection": "franchises",
+      "name": "Workout Anytime",
+      "file": "workout-anytime.jpg",
+      "url": "../assets/logos/franchises/workout-anytime.jpg"
+    }
+  ]
+}

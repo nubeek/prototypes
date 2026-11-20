@@ -434,8 +434,8 @@ function syncCstSplashNewSearchTrigger() {
     trigger?.setAttribute("data-tooltip", option.label);
   } else {
     if (icon) icon.src = CST_SPLASH_NEW_SEARCH_ICON;
-    trigger?.setAttribute("aria-label", `Search ${option.label}`);
-    trigger?.setAttribute("data-tooltip", `Search ${option.label}`);
+    trigger?.setAttribute("aria-label", `Browse ${option.label}`);
+    trigger?.setAttribute("data-tooltip", `Browse ${option.label}`);
   }
 
   cstSplashNewSearch.querySelectorAll("[data-table-view]").forEach((button) => {
@@ -1643,13 +1643,14 @@ function canFocusCstSplashSearchInput() {
   return isCstSplashOpen();
 }
 
-function focusCstSplashSearchInput() {
+function focusCstSplashSearchInput({ suggestions = true } = {}) {
   if (!canFocusCstSplashSearchInput()) return;
   const input = document.getElementById("cstSplashSearchInput");
   input?.focus({ preventScroll: true });
   // Focus does not fire again when the field is already focused, which is
   // the usual case when the splash reopens. Show recents directly then.
-  if (!input?.value.trim()) {
+  // Landing focuses the caret only; recents wait for a click in the field.
+  if (suggestions && !input?.value.trim()) {
     cstSplashSearchController?.showIdleSuggestions();
   }
 }
@@ -1737,8 +1738,9 @@ function showCstSplash({ animate = false } = {}) {
   if (!splash) return;
 
   cstSplashDatasetScope = "franchisees";
+  syncCstSplashDatasetSwitch();
+  setCstSplashDatasetMenuOpen(false);
   cstSplashSearchController?.reset();
-  document.getElementById("cstSplashSearchInput")?.blur();
   cstSplashNewSearch?.removeAttribute("open");
   resetCstSplashNewSearchMore();
   hideCstTableLoading?.({ immediate: true });
@@ -1759,6 +1761,10 @@ function showCstSplash({ animate = false } = {}) {
 
   if (animate) {
     playCstSplashEnterAnimation(splash);
+  }
+
+  if (!isCstSplashSnapshotGenerateMode()) {
+    focusCstSplashSearchInput({ suggestions: false });
   }
 }
 
@@ -2001,110 +2007,54 @@ function getCstProspectSuggestionPool(view) {
 }
 
 const CST_SPLASH_DATASET_VIEWS = ["franchisees", "candidates"];
-const CST_SPLASH_DATASETS_MOTION_MS = 240;
-const CST_SPLASH_DATASETS_SHOW_DELAY_MS = 350;
+const CST_SPLASH_DATASET_LABELS = {
+  franchisees: "Franchisees",
+  candidates: "Candidates"
+};
 let cstSplashDatasetScope = "franchisees";
-let cstSplashDatasetsHideTimer = 0;
-let cstSplashDatasetsShowTimer = 0;
-let cstSplashDatasetsFrame = 0;
 
 function getCstSplashDatasetScope() {
   return CST_SPLASH_DATASET_VIEWS.includes(cstSplashDatasetScope) ? cstSplashDatasetScope : "franchisees";
 }
 
-function revealCstSplashDatasets(datasets, frame) {
-  datasets.hidden = false;
-  datasets.setAttribute("aria-hidden", "false");
-  // Let the collapsed state paint so the expand transition can run.
-  void datasets.offsetWidth;
-  requestAnimationFrame(() => {
-    if (frame !== cstSplashDatasetsFrame || datasets.hidden) return;
-    datasets.classList.add("is-shown");
-  });
-}
-
-function setCstSplashDatasetsShown(show) {
-  const datasets = document.getElementById("cstSplashDatasets");
-  if (!datasets) return;
-
-  if (show) {
-    const alreadyVisible = !datasets.hidden && datasets.classList.contains("is-shown");
-    if (alreadyVisible || cstSplashDatasetsShowTimer) return;
-
-    window.clearTimeout(cstSplashDatasetsHideTimer);
-    const frame = ++cstSplashDatasetsFrame;
-    cstSplashDatasetsShowTimer = window.setTimeout(() => {
-      cstSplashDatasetsShowTimer = 0;
-      if (frame !== cstSplashDatasetsFrame) return;
-      revealCstSplashDatasets(datasets, frame);
-    }, CST_SPLASH_DATASETS_SHOW_DELAY_MS);
-    return;
-  }
-
-  window.clearTimeout(cstSplashDatasetsShowTimer);
-  cstSplashDatasetsShowTimer = 0;
-  window.clearTimeout(cstSplashDatasetsHideTimer);
-  cstSplashDatasetsFrame += 1;
-
-  datasets.classList.remove("is-shown");
-  datasets.setAttribute("aria-hidden", "true");
-  cstSplashDatasetsHideTimer = window.setTimeout(() => {
-    if (!datasets.classList.contains("is-shown")) {
-      datasets.hidden = true;
-    }
-  }, getMotionDelay(CST_SPLASH_DATASETS_MOTION_MS));
-}
-
-function personNameMatchesQuery(name, normalizedQuery) {
-  return String(name || "").toLocaleLowerCase().includes(normalizedQuery);
-}
-
-// Home shows the dataset tabs 350ms after the query matches a person on either side.
-// The query itself waits until both sides match, because it is already inside
-// one dataset. Home always starts on Franchisees.
-function cstSplashQueryShouldShowDatasetTabs(query) {
-  const normalizedQuery = String(query || "").trim().toLocaleLowerCase();
-  if (normalizedQuery.length < 2) return false;
-
-  const franchiseeMatch = owners.some((owner) => {
-    const names = [
-      owner.contactName,
-      ...(Array.isArray(owner.contacts) ? owner.contacts.map((contact) => contact?.name) : []),
-      ...(window.ownerOrgChartData?.[owner.originalIndex]?.nodes || []).map((node) => node?.name)
-    ];
-    return names.some((name) => personNameMatchesQuery(name, normalizedQuery));
-  });
-  if (franchiseeMatch) return true;
-
-  return getProspectDatasetRows("candidates").some((row) => (
-    personNameMatchesQuery(row.name, normalizedQuery)
-  ));
-}
-
+// Home keeps the dataset dropdown in the field even before a query.
+// Home always starts on Franchisees.
 function syncCstSplashDatasetSwitch() {
-  const datasets = document.getElementById("cstSplashDatasets");
-  const input = document.getElementById("cstSplashSearchInput");
-  const showTabs = cstSplashQueryShouldShowDatasetTabs(input?.value || "");
-
-  if (!showTabs) {
-    const scopeDrifted = getCstSplashDatasetScope() !== "franchisees";
-    cstSplashDatasetScope = "franchisees";
-    setCstSplashDatasetsShown(false);
-    if (scopeDrifted) cstSplashSearchController?.refresh?.();
-    return;
-  }
-
   if (!CST_SPLASH_DATASET_VIEWS.includes(cstSplashDatasetScope)) {
     cstSplashDatasetScope = "franchisees";
   }
 
-  datasets?.querySelectorAll("[data-dataset]").forEach((button) => {
-    const active = button.dataset.dataset === cstSplashDatasetScope;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-selected", String(active));
-    button.tabIndex = active ? 0 : -1;
+  const label = document.getElementById("cstSplashDatasetLabel");
+  if (label) label.textContent = CST_SPLASH_DATASET_LABELS[cstSplashDatasetScope] || "Franchisees";
+
+  document.getElementById("cstSplashDatasetMenu")?.querySelectorAll("[data-dataset]").forEach((option) => {
+    const active = option.dataset.dataset === cstSplashDatasetScope;
+    option.classList.toggle("is-active", active);
+    option.setAttribute("aria-selected", String(active));
   });
-  setCstSplashDatasetsShown(true);
+}
+
+function setCstSplashDatasetMenuOpen(open, { restoreSuggestions = true } = {}) {
+  const root = document.getElementById("cstSplashDataset");
+  const trigger = document.getElementById("cstSplashDatasetTrigger");
+  const menu = document.getElementById("cstSplashDatasetMenu");
+  if (!root || !trigger || !menu) return;
+  if (root.classList.contains("is-open") === open) return;
+
+  root.classList.toggle("is-open", open);
+  trigger.setAttribute("aria-expanded", String(open));
+  menu.classList.toggle("is-open", open);
+  menu.setAttribute("aria-hidden", String(!open));
+
+  if (open) {
+    cstSplashSearchController?.closeSuggestions?.();
+    return;
+  }
+
+  const input = document.getElementById("cstSplashSearchInput");
+  if (restoreSuggestions && document.activeElement === input && !input.value.trim()) {
+    cstSplashSearchController?.showIdleSuggestions?.();
+  }
 }
 
 function selectCstSplashDataset(view) {
@@ -2117,7 +2067,7 @@ function selectCstSplashDataset(view) {
 }
 
 // Suggestions come from the dataset being searched, so every pick matches rows
-// there. Home defaults to Franchisees and switches to Candidates with the tabs.
+// there. Home defaults to Franchisees and switches to Candidates with the dropdown.
 function getCstSplashLocalSuggestionPool() {
   const view = isCstSplashOpen() ? getCstSplashDatasetScope() : getCstSearchDatasetView();
   return isProspectTableView(view)
@@ -2527,15 +2477,156 @@ function getCstRecentSearchSuggestions({ view = "" } = {}) {
     });
 }
 
-function bindCstSplashSearch() {
-  const datasets = document.getElementById("cstSplashDatasets");
+function bindCstSplashDatasetMenu() {
+  const root = document.getElementById("cstSplashDataset");
+  const trigger = document.getElementById("cstSplashDatasetTrigger");
+  const menu = document.getElementById("cstSplashDatasetMenu");
+  const browse = document.getElementById("cstSplashBrowse");
+  if (!root || !trigger || !menu) return;
 
+  trigger.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+  });
+
+  trigger.addEventListener("click", () => {
+    setCstSplashDatasetMenuOpen(!root.classList.contains("is-open"));
+  });
+
+  menu.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+  });
+
+  menu.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-dataset]");
+    if (!option || !menu.contains(option)) return;
+    event.preventDefault();
+    const view = option.dataset.dataset;
+    setCstSplashDatasetMenuOpen(false);
+    if (view !== getCstSplashDatasetScope()) {
+      selectCstSplashDataset(view);
+      return;
+    }
+    document.getElementById("cstSplashSearchInput")?.focus({ preventScroll: true });
+  });
+
+  document.addEventListener("mousedown", (event) => {
+    if (browse?.contains(event.target)) return;
+    if (!root.contains(event.target)) setCstSplashDatasetMenuOpen(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !root.classList.contains("is-open")) return;
+    setCstSplashDatasetMenuOpen(false);
+    document.getElementById("cstSplashSearchInput")?.focus({ preventScroll: true });
+  });
+
+  // An unfocused field should stay unfocused. Browse all opens the dataset
+  // directly instead of pulling the caret into the search field. Search keeps
+  // the caret so the typed query is still there when the form submits.
+  browse?.addEventListener("mousedown", (event) => {
+    const input = document.getElementById("cstSplashSearchInput");
+    if (document.activeElement !== input || browse.dataset.mode === "search") event.preventDefault();
+  });
+
+  browse?.addEventListener("click", () => {
+    setCstSplashDatasetMenuOpen(false, { restoreSuggestions: false });
+    if (browse.dataset.mode === "search") {
+      document.getElementById("cstSplashSearch")?.requestSubmit();
+      return;
+    }
+    openCstSplashNewQuery(getCstSplashDatasetScope());
+  });
+}
+
+// "Browse all" while the field is empty. "Search" once a query has suggestions
+// on screen. The width animates so the dataset control slides with the label.
+let cstSplashBrowseAnimation = null;
+let cstSplashBrowseLabelAnimation = null;
+let cstSplashBrowseLabelTimer = 0;
+
+function measureCstSplashBrowseWidth(browse, text) {
+  const probe = browse.cloneNode(true);
+  const probeLabel = probe.querySelector(".cst-splash__browse-label");
+  probe.removeAttribute("id");
+  probe.style.width = "max-content";
+  probe.style.position = "absolute";
+  probe.style.left = "0";
+  probe.style.top = "0";
+  probe.style.visibility = "hidden";
+  probe.style.pointerEvents = "none";
+  probe.style.transition = "none";
+  if (probeLabel) probeLabel.textContent = text;
+  browse.parentElement?.appendChild(probe);
+  const width = probe.getBoundingClientRect().width;
+  probe.remove();
+  return width;
+}
+
+function setCstSplashBrowseMode(mode) {
+  const browse = document.getElementById("cstSplashBrowse");
+  const label = browse?.querySelector(".cst-splash__browse-label");
+  if (!browse || !label || browse.dataset.mode === mode) return;
+
+  const nextText = mode === "search" ? "Search" : "Browse all";
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const from = browse.getBoundingClientRect().width;
+  browse.dataset.mode = mode;
+
+  // Commit the in-flight width before cancelling so a reverse doesn't snap.
+  browse.style.width = `${from}px`;
+  window.clearTimeout(cstSplashBrowseLabelTimer);
+  cstSplashBrowseAnimation?.cancel();
+  cstSplashBrowseLabelAnimation?.cancel();
+  cstSplashBrowseAnimation = null;
+  cstSplashBrowseLabelAnimation = null;
+  label.style.opacity = "";
+
+  if (reduced) {
+    label.textContent = nextText;
+    browse.style.width = "";
+    return;
+  }
+
+  const to = measureCstSplashBrowseWidth(browse, nextText);
+  if (!from || Math.abs(from - to) < 0.5) {
+    label.textContent = nextText;
+    browse.style.width = "";
+    return;
+  }
+
+  browse.style.width = `${from}px`;
+  const animation = browse.animate(
+    [{ width: `${from}px` }, { width: `${to}px` }],
+    { duration: 260, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
+  );
+  cstSplashBrowseAnimation = animation;
+  cstSplashBrowseLabelAnimation = label.animate(
+    [{ opacity: 1 }, { opacity: 0, offset: 0.28 }, { opacity: 1 }],
+    { duration: 260, easing: "linear" }
+  );
+  cstSplashBrowseLabelTimer = window.setTimeout(() => {
+    label.textContent = nextText;
+  }, 72);
+
+  animation.onfinish = () => {
+    if (cstSplashBrowseAnimation !== animation) return;
+    browse.style.width = "";
+    animation.cancel();
+    cstSplashBrowseAnimation = null;
+  };
+}
+
+function syncCstSplashBrowseMode(suggestionsOpen) {
+  const query = document.getElementById("cstSplashSearchInput")?.value.trim() || "";
+  setCstSplashBrowseMode(suggestionsOpen && query ? "search" : "browse");
+}
+
+function bindCstSplashSearch() {
   cstSplashSearchController = createCstSearchField({
     form: document.getElementById("cstSplashSearch"),
     input: document.getElementById("cstSplashSearchInput"),
     suggestions: document.getElementById("cstSplashSearchSuggestions"),
     clearButton: document.getElementById("cstSplashSearchClear"),
-    locateButton: document.getElementById("cstSplashLocate"),
     suggestionIdPrefix: "cstSplashSearchSuggestion",
     setFeedback: setCstSplashSearchFeedback,
     getIdleSuggestions: getCstRecentSearchSuggestions,
@@ -2546,34 +2637,15 @@ function bindCstSplashSearch() {
       applyCstSplashQuery(filters, { view: item?.view || getCstSplashDatasetScope() });
       revealCstAppliedFilter(item);
     },
-    onLocate: locateUserFromFilters,
     onQueryChange() {
       syncCstSplashDatasetSwitch();
+    },
+    onSuggestionsChange(isOpen) {
+      syncCstSplashBrowseMode(isOpen);
     }
   });
 
-  datasets?.addEventListener("mousedown", (event) => {
-    event.preventDefault();
-  });
-
-  datasets?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-dataset]");
-    if (!button || !datasets.contains(button)) return;
-    event.preventDefault();
-    selectCstSplashDataset(button.dataset.dataset);
-  });
-
-  datasets?.addEventListener("keydown", (event) => {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    const buttons = [...datasets.querySelectorAll("[data-dataset]")];
-    const currentIndex = buttons.findIndex((button) => button.dataset.dataset === cstSplashDatasetScope);
-    if (currentIndex === -1) return;
-    const nextIndex = event.key === "ArrowRight"
-      ? Math.min(currentIndex + 1, buttons.length - 1)
-      : Math.max(currentIndex - 1, 0);
-    event.preventDefault();
-    selectCstSplashDataset(buttons[nextIndex].dataset.dataset);
-  });
+  bindCstSplashDatasetMenu();
 }
 
 // Shared by the start screen search and the spotlight search. `onSearch`
@@ -2592,7 +2664,8 @@ function createCstSearchField({
   onSearch,
   onLocate,
   onEscape = null,
-  onQueryChange = null
+  onQueryChange = null,
+  onSuggestionsChange = null
 }) {
   if (!form || !input || !suggestions) return null;
 
@@ -2606,6 +2679,7 @@ function createCstSearchField({
     suggestions.setAttribute("aria-hidden", String(!isOpen));
     form.classList.toggle("is-suggestions-open", isOpen);
     if (isOpen) window.WefranchFilterCombobox?.fitOpenMenus?.();
+    onSuggestionsChange?.(isOpen);
   }
 
   function closeSuggestions() {
@@ -2962,11 +3036,14 @@ function createCstSearchField({
     scheduleSuggestions(input.value);
   });
 
+  input.addEventListener("click", () => {
+    if (input.value.trim()) return;
+    showIdleSuggestions();
+  });
+
   input.addEventListener("focus", () => {
     if (renderedSuggestions.length) {
       setSuggestionsOpen(true);
-    } else if (!input.value.trim()) {
-      showIdleSuggestions();
     }
   });
 
@@ -3053,6 +3130,7 @@ function createCstSearchField({
       input.focus({ preventScroll: true });
     },
     showIdleSuggestions,
+    closeSuggestions,
     reset() {
       window.clearTimeout(debounceTimer);
       fetchController?.abort();

@@ -6,8 +6,30 @@ function escapeOwnerInfoText(value) {
     .replace(/"/g, "&quot;");
 }
 
-function getOwnerInfoLinkMarkup({ title, label, value, valueClass = "", href, ownerIndex, ariaLabel }) {
+function getOwnerInfoIconMarkup(icon) {
+  const svg = icon === "web"
+    ? `
+      <svg class="map-info-card__link-icon map-info-card__link-icon--web" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path fill="currentColor" d="M10,11.28h-4.01c.38,1.6,1.06,3.11,2,4.45.94-1.34,1.62-2.85,2-4.45ZM4.35,4.72c.35-1.67.99-3.27,1.88-4.72C3.75.58,1.69,2.33.67,4.72h3.67ZM5.6,8c0,.55.04,1.1.1,1.64h4.6c.07-.54.1-1.09.1-1.64,0-.55-.04-1.1-.1-1.64h-4.6c-.07.54-.1,1.09-.1,1.64ZM11.65,4.72h3.67c-1.02-2.39-3.08-4.13-5.56-4.72.89,1.45,1.53,3.04,1.88,4.72ZM6,4.72h4.01c-.38-1.6-1.06-3.11-2-4.45-.94,1.34-1.62,2.85-2,4.45ZM11.65,11.28c-.35,1.67-.99,3.27-1.88,4.72,2.47-.58,4.54-2.33,5.56-4.72h-3.67ZM11.91,6.36c.06.55.09,1.09.09,1.64,0,.55-.03,1.1-.09,1.64h3.93c.22-1.08.22-2.2,0-3.28h-3.93ZM4.35,11.28H.67c1.02,2.39,3.08,4.13,5.56,4.72-.89-1.45-1.53-3.04-1.88-4.72ZM4.09,9.64c-.06-.55-.09-1.09-.09-1.64,0-.55.03-1.1.09-1.64H.16c-.22,1.08-.22,2.2,0,3.28h3.93Z"/>
+      </svg>
+    `
+    : icon === "linkedin"
+      ? `
+      <svg class="map-info-card__link-icon map-info-card__link-icon--linkedin" aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path fill="currentColor" d="M9,0C4.03,0,0,4.03,0,9s4.03,9,9,9,9-4.03,9-9S13.97,0,9,0ZM6.78,13h-1.78v-5.98h1.78v5.98ZM5.92,6.2c-.59,0-1.07-.4-1.07-.99s.48-1.08,1.07-1.08,1,.48,1,1.08-.41.99-1,.99ZM13.51,13h-1.85v-2.91c0-.69-.01-1.59-.96-1.59s-1.11.76-1.11,1.54v2.96h-1.85v-5.98h1.78v.82h.03c.25-.47.85-.97,1.76-.97,1.87,0,2.22,1.24,2.22,2.85v3.28Z"/>
+      </svg>
+    `
+      : "";
+
+  if (!svg) return "";
+
+  return `<span class="map-info-card__link-icon-box">${svg}</span>`;
+}
+
+function getOwnerInfoLinkMarkup({ title, label, value, valueClass = "", href, ownerIndex, ariaLabel, icon = "" }) {
+  const iconMarkup = getOwnerInfoIconMarkup(icon);
   const copy = `
+    ${iconMarkup}
     <span class="map-info-card__link-copy">
       ${title ? `<span class="map-info-card__link-title">${title}</span>` : ""}
       ${label ? `<span class="map-info-card__link-label">${label}</span>` : ""}
@@ -15,17 +37,18 @@ function getOwnerInfoLinkMarkup({ title, label, value, valueClass = "", href, ow
     </span>
     <img class="map-info-card__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
   `;
+  const iconClass = iconMarkup ? " has-icon" : "";
 
   if (href) {
     return `
-      <a class="map-info-card__link" href="${escapeOwnerInfoText(href)}" target="_blank" rel="noreferrer noopener" aria-label="${escapeOwnerInfoText(ariaLabel)}">
+      <a class="map-info-card__link${iconClass}" href="${escapeOwnerInfoText(href)}" target="_blank" rel="noreferrer noopener" aria-label="${escapeOwnerInfoText(ariaLabel)}">
         ${copy}
       </a>
     `;
   }
 
   return `
-    <button class="ui-control map-info-card__link" type="button" data-owner-info-contact data-owner-index="${ownerIndex}" aria-label="${escapeOwnerInfoText(ariaLabel)}">
+    <button class="ui-control map-info-card__link${iconClass}" type="button" data-owner-info-contact data-owner-index="${ownerIndex}" aria-label="${escapeOwnerInfoText(ariaLabel)}">
       ${copy}
     </button>
   `;
@@ -90,7 +113,8 @@ function renderOwnerDetails(owner) {
         label: "Website",
         value: escapeOwnerInfoText(websiteLabel),
         href: websiteUrl,
-        ariaLabel: `Open ${websiteLabel}`
+        ariaLabel: `Open ${websiteLabel}`,
+        icon: "web"
       })
       : "",
     linkedinUrl
@@ -98,7 +122,8 @@ function renderOwnerDetails(owner) {
         label: "Linkedin",
         value: escapeOwnerInfoText(owner.ownerName),
         href: linkedinUrl,
-        ariaLabel: `Open ${owner.ownerName} on LinkedIn`
+        ariaLabel: `Open ${owner.ownerName} on LinkedIn`,
+        icon: "linkedin"
       })
       : ""
   ].filter(Boolean).join("");
@@ -167,7 +192,7 @@ function renderOwnerDetails(owner) {
         </div>
       </section>
       ${companyLinks ? `
-        <section class="map-info-card__section" aria-labelledby="ownerInfoCompanyTitle">
+        <section class="map-info-card__section map-info-card__section--company" aria-labelledby="ownerInfoCompanyTitle">
           <h3 class="map-info-card__section-title" id="ownerInfoCompanyTitle">Company</h3>
           <div class="map-info-card__links">${companyLinks}</div>
         </section>
@@ -186,8 +211,9 @@ function renderOwnerDetails(owner) {
 
 function openOwnerOrgChartFromCard(ownerIndex) {
   if (!Number.isFinite(ownerIndex)) return;
-  lockedToolbarMode = "org";
-  openSidebar("org", ownerIndex);
+  detailCardOrgReturnIndex = ownerIndex;
+  if (lockedToolbarMode !== "raw") lockedToolbarMode = "map";
+  openSidebar("org", ownerIndex, { keepCardReturn: true });
 }
 
 function focusOwnerCardUnits() {

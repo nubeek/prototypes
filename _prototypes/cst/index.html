@@ -67,10 +67,10 @@
       <div class="header" aria-label="Franchisees toolbar">
         <div class="toolbar-group toolbar-primary">
           <details class="toolbar-dropdown cst-splash-new-search" id="cstSplashNewSearch" data-reader-hide>
-            <summary class="cst-splash-new-search__trigger" aria-haspopup="menu" aria-controls="cstSplashNewSearchMenu" aria-label="Start new search" data-tooltip="Franchisees">
+            <summary class="cst-splash-new-search__trigger" aria-haspopup="menu" aria-controls="cstSplashNewSearchMenu" aria-label="Browse Franchisees" data-tooltip="Browse Franchisees">
               <img class="cst-splash-new-search__icon" src="../../assets/icons/search.svg" alt="" aria-hidden="true">
               <span class="cst-splash-new-search__label">
-                <span class="cst-splash-new-search__label-idle">Search <span class="cst-splash-new-search__label-dataset">Franchisees</span></span>
+                <span class="cst-splash-new-search__label-idle">Browse <span class="cst-splash-new-search__label-dataset">Franchisees</span></span>
                 <span class="cst-splash-new-search__label-open">Select dataset...</span>
                 <span class="cst-splash-new-search__label-selected"></span>
               </span>
@@ -279,18 +279,35 @@
               aria-haspopup="listbox"
               aria-expanded="false"
               aria-controls="cstSplashSearchSuggestions"
-              placeholder="Search by location, category or brand..."
+              placeholder="Search..."
               aria-label="Search franchisees, brands, categories, and locations"
               aria-describedby="cstSplashSearchFeedback"
             >
             <div class="cst-splash__search-trailing">
-              <div class="cst-spotlight__datasets" id="cstSplashDatasets" role="tablist" aria-label="Search dataset" hidden>
-                <button class="cst-spotlight__dataset" id="cstSplashDatasetFranchisees" type="button" role="tab" data-dataset="franchisees" aria-selected="true">Franchisees</button>
-                <button class="cst-spotlight__dataset" id="cstSplashDatasetCandidates" type="button" role="tab" data-dataset="candidates" aria-selected="false">Candidates</button>
-              </div>
               <button class="cst-splash__search-clear" id="cstSplashSearchClear" type="button" aria-label="Clear search" data-tooltip="Clear search" hidden></button>
-              <button class="cst-splash__locate" id="cstSplashLocate" type="button" aria-label="Find prospects near my location" data-tooltip="Find my location">
-                <img src="../../assets/icons/target-me.svg" alt="" aria-hidden="true">
+              <div class="cst-splash__scope" id="cstSplashDataset">
+                <button
+                  class="cst-splash__scope-trigger"
+                  id="cstSplashDatasetTrigger"
+                  type="button"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-controls="cstSplashDatasetMenu"
+                >
+                  <span class="cst-splash__scope-label" id="cstSplashDatasetLabel">Franchisees</span>
+                  <img class="cst-splash__scope-chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+                </button>
+                <div class="ui-menu ui-dropdown-menu ui-dropdown-menu--down cst-splash__scope-menu" id="cstSplashDatasetMenu" role="listbox" aria-label="Search dataset" aria-hidden="true">
+                  <button class="ui-menu-item cst-splash__scope-option is-active" type="button" role="option" data-dataset="franchisees" aria-selected="true">
+                    <span class="toolbar-dropdown-label">Franchisees</span>
+                  </button>
+                  <button class="ui-menu-item cst-splash__scope-option" type="button" role="option" data-dataset="candidates" aria-selected="false">
+                    <span class="toolbar-dropdown-label">Candidates</span>
+                  </button>
+                </div>
+              </div>
+              <button class="ui-control cst-splash__browse" id="cstSplashBrowse" type="button" data-mode="browse">
+                <span class="cst-splash__browse-label">Browse all</span>
               </button>
             </div>
             <div

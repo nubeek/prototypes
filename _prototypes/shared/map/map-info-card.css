@@ -257,7 +257,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 12px;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
   min-width: 0;
   padding: 10px;
@@ -269,6 +269,33 @@
   text-align: left;
   text-decoration: none;
   cursor: pointer;
+}
+
+.map-info-card__link.has-icon {
+  grid-template-columns: 32px minmax(0, 1fr) 12px;
+  padding-left: 4px;
+}
+
+.map-info-card__link-icon-box {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+}
+
+.map-info-card__link-icon {
+  display: block;
+  color: var(--color-brand, #7a63dd);
+}
+
+.map-info-card__link-icon--web {
+  width: 16px;
+  height: 16px;
+}
+
+.map-info-card__link-icon--linkedin {
+  width: 18px;
+  height: 18px;
 }
 
 .map-info-card__link:hover,
@@ -309,6 +336,12 @@
 .map-info-card__link-value {
   color: var(--color-brand-primary);
   font-weight: 500;
+}
+
+.map-info-card__section--company .map-info-card__link:hover .map-info-card__link-value,
+.map-info-card__section--company .map-info-card__link:focus-visible .map-info-card__link-value {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .map-info-card__link-value.dataset-empty-value {
@@ -352,7 +385,7 @@
 .map-info-card__franchise-main {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex: 1 1 auto;
   min-width: 0;
   color: inherit;

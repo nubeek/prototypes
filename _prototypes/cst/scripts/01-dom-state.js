@@ -440,6 +440,9 @@ let globalRawDataViewOpen = false;
 // A locked tab is highlighted; closing its sidebar requires the toolbar or
 // the hide-panel option, while the sidebar X only clears the selected franchisee.
 let lockedToolbarMode = null;
+// Contacts on the franchisee card opens the org chart without locking that
+// toolbar tab. Sidebar X returns to this card on the map.
+let detailCardOrgReturnIndex = null;
 let currentPanelLayout = "right";
 // Owner-level lead/hide state keyed by owner.originalIndex, representing the
 // owner's main contact. Additional org-chart contacts are tracked per node in
