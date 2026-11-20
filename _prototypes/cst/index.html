@@ -923,13 +923,19 @@
       </div>
     </div>
 
+    <div class="send-message-overlay" id="sendMessageOverlay" data-splash-workspace-control hidden></div>
     <section class="send-message-card" id="sendMessageCard" role="dialog" aria-labelledby="sendMessageTitle" data-splash-workspace-control hidden>
       <div class="send-message-header">
         <img class="send-message-header-icon" src="../../assets/icons/mail-send.svg?v=2" alt="" aria-hidden="true">
         <h2 class="send-message-title" id="sendMessageTitle">Send a message</h2>
-        <button class="ui-control ui-close-button proto-modal-close send-message-close" id="sendMessageClose" type="button" aria-label="Close send a message">
-          <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
-        </button>
+        <div class="send-message-header-actions">
+          <button class="ui-control ui-close-button proto-modal-close send-message-expand" id="sendMessageExpand" type="button" aria-expanded="false" aria-controls="sendMessageCard" aria-label="Expand send a message">
+            <img src="../../assets/icons/container-expand.svg" alt="" aria-hidden="true">
+          </button>
+          <button class="ui-control ui-close-button proto-modal-close send-message-close" id="sendMessageClose" type="button" aria-label="Close send a message">
+            <img src="../../assets/icons/close.svg" alt="" aria-hidden="true">
+          </button>
+        </div>
       </div>
 
       <form class="send-message-form" id="sendMessageForm" novalidate>

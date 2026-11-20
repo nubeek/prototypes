@@ -2076,10 +2076,14 @@ function handleSidebarClose() {
   const currentMode = getCurrentPanelMode();
 
   if (currentMode === "org" && detailCardOrgReturnIndex !== null && lockedToolbarMode !== "org") {
-    const ownerIndex = detailCardOrgReturnIndex;
+    const returnTarget = detailCardOrgReturnIndex;
     detailCardOrgReturnIndex = null;
     if (lockedToolbarMode !== "raw") lockedToolbarMode = "map";
-    openSidebar("details", ownerIndex);
+    if (returnTarget === "map") {
+      openSidebar("map", null);
+      return;
+    }
+    openSidebar("details", returnTarget);
     return;
   }
 

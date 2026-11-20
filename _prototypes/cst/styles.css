@@ -1049,9 +1049,28 @@ body.reduce-motion #sendMessageSend .campaign-continue-spinner {
 
 /* Send a message card. Non-modal compose card pinned to the bottom-right of
    the workspace. Sized to sit 10px inside a right-docked map panel, whether
-   or not the panel is open. Rows reuse proto-modal-field
-   for captions and field errors; the #sendMessageCard scope flattens the
-   modal control chrome into the inline label/value rows. */
+   or not the panel is open. Expanding it centers the same card as a modal.
+   Rows reuse proto-modal-field for captions and field errors; the
+   #sendMessageCard scope flattens the modal control chrome into the inline
+   label/value rows. */
+.send-message-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1390;
+  background: rgba(240, 240, 240, 0.6);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.send-message-overlay[hidden] {
+  display: none;
+}
+
+.send-message-overlay.is-open {
+  opacity: 1;
+}
+
 .send-message-card {
   --send-message-inset: 10px;
   position: absolute;
@@ -1098,6 +1117,50 @@ body.reduce-motion #sendMessageSend .campaign-continue-spinner {
   height: min(640px, calc(100% - (var(--card-padding) + var(--send-message-inset)) * 2));
 }
 
+/* Pixel top/left/width/height are set while the card travels between the
+   corner and the centered modal. */
+.send-message-card.is-placing {
+  position: fixed;
+  z-index: 1400;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  transition:
+    top 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    left 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.send-message-card.is-modal {
+  position: fixed;
+  z-index: 1400;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  width: min(640px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  height: auto;
+  margin: 0;
+  border-radius: 20px;
+  transform: translate(-50%, -50%);
+}
+
+.send-message-card.is-modal.is-expanded {
+  height: min(640px, calc(100vh - 48px));
+}
+
+.send-message-card.is-modal.is-closing {
+  transform: translate(-50%, calc(-50% + 24px));
+}
+
+body.reduce-motion .send-message-card.is-placing,
+body.reduce-motion .send-message-overlay {
+  transition: none;
+}
+
 .send-message-header {
   flex: 0 0 auto;
   display: flex;
@@ -1120,9 +1183,17 @@ body.reduce-motion #sendMessageSend .campaign-continue-spinner {
   line-height: 1.2;
 }
 
-.send-message-close {
+.send-message-header-actions {
   margin-left: auto;
   margin-right: -6px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+#sendMessageExpand img {
+  width: 12px;
+  height: 12px;
 }
 
 .send-message-form {
@@ -1197,7 +1268,7 @@ body.reduce-motion #sendMessageSend .campaign-continue-spinner {
 
 #sendMessageCard .filter-combobox-control {
   min-height: var(--control-height);
-  padding: 6px 60px 6px 0;
+  padding: 6px 62px 6px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1207,7 +1278,7 @@ body.reduce-motion #sendMessageSend .campaign-continue-spinner {
 /* The clear control stays in the trailing row while hidden, so a closed
    single select only needs room for the chevron. */
 #sendMessageCard .filter-select-field.is-single-select:not(:has(.filter-combobox-clear:not([hidden]))) .filter-combobox-control {
-  padding-right: 32px;
+  padding-right: 34px;
 }
 
 #sendMessageRecipientsField .filter-combobox-control {
@@ -1219,8 +1290,10 @@ body.reduce-motion #sendMessageSend .campaign-continue-spinner {
   overflow-y: auto;
 }
 
+/* Clear sits in the same column as the other fields' remove icons, one
+   28px slot left of the (hidden) chevron. Padding keeps chips out of that slot. */
 #sendMessageRecipientsField:has(.filter-combobox-clear:not([hidden])) .filter-combobox-control {
-  margin-right: 28px;
+  padding-right: 62px;
 }
 
 #sendMessageCard .filter-combobox-input {
@@ -1258,8 +1331,10 @@ body.reduce-motion #sendMessageSend .campaign-continue-spinner {
   transform: rotate(180deg);
 }
 
+/* Matches the header close button's -6px overhang so every 28px icon slot
+   shares one vertical center. */
 #sendMessageCard .filter-combobox-trailing {
-  right: -8px;
+  right: -6px;
 }
 
 #sendMessageCard .filter-combobox-chevron {
@@ -1273,8 +1348,10 @@ body.reduce-motion #sendMessageSend .campaign-continue-spinner {
   background: #e9e9e9;
 }
 
+/* Keep the chevron's slot so the remove icon stays in the clear column. */
 #sendMessageRecipientsField .filter-combobox-chevron {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 #sendMessageCard .filter-combobox-menu {
@@ -6358,9 +6435,9 @@ body.reduce-motion :is(
 .cst-splash__scope-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   height: 38px;
-  padding: 0 12px;
+  padding: 0 10px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;

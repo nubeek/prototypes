@@ -47,13 +47,15 @@ function getOwnerIcons(owner) {
 }
 
 function getContactsColumn(owner) {
+  const contactsOpen = activeOrgOwnerIndex === owner.originalIndex || activeRawOwnerIndex === owner.originalIndex;
+
   return `
     <button
-      class="ui-control ui-row-action contacts-action ${activeRawOwnerIndex === owner.originalIndex ? "is-active" : ""}"
+      class="ui-control ui-row-action contacts-action ${contactsOpen ? "is-active" : ""}"
       type="button"
       data-owner-index="${owner.originalIndex}"
-      aria-pressed="${activeRawOwnerIndex === owner.originalIndex}"
-      aria-label="Show ${owner.ownerName} contacts"
+      aria-pressed="${contactsOpen}"
+      aria-label="Open organization chart for ${owner.ownerName}"
     >
       <span>${getOwnerContactCount(owner)}</span>
       <img class="contact-chevron" src="../../assets/icons/arrows.svg" alt="" aria-hidden="true">

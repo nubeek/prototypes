@@ -209,11 +209,34 @@ function renderOwnerDetails(owner) {
   }, { passive: true });
 }
 
-function openOwnerOrgChartFromCard(ownerIndex) {
+function rememberOrgChartReturnTarget() {
+  if (detailCardOrgReturnIndex !== null && getCurrentPanelMode() === "org") return;
+
+  if (getCurrentPanelMode() === "details" && activeDetailOwnerIndex !== null) {
+    detailCardOrgReturnIndex = activeDetailOwnerIndex;
+    return;
+  }
+
+  detailCardOrgReturnIndex = "map";
+}
+
+function openOwnerOrgChartFromCard(ownerIndex, { scrollTable = false } = {}) {
   if (!Number.isFinite(ownerIndex)) return;
-  detailCardOrgReturnIndex = ownerIndex;
-  if (lockedToolbarMode !== "raw") lockedToolbarMode = "map";
-  openSidebar("org", ownerIndex, { keepCardReturn: true });
+
+  if (lockedToolbarMode === "org" || lockedToolbarMode === "raw") {
+    toggleRowSidebarView(lockedToolbarMode, ownerIndex, { scrollTable });
+    return;
+  }
+
+  const temporaryOrgOpen = detailCardOrgReturnIndex !== null && getCurrentPanelMode() === "org";
+  if (temporaryOrgOpen && activeOrgOwnerIndex === ownerIndex) {
+    handleSidebarClose();
+    return;
+  }
+
+  rememberOrgChartReturnTarget();
+  lockedToolbarMode = "map";
+  openSidebar("org", ownerIndex, { scrollTable, keepCardReturn: true });
 }
 
 function focusOwnerCardUnits() {

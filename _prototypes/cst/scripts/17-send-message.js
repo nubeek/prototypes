@@ -1,4 +1,5 @@
 const SEND_MESSAGE_TRANSITION_MS = 300;
+const SEND_MESSAGE_PLACE_MS = 300;
 const SEND_MESSAGE_EXPAND_MS = 420;
 const SEND_MESSAGE_SEND_DELAY_MS = 1000;
 const SEND_MESSAGE_FIELD_ERRORS = {
@@ -12,6 +13,11 @@ const SEND_MESSAGE_FIELD_ERRORS = {
 const sendMessageOption = document.getElementById("sendMessageOption");
 const sendMessageOptionLabel = sendMessageOption?.querySelector(".toolbar-dropdown-label");
 const sendMessageCard = document.getElementById("sendMessageCard");
+const sendMessageOverlay = document.getElementById("sendMessageOverlay");
+const sendMessageExpand = document.getElementById("sendMessageExpand");
+const sendMessageExpandIcon = sendMessageExpand?.querySelector("img");
+const sendMessageExpandIconSrc = sendMessageExpandIcon?.getAttribute("src") || "";
+const sendMessageContractIconSrc = sendMessageExpandIconSrc.replace("container-expand.svg", "container-contract.svg");
 const sendMessageClose = document.getElementById("sendMessageClose");
 const sendMessageForm = document.getElementById("sendMessageForm");
 const sendMessageFromField = document.getElementById("sendMessageFromField");
@@ -39,6 +45,11 @@ let sendMessageFromApi = null;
 let sendMessageRecipientsApi = null;
 let sendMessageTemplateApi = null;
 let sendMessageCloseTimeoutId = null;
+let sendMessageOverlayTimeoutId = null;
+let sendMessagePlaceTimeoutId = null;
+let sendMessagePlaceEnd = null;
+let sendMessagePlaceFrame = 0;
+let sendMessageIsModal = false;
 let sendMessageExpandFrame = 0;
 let sendMessageExpandTimer = null;
 let sendMessageExpandFrameId = 0;
@@ -488,6 +499,13 @@ function animateSendMessageCard(isExpanded) {
   const card = sendMessageCard;
   if (!card) return;
 
+  if (card.classList.contains("is-placing")) {
+    card.classList.toggle("is-expanded", isExpanded);
+    if (!isExpanded) hideSendMessageBodyContent();
+    else setSendMessageBodyRevealed(true);
+    return;
+  }
+
   invalidateSendMessageExpand();
 
   const reducedMotion = document.body.classList.contains("reduce-motion");
@@ -775,6 +793,170 @@ function applyOpenSendMessageRecipients(contact) {
   }
 }
 
+function syncSendMessageModalButton() {
+  const isModal = sendMessageIsModal;
+  sendMessageExpand?.setAttribute("aria-expanded", String(isModal));
+  sendMessageExpand?.setAttribute("aria-label", isModal ? "Collapse send a message" : "Expand send a message");
+  if (sendMessageExpandIcon && sendMessageContractIconSrc !== sendMessageExpandIconSrc) {
+    sendMessageExpandIcon.src = isModal ? sendMessageContractIconSrc : sendMessageExpandIconSrc;
+  }
+  if (isModal) sendMessageCard?.setAttribute("aria-modal", "true");
+  else sendMessageCard?.removeAttribute("aria-modal");
+}
+
+function setSendMessageOverlayOpen(isOpen) {
+  const overlay = sendMessageOverlay;
+  if (!overlay) return;
+
+  window.clearTimeout(sendMessageOverlayTimeoutId);
+  if (isOpen) {
+    overlay.hidden = false;
+    window.requestAnimationFrame(() => {
+      if (sendMessageIsModal) overlay.classList.add("is-open");
+    });
+    return;
+  }
+
+  overlay.classList.remove("is-open");
+  sendMessageOverlayTimeoutId = window.setTimeout(() => {
+    if (!sendMessageIsModal) overlay.hidden = true;
+  }, SEND_MESSAGE_TRANSITION_MS);
+}
+
+function clearSendMessagePlacementStyles() {
+  const card = sendMessageCard;
+  if (!card) return;
+  card.classList.remove("is-placing");
+  card.style.position = "";
+  card.style.top = "";
+  card.style.left = "";
+  card.style.right = "";
+  card.style.bottom = "";
+  card.style.width = "";
+  card.style.height = "";
+  card.style.margin = "";
+  card.style.transform = "";
+  card.style.borderRadius = "";
+}
+
+function cancelSendMessagePlacement() {
+  sendMessagePlaceFrame += 1;
+  window.clearTimeout(sendMessagePlaceTimeoutId);
+  sendMessagePlaceTimeoutId = null;
+  if (sendMessagePlaceEnd) {
+    sendMessageCard?.removeEventListener("transitionend", sendMessagePlaceEnd);
+    sendMessagePlaceEnd = null;
+  }
+}
+
+function finishSendMessagePlacement() {
+  cancelSendMessagePlacement();
+  const card = sendMessageCard;
+  if (!card) return;
+  card.style.transition = "none";
+  clearSendMessagePlacementStyles();
+  card.classList.toggle("is-modal", sendMessageIsModal);
+  void card.offsetWidth;
+  card.style.transition = "";
+}
+
+// Moves the docked card between the corner and a centered modal. Geometry is
+// animated in pixels, then released so the modal's own centering can respond
+// to the viewport.
+function placeSendMessageCard(isModal) {
+  const card = sendMessageCard;
+  if (!card) return;
+
+  const start = card.getBoundingClientRect();
+  const startRadius = getComputedStyle(card).borderRadius;
+
+  cancelSendMessagePlacement();
+  const placeFrame = sendMessagePlaceFrame;
+  card.style.transition = "none";
+  invalidateSendMessageExpand();
+  finishSendMessageExpandLayout();
+  card.style.transition = "none";
+  sendMessageIsModal = isModal;
+  syncSendMessageModalButton();
+  setSendMessageOverlayOpen(isModal);
+
+  const reducedMotion = document.body.classList.contains("reduce-motion") || !isSendMessageOpen();
+  if (reducedMotion) {
+    card.style.transition = "none";
+    clearSendMessagePlacementStyles();
+    card.classList.toggle("is-modal", isModal);
+    void card.offsetWidth;
+    card.style.transition = "";
+    return;
+  }
+
+  card.classList.remove("is-placing");
+  card.classList.toggle("is-modal", isModal);
+  clearSendMessagePlacementStyles();
+  void card.offsetWidth;
+  const end = card.getBoundingClientRect();
+
+  card.classList.add("is-placing");
+  card.style.position = "fixed";
+  card.style.margin = "0";
+  card.style.right = "auto";
+  card.style.bottom = "auto";
+  card.style.top = `${start.top}px`;
+  card.style.left = `${start.left}px`;
+  card.style.width = `${start.width}px`;
+  card.style.height = `${start.height}px`;
+  card.style.transform = "none";
+  card.style.borderRadius = startRadius;
+  void card.offsetWidth;
+  card.style.transition = "";
+
+  window.requestAnimationFrame(() => {
+    if (placeFrame !== sendMessagePlaceFrame || !card.classList.contains("is-placing")) return;
+    card.style.top = `${end.top}px`;
+    card.style.left = `${end.left}px`;
+    card.style.width = `${end.width}px`;
+    card.style.height = `${end.height}px`;
+    card.style.borderRadius = "";
+  });
+
+  const settle = (event) => {
+    if (placeFrame !== sendMessagePlaceFrame) return;
+    if (event && (event.target !== card || !["top", "left", "width", "height"].includes(event.propertyName))) return;
+    if (!card.classList.contains("is-placing")) return;
+    finishSendMessagePlacement();
+  };
+
+  sendMessagePlaceEnd = settle;
+  card.addEventListener("transitionend", sendMessagePlaceEnd);
+  sendMessagePlaceTimeoutId = window.setTimeout(settle, SEND_MESSAGE_PLACE_MS + 50);
+}
+
+function setSendMessageModal(isModal) {
+  if (!isSendMessageOpen() || sendMessageCard?.classList.contains("is-closing")) return;
+  if (sendMessageIsModal === isModal && !sendMessageCard?.classList.contains("is-placing")) return;
+  closeSendMessageDropdowns();
+  placeSendMessageCard(isModal);
+}
+
+function resetSendMessageModal() {
+  cancelSendMessagePlacement();
+  clearSendMessagePlacementStyles();
+  sendMessageIsModal = false;
+  sendMessageCard?.classList.remove("is-modal");
+  syncSendMessageModalButton();
+  setSendMessageOverlayOpen(false);
+}
+
+function getSendMessageFocusable() {
+  if (!sendMessageCard) return [];
+  return [...sendMessageCard.querySelectorAll("a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])")]
+    .filter((element) => {
+      if (element.hidden || element.closest("[hidden], [inert]")) return false;
+      const style = getComputedStyle(element);
+      return style.display !== "none" && style.visibility !== "hidden";
+    });
+}
+
 function openSendMessageCard({ contact = null } = {}) {
   if (!sendMessageCard) return;
 
@@ -809,6 +991,14 @@ function closeSendMessageCard() {
   cancelSendMessagePending();
   closeSendMessageDropdowns();
   invalidateSendMessageExpand();
+  cancelSendMessagePlacement();
+  sendMessageIsModal = false;
+  syncSendMessageModalButton();
+  sendMessageCard.style.transition = "none";
+  clearSendMessagePlacementStyles();
+  void sendMessageCard.offsetWidth;
+  sendMessageCard.style.transition = "";
+  setSendMessageOverlayOpen(false);
   if (sendMessageCard.contains(document.activeElement)) {
     document.activeElement.blur();
   }
@@ -820,6 +1010,7 @@ function closeSendMessageCard() {
     sendMessageCard.classList.remove("is-closing");
     sendMessageCard.hidden = true;
     resetSendMessageForm();
+    resetSendMessageModal();
   }, SEND_MESSAGE_TRANSITION_MS);
 }
 
@@ -1048,6 +1239,10 @@ sendMessageOption?.addEventListener("click", (event) => {
   openSendMessageCard();
 });
 
+sendMessageExpand?.addEventListener("click", () => {
+  setSendMessageModal(!sendMessageIsModal);
+});
+
 sendMessageClose?.addEventListener("click", closeSendMessageCard);
 sendMessageDone?.addEventListener("click", closeSendMessageCard);
 sendMessageUndo?.addEventListener("click", undoSendMessageSent);
@@ -1068,8 +1263,28 @@ sendMessageSubject?.addEventListener("keydown", (event) => {
 });
 
 sendMessageCard?.addEventListener("keydown", (event) => {
+  if (event.key === "Tab" && sendMessageIsModal) {
+    const focusable = getSendMessageFocusable();
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !sendMessageCard.contains(active))) {
+      event.preventDefault();
+      last.focus({ preventScroll: true });
+    } else if (!event.shiftKey && (active === last || !sendMessageCard.contains(active))) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+    }
+    return;
+  }
+
   if (event.key !== "Escape" || event.defaultPrevented || isSendMessageDropdownOpen()) return;
   event.preventDefault();
+  if (sendMessageIsModal) {
+    setSendMessageModal(false);
+    return;
+  }
   closeSendMessageCard();
 });
 

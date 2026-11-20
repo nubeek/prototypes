@@ -85,7 +85,7 @@ if (tableBody) {
     const contactsButton = event.target.closest(".contacts-action");
     if (contactsButton) {
       event.stopPropagation();
-      toggleRowSidebarView("raw", Number(contactsButton.dataset.ownerIndex), { scrollTable: true });
+      openOwnerOrgChartFromCard(Number(contactsButton.dataset.ownerIndex), { scrollTable: true });
       return;
     }
 
