@@ -1116,6 +1116,12 @@ toolbarDropdowns.forEach((dropdown) => {
   });
 });
 
+showBrandLogosToggleOption?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  setShowBrandLogos(!showBrandLogos);
+});
+
 if (toolbarDropdowns.length) {
   document.addEventListener("click", (event) => {
     const openDropdown = toolbarDropdowns.find((dropdown) => dropdown.open);

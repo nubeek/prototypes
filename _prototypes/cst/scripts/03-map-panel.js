@@ -2519,6 +2519,38 @@ function initializeOwnersMap() {
   });
 }
 
+function getOwnersMapLogoMinZoom() {
+  return showBrandLogos ? 0 : MAP_LOGO_MIN_ZOOM;
+}
+
+function syncShowBrandLogosToggleOption() {
+  showBrandLogosToggleOption?.setAttribute("aria-checked", String(showBrandLogos));
+}
+
+function syncOwnersMapBrandLogoZoom() {
+  if (!ownersMap?.getLayer("owner-points")) return;
+
+  const logoMinZoom = getOwnersMapLogoMinZoom();
+  const circleVisibility = showBrandLogos ? "none" : "visible";
+
+  OWNERS_MAP_CIRCLE_LAYER_IDS.forEach((layerId) => {
+    if (!ownersMap.getLayer(layerId)) return;
+    ownersMap.setLayoutProperty(layerId, "visibility", circleVisibility);
+  });
+
+  OWNERS_MAP_LOGO_LAYER_IDS.forEach((layerId) => {
+    if (!ownersMap.getLayer(layerId)) return;
+    ownersMap.setLayerZoomRange(layerId, logoMinZoom, 24);
+  });
+}
+
+function setShowBrandLogos(enabled, { persist = true } = {}) {
+  showBrandLogos = Boolean(enabled);
+  syncShowBrandLogosToggleOption();
+  syncOwnersMapBrandLogoZoom();
+  if (persist) persistViewSettings();
+}
+
 function createOwnersMap(mapStyle) {
   if (ownersMapInitialized || !window.mapboxgl || !HAS_MAPBOX_ACCESS_TOKEN) return;
 
@@ -2618,6 +2650,7 @@ function createOwnersMap(mapStyle) {
       maxzoom: MAP_LOGO_MIN_ZOOM,
       filter: getMapPointBaseLayerFilter(),
       layout: {
+        visibility: showBrandLogos ? "none" : "visible",
         "circle-sort-key": getOwnersMapPointSortKeyExpression()
       },
       paint: {
@@ -2641,6 +2674,7 @@ function createOwnersMap(mapStyle) {
       maxzoom: MAP_LOGO_MIN_ZOOM,
       filter: getMapPointHoverLayerFilter(),
       layout: {
+        visibility: showBrandLogos ? "none" : "visible",
         "circle-sort-key": getOwnersMapPointSortKeyExpression()
       },
       paint: {
@@ -2661,7 +2695,7 @@ function createOwnersMap(mapStyle) {
       id: "owner-points-logos",
       type: "symbol",
       source: "owner-points",
-      minzoom: MAP_LOGO_MIN_ZOOM,
+      minzoom: getOwnersMapLogoMinZoom(),
       filter: getMapPointBaseLayerFilter(),
       layout: {
         "icon-image": ["get", "logoImageId"],
@@ -2682,7 +2716,7 @@ function createOwnersMap(mapStyle) {
       id: "owner-points-logos-hover",
       type: "symbol",
       source: "owner-points",
-      minzoom: MAP_LOGO_MIN_ZOOM,
+      minzoom: getOwnersMapLogoMinZoom(),
       filter: getMapPointHoverLayerFilter(),
       layout: {
         "icon-image": ["get", "logoImageId"],

@@ -76,6 +76,7 @@ function getCurrentViewSettings() {
     readerMode: readerModeActive,
     startScreen: Boolean(card?.classList.contains("is-splash-open")),
     tableView: currentTableView,
+    showBrandLogos: Boolean(showBrandLogos),
     filters: {
       open: Boolean(card?.classList.contains("is-filter-open")),
       sections: getFilterSectionSettings(),
@@ -192,6 +193,7 @@ function restoreSavedOptionSettings(settings) {
   reduceMotionEnabled = Boolean(window.wefranchReduceMotion?.isEnabled?.() || document.body.classList.contains("reduce-motion"));
   syncReduceMotionToggleOption();
   syncReduceMotionStateClass();
+  setShowBrandLogos(Boolean(settings?.showBrandLogos), { persist: false });
   refreshOwnersMapPointData();
 }
 
@@ -502,6 +504,7 @@ function resetViewSettings() {
   try {
     removeSavedViewSettings();
     reduceMotionEnabled = Boolean(window.wefranchReduceMotion?.isEnabled?.() || document.body.classList.contains("reduce-motion"));
+    setShowBrandLogos(false, { persist: false });
     sortState = {
       columns: [{ key: "locations", direction: "descending" }]
     };

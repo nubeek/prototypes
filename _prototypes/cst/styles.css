@@ -2217,7 +2217,6 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   color: var(--color-text-muted);
 }
 
-.org-collapse-button img,
 .org-report-count img {
   width: 12px;
   height: 12px;
@@ -2248,6 +2247,11 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   min-height: 118px;
 }
 
+.org-node-row-single:not(:has(.org-report-count)),
+.org-node-row-roots:not(:has(.org-report-count)) {
+  min-height: 0;
+}
+
 .org-node-row-roots {
   align-items: flex-start;
   column-gap: 38px;
@@ -2267,6 +2271,7 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
 }
 
 .org-person-card {
+  --org-card-leaf-pad-bottom: 12px;
   width: 200px;
   max-width: 200px;
   min-height: 118px;
@@ -2280,6 +2285,13 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   min-width: 0;
   cursor: pointer;
   transition: opacity 180ms ease;
+}
+
+/* The report count overlaps the card bottom. A person with no reports
+   does not need that clearance, so the white box ends under the title. */
+.org-person-card:not(:has(.org-report-count)) {
+  min-height: 0;
+  padding-bottom: var(--org-card-leaf-pad-bottom);
 }
 
 .org-person-card.is-inactive-branch {
@@ -2378,6 +2390,12 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   color: #111;
 }
 
+.org-report-count.is-collapsed:hover,
+.org-report-count.is-collapsed:active {
+  background: #050505;
+  color: #fff;
+}
+
 .org-report-count.is-expanded img {
   filter: invert(1);
   transform: rotate(180deg);
@@ -2386,6 +2404,11 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
 .org-report-count.is-collapsed img {
   filter: brightness(0) saturate(100%) invert(47%) sepia(0%) saturate(0%) hue-rotate(176deg) brightness(98%) contrast(91%);
   transform: rotate(0deg);
+}
+
+.org-report-count.is-collapsed:hover img,
+.org-report-count.is-collapsed:active img {
+  filter: invert(1);
 }
 
 .org-report-section {
@@ -2471,30 +2494,54 @@ a.owner-detail-franchise:focus-visible .owner-detail-franchise-name {
   font-weight: 700;
 }
 
-.org-collapse-button {
+.org-collapse-button.ui-button-ghost {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
   flex: 0 0 auto;
-  border: 0;
+  height: auto;
+  min-height: 0;
+  padding: 9px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: #111;
-  font: inherit;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  padding: 0;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
   cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
-.org-collapse-button img {
-  filter: brightness(0) saturate(100%) invert(67%) sepia(0%) saturate(0%) hue-rotate(153deg) brightness(93%) contrast(89%);
+.org-collapse-button.ui-button-ghost:hover,
+.org-collapse-button.ui-button-ghost:active {
+  background: var(--color-surface-control);
+  color: var(--color-text);
 }
 
-.org-collapse-button.is-expanded img {
+.org-collapse-button:focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+}
+
+.org-collapse-button__chevron {
+  display: block;
+  width: 11px;
+  height: 6px;
+  flex: 0 0 auto;
+  filter: var(--color-chevron-soft);
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.org-collapse-button:hover .org-collapse-button__chevron,
+.org-collapse-button:active .org-collapse-button__chevron {
+  filter: brightness(0) saturate(100%);
+}
+
+.org-collapse-button.is-expanded .org-collapse-button__chevron {
   transform: rotate(180deg);
 }
 
-.org-collapse-button.is-collapsed img {
+.org-collapse-button.is-collapsed .org-collapse-button__chevron {
   transform: rotate(0deg);
 }
 
@@ -3200,6 +3247,20 @@ h1 {
 
 .toolbar-dropdown-option[aria-checked="true"] .toolbar-dropdown-label {
   font-weight: 500;
+}
+
+#toolbarMenuDropdown > .toolbar-dropdown-menu {
+  width: max-content;
+  min-width: 200px;
+}
+
+.toolbar-dropdown-toggle-option .toolbar-dropdown-label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+}
+
+.toolbar-dropdown-toggle-option[aria-checked="true"] .toolbar-dropdown-label {
+  font-weight: 400;
 }
 
 .toolbar-submenu {
@@ -5457,14 +5518,16 @@ a.franchise-name:focus-visible {
     font-size: 8px;
   }
 
-  .org-collapse-button {
+  .org-collapse-button.ui-button-ghost {
     gap: 5px;
+    padding: 5px 7px;
     font-size: 12px;
   }
 
   .org-person-card,
   .org-person-card-root,
   .org-person-card-primary {
+    --org-card-leaf-pad-bottom: 9px;
     width: 124px;
     min-height: 80px;
     padding: 28px 6px 9px;
@@ -5579,6 +5642,7 @@ a.franchise-name:focus-visible {
   .org-person-card-root,
   .org-person-card-primary,
   .org-person-card-child {
+    --org-card-leaf-pad-bottom: 10px;
     width: calc((100% - 8px) / 2);
     max-width: 136px;
     min-width: 0;
@@ -5651,8 +5715,9 @@ a.franchise-name:focus-visible {
     font-size: 8px;
   }
 
-  .org-collapse-button {
+  .org-collapse-button.ui-button-ghost {
     gap: 5px;
+    padding: 5px 7px;
     font-size: 12px;
   }
 }
@@ -5678,6 +5743,7 @@ a.franchise-name:focus-visible {
   .org-person-card-root,
   .org-person-card-primary,
   .org-person-card-child {
+    --org-card-leaf-pad-bottom: 9px;
     width: calc((100% - 6px) / 2);
     max-width: 124px;
     min-height: 80px;
@@ -5745,8 +5811,9 @@ a.franchise-name:focus-visible {
     font-size: 7px;
   }
 
-  .org-collapse-button {
+  .org-collapse-button.ui-button-ghost {
     gap: 4px;
+    padding: 4px 6px;
     font-size: 10px;
   }
 }
@@ -5772,6 +5839,7 @@ a.franchise-name:focus-visible {
   .org-person-card-root,
   .org-person-card-primary,
   .org-person-card-child {
+    --org-card-leaf-pad-bottom: 8px;
     width: calc((100% - 6px) / 2);
     max-width: 112px;
     min-height: 72px;
@@ -5839,8 +5907,9 @@ a.franchise-name:focus-visible {
     font-size: 6px;
   }
 
-  .org-collapse-button {
+  .org-collapse-button.ui-button-ghost {
     gap: 3px;
+    padding: 3px 5px;
     font-size: 9px;
   }
 }

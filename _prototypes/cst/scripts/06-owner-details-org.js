@@ -438,10 +438,7 @@ function syncOrgCollapsedUi(ownerIndex, nodeId) {
       toggleButton.setAttribute("aria-expanded", String(!isCollapsed));
 
       if (toggleButton.classList.contains("org-collapse-button")) {
-        toggleButton.innerHTML = `
-          ${isCollapsed ? "Expand" : "Collapse"}
-          <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
-        `;
+        toggleButton.innerHTML = getOrgCollapseButtonContents(isCollapsed);
       }
     });
 
@@ -500,6 +497,13 @@ function getOrgCard(node, type = "default", nodes = [], ownerIndex = null) {
   `;
 }
 
+function getOrgCollapseButtonContents(isCollapsed) {
+  return `
+    <span class="org-collapse-button__label">${isCollapsed ? "Expand" : "Collapse"}</span>
+    <img class="org-collapse-button__chevron" src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+  `;
+}
+
 function getOrgBranchHeader(node, ownerIndex) {
   const isCollapsed = isOrgNodeCollapsed(ownerIndex, node.id);
 
@@ -514,15 +518,14 @@ function getOrgBranchHeader(node, ownerIndex) {
         <span>${node.name}</span>
       </div>
       <button
-        class="ui-control ui-text-button org-collapse-button ${isCollapsed ? "is-collapsed" : "is-expanded"}"
+        class="ui-control ui-button-ghost org-collapse-button ${isCollapsed ? "is-collapsed" : "is-expanded"}"
         type="button"
         data-org-node-id="${node.id}"
         data-owner-index="${ownerIndex}"
         aria-expanded="${String(!isCollapsed)}"
         aria-label="${isCollapsed ? "Expand" : "Collapse"} reports for ${node.name}"
       >
-        ${isCollapsed ? "Expand" : "Collapse"}
-        <img src="../../assets/icons/chevron.svg" alt="" aria-hidden="true">
+        ${getOrgCollapseButtonContents(isCollapsed)}
       </button>
     </div>
   `;

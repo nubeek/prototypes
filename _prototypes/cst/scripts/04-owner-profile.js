@@ -308,7 +308,8 @@ function getOwnerRawRows(ownerIndex) {
       ? node.location
       : getProfileLocation(owner, getRawDataLocation(ownerIndex, rowIndex), rowIndex),
     email: node.email || getRawDataEmail(node.name, owner),
-    phone: node.phone || getRawDataPhone(ownerIndex, rowIndex)
+    phone: node.phone || getRawDataPhone(ownerIndex, rowIndex),
+    linkedinUrl: node.linkedinUrl || ""
   }));
 }
 
@@ -404,6 +405,7 @@ function getPersonProfileFromRawRow(ownerIndex, rowIndex) {
     title: row.title,
     email: row.email,
     phone: row.phone,
+    linkedinUrl: row.linkedinUrl || "",
     location: row.location
   };
 }
@@ -446,7 +448,12 @@ function getPersonProfileFromOwnerContact(ownerIndex) {
     title: matchingRow?.title || "Prospect",
     email: owner.email || matchingRow?.email || "",
     phone: matchingRow?.phone || getRawDataPhone(ownerIndex, 0),
-    location: matchingRow?.location || getProfileLocation(owner, getRawDataLocation(ownerIndex, 0), 0)
+    linkedinUrl: matchingRow?.linkedinUrl || owner.linkedinUrl || "",
+    // An org node can record location as unknown (""). That must win over a
+    // store address picked from the unit list.
+    location: matchingRow
+      ? matchingRow.location
+      : getProfileLocation(owner, getRawDataLocation(ownerIndex, 0), 0)
   };
 }
 
@@ -473,12 +480,19 @@ function renderPersonProfile(profile) {
       </div>
       <div class="profile-modal-field profile-modal-field-full">
         <span>Email</span>
-        <a class="ui-link ui-ellipsis" href="mailto:${profile.email}">${profile.email}</a>
+        ${profile.email && profile.email !== "–"
+          ? `<a class="ui-link ui-ellipsis" href="mailto:${profile.email}">${profile.email}</a>`
+          : `<strong class="dataset-empty-value">–</strong>`}
       </div>
       <div class="profile-modal-field">
         <span>Phone number</span>
-        <strong>${profile.phone}</strong>
+        <strong class="${profile.phone && profile.phone !== "–" ? "" : "dataset-empty-value"}">${profile.phone && profile.phone !== "–" ? profile.phone : "–"}</strong>
       </div>
+      ${profile.linkedinUrl ? `
+      <div class="profile-modal-field profile-modal-field-full">
+        <span>LinkedIn</span>
+        <a class="ui-link ui-ellipsis" href="${profile.linkedinUrl}" target="_blank" rel="noreferrer noopener">Profile</a>
+      </div>` : ""}
       <div class="profile-modal-field">
         <span>Location</span>
         <strong class="${profile.location ? "" : "dataset-empty-value"}">${profile.location || "–"}</strong>

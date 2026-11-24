@@ -328,7 +328,8 @@
         title: node.title,
         reportsTo,
         ...(node.email ? { email: node.email } : {}),
-        ...(node.phone ? { phone: node.phone } : {})
+        ...(node.phone ? { phone: node.phone } : {}),
+        ...(node.linkedinUrl ? { linkedinUrl: node.linkedinUrl } : {})
       });
       flattenOrgChart(node.children, publicId, id, flattened);
     });
@@ -379,7 +380,8 @@
   function buildUnits(dumpOwner, franchises, categoryId) {
     const locations = window.cstDumpLocations || {};
 
-    return (dumpOwner.units || []).map(([lat, lng, cstUnitId, unitLabel], unitIndex) => {
+    return (dumpOwner.units || []).map((unit, unitIndex) => {
+      const [lat, lng, cstUnitId, unitLabel, unitName, unitPhone] = unit;
       // CST points have no concept. Cycle the owner's brands so each unit can
       // hold one franchise colour on the map. Owner-level filters still read
       // the full `franchises` list.
@@ -393,10 +395,11 @@
       return {
         id: `${dumpOwner.publicId}-unit-${cstUnitId ?? unitIndex}`,
         cstUnitId,
-        // No unit-level contact or address exists in the dump.
-        name: "",
+        // The dump's map points have no name or phone. A later tuple may
+        // supply a store name and phone, as MBN Brands does.
+        name: unitName || "",
         email: "",
-        phone: "",
+        phone: unitPhone || "",
         franchise,
         franchises,
         color,
