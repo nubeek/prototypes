@@ -227,13 +227,14 @@ const MAP_LOGO_DISPLAY_SIZE = 32;
 const MAP_LOGO_TEXTURE_PIXEL_RATIO = 2;
 const MAP_LOGO_HOVER_SCALE = 1.16;
 // Show-brand-logos mode grows marks with the camera: 18px and no shadow at the
-// country view, 42px and half the usual shadow once the view is in close.
+// country view, 42px with a light shadow once the view is in close.
 const MAP_LOGO_ZOOMED_OUT_SIZE = 18;
 const MAP_LOGO_ZOOMED_IN_SIZE = 42;
 const MAP_LOGO_DYNAMIC_ZOOM_OUT = 4;
 const MAP_LOGO_DYNAMIC_ZOOM_IN = 10;
-const MAP_LOGO_SHADOW_COLOR = "rgba(17, 17, 17, 0.22)";
-const MAP_LOGO_SHADOW_ZOOMED_IN_OPACITY_SCALE = 0.5;
+const MAP_LOGO_SHADOW_COLOR = "rgba(0, 0, 0, 0.22)";
+const MAP_LOGO_SHADOW_OPACITY_MID = 0.05;
+const MAP_LOGO_SHADOW_OPACITY_MAX = 0.1;
 const MAP_POINT_OPACITY = 0.78;
 const MAP_POINT_DIM_COLOR = "#c8c8c8";
 const MAP_POINT_DIM_OPACITY = 0.38;

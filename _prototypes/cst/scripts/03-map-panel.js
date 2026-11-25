@@ -366,8 +366,8 @@ function getOwnersMapLogoTextureMetrics(displaySize = MAP_LOGO_DISPLAY_SIZE) {
   const pixelRatio = MAP_LOGO_TEXTURE_PIXEL_RATIO;
   const logoSize = displaySize * pixelRatio;
   const radius = (8 / MAP_LOGO_DISPLAY_SIZE) * logoSize;
-  const shadowBlur = 6 * pixelRatio;
-  const shadowOffsetY = 2 * pixelRatio;
+  const shadowBlur = 8 * pixelRatio;
+  const shadowOffsetY = 4 * pixelRatio;
   const padding = Math.ceil(shadowBlur + shadowOffsetY + pixelRatio);
 
   return {
@@ -2632,24 +2632,26 @@ function getOwnersMapLogoIconSizeExpression(hover = false) {
   ];
 }
 
-function getOwnersMapPresentedLogoOpacityExpression(logoOpacity, { shadow = false } = {}) {
-  if (!shadow) return logoOpacity;
+function getOwnersMapBrandLogoShadowOpacityExpression() {
   if (!showBrandLogos) return 0;
 
-  // Zoom has to be the top-level interpolate input. Nesting it inside another
-  // operator is rejected, so the dimming multiplier lives on the zoomed-in stop.
-  const zoomedInOpacity = typeof logoOpacity === "number"
-    ? logoOpacity * MAP_LOGO_SHADOW_ZOOMED_IN_OPACITY_SCALE
-    : ["*", logoOpacity, MAP_LOGO_SHADOW_ZOOMED_IN_OPACITY_SCALE];
+  const zoomOpacity = [
+    "step",
+    ["zoom"],
+    0,
+    MAP_LOGO_DYNAMIC_ZOOM_OUT,
+    MAP_LOGO_SHADOW_OPACITY_MID,
+    MAP_LOGO_DYNAMIC_ZOOM_IN,
+    MAP_LOGO_SHADOW_OPACITY_MAX
+  ];
+
+  if (!ownersMapRevealActive) return zoomOpacity;
 
   return [
-    "interpolate",
-    ["linear"],
-    ["zoom"],
-    MAP_LOGO_DYNAMIC_ZOOM_OUT,
-    0,
-    MAP_LOGO_DYNAMIC_ZOOM_IN,
-    zoomedInOpacity
+    "case",
+    ["boolean", ["feature-state", "reveal"], false],
+    zoomOpacity,
+    0
   ];
 }
 
@@ -2663,13 +2665,13 @@ function forEachOwnersMapLogoSymbolLayer(callback) {
 function applyOwnersMapLogoOpacity(logoOpacity, transition) {
   if (!ownersMap) return;
 
+  const shadowOpacity = logoOpacity === 0
+    ? 0
+    : getOwnersMapBrandLogoShadowOpacityExpression();
+
   OWNERS_MAP_LOGO_LAYER_IDS.forEach((layerId) => {
     if (!ownersMap.getLayer(layerId)) return;
-    ownersMap.setPaintProperty(
-      layerId,
-      "icon-opacity",
-      getOwnersMapPresentedLogoOpacityExpression(logoOpacity)
-    );
+    ownersMap.setPaintProperty(layerId, "icon-opacity", logoOpacity);
     if (transition) {
       ownersMap.setPaintProperty(layerId, "icon-opacity-transition", transition);
     }
@@ -2677,11 +2679,7 @@ function applyOwnersMapLogoOpacity(logoOpacity, transition) {
 
   OWNERS_MAP_LOGO_SHADOW_LAYER_IDS.forEach((layerId) => {
     if (!ownersMap.getLayer(layerId)) return;
-    ownersMap.setPaintProperty(
-      layerId,
-      "icon-opacity",
-      getOwnersMapPresentedLogoOpacityExpression(logoOpacity, { shadow: true })
-    );
+    ownersMap.setPaintProperty(layerId, "icon-opacity", shadowOpacity);
     if (transition) {
       ownersMap.setPaintProperty(layerId, "icon-opacity-transition", transition);
     }
@@ -2723,10 +2721,9 @@ function addOwnersMapPointSymbolLayer(id, { hover = false, shadow = false } = {}
       "symbol-sort-key": getOwnersMapPointSortKeyExpression()
     },
     paint: {
-      "icon-opacity": getOwnersMapPresentedLogoOpacityExpression(
-        getOwnersMapLogoOpacityExpression(),
-        { shadow }
-      ),
+      "icon-opacity": shadow
+        ? getOwnersMapBrandLogoShadowOpacityExpression()
+        : getOwnersMapLogoOpacityExpression(),
       "icon-opacity-transition": getOwnersMapPointOpacityTransition()
     }
   });
