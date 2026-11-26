@@ -35,7 +35,7 @@
     .trim();
 
   const altNamesText = (logo) => {
-    const names = logo?.["alt-names"];
+    const names = logo?.alt_names;
     return Array.isArray(names) ? names.join(" ") : "";
   };
 

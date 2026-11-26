@@ -2,172 +2,182 @@
 // marks are still JPG. The lookup picks the real extension so a page does not
 // request a .jpg that was saved as .png.
 // Path is relative to both _prototypes/cst/ and _prototypes/territories/.
-// Name aliases come from alt-names on franchisee logos in ../../logos/api.json.
-const LOGO_DIR = "../../assets/logos/franchisees/";
-const LOGO_API_URL = new URL("../../logos/api.json", window.location.href).href;
-const OWNER_LOGO_FILES = [
-  "aligned-fitness-holdings.png",
-  "ambrosia-qsr.png",
-  "ampex-brands.jpg",
-  "american-west.png",
-  "applegreen.png",
-  "aramark-services-inc.png",
-  "argonne-capital.jpg",
-  "artemis-wax.png",
-  "atticus-franchise-group.png",
-  "aurify-kingstar.png",
-  "b-and-g-food-enterprises-llc.png",
-  "bandon-holdings.png",
-  "baseline-mayfair.jpg",
-  "black-duck-partners.jpg",
-  "bluemont-group-llc.png",
-  "chaac-foods-restaurants.png",
-  "chenega-corporation.png",
-  "chunara-group-of-companies.png",
-  "compass-group-usa.png",
-  "continental-superior-management-group.png",
-  "cr-fitness-holdings.png",
-  "denco-enterprises-inc.png",
-  "devs-foods.png",
-  "dhanani-group.png",
-  "diya-raishaan-holdings.jpg",
-  "doherty-enterprises.png",
-  "dyne-hospitality-group.png",
-  "easy-mile-fitness.jpg",
-  "emerge-inc.jpg",
-  "epic-fitness.jpg",
-  "excel-fitness-holdings.png",
-  "fitness-ventures-llc.png",
-  "flynn-group.jpg",
-  "freeland-group-restaurants.jpg",
-  "gilligan-company.jpg",
-  "gps-hospitality.png",
-  "grand-fitness-partners.png",
-  "grand-mere-restaurant-group.jpg",
-  "hamra-enterprises.png",
-  "international-restaurant-management-group.png",
-  "janjer-enterprises-inc.png",
-  "jm-lawrence-llc.jpg",
-  "jjb-brands.jpg",
-  "jones-petroleum.png",
-  "kidscorp.jpg",
-  "k-mac-enterprises-inc.png",
-  "kk-corporation.png",
-  "l5-fitness.jpg",
-  "love-s-travel-stops.png",
-  "mbn-brands.png",
-  "michell-mcdonalds-group.jpg",
-  "national-fitness-partners.png",
-  "north-american-wax-company.png",
-  "ohana-growth-partners.jpg",
-  "olympus-partners.jpg",
-  "omega-fitness.png",
-  "pacific-bells.png",
-  "pcrk-group.png",
-  "pilot-travel-centers.png",
-  "pmg-travel-plaza.png",
-  "pinnacle.jpg",
-  "planet-fitness-corporate.jpg",
-  "premium-loaves.png",
-  "princess-street-partners.png",
-  "quality-restaurant-group.jpg",
-  "rackson-restaurants-llc.png",
-  "riser-fitness.png",
-  "romulus-restaurants-l-l-c.png",
-  "sailormen.png",
-  "sbj.jpg",
-  "srg-plk.png",
-  "sizzling-platter.png",
-  "sodexo-operations.png",
-  "southpaw.png",
-  "sphinx-franchise-holdings.jpg",
-  "spartan-fitness-holdings.jpg",
-  "spin-the-planet.png",
-  "sscp-management.png",
-  "sun-holdings.png",
-  "sunshine-restaurant-partners.png",
-  "ta-operating-llc.png",
-  "taymax-group.png",
-  "team-lyders.png",
-  "team-schostak-family-restaurants.png",
-  "the-phoenix-organization.png",
-  "the-rose-group.png",
-  "the-wolak-group.png",
-  "tomey-group-llc.png",
-  "towerbrook.jpg",
-  "trilantic-capital-management.jpg",
-  "united-fp.jpg",
-  "victory-marketing.png",
-  "wks-restaurant-group.png",
-  "york-capital-management.jpg"
-];
-const ownerLogoFileBySlug = Object.fromEntries(
-  OWNER_LOGO_FILES.map((file) => [file.replace(/\.[^.]+$/, ""), file])
-);
-const ownerLogoAliases = {};
-const OWNER_LOGO_LEGAL_SUFFIX = /-(inc|llc|l-l-c|l-p|corp|corporation)$/;
-
-function getOwnerLogoSlug(name) {
-  return String(name || "owner")
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function applyFranchiseeLogoCatalog(api) {
-  const franchiseeLogos = (api?.logos || []).filter(
-    (logo) => logo.collection === "franchisees" && logo.file
+// Name aliases come from alt_names on franchisee logos in ../../logos/api.json.
+(function () {
+  const LOGO_DIR = "../../assets/logos/franchisees/";
+  const LOGO_API_URL = new URL("../../logos/api.json", window.location.href).href;
+  const OWNER_LOGO_FILES = [
+    "aligned-fitness-holdings.png",
+    "ambrosia-qsr.png",
+    "ampex-brands.jpg",
+    "american-west.png",
+    "applegreen.png",
+    "aramark-services-inc.png",
+    "argonne-capital.jpg",
+    "artemis-wax.png",
+    "atticus-franchise-group.png",
+    "aurify-kingstar.png",
+    "b-and-g-food-enterprises-llc.png",
+    "bandon-holdings.png",
+    "baseline-mayfair.jpg",
+    "black-duck-partners.jpg",
+    "bluemont-group-llc.png",
+    "chaac-foods-restaurants.png",
+    "chenega-corporation.png",
+    "chunara-group-of-companies.png",
+    "compass-group-usa.png",
+    "continental-superior-management-group.png",
+    "cr-fitness-holdings.png",
+    "denco-enterprises-inc.png",
+    "devs-foods.png",
+    "dhanani-group.png",
+    "diya-raishaan-holdings.jpg",
+    "doherty-enterprises.png",
+    "dyne-hospitality-group.png",
+    "easy-mile-fitness.jpg",
+    "emerge-inc.jpg",
+    "epic-fitness.jpg",
+    "excel-fitness-holdings.png",
+    "fitness-ventures-llc.png",
+    "flynn-group.jpg",
+    "freeland-group-restaurants.jpg",
+    "gilligan-company.jpg",
+    "gps-hospitality.png",
+    "grand-fitness-partners.png",
+    "grand-mere-restaurant-group.jpg",
+    "hamra-enterprises.png",
+    "international-restaurant-management-group.png",
+    "janjer-enterprises-inc.png",
+    "jm-lawrence-llc.jpg",
+    "jjb-brands.jpg",
+    "jones-petroleum.png",
+    "kidscorp.jpg",
+    "k-mac-enterprises-inc.png",
+    "kk-corporation.png",
+    "l5-fitness.jpg",
+    "love-s-travel-stops.png",
+    "mbn-brands.png",
+    "michell-mcdonalds-group.jpg",
+    "national-fitness-partners.png",
+    "north-american-wax-company.png",
+    "ohana-growth-partners.jpg",
+    "olympus-partners.jpg",
+    "omega-fitness.png",
+    "pacific-bells.png",
+    "pcrk-group.png",
+    "pilot-travel-centers.png",
+    "pmg-travel-plaza.png",
+    "pinnacle.jpg",
+    "planet-fitness-corporate.jpg",
+    "premium-loaves.png",
+    "princess-street-partners.png",
+    "quality-restaurant-group.jpg",
+    "rackson-restaurants-llc.png",
+    "riser-fitness.png",
+    "romulus-restaurants-l-l-c.png",
+    "sailormen.png",
+    "sbj.jpg",
+    "srg-plk.png",
+    "sizzling-platter.png",
+    "sodexo-operations.png",
+    "southpaw.png",
+    "sphinx-franchise-holdings.jpg",
+    "spartan-fitness-holdings.jpg",
+    "spin-the-planet.png",
+    "sscp-management.png",
+    "sun-holdings.png",
+    "sunshine-restaurant-partners.png",
+    "ta-operating-llc.png",
+    "taymax-group.png",
+    "team-lyders.png",
+    "team-schostak-family-restaurants.png",
+    "the-phoenix-organization.png",
+    "the-rose-group.png",
+    "the-wolak-group.png",
+    "tomey-group-llc.png",
+    "towerbrook.jpg",
+    "trilantic-capital-management.jpg",
+    "united-fp.jpg",
+    "victory-marketing.png",
+    "wks-restaurant-group.png",
+    "york-capital-management.jpg"
+  ];
+  const ownerLogoFileBySlug = Object.fromEntries(
+    OWNER_LOGO_FILES.map((file) => [file.replace(/\.[^.]+$/, ""), file])
   );
+  const ownerLogoAliases = {};
+  const OWNER_LOGO_LEGAL_SUFFIX = /-(inc|llc|l-l-c|l-p|corp|corporation)$/;
 
-  franchiseeLogos.forEach((logo) => {
-    const stem = logo.file.replace(/\.[^.]+$/, "");
-    if (!ownerLogoFileBySlug[stem]) {
-      ownerLogoFileBySlug[stem] = logo.file;
-    }
-  });
+  function getOwnerLogoSlug(name) {
+    return String(name || "owner")
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
 
-  franchiseeLogos.forEach((logo) => {
-    const altNames = logo["alt-names"];
-    if (!Array.isArray(altNames)) return;
-    altNames.forEach((altName) => {
-      const slug = getOwnerLogoSlug(altName);
-      if (slug) ownerLogoAliases[slug] = logo.file;
+  function applyFranchiseeLogoCatalog(api) {
+    const franchiseeLogos = (api?.logos || []).filter(
+      (logo) => logo.collection === "franchisees" && logo.file
+    );
+
+    franchiseeLogos.forEach((logo) => {
+      const stem = logo.file.replace(/\.[^.]+$/, "");
+      if (!ownerLogoFileBySlug[stem]) {
+        ownerLogoFileBySlug[stem] = logo.file;
+      }
     });
-  });
-}
 
-function resolveOwnerLogoFile(slug) {
-  if (ownerLogoAliases[slug]) return ownerLogoAliases[slug];
-  if (ownerLogoFileBySlug[slug]) return ownerLogoFileBySlug[slug];
-
-  let stripped = slug;
-  while (OWNER_LOGO_LEGAL_SUFFIX.test(stripped)) {
-    stripped = stripped.replace(OWNER_LOGO_LEGAL_SUFFIX, "");
-    if (ownerLogoFileBySlug[stripped]) return ownerLogoFileBySlug[stripped];
+    franchiseeLogos.forEach((logo) => {
+      const labels = [
+        ...(logo.name ? [logo.name] : []),
+        ...(Array.isArray(logo.alt_names) ? logo.alt_names : [])
+      ];
+      labels.forEach((label) => {
+        const slug = getOwnerLogoSlug(label);
+        if (!slug) return;
+        if (ownerLogoFileBySlug[slug] === logo.file) return;
+        ownerLogoAliases[slug] = logo.file;
+      });
+    });
   }
 
-  return Object.entries(ownerLogoFileBySlug)
-    .filter(([stem]) => slug.startsWith(`${stem}-`) || stem.startsWith(`${slug}-`))
-    .sort((left, right) => right[0].length - left[0].length)[0]?.[1]
-    || null;
-}
-
-window.resolveFranchiseeLogoSrc = function resolveFranchiseeLogoSrc(name) {
-  const file = resolveOwnerLogoFile(getOwnerLogoSlug(name));
-  return file ? `${LOGO_DIR}${file}` : "";
-};
-
-window.franchiseeLogoCatalogReady = (async function loadFranchiseeLogoCatalog() {
-  try {
-    const response = await fetch(LOGO_API_URL);
-    if (!response.ok) {
-      throw new Error(`Logo API responded ${response.status}`);
+  function loadFranchiseeLogoCatalogSync() {
+    try {
+      const request = new XMLHttpRequest();
+      request.open("GET", LOGO_API_URL, false);
+      request.send();
+      if (request.status < 200 || request.status >= 300) {
+        throw new Error(`Logo API responded ${request.status}`);
+      }
+      applyFranchiseeLogoCatalog(JSON.parse(request.responseText));
+    } catch (error) {
+      console.warn("[franchisee-logos] Could not load logos API; using local filenames only.", error);
     }
-    applyFranchiseeLogoCatalog(await response.json());
-  } catch (error) {
-    console.warn("[franchisee-logos] Could not load logos API; using local filenames only.", error);
   }
-})();
 
-await window.franchiseeLogoCatalogReady;
+  function resolveOwnerLogoFile(slug) {
+    if (ownerLogoAliases[slug]) return ownerLogoAliases[slug];
+    if (ownerLogoFileBySlug[slug]) return ownerLogoFileBySlug[slug];
+
+    let stripped = slug;
+    while (OWNER_LOGO_LEGAL_SUFFIX.test(stripped)) {
+      stripped = stripped.replace(OWNER_LOGO_LEGAL_SUFFIX, "");
+      if (ownerLogoFileBySlug[stripped]) return ownerLogoFileBySlug[stripped];
+    }
+
+    return Object.entries(ownerLogoFileBySlug)
+      .filter(([stem]) => slug.startsWith(`${stem}-`) || stem.startsWith(`${slug}-`))
+      .sort((left, right) => right[0].length - left[0].length)[0]?.[1]
+      || null;
+  }
+
+  loadFranchiseeLogoCatalogSync();
+
+  window.resolveFranchiseeLogoSrc = function resolveFranchiseeLogoSrc(name) {
+    const file = resolveOwnerLogoFile(getOwnerLogoSlug(name));
+    return file ? `${LOGO_DIR}${file}` : "";
+  };
+
+  window.franchiseeLogoCatalogReady = Promise.resolve();
+}());

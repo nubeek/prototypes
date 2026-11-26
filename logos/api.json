@@ -1,6 +1,6 @@
 {
   "name": "Logo Collection",
-  "description": "Resolve each logo url against this file's URL. Each logo object includes id, collection, name, file, and url. Optional alt-names is a string array of other names the mark is known by (e.g. dataset owner names that differ from name).",
+  "description": "Resolve each logo url against this file's URL. Each logo object includes id, collection, name, file, and url. Optional alt_names is a string array of other names the mark is known by (e.g. dataset owner names that differ from name).",
   "collections": [
     {
       "id": "franchisees",
@@ -32,7 +32,7 @@
       "id": "franchisees/american-west",
       "collection": "franchisees",
       "name": "American West",
-      "alt-names": [
+      "alt_names": [
         "American West Restaurant Group"
       ],
       "file": "american-west.png",
@@ -147,7 +147,7 @@
       "id": "franchisees/continental-superior-management-group",
       "collection": "franchisees",
       "name": "Continental Superior Management Group",
-      "alt-names": [
+      "alt_names": [
         "Continental Superior Management Groups, L.P."
       ],
       "file": "continental-superior-management-group.png",
@@ -185,7 +185,7 @@
       "id": "franchisees/diya-raishaan-holdings",
       "collection": "franchisees",
       "name": "Diya & Raishaan Holdings",
-      "alt-names": [
+      "alt_names": [
         "Diya and Raishaan Holdings"
       ],
       "file": "diya-raishaan-holdings.jpg",
@@ -314,7 +314,7 @@
       "id": "franchisees/kidscorp",
       "collection": "franchisees",
       "name": "Kidscorp",
-      "alt-names": [
+      "alt_names": [
         "SVKIDS Corp."
       ],
       "file": "kidscorp.jpg",
@@ -352,9 +352,6 @@
       "id": "franchisees/michell-mcdonalds-group",
       "collection": "franchisees",
       "name": "Michell McDonald's Group",
-      "alt-names": [
-        "Michell McDonald's Group"
-      ],
       "file": "michell-mcdonalds-group.jpg",
       "url": "../assets/logos/franchisees/michell-mcdonalds-group.jpg"
     },
@@ -453,7 +450,7 @@
       "id": "franchisees/quality-restaurant-group",
       "collection": "franchisees",
       "name": "Quality Restaurant Group",
-      "alt-names": [
+      "alt_names": [
         "Quality Brand Group"
       ],
       "file": "quality-restaurant-group.jpg",
@@ -533,7 +530,7 @@
       "id": "franchisees/srg-plk",
       "collection": "franchisees",
       "name": "SRG PLK",
-      "alt-names": [
+      "alt_names": [
         "SRG PLK OpCo, LLC."
       ],
       "file": "srg-plk.png",
