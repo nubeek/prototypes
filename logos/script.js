@@ -34,6 +34,11 @@
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
+  const altNamesText = (logo) => {
+    const names = logo?.["alt-names"];
+    return Array.isArray(names) ? names.join(" ") : "";
+  };
+
   const searchQuery = () => normalizeSearch(searchInput?.value);
 
   const syncSearchChrome = () => {
@@ -66,7 +71,7 @@
         return {
           file,
           label,
-          search: normalizeSearch(`${label} ${file}`),
+          search: normalizeSearch(`${label} ${file} ${altNamesText(logo)}`),
           src: new URL(logo.url, new URL(API_URL, window.location.href)).href
         };
       })

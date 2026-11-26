@@ -1,11 +1,11 @@
 {
   "name": "Logo Collection",
-  "description": "Resolve each logo url against this file's URL.",
+  "description": "Resolve each logo url against this file's URL. Each logo object includes id, collection, name, file, and url. Optional alt-names is a string array of other names the mark is known by (e.g. dataset owner names that differ from name).",
   "collections": [
     {
       "id": "franchisees",
       "label": "Franchisees",
-      "count": 87
+      "count": 88
     },
     {
       "id": "franchises",
@@ -32,6 +32,9 @@
       "id": "franchisees/american-west",
       "collection": "franchisees",
       "name": "American West",
+      "alt-names": [
+        "American West Restaurant Group"
+      ],
       "file": "american-west.png",
       "url": "../assets/logos/franchisees/american-west.png"
     },
@@ -144,6 +147,9 @@
       "id": "franchisees/continental-superior-management-group",
       "collection": "franchisees",
       "name": "Continental Superior Management Group",
+      "alt-names": [
+        "Continental Superior Management Groups, L.P."
+      ],
       "file": "continental-superior-management-group.png",
       "url": "../assets/logos/franchisees/continental-superior-management-group.png"
     },
@@ -179,6 +185,9 @@
       "id": "franchisees/diya-raishaan-holdings",
       "collection": "franchisees",
       "name": "Diya & Raishaan Holdings",
+      "alt-names": [
+        "Diya and Raishaan Holdings"
+      ],
       "file": "diya-raishaan-holdings.jpg",
       "url": "../assets/logos/franchisees/diya-raishaan-holdings.jpg"
     },
@@ -260,6 +269,13 @@
       "url": "../assets/logos/franchisees/grand-fitness-partners.png"
     },
     {
+      "id": "franchisees/green-shot-brands",
+      "collection": "franchisees",
+      "name": "Green Shot Brands",
+      "file": "green-shot-brands.jpeg",
+      "url": "../assets/logos/franchisees/green-shot-brands.jpeg"
+    },
+    {
       "id": "franchisees/hamra-enterprises",
       "collection": "franchisees",
       "name": "Hamra Enterprises",
@@ -298,6 +314,9 @@
       "id": "franchisees/kidscorp",
       "collection": "franchisees",
       "name": "Kidscorp",
+      "alt-names": [
+        "SVKIDS Corp."
+      ],
       "file": "kidscorp.jpg",
       "url": "../assets/logos/franchisees/kidscorp.jpg"
     },
@@ -328,6 +347,16 @@
       "name": "MBN Brands",
       "file": "mbn-brands.png",
       "url": "../assets/logos/franchisees/mbn-brands.png"
+    },
+    {
+      "id": "franchisees/michell-mcdonalds-group",
+      "collection": "franchisees",
+      "name": "Michell McDonald's Group",
+      "alt-names": [
+        "Michell McDonald's Group"
+      ],
+      "file": "michell-mcdonalds-group.jpg",
+      "url": "../assets/logos/franchisees/michell-mcdonalds-group.jpg"
     },
     {
       "id": "franchisees/national-fitness-partners",
@@ -421,11 +450,14 @@
       "url": "../assets/logos/franchisees/princess-street-partners.png"
     },
     {
-      "id": "franchisees/quality-brand-group",
+      "id": "franchisees/quality-restaurant-group",
       "collection": "franchisees",
-      "name": "Quality Brand Group",
-      "file": "quality-brand-group.png",
-      "url": "../assets/logos/franchisees/quality-brand-group.png"
+      "name": "Quality Restaurant Group",
+      "alt-names": [
+        "Quality Brand Group"
+      ],
+      "file": "quality-restaurant-group.jpg",
+      "url": "../assets/logos/franchisees/quality-restaurant-group.jpg"
     },
     {
       "id": "franchisees/rackson-restaurants-llc",
@@ -501,6 +533,9 @@
       "id": "franchisees/srg-plk",
       "collection": "franchisees",
       "name": "SRG PLK",
+      "alt-names": [
+        "SRG PLK OpCo, LLC."
+      ],
       "file": "srg-plk.png",
       "url": "../assets/logos/franchisees/srg-plk.png"
     },
